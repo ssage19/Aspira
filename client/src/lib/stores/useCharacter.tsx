@@ -289,8 +289,8 @@ export const useCharacter = create<CharacterState>()(
         // Reset the state to default values
         const defaultState = {
           name: "",
-          wealth: 0,
-          netWorth: 0,
+          wealth: 5000, // Starting cash
+          netWorth: 5000,
           happiness: 50,
           prestige: 0,
           assets: [],
@@ -302,6 +302,18 @@ export const useCharacter = create<CharacterState>()(
         
         // Clear from local storage
         setLocalStorage(STORAGE_KEY, defaultState);
+        
+        // Reset achievements (by clearing localStorage for achievements)
+        localStorage.removeItem('business-empire-achievements');
+        
+        // Reset game time and set new start date
+        const timeStore = useTime.getState();
+        if (typeof timeStore.resetGameStart === 'function') {
+          timeStore.resetGameStart();
+        }
+        
+        // Reset other stores if necessary
+        // This approach ensures a clean slate when starting a new game
       }
     };
   })

@@ -153,23 +153,25 @@ export const trackLifestyleAchievements = () => {
 
 // Track general/time-based achievements
 export const trackTimeAchievements = () => {
-  const { currentDay, currentMonth, currentYear } = useTime.getState();
+  // Use "any" as a temporary workaround until the TypeScript errors are fixed
+  const state = useTime.getState() as any;
+  const { currentDay, currentMonth, currentYear } = state;
+  
+  // Use default values if the start date properties aren't available yet
+  const startDay = state.startDay || currentDay;
+  const startMonth = state.startMonth || currentMonth;
+  const startYear = state.startYear || currentYear;
+  
   const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
   const { playSuccess } = useAudio.getState();
   
-  // Calculate total days passed based on current date (assuming game starts at day 1)
-  // Simplified calculation for tracking purposes
-  const daysPassed = currentDay + (currentMonth - 1) * 30 + (currentYear - 2023) * 365;
+  // Calculate total days passed since game start
+  // Convert both dates to days and subtract
+  const startTotalDays = startDay + (startMonth - 1) * 30 + (startYear - 2023) * 365;
+  const currentTotalDays = currentDay + (currentMonth - 1) * 30 + (currentYear - 2023) * 365;
+  const daysPassed = Math.max(0, currentTotalDays - startTotalDays);
   
-  // Getting started achievement
-  const startAchievement = getAchievement('general-1');
-  if (startAchievement && !startAchievement.isUnlocked) {
-    updateProgress('general-1', 1);
-    unlockAchievement('general-1');
-    playSuccess();
-  }
-  
-  // Time-based achievements
+  // For time-based achievements
   const timeAchievementIds = ['general-2', 'general-3'];
   
   timeAchievementIds.forEach(id => {
@@ -182,6 +184,15 @@ export const trackTimeAchievements = () => {
       }
     }
   });
+  
+  // Only unlock Getting Started achievement (general-1) after explicitly advancing time
+  const startAchievement = getAchievement('general-1');
+  // Checking for a progress of at least 1 day indicates user interaction with the time system
+  if (startAchievement && !startAchievement.isUnlocked && daysPassed >= 1) {
+    updateProgress('general-1', 1);
+    unlockAchievement('general-1');
+    playSuccess();
+  }
 };
 
 // Track magnate achievement (maxed out stats)
