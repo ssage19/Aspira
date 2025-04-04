@@ -45,19 +45,21 @@ export function GameUI() {
   return (
     <div className="w-full min-h-screen pointer-events-none">
       {/* Top bar with wealth - fixed at top of viewport */}
-      <div className="fixed top-0 left-0 right-0 bg-black/60 backdrop-blur-sm text-white p-3 flex justify-between items-center pointer-events-auto z-50 transition-opacity duration-300">
+      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 text-foreground p-3 flex justify-between items-center pointer-events-auto z-50 transition-all duration-300">
         {/* Wealth indicator - most important info */}
-        <div className="flex items-center transition-all duration-300 hover:scale-105" aria-label="Current wealth and net worth">
-          <DollarSign className="mr-1 h-5 w-5 text-accessible-green" />
+        <div className="flex items-center transition-all duration-300 hover:scale-105 space-x-3" aria-label="Current wealth and net worth">
+          <div className="p-2 rounded-full bg-green-400/10 flex items-center justify-center">
+            <DollarSign className="h-5 w-5 text-green-400" />
+          </div>
           <div>
             <p className="text-xl font-bold">{formatCurrency(wealth)}</p>
-            <p className="text-xs">Net Worth: {formatCurrency(netWorth)}</p>
+            <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(netWorth)}</p>
           </div>
         </div>
         
         {/* Date - placed center */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center" aria-label="Current date">
-          <Calendar className="mr-1 h-4 w-4" />
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-secondary/40 px-4 py-2 rounded-full" aria-label="Current date">
+          <Calendar className="h-4 w-4 text-blue-400" />
           <div>
             <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
           </div>
@@ -65,32 +67,34 @@ export function GameUI() {
         
         {/* Next day button - most common action */}
         <Button 
-          variant="ghost" 
+          variant="default"
           size="sm" 
           onClick={handleAdvanceTime}
-          className="ml-2 transition-colors duration-200 hover:bg-accessible-blue/20"
+          className="button-pulse bg-blue-500/80 hover:bg-blue-600/90 text-white"
           aria-label="Advance to next day"
         >
-          <Calendar className="mr-1 h-4 w-4" />
+          <Clock className="mr-2 h-4 w-4" />
           Next Day
         </Button>
       </div>
       
       {/* Bottom navigation - fixed at bottom of viewport */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black/70 backdrop-blur-sm text-white p-3 flex justify-around pointer-events-auto z-50">
+      <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/40 text-foreground p-3 flex justify-around pointer-events-auto z-50">
         <Button 
           variant="ghost" 
           size="lg" 
           onClick={() => navigate('/')}
           onMouseEnter={() => setShowTooltip('dashboard')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 focus:ring-2 focus:ring-accessible-blue focus:ring-offset-1"
+          className="relative py-4 glass-effect hover:bg-secondary/60"
           aria-label="Go to Dashboard"
         >
-          <Briefcase className="h-6 w-6 mr-2 text-accessible-blue" />
+          <div className="p-2 rounded-full bg-blue-400/10 mr-2">
+            <Briefcase className="h-5 w-5 text-blue-400" />
+          </div>
           <span className="text-base">Dashboard</span>
           {showTooltip === 'dashboard' && (
-            <span className="absolute -top-8 bg-black/80 px-3 py-2 rounded-md text-sm font-medium animate-fade-in">
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
               Dashboard
             </span>
           )}
@@ -102,13 +106,15 @@ export function GameUI() {
           onClick={() => navigate('/investments')}
           onMouseEnter={() => setShowTooltip('investments')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 focus:ring-2 focus:ring-accessible-green focus:ring-offset-1"
+          className="relative py-4 glass-effect hover:bg-secondary/60"
           aria-label="Go to Investments"
         >
-          <ChartBar className="h-6 w-6 mr-2 text-accessible-green" />
+          <div className="p-2 rounded-full bg-green-400/10 mr-2">
+            <ChartBar className="h-5 w-5 text-green-400" />
+          </div>
           <span className="text-base">Investments</span>
           {showTooltip === 'investments' && (
-            <span className="absolute -top-8 bg-black/80 px-3 py-2 rounded-md text-sm font-medium animate-fade-in">
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
               Investments
             </span>
           )}
@@ -120,13 +126,15 @@ export function GameUI() {
           onClick={() => navigate('/properties')}
           onMouseEnter={() => setShowTooltip('properties')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 focus:ring-2 focus:ring-accessible-purple focus:ring-offset-1"
+          className="relative py-4 glass-effect hover:bg-secondary/60"
           aria-label="Go to Properties"
         >
-          <Home className="h-6 w-6 mr-2 text-accessible-purple" />
+          <div className="p-2 rounded-full bg-purple-400/10 mr-2">
+            <Home className="h-5 w-5 text-purple-400" />
+          </div>
           <span className="text-base">Properties</span>
           {showTooltip === 'properties' && (
-            <span className="absolute -top-8 bg-black/80 px-3 py-2 rounded-md text-sm font-medium animate-fade-in">
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
               Properties
             </span>
           )}
@@ -138,13 +146,15 @@ export function GameUI() {
           onClick={() => navigate('/lifestyle')}
           onMouseEnter={() => setShowTooltip('lifestyle')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 focus:ring-2 focus:ring-accessible-orange focus:ring-offset-1"
+          className="relative py-4 glass-effect hover:bg-secondary/60"
           aria-label="Go to Lifestyle"
         >
-          <ShoppingBag className="h-6 w-6 mr-2 text-accessible-orange" />
+          <div className="p-2 rounded-full bg-amber-400/10 mr-2">
+            <ShoppingBag className="h-5 w-5 text-amber-400" />
+          </div>
           <span className="text-base">Lifestyle</span>
           {showTooltip === 'lifestyle' && (
-            <span className="absolute -top-8 bg-black/80 px-3 py-2 rounded-md text-sm font-medium animate-fade-in">
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
               Lifestyle
             </span>
           )}
@@ -152,16 +162,18 @@ export function GameUI() {
         
         <Button 
           variant="ghost" 
-          size="icon" 
+          size="sm" 
           onClick={toggleMute}
           onMouseEnter={() => setShowTooltip('sound')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative h-14 w-14 rounded-full focus:ring-2 focus:ring-white focus:ring-offset-1"
+          className="relative glass-effect h-14 w-14 rounded-full p-0"
           aria-label={isMuted ? "Unmute sound" : "Mute sound"}
         >
-          {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+          <div className={`p-3 rounded-full ${isMuted ? 'bg-red-400/10' : 'bg-blue-400/10'}`}>
+            {isMuted ? <VolumeX className={`h-5 w-5 text-red-400`} /> : <Volume2 className={`h-5 w-5 text-blue-400`} />}
+          </div>
           {showTooltip === 'sound' && (
-            <span className="absolute -top-8 bg-black/80 px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap animate-fade-in">
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
               {isMuted ? "Unmute Sound" : "Mute Sound"}
             </span>
           )}

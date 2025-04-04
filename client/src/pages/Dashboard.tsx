@@ -17,7 +17,8 @@ import {
   ArrowRight,
   Settings,
   AlertTriangle,
-  RefreshCw
+  RefreshCw,
+  HardDrive
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -97,7 +98,7 @@ export default function Dashboard() {
     });
   
   return (
-    <div className="w-full min-h-screen bg-gray-100 pt-20 pb-32">
+    <div className="w-full min-h-screen bg-background pt-20 pb-32">
       {/* 3D Scene - Fixed Position */}
       <div className="fixed inset-0 z-0">
         <MainScene />
@@ -108,51 +109,66 @@ export default function Dashboard() {
         <GameUI />
         
         {/* Central Dashboard - scrollable */}
-        <div className="relative w-full max-w-4xl mx-auto p-4">
-          <Card className="bg-white bg-opacity-90 backdrop-blur-sm shadow-xl">
+        <div className="relative w-full max-w-5xl mx-auto p-6">
+          <Card className="glass-effect border card-hover shadow-2xl rounded-xl">
             <CardHeader className="pb-2">
-              <CardTitle className="text-2xl flex justify-between items-center">
-                <span>Welcome, {name}</span>
+              <CardTitle className="text-3xl flex justify-between items-center font-bold">
+                <span className="gradient-text">Welcome, {name}</span>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                  <TabsList>
-                    <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
-                    <TabsTrigger value="settings" className="text-sm flex items-center">
+                  <TabsList className="bg-accent">
+                    <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+                    <TabsTrigger value="settings" className="text-sm flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                       <Settings className="h-3.5 w-3.5 mr-1" />
                       Settings
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </CardTitle>
-              <CardDescription>
-                {formattedDate} | {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
+              <CardDescription className="text-muted-foreground flex items-center space-x-2">
+                <Calendar className="h-4 w-4" />
+                <span>{formattedDate}</span>
+                <span className="px-2">•</span>
+                <span className={`px-2 py-1 rounded-full text-xs ${
+                  economyState === 'boom' ? 'bg-green-500/20 text-green-500' : 
+                  economyState === 'recession' ? 'bg-red-500/20 text-red-500' : 
+                  'bg-blue-500/20 text-blue-500'
+                }`}>
+                  {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
+                </span>
               </CardDescription>
             </CardHeader>
             
             <CardContent>
               <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                 <TabsContent value="overview" className="mt-0 p-0">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Wealth Overview */}
-                    <Card>
+                    <Card className="glass-effect border-accent shadow-md">
                       <CardHeader className="py-3">
                         <CardTitle className="text-lg flex items-center">
-                          <DollarSign className="h-5 w-5 mr-1 text-green-500" />
-                          Wealth Overview
+                          <div className="mr-3 p-2 rounded-full bg-green-400/10">
+                            <DollarSign className="h-5 w-5 text-green-400" />
+                          </div>
+                          <span className="text-primary font-medium">Wealth Overview</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="py-2">
-                        <div className="space-y-2">
-                          <div className="flex justify-between">
-                            <span>Cash:</span>
-                            <span className="font-semibold">{formatCurrency(wealth)}</span>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Cash:</span>
+                            <span className="font-semibold text-lg">{formatCurrency(wealth)}</span>
                           </div>
-                          <div className="flex justify-between">
-                            <span>Net Worth:</span>
-                            <span className="font-semibold">{formatCurrency(netWorth)}</span>
+                          <div className="flex justify-between items-center">
+                            <span className="text-muted-foreground">Net Worth:</span>
+                            <span className="font-semibold text-lg">{formatCurrency(netWorth)}</span>
                           </div>
-                          <div className="flex justify-between text-sm text-gray-600">
-                            <span>Portfolio Growth:</span>
-                            <span className={netWorth > wealth ? "text-green-600" : "text-red-600"}>
+                          <div className="flex justify-between items-center bg-secondary/40 p-2 rounded-lg">
+                            <span className="text-sm text-muted-foreground">Portfolio Growth:</span>
+                            <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                              netWorth > wealth 
+                                ? "bg-green-500/20 text-green-500" 
+                                : "bg-red-500/20 text-red-500"
+                            }`}>
                               {((netWorth / Math.max(wealth, 1) - 1) * 100).toFixed(1)}%
                             </span>
                           </div>
@@ -161,34 +177,44 @@ export default function Dashboard() {
                     </Card>
                     
                     {/* Status Overview */}
-                    <Card>
+                    <Card className="glass-effect border-accent shadow-md">
                       <CardHeader className="py-3">
                         <CardTitle className="text-lg flex items-center">
-                          <Crown className="h-5 w-5 mr-1 text-amber-500" />
-                          Status Overview
+                          <div className="mr-3 p-2 rounded-full bg-amber-400/10">
+                            <Crown className="h-5 w-5 text-amber-400" />
+                          </div>
+                          <span className="text-primary font-medium">Status Overview</span>
                         </CardTitle>
                       </CardHeader>
                       <CardContent className="py-2">
-                        <div className="space-y-3">
+                        <div className="space-y-5">
                           <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm flex items-center">
-                                <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
+                            <div className="flex justify-between mb-2">
+                              <span className="text-sm flex items-center text-muted-foreground">
+                                <HeartPulse className="h-4 w-4 mr-2 text-pink-400" />
                                 Happiness
                               </span>
-                              <span className="text-sm font-medium">{happiness}%</span>
+                              <span className="text-sm font-medium bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full">{happiness}%</span>
                             </div>
-                            <Progress value={happiness} className="h-2" />
+                            <div className="relative pt-1">
+                              <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                                <div style={{ width: `${happiness}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-pink-400 to-pink-600 rounded"></div>
+                              </div>
+                            </div>
                           </div>
                           <div>
-                            <div className="flex justify-between mb-1">
-                              <span className="text-sm flex items-center">
-                                <Crown className="h-4 w-4 mr-1 text-amber-500" />
+                            <div className="flex justify-between mb-2">
+                              <span className="text-sm flex items-center text-muted-foreground">
+                                <Crown className="h-4 w-4 mr-2 text-amber-400" />
                                 Prestige
                               </span>
-                              <span className="text-sm font-medium">{prestige} points</span>
+                              <span className="text-sm font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full">{prestige} points</span>
                             </div>
-                            <Progress value={Math.min(prestige, 100)} className="h-2" />
+                            <div className="relative pt-1">
+                              <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                                <div style={{ width: `${Math.min(prestige, 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-400 to-amber-600 rounded"></div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </CardContent>
@@ -196,91 +222,169 @@ export default function Dashboard() {
                   </div>
                   
                   {/* Portfolio Breakdown */}
-                  <Card className="mb-6">
+                  <Card className="mb-8 glass-effect border-accent shadow-md">
                     <CardHeader className="py-3">
                       <CardTitle className="text-lg flex items-center">
-                        <Briefcase className="h-5 w-5 mr-1 text-blue-500" />
-                        Portfolio Breakdown
+                        <div className="mr-3 p-2 rounded-full bg-blue-400/10">
+                          <Briefcase className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <span className="text-primary font-medium">Portfolio Breakdown</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="py-2">
+                    <CardContent className="py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center p-2 bg-gray-50 rounded-lg">
-                          <DollarSign className="h-6 w-6 mx-auto text-green-500" />
-                          <p className="text-sm text-gray-500">Cash</p>
-                          <p className="font-semibold">{formatCurrency(wealth)}</p>
-                          <p className="text-xs">{((wealth / netWorth) * 100).toFixed(1)}% of total</p>
+                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
+                          <div className="bg-green-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <DollarSign className="h-6 w-6 text-green-400" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">Cash</p>
+                          <p className="font-semibold text-lg">{formatCurrency(wealth)}</p>
+                          <div className="mt-2 text-xs px-2 py-1 bg-green-400/10 text-green-400 rounded-full inline-block">
+                            {((wealth / netWorth) * 100).toFixed(1)}% of total
+                          </div>
                         </div>
                         
-                        <div className="text-center p-2 bg-gray-50 rounded-lg">
-                          <ChartBar className="h-6 w-6 mx-auto text-blue-500" />
-                          <p className="text-sm text-gray-500">Stocks</p>
-                          <p className="font-semibold">{formatCurrency(stocksValue)}</p>
-                          <p className="text-xs">{((stocksValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
+                          <div className="bg-blue-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <ChartBar className="h-6 w-6 text-blue-400" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">Stocks</p>
+                          <p className="font-semibold text-lg">{formatCurrency(stocksValue)}</p>
+                          <div className="mt-2 text-xs px-2 py-1 bg-blue-400/10 text-blue-400 rounded-full inline-block">
+                            {((stocksValue / netWorth) * 100).toFixed(1)}% of total
+                          </div>
                         </div>
                         
-                        <div className="text-center p-2 bg-gray-50 rounded-lg">
-                          <Home className="h-6 w-6 mx-auto text-purple-500" />
-                          <p className="text-sm text-gray-500">Properties</p>
-                          <p className="font-semibold">{formatCurrency(propertiesValue)}</p>
-                          <p className="text-xs">{((propertiesValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
+                          <div className="bg-purple-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Home className="h-6 w-6 text-purple-400" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">Properties</p>
+                          <p className="font-semibold text-lg">{formatCurrency(propertiesValue)}</p>
+                          <div className="mt-2 text-xs px-2 py-1 bg-purple-400/10 text-purple-400 rounded-full inline-block">
+                            {((propertiesValue / netWorth) * 100).toFixed(1)}% of total
+                          </div>
                         </div>
                         
-                        <div className="text-center p-2 bg-gray-50 rounded-lg">
-                          <Crown className="h-6 w-6 mx-auto text-amber-500" />
-                          <p className="text-sm text-gray-500">Lifestyle</p>
-                          <p className="font-semibold">{formatCurrency(lifestyleValue)}</p>
-                          <p className="text-xs">{((lifestyleValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
+                          <div className="bg-amber-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <Crown className="h-6 w-6 text-amber-400" />
+                          </div>
+                          <p className="text-sm text-muted-foreground mb-1">Lifestyle</p>
+                          <p className="font-semibold text-lg">{formatCurrency(lifestyleValue)}</p>
+                          <div className="mt-2 text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full inline-block">
+                            {((lifestyleValue / netWorth) * 100).toFixed(1)}% of total
+                          </div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
                   
                   {/* Market Indicators */}
-                  <Card>
+                  <Card className="glass-effect border-accent shadow-md mb-4">
                     <CardHeader className="py-3">
                       <CardTitle className="text-lg flex items-center">
-                        <TrendingUp className="h-5 w-5 mr-1 text-blue-500" />
-                        Market Indicators
+                        <div className="mr-3 p-2 rounded-full bg-blue-400/10">
+                          <TrendingUp className="h-5 w-5 text-blue-400" />
+                        </div>
+                        <span className="text-primary font-medium">Market Indicators</span>
                       </CardTitle>
                     </CardHeader>
-                    <CardContent className="py-2">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Stock Market</p>
-                          <div className="flex justify-between mb-1">
+                    <CardContent className="py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <p className="text-sm text-muted-foreground mb-3 flex items-center">
+                            <ChartBar className="h-4 w-4 mr-2" />
+                            Stock Market
+                          </p>
+                          <div className="flex justify-between mb-2">
                             <span className="text-sm font-medium flex items-center">
                               {marketTrend === 'bull' ? (
-                                <TrendingUp className="h-4 w-4 mr-1 text-green-500" />
+                                <div className="flex items-center px-2 py-1 bg-green-500/10 text-green-500 rounded-full">
+                                  <TrendingUp className="h-4 w-4 mr-1" />
+                                  <span>Bull Market</span>
+                                </div>
                               ) : marketTrend === 'bear' ? (
-                                <TrendingUp className="h-4 w-4 mr-1 text-red-500 transform rotate-180" />
+                                <div className="flex items-center px-2 py-1 bg-red-500/10 text-red-500 rounded-full">
+                                  <TrendingUp className="h-4 w-4 mr-1 transform rotate-180" />
+                                  <span>Bear Market</span>
+                                </div>
                               ) : (
-                                <span className="h-4 w-4 mr-1" />
+                                <div className="flex items-center px-2 py-1 bg-blue-500/10 text-blue-500 rounded-full">
+                                  <span className="h-4 w-4 mr-1" />
+                                  <span>Stable Market</span>
+                                </div>
                               )}
-                              {marketTrend.charAt(0).toUpperCase() + marketTrend.slice(1)}
                             </span>
-                            <span className="text-sm">{stockMarketHealth}%</span>
+                            <span className="text-sm font-medium px-2 py-1 bg-secondary rounded-full">{stockMarketHealth}%</span>
                           </div>
-                          <Progress value={stockMarketHealth} className="h-2" />
-                        </div>
-                        
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Real Estate Market</p>
-                          <div className="flex justify-between mb-1">
-                            <span className="text-sm font-medium">Health</span>
-                            <span className="text-sm">{realEstateMarketHealth}%</span>
+                          <div className="relative pt-1">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                              <div 
+                                style={{ width: `${stockMarketHealth}%` }} 
+                                className={`shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center rounded ${
+                                  marketTrend === 'bull' 
+                                    ? 'bg-gradient-to-r from-green-400 to-green-600' 
+                                    : marketTrend === 'bear'
+                                    ? 'bg-gradient-to-r from-red-400 to-red-600'
+                                    : 'bg-gradient-to-r from-blue-400 to-blue-600'
+                                }`}
+                              ></div>
+                            </div>
                           </div>
-                          <Progress value={realEstateMarketHealth} className="h-2" />
                         </div>
                         
-                        <div>
-                          <p className="text-sm text-gray-500">Inflation Rate</p>
-                          <p className="font-medium">{inflation.toFixed(1)}%</p>
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <p className="text-sm text-muted-foreground mb-3 flex items-center">
+                            <Home className="h-4 w-4 mr-2" />
+                            Real Estate Market
+                          </p>
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm font-medium">Market Health</span>
+                            <span className="text-sm font-medium px-2 py-1 bg-secondary rounded-full">{realEstateMarketHealth}%</span>
+                          </div>
+                          <div className="relative pt-1">
+                            <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                              <div 
+                                style={{ width: `${realEstateMarketHealth}%` }} 
+                                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-purple-400 to-purple-600 rounded"
+                              ></div>
+                            </div>
+                          </div>
                         </div>
                         
-                        <div>
-                          <p className="text-sm text-gray-500">Interest Rate</p>
-                          <p className="font-medium">{interestRate.toFixed(1)}%</p>
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-2 rounded-full bg-red-400/10 h-10 w-10 flex items-center justify-center">
+                              <TrendingUp className={`h-5 w-5 text-red-400 ${inflation > 3 ? 'transform rotate-45' : ''}`} />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Inflation Rate</p>
+                              <p className="font-medium text-lg">{inflation.toFixed(1)}%</p>
+                              <p className="text-xs text-muted-foreground">
+                                {inflation <= 2 ? "Low inflation - stable prices" : 
+                                 inflation <= 5 ? "Moderate inflation - normal economic growth" : 
+                                 "High inflation - economic instability"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <div className="flex items-start space-x-3">
+                            <div className="p-2 rounded-full bg-blue-400/10 h-10 w-10 flex items-center justify-center">
+                              <DollarSign className="h-5 w-5 text-blue-400" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Interest Rate</p>
+                              <p className="font-medium text-lg">{interestRate.toFixed(1)}%</p>
+                              <p className="text-xs text-muted-foreground">
+                                {interestRate <= 2 ? "Low rates - cheaper loans" : 
+                                 interestRate <= 5 ? "Moderate rates - balanced economy" : 
+                                 "High rates - expensive borrowing"}
+                              </p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
@@ -288,39 +392,55 @@ export default function Dashboard() {
                 </TabsContent>
                 
                 <TabsContent value="settings" className="mt-0 p-0">
-                  <Card>
+                  <Card className="glass-effect border-accent shadow-md">
                     <CardHeader>
-                      <CardTitle className="text-xl">Game Settings</CardTitle>
-                      <CardDescription>
-                        Configure your game options
+                      <CardTitle className="text-xl flex items-center">
+                        <div className="mr-3 p-2 rounded-full bg-slate-400/10">
+                          <Settings className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <span className="text-primary font-medium">Game Settings</span>
+                      </CardTitle>
+                      <CardDescription className="text-muted-foreground">
+                        Configure your game preferences and manage your data
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium mb-2">Game Data</h3>
-                        <Separator className="my-2" />
-                        <p className="text-sm text-gray-600 mb-4">
-                          Your game progress is automatically saved to your device. 
-                          You can reset your progress if you want to start a new game.
+                      <div className="bg-secondary/30 p-5 rounded-lg glass-effect border border-secondary/10">
+                        <h3 className="text-lg font-medium mb-2 flex items-center">
+                          <HardDrive className="h-5 w-5 mr-2 text-blue-400" />
+                          Game Data
+                        </h3>
+                        <Separator className="my-3 bg-secondary/50" />
+                        <p className="text-sm text-muted-foreground mb-5">
+                          Your game progress is automatically saved to your device's local storage.
+                          This includes your character details, assets, properties, and all game state.
+                          If you want to start fresh with a new character, use the reset option below.
                         </p>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="destructive" className="flex items-center">
+                            <Button variant="destructive" className="button-pulse flex items-center">
                               <RefreshCw className="h-4 w-4 mr-2" />
                               Reset Progress
                             </Button>
                           </AlertDialogTrigger>
-                          <AlertDialogContent>
+                          <AlertDialogContent className="glass-effect border border-destructive">
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Reset Game Progress?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This will delete all your character data, assets, properties, and lifestyle items.
-                                You'll be returned to the character creation screen. This action cannot be undone.
+                              <AlertDialogTitle className="text-xl font-bold text-destructive flex items-center">
+                                <AlertTriangle className="h-5 w-5 mr-2" />
+                                Reset Game Progress?
+                              </AlertDialogTitle>
+                              <AlertDialogDescription className="text-muted-foreground">
+                                This will permanently delete all your character data, assets, properties, and lifestyle items.
+                                You'll be returned to the character creation screen to start fresh.
+                                <p className="mt-2 font-medium">This action cannot be undone.</p>
                               </AlertDialogDescription>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={handleResetProgress}>
+                              <AlertDialogCancel className="border border-secondary/50">Cancel</AlertDialogCancel>
+                              <AlertDialogAction 
+                                onClick={handleResetProgress}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
                                 Reset Progress
                               </AlertDialogAction>
                             </AlertDialogFooter>
@@ -333,11 +453,11 @@ export default function Dashboard() {
               </Tabs>
             </CardContent>
             
-            <CardFooter className="flex justify-between">
+            <CardFooter className="flex justify-between p-6">
               <Button 
-                variant="outline"
+                variant="default"
                 onClick={() => navigate('/investments')}
-                className="flex items-center"
+                className="flex items-center button-pulse bg-blue-500/80 hover:bg-blue-600/90 text-white"
               >
                 <ChartBar className="h-4 w-4 mr-2" />
                 Investments
@@ -345,9 +465,9 @@ export default function Dashboard() {
               </Button>
               
               <Button 
-                variant="outline"
+                variant="default"
                 onClick={() => navigate('/properties')}
-                className="flex items-center"
+                className="flex items-center button-pulse bg-purple-500/80 hover:bg-purple-600/90 text-white"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Properties
@@ -355,9 +475,9 @@ export default function Dashboard() {
               </Button>
               
               <Button 
-                variant="outline"
+                variant="default"
                 onClick={() => navigate('/lifestyle')}
-                className="flex items-center"
+                className="flex items-center button-pulse bg-amber-500/80 hover:bg-amber-600/90 text-white"
               >
                 <Crown className="h-4 w-4 mr-2" />
                 Lifestyle
