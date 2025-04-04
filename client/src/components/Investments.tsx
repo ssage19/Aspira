@@ -238,13 +238,18 @@ export function Investments() {
         {marketTrend === 'bear' && <TrendingDown className="ml-2 text-accessible-red" aria-hidden="true" />}
       </h2>
       
-      <div className="mb-4 bg-gray-50 p-3 rounded-md">
-        <div className="flex justify-between items-center">
-          <p className="text-sm font-medium">Market Health:</p>
+      <div className="mb-4 bg-gray-100 p-4 rounded-md border border-gray-200 shadow-sm">
+        <h3 className="text-lg font-medium mb-3 text-gray-800">Market Indicators</h3>
+        
+        <div className="flex justify-between items-center mb-3 bg-white p-2 rounded">
+          <p className="text-sm font-medium flex items-center">
+            <ChartBar className="w-4 h-4 mr-1 text-gray-600" />
+            Market Health:
+          </p>
           <div className="flex items-center">
-            <div className="w-32 bg-gray-200 rounded-full h-2 mr-2">
+            <div className="w-40 bg-gray-200 rounded-full h-3 mr-2">
               <div 
-                className={`h-2 rounded-full ${
+                className={`h-3 rounded-full ${
                   stockMarketHealth >= 70 ? 'bg-accessible-green' : 
                   stockMarketHealth >= 40 ? 'bg-accessible-yellow' : 
                   'bg-accessible-red'
@@ -256,11 +261,21 @@ export function Investments() {
             <span className="text-sm font-semibold">{stockMarketHealth}%</span>
           </div>
         </div>
-        <div className="flex justify-between items-center mt-2">
-          <p className="text-sm font-medium">Trend:</p>
-          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-            marketTrend === 'bull' ? 'bg-accessible-green/20 text-accessible-green' : 
-            marketTrend === 'bear' ? 'bg-accessible-red/20 text-accessible-red' : 
+        
+        <div className="flex justify-between items-center bg-white p-2 rounded">
+          <p className="text-sm font-medium flex items-center">
+            {marketTrend === 'bull' ? (
+              <TrendingUp className="w-4 h-4 mr-1 text-accessible-green" />
+            ) : marketTrend === 'bear' ? (
+              <TrendingDown className="w-4 h-4 mr-1 text-accessible-red" />
+            ) : (
+              <span className="w-4 h-4 mr-1" />
+            )}
+            Market Trend:
+          </p>
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            marketTrend === 'bull' ? 'bg-accessible-green/20 text-accessible-green border border-accessible-green/30' : 
+            marketTrend === 'bear' ? 'bg-accessible-red/20 text-accessible-red border border-accessible-red/30' : 
             'bg-gray-200 text-gray-700'
           }`}>
             {marketTrend.charAt(0).toUpperCase() + marketTrend.slice(1)} Market
