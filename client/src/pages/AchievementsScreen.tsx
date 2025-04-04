@@ -16,7 +16,25 @@ import {
   Clock, 
   Briefcase,
   Crown,
-  Filter
+  Filter,
+  Target,
+  LineChart,
+  BarChart,
+  Globe,
+  Scale,
+  Bitcoin,
+  Rocket,
+  PieChart,
+  Diamond,
+  Zap,
+  Gem,
+  Dice1 as Dice,
+  Palmtree as PalmTree,
+  Flower2,
+  RefreshCw,
+  TrendingDown,
+  Timer,
+  Minimize2
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import GameUI from '../components/GameUI';
@@ -43,6 +61,7 @@ const AchievementIcon = ({ iconName, className = '' }: { iconName: string, class
   const iconProps = { className: `h-6 w-6 ${className}` };
   
   switch (iconName) {
+    // Basic icons
     case 'Award': return <Award {...iconProps} />;
     case 'Trophy': return <Trophy {...iconProps} />;
     case 'DollarSign': return <DollarSign {...iconProps} />;
@@ -58,6 +77,30 @@ const AchievementIcon = ({ iconName, className = '' }: { iconName: string, class
     case 'Clock': return <Clock {...iconProps} />;
     case 'Briefcase': return <Briefcase {...iconProps} />;
     case 'Crown': return <Crown {...iconProps} />;
+    
+    // New challenge achievement icons
+    case 'BarChart': return <BarChart {...iconProps} />;
+    case 'Globe': return <Globe {...iconProps} />;
+    case 'Bitcoin': return <Bitcoin {...iconProps} />;
+    case 'Rocket': return <Rocket {...iconProps} />;
+    case 'Diamond': return <Diamond {...iconProps} />;
+    
+    // New strategy achievement icons
+    case 'PieChart': return <PieChart {...iconProps} />;
+    case 'Timer': return <Timer {...iconProps} />;
+    case 'TrendingDown': return <TrendingDown {...iconProps} />;
+    case 'Scale': return <Scale {...iconProps} />;
+    
+    // Special achievement icons
+    case 'Zap': return <Zap {...iconProps} />;
+    case 'Gem': return <Gem {...iconProps} />;
+    case 'RefreshCw': return <RefreshCw {...iconProps} />;
+    case 'Minimize2': return <Minimize2 {...iconProps} />;
+    case 'Dice': return <Dice {...iconProps} />;
+    case 'PalmTree': return <PalmTree {...iconProps} />;
+    case 'Flower2': return <Flower2 {...iconProps} />;
+    
+    // Default fallback
     default: return <Star {...iconProps} />;
   }
 };
@@ -77,6 +120,8 @@ const AchievementItem = ({ achievement, claimReward, hasUnclaimedReward }: Achie
       case 'investment': return 'text-secondary';
       case 'lifestyle': return 'text-purple-500';
       case 'general': return 'text-primary';
+      case 'challenge': return 'text-orange-500';
+      case 'strategy': return 'text-blue-500';
       default: return 'text-primary';
     }
   };
@@ -88,6 +133,8 @@ const AchievementItem = ({ achievement, claimReward, hasUnclaimedReward }: Achie
       case 'investment': return 'text-secondary';
       case 'lifestyle': return 'text-purple-500';
       case 'general': return 'text-primary';
+      case 'challenge': return 'text-orange-500';
+      case 'strategy': return 'text-blue-500';
       default: return 'text-primary';
     }
   };
@@ -298,7 +345,7 @@ export default function AchievementsScreen() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mt-4">
+          <div className="grid grid-cols-2 sm:grid-cols-7 gap-2 mt-4">
             <div className="flex flex-col items-center p-2 rounded-lg bg-secondary/10">
               <span className="text-muted-foreground text-xs">Wealth</span>
               <span className="font-bold text-quinary">
@@ -329,12 +376,24 @@ export default function AchievementsScreen() {
                 {getCategoryAchievements('general').filter(a => a.isUnlocked).length} / {getCategoryAchievements('general').length}
               </span>
             </div>
+            <div className="flex flex-col items-center p-2 rounded-lg bg-secondary/10">
+              <span className="text-muted-foreground text-xs">Challenge</span>
+              <span className="font-bold text-orange-500">
+                {getCategoryAchievements('challenge').filter(a => a.isUnlocked).length} / {getCategoryAchievements('challenge').length}
+              </span>
+            </div>
+            <div className="flex flex-col items-center p-2 rounded-lg bg-secondary/10">
+              <span className="text-muted-foreground text-xs">Strategy</span>
+              <span className="font-bold text-blue-500">
+                {getCategoryAchievements('strategy').filter(a => a.isUnlocked).length} / {getCategoryAchievements('strategy').length}
+              </span>
+            </div>
           </div>
         </div>
         
         <Tabs defaultValue="general" value={activeTab} onValueChange={(v) => setActiveTab(v as AchievementCategory)}>
           <div className="flex items-center justify-between mb-4">
-            <TabsList className="grid grid-cols-5 w-full md:w-auto">
+            <TabsList className="grid grid-cols-7 w-full md:w-auto">
               <TabsTrigger value="general" className="flex items-center justify-center">
                 <TooltipProvider>
                   <Tooltip>
@@ -396,6 +455,32 @@ export default function AchievementsScreen() {
                     </TooltipTrigger>
                     <TooltipContent>
                       <p>Lifestyle Achievements</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TabsTrigger>
+              <TabsTrigger value="challenge" className="flex items-center justify-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Target className="h-5 w-5 md:mr-2" />
+                      <span className="hidden md:inline">Challenges</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Challenge Achievements</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </TabsTrigger>
+              <TabsTrigger value="strategy" className="flex items-center justify-center">
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <LineChart className="h-5 w-5 md:mr-2" />
+                      <span className="hidden md:inline">Strategy</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Strategy Achievements</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
@@ -477,6 +562,46 @@ export default function AchievementsScreen() {
           <TabsContent value="lifestyle">
             <div>
               {getCategoryAchievements('lifestyle').map(achievement => (
+                <AchievementItem 
+                  key={achievement.id} 
+                  achievement={achievement} 
+                  claimReward={claimReward}
+                  hasUnclaimedReward={achievement.isUnlocked && !claimedRewards[achievement.id]}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="challenge">
+            <div className="mb-4 p-3 bg-orange-50 border border-orange-200 rounded-md text-sm dark:bg-orange-950 dark:border-orange-800">
+              <h3 className="font-medium text-orange-800 mb-1 dark:text-orange-300">Challenge Achievements</h3>
+              <p className="text-orange-700 dark:text-orange-400">
+                These are complex challenges that require significant effort and strategy to complete.
+                Successfully completing these challenges demonstrates mastery of multiple game mechanics!
+              </p>
+            </div>
+            <div>
+              {getCategoryAchievements('challenge').map(achievement => (
+                <AchievementItem 
+                  key={achievement.id} 
+                  achievement={achievement} 
+                  claimReward={claimReward}
+                  hasUnclaimedReward={achievement.isUnlocked && !claimedRewards[achievement.id]}
+                />
+              ))}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="strategy">
+            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm dark:bg-blue-950 dark:border-blue-800">
+              <h3 className="font-medium text-blue-800 mb-1 dark:text-blue-300">Strategy Achievements</h3>
+              <p className="text-blue-700 dark:text-blue-400">
+                These achievements require careful planning and strategic decision-making.
+                They test your ability to manage risk, time your investments, and make smart financial decisions.
+              </p>
+            </div>
+            <div>
+              {getCategoryAchievements('strategy').map(achievement => (
                 <AchievementItem 
                   key={achievement.id} 
                   achievement={achievement} 

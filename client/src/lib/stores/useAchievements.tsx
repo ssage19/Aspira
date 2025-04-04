@@ -6,7 +6,9 @@ export type AchievementCategory =
   | 'property' 
   | 'investment' 
   | 'lifestyle' 
-  | 'general';
+  | 'general'
+  | 'challenge'
+  | 'strategy';
 
 export type AchievementReward = {
   type: 'cash' | 'multiplier' | 'unlock' | 'bonus';
@@ -325,6 +327,145 @@ const initialAchievements: Achievement[] = [
     }
   },
   
+  // Challenge achievements - complex milestones that require effort to complete
+  {
+    id: 'challenge-1',
+    title: 'Market Maestro',
+    description: 'Own at least 50 different stocks across 5+ market sectors',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50,
+    icon: 'BarChart',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% investment returns boost'
+    }
+  },
+  {
+    id: 'challenge-2',
+    title: 'Global Real Estate Tycoon',
+    description: 'Own properties on 3 different continents with a combined value over $10M',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Globe',
+    reward: {
+      type: 'cash',
+      value: 1000000,
+      description: '$1,000,000 cash bonus'
+    }
+  },
+  {
+    id: 'challenge-3',
+    title: 'Crypto Whale',
+    description: 'Hold at least $2M in cryptocurrency for 30+ consecutive days',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 30,
+    icon: 'Bitcoin',
+    reward: {
+      type: 'unlock',
+      value: 1,
+      description: 'Unlock exclusive crypto investments'
+    }
+  },
+  {
+    id: 'challenge-4',
+    title: 'Angel Investor',
+    description: 'Successfully fund 10 startup ventures that reach Series B or higher',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Rocket',
+    reward: {
+      type: 'multiplier',
+      value: 1.2,
+      description: '20% startup investment returns'
+    }
+  },
+  {
+    id: 'challenge-5',
+    title: 'Luxury Connoisseur',
+    description: 'Own the top tier item in every luxury category',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5, // Number of top-tier items
+    icon: 'Diamond',
+    reward: {
+      type: 'bonus',
+      value: 50,
+      description: '+50 Prestige boost'
+    }
+  },
+  
+  // Strategy achievements - require planning and strategy
+  {
+    id: 'strategy-1',
+    title: 'Diversification Expert',
+    description: 'Maintain a balanced portfolio with no asset class exceeding 30% of total wealth',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100, // Percentage-based threshold
+    icon: 'PieChart',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% overall returns boost'
+    }
+  },
+  {
+    id: 'strategy-2',
+    title: 'Market Timer',
+    description: 'Buy 10 stocks at their lowest price and sell when they gain at least 50%',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Timer',
+    reward: {
+      type: 'cash',
+      value: 100000,
+      description: '$100,000 cash bonus'
+    }
+  },
+  {
+    id: 'strategy-3',
+    title: 'Recession Survivor',
+    description: 'Maintain positive net worth growth during a market downturn lasting 30+ days',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 30,
+    icon: 'TrendingDown',
+    reward: {
+      type: 'unlock',
+      value: 1,
+      description: 'Unlock hedging strategies'
+    }
+  },
+  {
+    id: 'strategy-4',
+    title: 'Perfect Balance',
+    description: 'Simultaneously maintain 80+ in all personal attributes for 60 days',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 60,
+    icon: 'Scale',
+    reward: {
+      type: 'bonus',
+      value: 15,
+      description: '+15 to all personal attributes'
+    }
+  },
+  
   // Character development achievements
   {
     id: 'character-1',
@@ -429,6 +570,222 @@ const initialAchievements: Achievement[] = [
       type: 'unlock',
       value: 2,
       description: 'Unlock premium lifestyle opportunities'
+    }
+  },
+
+  // Special unique achievement category
+  {
+    id: 'special-1',
+    title: 'Overnight Success',
+    description: 'Double your net worth in a single day',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100, // Percentage-based threshold
+    icon: 'Zap',
+    reward: {
+      type: 'cash',
+      value: 50000,
+      description: '$50,000 cash bonus'
+    }
+  },
+  {
+    id: 'special-2',
+    title: 'Diamond Hands',
+    description: 'Hold onto an investment that drops 30% and then recovers to gain 50%',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Gem',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% investment resilience bonus'
+    }
+  },
+  {
+    id: 'special-3',
+    title: 'Property Flip Master',
+    description: 'Buy a property and sell it for at least 50% profit within 60 days',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'RefreshCw',
+    reward: {
+      type: 'cash',
+      value: 75000,
+      description: '$75,000 cash bonus'
+    }
+  },
+  {
+    id: 'special-4',
+    title: 'Minimalist Millionaire',
+    description: 'Reach $1M net worth while owning fewer than 5 lifestyle items',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Minimize2',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% wealth growth rate'
+    }
+  },
+  {
+    id: 'special-5',
+    title: 'Risk Taker',
+    description: 'Invest at least $500,000 in high-risk assets and maintain for 30 days',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 30,
+    icon: 'Dice',
+    reward: {
+      type: 'cash',
+      value: 250000,
+      description: '$250,000 cash bonus'
+    }
+  },
+  {
+    id: 'special-6',
+    title: 'Early Retirement',
+    description: 'Generate $50,000+ monthly passive income from investments',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50000,
+    icon: 'PalmTree',
+    reward: {
+      type: 'bonus',
+      value: 30,
+      description: '+30 Happiness and reduced stress'
+    }
+  },
+  {
+    id: 'special-7',
+    title: 'Sustainable Legacy',
+    description: 'Maintain 80+ environmental impact while having $5M+ net worth',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Flower2',
+    reward: {
+      type: 'unlock',
+      value: 1,
+      description: 'Unlock sustainable investment opportunities'
+    }
+  },
+  
+  // Additional challenge achievements
+  {
+    id: 'challenge-11',
+    title: 'Financial Phoenix',
+    description: 'Recover from a net worth drop of at least 40% and double your previous peak',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100, // Percentage of recovery
+    icon: 'RefreshCw',
+    reward: {
+      type: 'multiplier',
+      value: 1.25,
+      description: '25% faster recovery from market downturns'
+    }
+  },
+  {
+    id: 'challenge-12',
+    title: 'Minimalist Millionaire',
+    description: 'Reach $5 million net worth while owning no more than 5 lifestyle items',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5000000,
+    icon: 'Minimize2',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% reduced costs on all future purchases'
+    }
+  },
+  {
+    id: 'challenge-13',
+    title: 'High-Risk, High-Reward',
+    description: 'Invest at least $1 million in extremely volatile assets and hold for 60 days',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 60,
+    icon: 'Zap',
+    reward: {
+      type: 'cash',
+      value: 500000,
+      description: '$500,000 cash bonus and improved luck with risky investments'
+    }
+  },
+  
+  // Additional strategy achievements  
+  {
+    id: 'strategy-10',
+    title: 'Calculated Risk',
+    description: 'Maintain a perfect risk-adjusted return ratio for 90 days',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 90,
+    icon: 'Dice',
+    reward: {
+      type: 'multiplier',
+      value: 1.12,
+      description: '12% better returns on all investments'
+    }
+  },
+  {
+    id: 'strategy-11',
+    title: 'Passive Income Master',
+    description: 'Generate $50,000+ in daily passive income without active work',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50000,
+    icon: 'PalmTree',
+    reward: {
+      type: 'unlock',
+      value: 1,
+      description: 'Unlock elite passive income opportunities'
+    }
+  },
+  {
+    id: 'strategy-12',
+    title: 'Sustainable Growth',
+    description: 'Maintain a steady 5%+ growth rate for 2 years without speculative investments',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 24, // months
+    icon: 'Flower2',
+    reward: {
+      type: 'bonus',
+      value: 20,
+      description: '+20 Happiness and long-term investment bonuses'
+    }
+  },
+  {
+    id: 'strategy-13',
+    title: 'Precious Assets',
+    description: 'Allocate 20% of your portfolio to precious metals and alternative assets during inflation',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100, // Percentage completed
+    icon: 'Gem',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% better protection against economic downturns'
     }
   }
 ];
