@@ -9,7 +9,8 @@ import { toast } from 'sonner';
 import { ChartBar, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
 import StockChart from './StockChart';
 import { formatCurrency } from '../lib/utils';
-import { stockMarket, VolatilityLevel, Stock } from '../lib/data/investments';
+import { VolatilityLevel, Stock } from '../lib/data/investments';
+import { expandedStockMarket } from '../lib/data/sp500Stocks';
 
 export function Investments() {
   const { wealth, addWealth, addAsset, removeAsset, assets } = useCharacter();
@@ -17,15 +18,19 @@ export function Investments() {
   const { currentDay } = useTime();
   const { playSuccess, playHit } = useAudio();
   
-  const [selectedStock, setSelectedStock] = useState<Stock>(stockMarket[0]);
+  const [selectedStock, setSelectedStock] = useState<Stock>(expandedStockMarket[0]);
   const [investmentAmount, setInvestmentAmount] = useState(1000);
   const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
+  const [shareQuantity, setShareQuantity] = useState<number>(0);
+  const [buyMode, setBuyMode] = useState<'amount' | 'shares'>('amount');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedSector, setSelectedSector] = useState<string>('all');
 
   // Calculate current prices based on economy and time
   useEffect(() => {
     const updatedPrices: Record<string, number> = {};
     
-    stockMarket.forEach(stock => {
+    expandedStockMarket.forEach(stock => {
       // Base price influenced by market health and stock volatility
       const volatilityFactor = 
         stock.volatility === 'extreme' ? 0.7 :
@@ -62,20 +67,79 @@ export function Investments() {
     return quantity * currentPrice;
   };
 
-  const handleBuy = () => {
-    if (investmentAmount <= 0) {
-      toast.error("Please enter a valid amount");
-      return;
+  // Calculate how many shares can be bought with the current investment amount
+  const calculateSharesFromAmount = (amount: number): number => {
+    const currentPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
+    return amount / currentPrice;
+  };
+
+  // Calculate total cost for a given number of shares
+  const calculateAmountFromShares = (shares: number): number => {
+    const currentPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
+    return shares * currentPrice;
+  };
+
+  // Effect to update share quantity when investment amount changes
+  useEffect(() => {
+    if (buyMode === 'amount') {
+      const shares = calculateSharesFromAmount(investmentAmount);
+      setShareQuantity(parseFloat(shares.toFixed(2)));
     }
-    
-    if (investmentAmount > wealth) {
-      toast.error("Not enough funds");
-      playHit();
-      return;
+  }, [investmentAmount, selectedStock.id, stockPrices, buyMode]);
+
+  // Effect to update investment amount when share quantity changes
+  useEffect(() => {
+    if (buyMode === 'shares') {
+      const amount = calculateAmountFromShares(shareQuantity);
+      setInvestmentAmount(parseFloat(amount.toFixed(2)));
+    }
+  }, [shareQuantity, selectedStock.id, stockPrices, buyMode]);
+
+  // When selected stock changes, reset input fields
+  useEffect(() => {
+    if (buyMode === 'amount') {
+      const shares = calculateSharesFromAmount(investmentAmount);
+      setShareQuantity(parseFloat(shares.toFixed(2)));
+    } else {
+      const amount = calculateAmountFromShares(shareQuantity);
+      setInvestmentAmount(parseFloat(amount.toFixed(2)));
+    }
+  }, [selectedStock.id, stockPrices]);
+
+  const handleBuy = () => {
+    if (buyMode === 'amount') {
+      if (investmentAmount <= 0) {
+        toast.error("Please enter a valid amount");
+        return;
+      }
+      
+      if (investmentAmount > wealth) {
+        toast.error("Not enough funds");
+        playHit();
+        return;
+      }
+    } else {
+      if (shareQuantity <= 0) {
+        toast.error("Please enter a valid number of shares");
+        return;
+      }
+      
+      const cost = calculateAmountFromShares(shareQuantity);
+      if (cost > wealth) {
+        toast.error("Not enough funds");
+        playHit();
+        return;
+      }
     }
     
     const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
-    const quantity = investmentAmount / stockPrice;
+    const quantity = buyMode === 'amount' 
+      ? investmentAmount / stockPrice 
+      : shareQuantity;
+    
+    const totalCost = buyMode === 'amount'
+      ? investmentAmount
+      : calculateAmountFromShares(shareQuantity);
     
     // Buy stock
     addAsset({
@@ -87,7 +151,7 @@ export function Investments() {
       purchaseDate: `${currentDay}`
     });
     
-    addWealth(-investmentAmount);
+    addWealth(-totalCost);
     playSuccess();
     toast.success(`Purchased ${quantity.toFixed(2)} shares of ${selectedStock.name}`);
   };
@@ -99,16 +163,45 @@ export function Investments() {
       toast.error("You don't own any shares of this stock");
       return;
     }
+
+    let quantityToSell = ownedQuantity;
+    let isPartialSale = false;
+
+    // If in shares mode and user specified a quantity less than owned, do partial sale
+    if (buyMode === 'shares' && shareQuantity > 0 && shareQuantity < ownedQuantity) {
+      quantityToSell = shareQuantity;
+      isPartialSale = true;
+    }
     
     const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
-    const sellValue = ownedQuantity * stockPrice;
+    const sellValue = quantityToSell * stockPrice;
     
-    // Sell stock
-    removeAsset(selectedStock.id, 'stock');
+    if (isPartialSale) {
+      // Partial sell - create a new asset with reduced quantity
+      const existingAsset = assets.find(asset => asset.id === selectedStock.id && asset.type === 'stock');
+      if (existingAsset) {
+        // Remove the asset completely first
+        removeAsset(selectedStock.id, 'stock');
+        
+        // Add it back with reduced quantity
+        addAsset({
+          ...existingAsset,
+          quantity: existingAsset.quantity - quantityToSell
+        });
+      }
+    } else {
+      // Sell all shares
+      removeAsset(selectedStock.id, 'stock');
+    }
+    
     addWealth(sellValue);
-    
     playSuccess();
-    toast.success(`Sold ${ownedQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(sellValue)}`);
+    
+    if (isPartialSale) {
+      toast.success(`Sold ${quantityToSell.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(sellValue)}`);
+    } else {
+      toast.success(`Sold all ${ownedQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(sellValue)}`);
+    }
   };
 
   // Calculate the price change percentage for context-aware tips
@@ -121,6 +214,20 @@ export function Investments() {
   const isVolatilityWarning = selectedStock.volatility === 'high' || 
                              selectedStock.volatility === 'very_high' ||
                              selectedStock.volatility === 'extreme';
+                             
+  // Get unique sectors for filtering
+  const sectors = Array.from(new Set(expandedStockMarket.map(stock => stock.sector)));
+  
+  // Filter stocks based on search query and selected sector
+  const filteredStocks = expandedStockMarket.filter(stock => {
+    const matchesSearch = searchQuery === '' || 
+      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesSector = selectedSector === 'all' || stock.sector === selectedSector;
+    
+    return matchesSearch && matchesSector;
+  });
 
   return (
     <div className="p-4 bg-white rounded-lg shadow-lg animate-scale-in">
@@ -164,12 +271,56 @@ export function Investments() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div>
           <h3 className="font-semibold mb-2 text-lg" id="available-stocks-heading">Available Stocks</h3>
+          
+          {/* Search and filter controls */}
+          <div className="mb-3 space-y-2">
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Search by name or symbol..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full p-2 pr-8 border rounded-md text-sm"
+              />
+              <div className="absolute right-2 top-2 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              </div>
+            </div>
+            
+            <select
+              value={selectedSector}
+              onChange={(e) => setSelectedSector(e.target.value)}
+              className="w-full p-2 border rounded-md text-sm"
+              aria-label="Filter by sector"
+            >
+              <option value="all">All Sectors</option>
+              {sectors.map(sector => (
+                <option key={sector} value={sector}>
+                  {sector.charAt(0).toUpperCase() + sector.slice(1).replace('_', ' ')}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
+            <span>Showing {filteredStocks.length} of {expandedStockMarket.length} stocks</span>
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')} 
+                className="text-accessible-blue"
+                aria-label="Clear search"
+              >
+                Clear search
+              </button>
+            )}
+          </div>
+          
           <div 
             className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
             aria-labelledby="available-stocks-heading"
             role="listbox"
           >
-            {stockMarket.map(stock => (
+            {filteredStocks.map(stock => (
               <div 
                 key={stock.id}
                 role="option"
@@ -273,55 +424,141 @@ export function Investments() {
       
       <div className="border-t pt-4">
         <h3 className="font-semibold mb-3 text-lg">Make Investment</h3>
-        <div className="mb-4 bg-gray-50 p-3 rounded-md">
-          <label className="block text-sm font-medium mb-2" id="investment-amount-label">
-            Investment Amount: <span className="font-semibold">{formatCurrency(investmentAmount)}</span>
-          </label>
-          <div className="flex items-center gap-3">
-            <Slider
-              value={[investmentAmount]}
-              max={Math.min(100000, wealth)}
-              step={100}
-              onValueChange={(vals) => setInvestmentAmount(vals[0])}
-              aria-labelledby="investment-amount-label"
-              className="flex-1"
-            />
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setInvestmentAmount(wealth)}
-              className="px-4"
-              aria-label={`Set maximum investment amount of ${formatCurrency(wealth)}`}
+        <div className="mb-4">
+          <div className="flex justify-between mb-3">
+            <div 
+              onClick={() => setBuyMode('amount')} 
+              className={`px-4 py-2 rounded-l-md border text-center w-1/2 cursor-pointer ${
+                buyMode === 'amount' 
+                  ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
+                  : 'bg-gray-50 border-gray-200'
+              }`}
             >
-              Max
-            </Button>
+              By Amount
+            </div>
+            <div 
+              onClick={() => setBuyMode('shares')} 
+              className={`px-4 py-2 rounded-r-md border text-center w-1/2 cursor-pointer ${
+                buyMode === 'shares' 
+                  ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
+                  : 'bg-gray-50 border-gray-200'
+              }`}
+            >
+              By Shares
+            </div>
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            Your available funds: {formatCurrency(wealth)}
-          </p>
+          
+          {buyMode === 'amount' ? (
+            <div className="bg-gray-50 p-3 rounded-md">
+              <label className="block text-sm font-medium mb-2" id="investment-amount-label">
+                Investment Amount: <span className="font-semibold">{formatCurrency(investmentAmount)}</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <Slider
+                  value={[investmentAmount]}
+                  max={Math.min(100000, wealth)}
+                  step={100}
+                  onValueChange={(vals) => setInvestmentAmount(vals[0])}
+                  aria-labelledby="investment-amount-label"
+                  className="flex-1"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setInvestmentAmount(wealth)}
+                  className="px-4"
+                  aria-label={`Set maximum investment amount of ${formatCurrency(wealth)}`}
+                >
+                  Max
+                </Button>
+              </div>
+              
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">
+                  Your available funds: {formatCurrency(wealth)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Shares to buy: <span className="font-medium">{shareQuantity.toFixed(2)}</span>
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-gray-50 p-3 rounded-md">
+              <label className="block text-sm font-medium mb-2" id="shares-quantity-label">
+                Number of Shares: <span className="font-semibold">{shareQuantity.toFixed(2)}</span>
+              </label>
+              <div className="flex items-center gap-3">
+                <input 
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={shareQuantity}
+                  onChange={(e) => setShareQuantity(parseFloat(e.target.value) || 0)}
+                  className="p-2 border rounded-md w-full"
+                  aria-labelledby="shares-quantity-label"
+                />
+                
+                {getOwnedStockQuantity(selectedStock.id) > 0 && (
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShareQuantity(getOwnedStockQuantity(selectedStock.id))}
+                    className="px-3 whitespace-nowrap"
+                  >
+                    Max Owned
+                  </Button>
+                )}
+              </div>
+              
+              <div className="flex justify-between items-center mt-2">
+                <p className="text-xs text-gray-500">
+                  Cost: {formatCurrency(investmentAmount)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  Your funds: {formatCurrency(wealth)}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="flex gap-3">
           <Button 
             onClick={handleBuy}
-            disabled={investmentAmount <= 0 || investmentAmount > wealth}
+            disabled={
+              buyMode === 'amount'
+                ? (investmentAmount <= 0 || investmentAmount > wealth)
+                : (shareQuantity <= 0 || calculateAmountFromShares(shareQuantity) > wealth)
+            }
             className="flex-1 py-3 text-base font-medium"
-            aria-label={`Buy shares of ${selectedStock.name} for ${formatCurrency(investmentAmount)}`}
+            aria-label={
+              buyMode === 'amount'
+                ? `Buy shares of ${selectedStock.name} for ${formatCurrency(investmentAmount)}`
+                : `Buy ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`
+            }
           >
             <span className="flex items-center">
               Buy Shares
               <TrendingUp className="ml-2 h-4 w-4" />
             </span>
           </Button>
+          
           <Button 
             onClick={handleSell}
             disabled={getOwnedStockQuantity(selectedStock.id) <= 0}
             variant="outline"
             className="flex-1 py-3 text-base font-medium"
-            aria-label={`Sell all ${getOwnedStockQuantity(selectedStock.id).toFixed(2)} shares of ${selectedStock.name}`}
+            aria-label={
+              buyMode === 'shares' && shareQuantity > 0 && shareQuantity < getOwnedStockQuantity(selectedStock.id)
+                ? `Sell ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`
+                : `Sell all ${getOwnedStockQuantity(selectedStock.id).toFixed(2)} shares of ${selectedStock.name}`
+            }
           >
             <span className="flex items-center">
-              Sell All Shares
+              {buyMode === 'shares' && shareQuantity > 0 && shareQuantity < getOwnedStockQuantity(selectedStock.id)
+                ? `Sell ${shareQuantity.toFixed(2)} Shares`
+                : 'Sell All Shares'
+              }
               <TrendingDown className="ml-2 h-4 w-4" />
             </span>
           </Button>
