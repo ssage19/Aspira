@@ -1,6 +1,18 @@
 // This file contains data for stock market investments
 
-export const stockMarket = [
+export type VolatilityLevel = 'very_low' | 'low' | 'medium' | 'high' | 'very_high' | 'extreme';
+
+export type Stock = {
+  id: string;
+  name: string;
+  symbol: string;
+  sector: string;
+  volatility: VolatilityLevel;
+  basePrice: number;
+  description: string;
+};
+
+export const stockMarket: Stock[] = [
   {
     id: 'tech_giant',
     name: 'Tech Giant Inc.',

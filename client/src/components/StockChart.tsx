@@ -11,12 +11,13 @@ import {
 } from 'recharts';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
+import { VolatilityLevel } from '../lib/data/investments';
 
 interface StockChartProps {
   stockId: string;
   currentPrice: number;
   basePrice: number;
-  volatility: 'low' | 'medium' | 'high';
+  volatility: VolatilityLevel;
 }
 
 export function StockChart({ stockId, currentPrice, basePrice, volatility }: StockChartProps) {
@@ -27,8 +28,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   
   // Generate historical stock data
   useEffect(() => {
-    const volatilityFactor = volatility === 'high' ? 0.08 : 
-                            volatility === 'medium' ? 0.05 : 0.02;
+    const volatilityFactor = volatility === 'extreme' ? 0.20 :
+                            volatility === 'very_high' ? 0.12 :
+                            volatility === 'high' ? 0.08 : 
+                            volatility === 'medium' ? 0.05 : 
+                            volatility === 'low' ? 0.02 : 0.01; // very_low
     const trendFactor = marketTrend === 'bull' ? 0.01 : 
                         marketTrend === 'bear' ? -0.01 : 0;
     
