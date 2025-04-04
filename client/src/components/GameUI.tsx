@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
@@ -13,10 +13,19 @@ import {
   ChartBar,
   Volume2,
   VolumeX,
-  Trophy
+  Trophy,
+  TrendingUp,
+  TrendingDown,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
+import { Progress } from './ui/progress';
+import { toast } from 'sonner';
+import { checkAllAchievements } from '../lib/services/achievementTracker';
+
+// Each day lasts 5 minutes (300 seconds)
+const DAY_DURATION_MS = 300 * 1000;
 
 export function GameUI() {
   const navigate = useNavigate();
@@ -24,6 +33,9 @@ export function GameUI() {
   const { currentDay, currentMonth, currentYear, advanceTime } = useTime();
   const { toggleMute, isMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
+  const [timeProgress, setTimeProgress] = useState(0);
+  const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
+  const lastTickTime = useRef(Date.now());
   
   // Update passive income every 5 seconds
   useEffect(() => {
@@ -38,9 +50,238 @@ export function GameUI() {
     return () => clearInterval(intervalId);
   }, [netWorth, addWealth]);
   
+  // Update investment values based on market fluctuations
+  const updateInvestments = () => {
+    const { assets } = useCharacter.getState();
+    
+    // Skip if no assets
+    if (assets.length === 0) return { 
+      gainers: 0, 
+      losers: 0, 
+      gains: 0, 
+      losses: 0, 
+      netChange: 0 
+    };
+    
+    // We'll simulate market fluctuations by randomly adjusting values
+    // In a real implementation, this would use more complex market simulation
+    // For now, this gives the player the feeling of market movement
+    let totalGain = 0;
+    let totalLoss = 0;
+    let gainersCount = 0;
+    let losersCount = 0;
+    
+    assets.forEach(asset => {
+      // Different asset types have different volatility
+      let volatilityFactor = 1.0;
+      
+      switch(asset.type) {
+        case 'stock':
+          volatilityFactor = 0.02; // 2% daily movement potential
+          break;
+        case 'crypto':
+          volatilityFactor = 0.05; // 5% daily movement potential
+          break;
+        case 'bond':
+          volatilityFactor = 0.005; // 0.5% daily movement potential
+          break;
+        case 'startup':
+          volatilityFactor = 0.03; // 3% daily movement potential
+          break;
+        default:
+          volatilityFactor = 0.01; // 1% default
+      }
+      
+      // Random movement, slightly skewed towards gains (optimistic market)
+      const randomFactor = (Math.random() * 2 - 0.9) * volatilityFactor;
+      const valueChange = asset.purchasePrice * randomFactor * asset.quantity;
+      
+      if (valueChange > 0) {
+        totalGain += valueChange;
+        gainersCount++;
+      } else if (valueChange < 0) {
+        totalLoss += Math.abs(valueChange);
+        losersCount++;
+      }
+      
+      // In a real implementation, we would update the asset's current price here
+      // For this simplified version, we're just calculating the change
+    });
+    
+    const netChange = totalGain - totalLoss;
+    
+    // In a real implementation with current prices tracked separately from purchase prices,
+    // we would apply this change to the character's net worth
+    // For now, we'll just return the information for notifications
+    
+    return {
+      gainers: gainersCount,
+      losers: losersCount,
+      gains: totalGain,
+      losses: totalLoss,
+      netChange
+    };
+  };
+
+  // Process daily income and expenses
+  const processDailyFinances = () => {
+    // Calculate income from properties
+    const { properties, lifestyleItems } = useCharacter.getState();
+    
+    // Property income
+    const propertyIncome = properties.reduce((total, property) => {
+      return total + property.income;
+    }, 0);
+    
+    // Property expenses (maintenance, taxes, etc.)
+    const propertyExpenses = properties.reduce((total, property) => {
+      return total + property.expenses;
+    }, 0);
+    
+    // Lifestyle item maintenance costs
+    const lifestyleExpenses = lifestyleItems.reduce((total, item) => {
+      return total + item.maintenanceCost;
+    }, 0);
+    
+    // Process investments - this doesn't directly affect cash, just net worth
+    const investmentChanges = updateInvestments();
+    
+    // Calculate net daily change from income/expenses
+    const netDailyChange = propertyIncome - propertyExpenses - lifestyleExpenses;
+    
+    // Apply cash flow changes to character's wealth
+    if (netDailyChange !== 0) {
+      addWealth(netDailyChange);
+    }
+    
+    // Build notification content
+    const gains = investmentChanges.gains || 0;
+    const losses = investmentChanges.losses || 0;
+    const gainers = investmentChanges.gainers || 0;
+    const losers = investmentChanges.losers || 0;
+    
+    let showNotification = propertyIncome > 0 || propertyExpenses > 0 || lifestyleExpenses > 0 || 
+                         (gains > 0 || losses > 0);
+    
+    if (showNotification) {
+      // Show financial summary toast
+      toast(
+        <div className="flex flex-col gap-2">
+          <h3 className="text-lg font-bold">Daily Financial Update</h3>
+          
+          {propertyIncome > 0 && (
+            <div className="flex items-center text-emerald-500 gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span>Property Income: {formatCurrency(propertyIncome)}</span>
+            </div>
+          )}
+          
+          {(propertyExpenses + lifestyleExpenses) > 0 && (
+            <div className="flex items-center text-red-500 gap-2">
+              <TrendingDown className="h-4 w-4" />
+              <span>Expenses: {formatCurrency(propertyExpenses + lifestyleExpenses)}</span>
+            </div>
+          )}
+          
+          {gains > 0 && (
+            <div className="flex items-center text-emerald-500 gap-2">
+              <TrendingUp className="h-4 w-4" />
+              <span>Investment Gains: {formatCurrency(gains)} ({gainers} assets)</span>
+            </div>
+          )}
+          
+          {losses > 0 && (
+            <div className="flex items-center text-red-500 gap-2">
+              <TrendingDown className="h-4 w-4" />
+              <span>Investment Losses: {formatCurrency(losses)} ({losers} assets)</span>
+            </div>
+          )}
+          
+          <div className="border-t border-border mt-1 pt-1"></div>
+          
+          <div className={`flex items-center gap-2 ${netDailyChange >= 0 ? 'text-emerald-500' : 'text-red-500'} font-bold`}>
+            <ArrowRight className="h-4 w-4" />
+            <span>Net Cash Flow: {formatCurrency(netDailyChange)}</span>
+          </div>
+          
+          {investmentChanges.netChange !== 0 && (
+            <div className={`flex items-center gap-2 ${investmentChanges.netChange >= 0 ? 'text-emerald-500' : 'text-red-500'} font-bold`}>
+              <ArrowRight className="h-4 w-4" />
+              <span>Net Investment Change: {formatCurrency(investmentChanges.netChange)}</span>
+            </div>
+          )}
+        </div>,
+        {
+          duration: 6000,
+          position: 'top-center'
+        }
+      );
+    }
+    
+    // Return the summary for potential other uses
+    return {
+      income: propertyIncome,
+      expenses: propertyExpenses + lifestyleExpenses,
+      net: netDailyChange,
+      investmentChange: investmentChanges.netChange
+    };
+  };
+
+  // Auto day advancement timer
+  useEffect(() => {
+    if (!autoAdvanceEnabled) return;
+    
+    const now = Date.now();
+    lastTickTime.current = now;
+    
+    const intervalId = setInterval(() => {
+      const currentTime = Date.now();
+      const elapsed = currentTime - lastTickTime.current;
+      const progress = (elapsed / DAY_DURATION_MS) * 100;
+      
+      setTimeProgress(Math.min(progress, 100));
+      
+      // If a full day has passed, advance the day
+      if (elapsed >= DAY_DURATION_MS) {
+        // Process daily finances
+        processDailyFinances();
+        
+        // Advance the day
+        advanceTime();
+        playSuccess();
+        
+        // Check for unlockable achievements
+        checkAllAchievements();
+        
+        // Reset timer
+        lastTickTime.current = currentTime;
+        setTimeProgress(0);
+      }
+    }, 1000); // Update progress every second
+    
+    return () => clearInterval(intervalId);
+  }, [autoAdvanceEnabled, advanceTime, playSuccess]);
+  
   const handleAdvanceTime = () => {
+    // Process daily finances when manually advancing time too
+    processDailyFinances();
+    
+    // Advance the day
     advanceTime();
     playSuccess();
+    
+    // Check for unlockable achievements
+    checkAllAchievements();
+    
+    // Reset the timer
+    lastTickTime.current = Date.now();
+    setTimeProgress(0);
+  };
+  
+  const toggleAutoAdvance = () => {
+    setAutoAdvanceEnabled(!autoAdvanceEnabled);
+    lastTickTime.current = Date.now();
+    setTimeProgress(0);
   };
   
   return (
@@ -59,24 +300,50 @@ export function GameUI() {
         </div>
         
         {/* Date - placed center */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full" aria-label="Current date">
-          <Calendar className="h-4 w-4 text-primary dark:text-primary" />
-          <div>
-            <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
+          <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
+            <Calendar className="h-4 w-4 text-primary dark:text-primary" />
+            <div>
+              <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
+            </div>
+          </div>
+          
+          {/* Day progress bar */}
+          <div className="w-64 flex items-center gap-2">
+            <Progress value={timeProgress} className="h-2" 
+              aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
+            <span className="text-xs font-medium">
+              {autoAdvanceEnabled ? `${Math.floor(300 - (timeProgress * 300 / 100))}s` : "Paused"}
+            </span>
           </div>
         </div>
         
-        {/* Next day button - most common action */}
-        <Button 
-          variant="default"
-          size="sm" 
-          onClick={handleAdvanceTime}
-          className="button-pulse bg-quaternary/80 hover:bg-quaternary/90 text-white dark:bg-quaternary/90 dark:hover:bg-quaternary"
-          aria-label="Advance to next day"
-        >
-          <Clock className="mr-2 h-4 w-4" />
-          Next Day
-        </Button>
+        {/* Time control buttons */}
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant={autoAdvanceEnabled ? "outline" : "default"}
+            size="sm"
+            onClick={toggleAutoAdvance}
+            className={autoAdvanceEnabled ? 
+              "border-quaternary/80 text-quaternary" : 
+              "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
+            aria-label={autoAdvanceEnabled ? "Pause auto day advancement" : "Resume auto day advancement"}
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            {autoAdvanceEnabled ? "Auto: On" : "Auto: Off"}
+          </Button>
+          
+          <Button 
+            variant="default"
+            size="sm" 
+            onClick={handleAdvanceTime}
+            className="button-pulse bg-quaternary/80 hover:bg-quaternary/90 text-white dark:bg-quaternary/90 dark:hover:bg-quaternary"
+            aria-label="Advance to next day"
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            Next Day
+          </Button>
+        </div>
       </div>
       
       {/* Bottom navigation - fixed at bottom of viewport */}
