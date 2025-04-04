@@ -39,6 +39,7 @@ interface AchievementsState {
   updateProgress: (id: string, progress: number) => number; // returns current progress
   dismissNotification: () => void;
   claimReward: (id: string) => AchievementReward | null;
+  resetAchievements: () => void;
   getAchievement: (id: string) => Achievement | undefined;
   getCategoryAchievements: (category: AchievementCategory) => Achievement[];
   getCompletedAchievements: () => Achievement[];
@@ -884,6 +885,14 @@ export const useAchievements = create<AchievementsState>()(
       
       getInProgressAchievements: () => {
         return get().achievements.filter(a => !a.isUnlocked && a.progress > 0);
+      },
+      
+      resetAchievements: () => {
+        set({
+          achievements: initialAchievements.map(a => ({ ...a })),
+          lastAchievementUnlocked: null,
+          showAchievementNotification: false
+        });
       }
     }),
     {

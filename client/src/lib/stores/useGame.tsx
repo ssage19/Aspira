@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { persist } from "zustand/middleware";
+import { useAchievements } from "./useAchievements";
 
 export type GamePhase = "ready" | "playing" | "ended";
 
@@ -49,6 +50,15 @@ export const useGame = create<GameState>()(
           cash: 5000,
           incomeMultiplier: 1.0
         }));
+        
+        // Reset achievements when game is restarted
+        // Using setTimeout to prevent circular dependency issues
+        setTimeout(() => {
+          const { resetAchievements } = useAchievements.getState();
+          if (resetAchievements) {
+            resetAchievements();
+          }
+        }, 0);
       },
       
       end: () => {
