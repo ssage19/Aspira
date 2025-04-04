@@ -21,7 +21,13 @@ import {
   RefreshCw,
   HardDrive,
   Trophy,
-  Award
+  Award,
+  Play,
+  Clock,
+  Building,
+  Building2,
+  ShoppingBag,
+  ShoppingCart
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -43,10 +49,25 @@ import GameUI from '../components/GameUI';
 import MainScene from '../components/MainScene';
 import { formatCurrency } from '../lib/utils';
 
+import { useEffect as useInitAchievements } from 'react';
+import { checkAllAchievements } from '../lib/services/achievementTracker';
+
 // Achievement Widget component
 const AchievementsWidget = () => {
   const { achievements, getCompletedAchievements, getInProgressAchievements } = useAchievements();
   const navigate = useNavigate();
+  
+  // Check all achievements when dashboard loads
+  useInitAchievements(() => {
+    // Check for achievements on component mount
+    checkAllAchievements();
+    // Set up interval to periodically check achievements (every 10 seconds)
+    const interval = setInterval(() => {
+      checkAllAchievements();
+    }, 10000);
+    
+    return () => clearInterval(interval);
+  }, []);
   
   // Get the most recent 3 completed achievements
   const recentCompletedAchievements = getCompletedAchievements()
@@ -64,20 +85,6 @@ const AchievementsWidget = () => {
     
   // Combine them, showing completed ones first
   const displayAchievements = [...recentCompletedAchievements, ...inProgressAchievements].slice(0, 4);
-  
-  const getAchievementIcon = (iconName: string, className: string = '') => {
-    switch (iconName) {
-      case 'Trophy': return <Trophy className={`h-5 w-5 ${className}`} />;
-      case 'DollarSign': return <DollarSign className={`h-5 w-5 ${className}`} />;
-      case 'Star': return <Award className={`h-5 w-5 ${className}`} />;
-      case 'Home': return <Home className={`h-5 w-5 ${className}`} />;
-      case 'TrendingUp': return <TrendingUp className={`h-5 w-5 ${className}`} />;
-      case 'ShoppingBag': return <ShoppingBag className={`h-5 w-5 ${className}`} />;
-      case 'Play': return <TrendingUp className={`h-5 w-5 ${className}`} />;
-      case 'Clock': return <Calendar className={`h-5 w-5 ${className}`} />;
-      default: return <Trophy className={`h-5 w-5 ${className}`} />;
-    }
-  };
   
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -126,10 +133,8 @@ const AchievementsWidget = () => {
                 ? 'bg-yellow-500/10' 
                 : 'bg-secondary/10'
             }`}>
-              {getAchievementIcon(achievement.icon, achievement.isUnlocked 
-                ? 'text-yellow-500' 
-                : getCategoryColor(achievement.category)
-              )}
+              {/* Simple icon display - just use Trophy for all achievements for now */}
+              <Trophy className={`h-5 w-5 ${achievement.isUnlocked ? 'text-yellow-500' : getCategoryColor(achievement.category)}`} />
             </div>
             <div className="flex-1">
               <h3 className={`font-medium ${
