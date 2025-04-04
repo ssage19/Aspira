@@ -43,9 +43,9 @@ export function GameUI() {
   };
   
   return (
-    <div className="w-full h-full pointer-events-none">
-      {/* Top bar with wealth */}
-      <div className="absolute top-0 left-0 right-0 bg-black bg-opacity-80 text-white p-4 flex justify-between items-center pointer-events-auto">
+    <div className="w-full min-h-screen pointer-events-none">
+      {/* Top bar with wealth - fixed at top of viewport */}
+      <div className="fixed top-0 left-0 right-0 bg-black bg-opacity-80 text-white p-4 flex justify-between items-center pointer-events-auto z-50">
         <div className="flex items-center">
           <DollarSign className="mr-1 h-5 w-5 text-green-400" />
           <div>
@@ -72,53 +72,57 @@ export function GameUI() {
         </Button>
       </div>
       
-      {/* Bottom navigation */}
-      <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-80 text-white p-2 flex justify-around pointer-events-auto">
+      {/* Bottom navigation - fixed at bottom of viewport */}
+      <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-80 text-white p-4 flex justify-around pointer-events-auto z-50">
         <Button 
           variant="ghost" 
-          size="icon" 
+          size="lg" 
           onClick={() => navigate('/')}
           onMouseEnter={() => setShowTooltip('dashboard')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative"
         >
-          <Briefcase className="h-6 w-6" />
+          <Briefcase className="h-6 w-6 mr-2" />
+          <span>Dashboard</span>
           {showTooltip === 'dashboard' && <span className="absolute -top-8 bg-black px-2 py-1 rounded text-xs">Dashboard</span>}
         </Button>
         
         <Button 
           variant="ghost" 
-          size="icon" 
+          size="lg" 
           onClick={() => navigate('/investments')}
           onMouseEnter={() => setShowTooltip('investments')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative"
         >
-          <ChartBar className="h-6 w-6" />
+          <ChartBar className="h-6 w-6 mr-2" />
+          <span>Investments</span>
           {showTooltip === 'investments' && <span className="absolute -top-8 bg-black px-2 py-1 rounded text-xs">Investments</span>}
         </Button>
         
         <Button 
           variant="ghost" 
-          size="icon" 
+          size="lg" 
           onClick={() => navigate('/properties')}
           onMouseEnter={() => setShowTooltip('properties')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative"
         >
-          <Home className="h-6 w-6" />
+          <Home className="h-6 w-6 mr-2" />
+          <span>Properties</span>
           {showTooltip === 'properties' && <span className="absolute -top-8 bg-black px-2 py-1 rounded text-xs">Properties</span>}
         </Button>
         
         <Button 
           variant="ghost" 
-          size="icon" 
+          size="lg" 
           onClick={() => navigate('/lifestyle')}
           onMouseEnter={() => setShowTooltip('lifestyle')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative"
         >
-          <ShoppingBag className="h-6 w-6" />
+          <ShoppingBag className="h-6 w-6 mr-2" />
+          <span>Lifestyle</span>
           {showTooltip === 'lifestyle' && <span className="absolute -top-8 bg-black px-2 py-1 rounded text-xs">Lifestyle</span>}
         </Button>
         

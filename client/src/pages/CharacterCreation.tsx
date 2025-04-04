@@ -65,8 +65,8 @@ export default function CharacterCreation() {
   ];
   
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-50 p-4">
-      <Card className="w-full max-w-2xl">
+    <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 p-8">
+      <Card className="w-full max-w-2xl shadow-xl">
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center">
             <DollarSign className="h-8 w-8 mr-2 text-green-500" />

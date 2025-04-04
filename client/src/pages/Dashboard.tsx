@@ -69,19 +69,19 @@ export default function Dashboard() {
     });
   
   return (
-    <div className="w-full h-full bg-gray-100">
-      {/* 3D Scene */}
-      <div className="absolute inset-0 z-0">
+    <div className="w-full min-h-screen bg-gray-100 pt-20 pb-32">
+      {/* 3D Scene - Fixed Position */}
+      <div className="fixed inset-0 z-0">
         <MainScene />
       </div>
       
       {/* Dashboard UI */}
-      <div className="relative z-10 pointer-events-none">
+      <div className="relative z-10">
         <GameUI />
         
-        {/* Central Dashboard */}
-        <div className="absolute top-20 left-1/2 transform -translate-x-1/2 w-full max-w-4xl p-4 pointer-events-auto">
-          <Card className="bg-white bg-opacity-90 backdrop-blur-sm">
+        {/* Central Dashboard - scrollable */}
+        <div className="relative w-full max-w-4xl mx-auto p-4">
+          <Card className="bg-white bg-opacity-90 backdrop-blur-sm shadow-xl">
             <CardHeader className="pb-2">
               <CardTitle className="text-2xl">
                 Welcome, {name}
