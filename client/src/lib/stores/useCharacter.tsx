@@ -53,6 +53,7 @@ interface CharacterState {
   sellProperty: (id: string) => void;
   addLifestyleItem: (item: LifestyleItem) => void;
   calculateNetWorth: () => number;
+  resetProgress: () => void; // Add reset progress function
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_character';
@@ -282,6 +283,25 @@ export const useCharacter = create<CharacterState>()(
         );
         
         return netWorth;
+      },
+      
+      resetProgress: () => {
+        // Reset the state to default values
+        const defaultState = {
+          name: "",
+          wealth: 0,
+          netWorth: 0,
+          happiness: 50,
+          prestige: 0,
+          assets: [],
+          properties: [],
+          lifestyleItems: []
+        };
+        
+        set(defaultState);
+        
+        // Clear from local storage
+        setLocalStorage(STORAGE_KEY, defaultState);
       }
     };
   })
