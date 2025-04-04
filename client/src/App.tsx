@@ -5,6 +5,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "sonner";
 import { useAudio } from "./lib/stores/useAudio";
 import { useGame } from "./lib/stores/useGame";
+import { useEconomy } from "./lib/stores/useEconomy";
 import Dashboard from "./pages/Dashboard";
 import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
@@ -19,7 +20,8 @@ import "@fontsource/inter";
 // Main App component
 function App() {
   const { setBackgroundMusic, setHitSound, setSuccessSound } = useAudio();
-  const { phase } = useGame();
+  const { phase, start } = useGame();
+  const { updateEconomy } = useEconomy();
 
   // Load audio assets
   useEffect(() => {
@@ -34,6 +36,17 @@ function App() {
     const success = new Audio('/sounds/success.mp3');
     setSuccessSound(success);
   }, [setBackgroundMusic, setHitSound, setSuccessSound]);
+  
+  // Initialize game state
+  useEffect(() => {
+    // Start the game if it's not already started
+    if (phase === "ready") {
+      start();
+    }
+    
+    // Make sure economy is initialized with market trend and health values
+    updateEconomy();
+  }, [phase, start, updateEconomy]);
 
   return (
     <QueryClientProvider client={queryClient}>

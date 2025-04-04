@@ -320,9 +320,9 @@ export function Investments() {
             aria-labelledby="available-stocks-heading"
             role="listbox"
           >
-            {filteredStocks.map(stock => (
+            {filteredStocks.map((stock, index) => (
               <div 
-                key={stock.id}
+                key={`stock-${stock.id}-${index}`}
                 role="option"
                 aria-selected={selectedStock.id === stock.id}
                 className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
