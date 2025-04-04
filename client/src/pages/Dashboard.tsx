@@ -5,6 +5,7 @@ import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
+import { useAchievements } from '../lib/stores/useAchievements';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -18,7 +19,9 @@ import {
   Settings,
   AlertTriangle,
   RefreshCw,
-  HardDrive
+  HardDrive,
+  Trophy,
+  Award
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -39,6 +42,150 @@ import { Separator } from '../components/ui/separator';
 import GameUI from '../components/GameUI';
 import MainScene from '../components/MainScene';
 import { formatCurrency } from '../lib/utils';
+
+// Achievement Widget component
+const AchievementsWidget = () => {
+  const { achievements, getCompletedAchievements, getInProgressAchievements } = useAchievements();
+  const navigate = useNavigate();
+  
+  // Get the most recent 3 completed achievements
+  const recentCompletedAchievements = getCompletedAchievements()
+    .sort((a, b) => {
+      if (!a.unlockedDate) return 1;
+      if (!b.unlockedDate) return -1;
+      return new Date(b.unlockedDate).getTime() - new Date(a.unlockedDate).getTime();
+    })
+    .slice(0, 3);
+    
+  // Get 3 achievements that are in progress but not completed
+  const inProgressAchievements = getInProgressAchievements()
+    .sort((a, b) => b.progress - a.progress)
+    .slice(0, 3);
+    
+  // Combine them, showing completed ones first
+  const displayAchievements = [...recentCompletedAchievements, ...inProgressAchievements].slice(0, 4);
+  
+  const getAchievementIcon = (iconName: string, className: string = '') => {
+    switch (iconName) {
+      case 'Trophy': return <Trophy className={`h-5 w-5 ${className}`} />;
+      case 'DollarSign': return <DollarSign className={`h-5 w-5 ${className}`} />;
+      case 'Star': return <Award className={`h-5 w-5 ${className}`} />;
+      case 'Home': return <Home className={`h-5 w-5 ${className}`} />;
+      case 'TrendingUp': return <TrendingUp className={`h-5 w-5 ${className}`} />;
+      case 'ShoppingBag': return <ShoppingBag className={`h-5 w-5 ${className}`} />;
+      case 'Play': return <TrendingUp className={`h-5 w-5 ${className}`} />;
+      case 'Clock': return <Calendar className={`h-5 w-5 ${className}`} />;
+      default: return <Trophy className={`h-5 w-5 ${className}`} />;
+    }
+  };
+  
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'wealth': return 'text-quinary';
+      case 'property': return 'text-tertiary';
+      case 'investment': return 'text-secondary';
+      case 'lifestyle': return 'text-purple-500';
+      case 'general': return 'text-primary';
+      default: return 'text-primary';
+    }
+  };
+  
+  if (displayAchievements.length === 0) {
+    return (
+      <div className="text-center p-6 bg-secondary/30 rounded-lg glass-effect">
+        <Trophy className="h-10 w-10 mx-auto mb-2 text-yellow-500 opacity-40" />
+        <h3 className="text-lg font-medium mb-1">No Achievements Yet</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Complete objectives to earn achievements and rewards
+        </p>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          onClick={() => navigate('/achievements')}
+          className="mx-auto"
+        >
+          View All Achievements
+          <ArrowRight className="ml-1 h-3 w-3" />
+        </Button>
+      </div>
+    );
+  }
+  
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {displayAchievements.map(achievement => (
+        <div 
+          key={achievement.id} 
+          className={`p-4 glass-effect rounded-lg border transition-all duration-300 ${
+            achievement.isUnlocked ? 'border-yellow-500/50' : 'border-secondary/50'
+          }`}
+        >
+          <div className="flex items-start">
+            <div className={`flex-shrink-0 mr-3 p-2 rounded-full ${
+              achievement.isUnlocked 
+                ? 'bg-yellow-500/10' 
+                : 'bg-secondary/10'
+            }`}>
+              {getAchievementIcon(achievement.icon, achievement.isUnlocked 
+                ? 'text-yellow-500' 
+                : getCategoryColor(achievement.category)
+              )}
+            </div>
+            <div className="flex-1">
+              <h3 className={`font-medium ${
+                achievement.isUnlocked 
+                  ? 'text-yellow-500' 
+                  : getCategoryColor(achievement.category)
+              }`}>
+                {achievement.title}
+              </h3>
+              <p className="text-sm text-muted-foreground line-clamp-1">
+                {achievement.description}
+              </p>
+              
+              <div className="mt-2">
+                <div className="w-full bg-secondary/20 rounded-full h-1.5">
+                  <div 
+                    className={`${
+                      achievement.isUnlocked 
+                        ? 'bg-yellow-500' 
+                        : achievement.progress >= 75 
+                          ? 'bg-quinary' 
+                          : achievement.progress >= 50 
+                            ? 'bg-tertiary' 
+                            : achievement.progress >= 25 
+                              ? 'bg-yellow-500' 
+                              : 'bg-secondary'
+                    } h-1.5 rounded-full transition-all duration-500 ease-out`}
+                    style={{ width: `${achievement.progress}%` }}
+                  ></div>
+                </div>
+                <div className="flex justify-between mt-1">
+                  <span className="text-xs text-muted-foreground">
+                    {achievement.isUnlocked 
+                      ? `Completed ${achievement.unlockedDate 
+                          ? new Date(achievement.unlockedDate).toLocaleDateString('en-US', {month: 'short', day: 'numeric'}) 
+                          : ''}`
+                      : `${achievement.progress}% complete`
+                    }
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {achievement.isUnlocked && (
+                      <span className="flex items-center">
+                        <Award className="h-3 w-3 mr-1 text-yellow-500" />
+                        <span>{achievement.reward.description}</span>
+                      </span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -277,6 +424,30 @@ export default function Dashboard() {
                           </div>
                         </div>
                       </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Achievements */}
+                  <Card className="glass-effect border-accent shadow-md mb-8">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-lg flex items-center">
+                        <div className="mr-3 p-2 rounded-full bg-yellow-400/10">
+                          <Trophy className="h-5 w-5 text-yellow-400" />
+                        </div>
+                        <span className="text-primary font-medium">Recent Achievements</span>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="ml-auto text-xs"
+                          onClick={() => navigate('/achievements')}
+                        >
+                          View All
+                          <ArrowRight className="ml-1 h-3 w-3" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-4">
+                      <AchievementsWidget />
                     </CardContent>
                   </Card>
                   

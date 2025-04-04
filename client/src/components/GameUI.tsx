@@ -12,7 +12,8 @@ import {
   ShoppingBag,
   ChartBar,
   Volume2,
-  VolumeX
+  VolumeX,
+  Trophy
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
@@ -156,6 +157,26 @@ export function GameUI() {
           {showTooltip === 'lifestyle' && (
             <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
               Lifestyle
+            </span>
+          )}
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="lg" 
+          onClick={() => navigate('/achievements')}
+          onMouseEnter={() => setShowTooltip('achievements')}
+          onMouseLeave={() => setShowTooltip('')}
+          className="relative py-4 glass-effect hover:bg-secondary/60"
+          aria-label="Go to Achievements"
+        >
+          <div className="p-2 rounded-full bg-yellow-500/10 mr-2">
+            <Trophy className="h-5 w-5 text-yellow-500" />
+          </div>
+          <span className="text-base">Achievements</span>
+          {showTooltip === 'achievements' && (
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
+              Achievements
             </span>
           )}
         </Button>

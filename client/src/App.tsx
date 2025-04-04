@@ -11,9 +11,11 @@ import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
+import AchievementsScreen from "./pages/AchievementsScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import DebugPanel from "./components/DebugPanel";
+import AchievementNotification from "./components/AchievementNotification";
 
 import "@fontsource/inter";
 
@@ -58,10 +60,12 @@ function App() {
             <Route path="/investments" element={<InvestmentScreen />} />
             <Route path="/lifestyle" element={<LifestyleScreen />} />
             <Route path="/properties" element={<PropertyScreen />} />
+            <Route path="/achievements" element={<AchievementsScreen />} />
             <Route path="/test" element={<TestPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <DebugPanel />
+          <AchievementNotification />
         </Suspense>
       </Router>
       <Toaster position="top-right" richColors />
