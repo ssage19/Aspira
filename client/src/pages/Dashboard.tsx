@@ -6,6 +6,7 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
+import CharacterAttributes from '../components/CharacterAttributes';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -372,6 +373,11 @@ export default function Dashboard() {
                       </CardContent>
                     </Card>
                   </div>
+                  
+                  {/* Character Attributes Section */}
+                  <Card className="mb-8 glass-effect border-accent shadow-md">
+                    <CharacterAttributes />
+                  </Card>
                   
                   {/* Portfolio Breakdown */}
                   <Card className="mb-8 glass-effect border-accent shadow-md">

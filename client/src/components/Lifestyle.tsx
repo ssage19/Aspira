@@ -11,6 +11,17 @@ import {
   CardTitle 
 } from './ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "./ui/alert-dialog";
 import { toast } from 'sonner';
 import { 
   ShoppingBag, 
@@ -41,7 +52,7 @@ import {
 import { hobbies } from '../lib/data/hobbies';
 
 export function Lifestyle() {
-  const { wealth, addWealth, addLifestyleItem, lifestyleItems: ownedItems } = useCharacter();
+  const { wealth, addWealth, addLifestyleItem, removeLifestyleItem, lifestyleItems: ownedItems } = useCharacter();
   const { playSuccess, playHit } = useAudio();
   const [activeTab, setActiveTab] = useState('luxury');
   
@@ -94,7 +105,15 @@ export function Lifestyle() {
         purchasePrice: item.attributes.initialInvestment,
         maintenanceCost: item.attributes.costPerMonth,
         happiness: item.happiness || 10,
-        prestige: item.prestige || 5
+        prestige: item.prestige || 5,
+        
+        // Add attributes from the hobby
+        timeCommitment: item.attributes.timeCommitment,
+        healthImpact: item.attributes.healthImpact,
+        stressReduction: item.attributes.stressReduction,
+        socialStatus: item.attributes.socialStatus,
+        skillDevelopment: item.attributes.skillDevelopment,
+        environmentalImpact: item.attributes.environmentalImpact
       };
     } else {
       lifestyleItem = {
@@ -104,7 +123,17 @@ export function Lifestyle() {
         purchasePrice: item.price,
         maintenanceCost: item.maintenanceCost || 0,
         happiness: item.happiness || 10,
-        prestige: item.prestige || 5
+        prestige: item.prestige || 5,
+        
+        // Add attributes from the item if they exist
+        ...(item.attributes && {
+          timeCommitment: item.attributes.timeCommitment,
+          healthImpact: item.attributes.healthImpact,
+          stressReduction: item.attributes.stressReduction,
+          socialStatus: item.attributes.socialStatus,
+          skillDevelopment: item.attributes.skillDevelopment,
+          environmentalImpact: item.attributes.environmentalImpact
+        })
       };
     }
     
@@ -346,6 +375,10 @@ export function Lifestyle() {
       
       <Tabs defaultValue="luxury" onValueChange={setActiveTab}>
         <TabsList className="mb-4 flex flex-wrap">
+          <TabsTrigger value="owned">
+            <Check className="h-4 w-4 mr-2" />
+            My Items
+          </TabsTrigger>
           <TabsTrigger value="luxury">
             <Watch className="h-4 w-4 mr-2" />
             Luxury Items
@@ -367,6 +400,169 @@ export function Lifestyle() {
             Hobbies
           </TabsTrigger>
         </TabsList>
+        
+        <TabsContent value="owned">
+          {ownedItems.length === 0 ? (
+            <div className="text-center p-6">
+              <div className="text-gray-400 mb-2">
+                <ShoppingBag size={40} className="mx-auto mb-2 opacity-30" />
+                <p>You don't own any lifestyle items yet.</p>
+              </div>
+              <p className="text-sm text-gray-500">
+                Browse the categories to purchase luxury items, vehicles, and more.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm">
+                <h3 className="font-medium text-amber-800 mb-1">About Lifestyle Choices</h3>
+                <p className="text-amber-700 text-xs">
+                  Your lifestyle items affect your character attributes. Removing items will reverse their effects on your stats.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+                {ownedItems.map(item => {
+                  // Determine item type for styling
+                  const itemTypeColors = {
+                    'luxury': 'border-amber-200 bg-amber-50',
+                    'vehicles': 'border-blue-200 bg-blue-50',
+                    'vacations': 'border-purple-200 bg-purple-50',
+                    'experiences': 'border-pink-200 bg-pink-50',
+                    'hobbies': 'border-green-200 bg-green-50'
+                  };
+                  
+                  const colorClass = itemTypeColors[item.type as keyof typeof itemTypeColors] || 'border-gray-200';
+                  
+                  return (
+                    <Card key={item.id} className={`overflow-hidden ${colorClass}`}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center justify-between">
+                          <span>{item.name}</span>
+                          <span className="text-xs px-2 py-1 bg-secondary/20 rounded-full">
+                            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                          </span>
+                        </CardTitle>
+                        <CardDescription>
+                          Value: {formatCurrency(item.purchasePrice * 0.5)}
+                          {item.maintenanceCost > 0 && (
+                            <span className="ml-2 text-amber-600">
+                              +{formatCurrency(item.maintenanceCost)}/
+                              {item.type === 'hobbies' ? 'month' : 'day'}
+                            </span>
+                          )}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <div className="flex flex-col space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="flex items-center">
+                              <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
+                              Happiness: +{item.happiness}
+                            </span>
+                            <span className="flex items-center">
+                              <Award className="h-4 w-4 mr-1 text-purple-500" />
+                              Prestige: +{item.prestige}
+                            </span>
+                          </div>
+                          
+                          {/* Attribute effects if any */}
+                          {(item.timeCommitment || item.healthImpact || item.stressReduction || 
+                            item.socialStatus || item.skillDevelopment || item.environmentalImpact) && (
+                            <div className="mt-2 pt-2 border-t border-gray-200">
+                              <p className="text-xs text-gray-500 mb-1">Effects on your attributes:</p>
+                              <div className="grid grid-cols-2 gap-1">
+                                {item.timeCommitment && (
+                                  <div className="text-xs flex items-center text-orange-600">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    <span>Time: -{item.timeCommitment}h</span>
+                                  </div>
+                                )}
+                                {item.healthImpact && (
+                                  <div className={`text-xs flex items-center ${item.healthImpact > 0 ? 'text-green-600' : 'text-red-500'}`}>
+                                    <Heart className="h-3 w-3 mr-1" />
+                                    <span>Health: {item.healthImpact > 0 ? '+' : ''}{item.healthImpact}</span>
+                                  </div>
+                                )}
+                                {item.stressReduction && (
+                                  <div className="text-xs flex items-center text-teal-600">
+                                    <Wind className="h-3 w-3 mr-1" />
+                                    <span>Stress: -{item.stressReduction}</span>
+                                  </div>
+                                )}
+                                {item.socialStatus && (
+                                  <div className="text-xs flex items-center text-blue-600">
+                                    <Users className="h-3 w-3 mr-1" />
+                                    <span>Social: {item.socialStatus > 0 ? '+' : ''}{item.socialStatus}</span>
+                                  </div>
+                                )}
+                                {item.skillDevelopment && (
+                                  <div className="text-xs flex items-center text-indigo-600">
+                                    <BookOpen className="h-3 w-3 mr-1" />
+                                    <span>Skills: {item.skillDevelopment > 0 ? '+' : ''}{item.skillDevelopment}</span>
+                                  </div>
+                                )}
+                                {item.environmentalImpact && (
+                                  <div className={`text-xs flex items-center ${item.environmentalImpact > 0 ? 'text-green-600' : 'text-gray-500'}`}>
+                                    <Leaf className="h-3 w-3 mr-1" />
+                                    <span>Enviro: {item.environmentalImpact > 0 ? '+' : ''}{item.environmentalImpact}</span>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="outline" className="w-full text-red-500 hover:bg-red-50">
+                              <X className="h-4 w-4 mr-2" />
+                              Remove
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Remove {item.name}?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                Removing this item will reverse its effects on your character attributes.
+                                {item.type === 'hobbies' && (
+                                  <p className="mt-2">You'll gain back {item.timeCommitment} hours of free time per week.</p>
+                                )}
+                                {item.healthImpact !== 0 && (
+                                  <p className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact || 0)} points.</p>
+                                )}
+                                {item.stressReduction !== 0 && (
+                                  <p className="mt-1">Your stress will increase by {Math.abs(item.stressReduction || 0)} points.</p>
+                                )}
+                                {item.socialStatus !== 0 && (
+                                  <p className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus || 0)} points.</p>
+                                )}
+                                {item.skillDevelopment !== 0 && (
+                                  <p className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment || 0)} points.</p>
+                                )}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={() => {
+                                removeLifestyleItem(item.id);
+                                toast.success(`Removed ${item.name}`);
+                                playSuccess();
+                              }}>
+                                Remove
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </TabsContent>
         
         <TabsContent value="luxury">
           {renderItems(luxuryItems)}
