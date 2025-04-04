@@ -529,17 +529,17 @@ export function Lifestyle() {
                                 {item.type === 'hobbies' && (
                                   <p className="mt-2">You'll gain back {item.timeCommitment} hours of free time per week.</p>
                                 )}
-                                {item.healthImpact !== 0 && (
-                                  <p className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact || 0)} points.</p>
+                                {item.healthImpact !== undefined && item.healthImpact !== 0 && (
+                                  <p className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact)} points.</p>
                                 )}
-                                {item.stressReduction !== 0 && (
-                                  <p className="mt-1">Your stress will increase by {Math.abs(item.stressReduction || 0)} points.</p>
+                                {item.stressReduction !== undefined && item.stressReduction !== 0 && (
+                                  <p className="mt-1">Your stress will increase by {Math.abs(item.stressReduction)} points.</p>
                                 )}
-                                {item.socialStatus !== 0 && (
-                                  <p className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus || 0)} points.</p>
+                                {item.socialStatus !== undefined && item.socialStatus !== 0 && (
+                                  <p className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus)} points.</p>
                                 )}
-                                {item.skillDevelopment !== 0 && (
-                                  <p className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment || 0)} points.</p>
+                                {item.skillDevelopment !== undefined && item.skillDevelopment !== 0 && (
+                                  <p className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment)} points.</p>
                                 )}
                               </AlertDialogDescription>
                             </AlertDialogHeader>

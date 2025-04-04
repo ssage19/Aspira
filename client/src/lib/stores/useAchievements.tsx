@@ -323,6 +323,113 @@ const initialAchievements: Achievement[] = [
       value: 1,
       description: 'Unlock special game features'
     }
+  },
+  
+  // Character development achievements
+  {
+    id: 'character-1',
+    title: 'Health Enthusiast',
+    description: 'Reach 90+ health points through your lifestyle choices',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 90,
+    icon: 'Heart',
+    reward: {
+      type: 'cash',
+      value: 5000,
+      description: '$5,000 cash bonus from health insurance rebate'
+    }
+  },
+  {
+    id: 'character-2',
+    title: 'Stress Management',
+    description: 'Reduce your stress level to below 10 points',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Wind',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% productivity boost from improved focus'
+    }
+  },
+  {
+    id: 'character-3',
+    title: 'Social Butterfly',
+    description: 'Achieve 80+ social connection points',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 80,
+    icon: 'Users',
+    reward: {
+      type: 'unlock',
+      value: 1,
+      description: 'Unlock exclusive networking opportunities'
+    }
+  },
+  {
+    id: 'character-4',
+    title: 'Master of Skills',
+    description: 'Reach 85+ skill development points',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 85,
+    icon: 'BookOpen',
+    reward: {
+      type: 'cash',
+      value: 10000,
+      description: '$10,000 from new career opportunities'
+    }
+  },
+  {
+    id: 'character-5',
+    title: 'Work-Life Balance',
+    description: 'Maintain 50+ hours of free time while having 70+ happiness',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'LifeBuoy',
+    reward: {
+      type: 'bonus',
+      value: 20,
+      description: '+20 Happiness boost'
+    }
+  },
+  {
+    id: 'character-6',
+    title: 'Environmental Champion',
+    description: 'Achieve an environmental impact score of 60+',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 60,
+    icon: 'Leaf',
+    reward: {
+      type: 'cash',
+      value: 7500,
+      description: '$7,500 from green technology grants'
+    }
+  },
+  {
+    id: 'character-7',
+    title: 'Balanced Life',
+    description: 'Achieve 70+ in health, social, and skills simultaneously',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Award',
+    reward: {
+      type: 'unlock',
+      value: 2,
+      description: 'Unlock premium lifestyle opportunities'
+    }
   }
 ];
 

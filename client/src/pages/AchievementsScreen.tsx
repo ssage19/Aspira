@@ -31,6 +31,7 @@ import {
 } from '../components/ui/tooltip';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
+import { useCharacter } from '../lib/stores/useCharacter';
 
 interface AchievementItemProps {
   achievement: Achievement;
@@ -179,7 +180,11 @@ const AchievementItem = ({ achievement, claimReward, hasUnclaimedReward }: Achie
 
 export default function AchievementsScreen() {
   const [activeTab, setActiveTab] = useState<AchievementCategory>('general');
-  const [claimedRewards, setClaimedRewards] = useState<Record<string, boolean>>({});
+  // Load previously claimed rewards from localStorage
+  const [claimedRewards, setClaimedRewards] = useState<Record<string, boolean>>(() => {
+    const saved = localStorage.getItem('business-empire-claimed-rewards');
+    return saved ? JSON.parse(saved) : {};
+  });
   const { 
     achievements, 
     getCategoryAchievements, 
@@ -192,25 +197,54 @@ export default function AchievementsScreen() {
     const achievement = achievements.find(a => a.id === id);
     
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
+      console.log(`Claiming reward for achievement: ${achievement.title}`);
+      
       // Apply the reward
       switch (achievement.reward.type) {
         case 'cash':
+          console.log(`Adding cash reward: ${achievement.reward.value}`);
           addCash(achievement.reward.value);
           break;
         case 'multiplier':
+          console.log(`Applying income multiplier: ${achievement.reward.value}`);
           applyIncomeMultiplier(achievement.reward.value);
           break;
         case 'unlock':
+          console.log(`Unlocking feature: ${achievement.reward.description}`);
           // Unlock feature would be handled by the feature itself
           // by checking if the achievement is unlocked
           break;
         case 'bonus':
-          // Bonus values would be applied by the relevant system
+          console.log(`Applying bonus: ${achievement.reward.description}`);
+          
+          // Apply character bonuses for the "bonus" type rewards
+          if (achievement.id.startsWith('lifestyle') || achievement.id.startsWith('character')) {
+            const { updateAttributes } = useCharacter.getState();
+            
+            // For happiness bonus
+            if (achievement.reward.description.includes('Happiness')) {
+              const bonusAmount = achievement.reward.value;
+              console.log(`Applying happiness bonus: +${bonusAmount}`);
+              updateAttributes({ happiness: bonusAmount });
+            }
+            
+            // For prestige bonus
+            if (achievement.reward.description.includes('Prestige')) {
+              const bonusAmount = achievement.reward.value;
+              console.log(`Applying prestige bonus: +${bonusAmount}`);
+              updateAttributes({ prestige: bonusAmount });
+            }
+          }
           break;
       }
       
-      // Mark as claimed
-      setClaimedRewards(prev => ({ ...prev, [id]: true }));
+      // Mark as claimed in component state
+      setClaimedRewards(prev => {
+        const newState = { ...prev, [id]: true };
+        // Persist to localStorage
+        localStorage.setItem('business-empire-claimed-rewards', JSON.stringify(newState));
+        return newState;
+      });
     }
   };
   

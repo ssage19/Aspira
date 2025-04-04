@@ -30,6 +30,109 @@ export const trackWealthAchievements = (currentWealth: number) => {
   });
 };
 
+// Track character development achievements
+export const trackCharacterAchievements = () => {
+  const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
+  const { playSuccess } = useAudio.getState();
+  const characterState = useCharacter.getState();
+  
+  // Health Enthusiast (90+ health)
+  const healthAchievement = getAchievement('character-1');
+  if (healthAchievement && !healthAchievement.isUnlocked) {
+    const progress = updateProgress('character-1', characterState.health);
+    if (progress >= 100) {
+      unlockAchievement('character-1');
+      playSuccess();
+    }
+  }
+  
+  // Stress Management (below 10 stress)
+  const stressAchievement = getAchievement('character-2');
+  if (stressAchievement && !stressAchievement.isUnlocked) {
+    // For stress, we need reverse logic - lower is better
+    // 10 or below stress is 100% progress
+    const stressProgress = characterState.stress <= 10 ? 100 : 
+      Math.max(0, 100 - ((characterState.stress - 10) * (100 / 90)));
+    
+    const progress = updateProgress('character-2', stressProgress);
+    if (progress >= 100) {
+      unlockAchievement('character-2');
+      playSuccess();
+    }
+  }
+  
+  // Social Butterfly (80+ social connections)
+  const socialAchievement = getAchievement('character-3');
+  if (socialAchievement && !socialAchievement.isUnlocked) {
+    const progress = updateProgress('character-3', characterState.socialConnections);
+    if (progress >= 100) {
+      unlockAchievement('character-3');
+      playSuccess();
+    }
+  }
+  
+  // Master of Skills (85+ skills)
+  const skillsAchievement = getAchievement('character-4');
+  if (skillsAchievement && !skillsAchievement.isUnlocked) {
+    const progress = updateProgress('character-4', characterState.skills);
+    if (progress >= 100) {
+      unlockAchievement('character-4');
+      playSuccess();
+    }
+  }
+  
+  // Work-Life Balance (50+ free time and 70+ happiness)
+  const workLifeAchievement = getAchievement('character-5');
+  if (workLifeAchievement && !workLifeAchievement.isUnlocked) {
+    // Only 100% if both conditions are met
+    const hasEnoughFreeTime = characterState.freeTime >= 50;
+    const hasEnoughHappiness = characterState.happiness >= 70;
+    
+    const progress = hasEnoughFreeTime && hasEnoughHappiness ? 100 : 
+      ((characterState.freeTime >= 50 ? 50 : characterState.freeTime) + 
+       (characterState.happiness >= 70 ? 50 : characterState.happiness * 0.7)) / 2;
+    
+    updateProgress('character-5', progress);
+    if (progress >= 100) {
+      unlockAchievement('character-5');
+      playSuccess();
+    }
+  }
+  
+  // Environmental Champion (60+ environmental impact)
+  const envAchievement = getAchievement('character-6');
+  if (envAchievement && !envAchievement.isUnlocked) {
+    // Environmental impact can be negative, so adjust the scale
+    // from -100 to 100 to 0 to 100 for progress tracking
+    const adjustedImpact = (characterState.environmentalImpact + 100) / 2;
+    const progress = updateProgress('character-6', adjustedImpact);
+    if (progress >= 100) {
+      unlockAchievement('character-6');
+      playSuccess();
+    }
+  }
+  
+  // Balanced Life (70+ in health, social, and skills)
+  const balancedAchievement = getAchievement('character-7');
+  if (balancedAchievement && !balancedAchievement.isUnlocked) {
+    const hasBalancedHealth = characterState.health >= 70;
+    const hasBalancedSocial = characterState.socialConnections >= 70;
+    const hasBalancedSkills = characterState.skills >= 70;
+    
+    // Only 100% if all conditions are met
+    const progress = hasBalancedHealth && hasBalancedSocial && hasBalancedSkills ? 100 :
+      (((characterState.health >= 70 ? 33.33 : characterState.health * 0.47)) +
+       ((characterState.socialConnections >= 70 ? 33.33 : characterState.socialConnections * 0.47)) +
+       ((characterState.skills >= 70 ? 33.33 : characterState.skills * 0.47)));
+    
+    updateProgress('character-7', progress);
+    if (progress >= 100) {
+      unlockAchievement('character-7');
+      playSuccess();
+    }
+  }
+};
+
 // Track property achievements
 export const trackPropertyAchievements = () => {
   const { properties } = useCharacter.getState();
@@ -228,6 +331,7 @@ export const checkAllAchievements = () => {
   const { wealth } = useCharacter.getState();
   
   trackWealthAchievements(wealth);
+  trackCharacterAchievements(); // Added character development achievements
   trackPropertyAchievements();
   trackInvestmentAchievements();
   trackLifestyleAchievements();
