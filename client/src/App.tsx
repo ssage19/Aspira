@@ -10,6 +10,7 @@ import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
+import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 
 import "@fontsource/inter";
@@ -38,10 +39,12 @@ function App() {
       <Router>
         <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
           <Routes>
-            <Route path="/" element={phase === "ready" ? <CharacterCreation /> : <Dashboard />} />
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/create" element={<CharacterCreation />} />
             <Route path="/investments" element={<InvestmentScreen />} />
             <Route path="/lifestyle" element={<LifestyleScreen />} />
             <Route path="/properties" element={<PropertyScreen />} />
+            <Route path="/test" element={<TestPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>

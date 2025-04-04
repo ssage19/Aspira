@@ -1,6 +1,5 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { GameUI } from '../components/GameUI';
+import GameUI from '../components/GameUI';
 import { Investments } from '../components/Investments';
 import { Button } from '../components/ui/button';
 import { ChevronLeft } from 'lucide-react';

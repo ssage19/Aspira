@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { GameUI } from '../components/GameUI';
+import GameUI from '../components/GameUI';
 import { Properties } from '../components/Properties';
 import { Button } from '../components/ui/button';
 import { ChevronLeft } from 'lucide-react';
