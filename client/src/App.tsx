@@ -12,6 +12,7 @@ import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
+import DebugPanel from "./components/DebugPanel";
 
 import "@fontsource/inter";
 
@@ -47,6 +48,7 @@ function App() {
             <Route path="/test" element={<TestPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <DebugPanel />
         </Suspense>
       </Router>
       <Toaster position="top-right" richColors />
