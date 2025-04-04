@@ -1,6 +1,70 @@
 // This file contains data for lifestyle and luxury items
 
-export const luxuryItems = [
+export type LifestyleAttributes = {
+  socialStatus?: number; // Social status impact
+  healthImpact?: number; // Health impact (positive or negative)
+  timeCommitment?: number; // Time required to maintain this lifestyle
+  environmentalImpact?: number; // Environmental impact
+  stressReduction?: number; // Stress reduction potential
+  skillDevelopment?: number; // Skills developed
+  locationRestrictions?: string[]; // Locations where this item can be used/accessed
+  specialBenefits?: string[]; // Special perks or consequences
+};
+
+// Enhance existing interfaces with additional attributes
+export interface LuxuryItem {
+  id: string;
+  name: string;
+  type: 'luxury';
+  price: number;
+  brand?: string;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
+export interface Vehicle {
+  id: string;
+  name: string;
+  type: 'vehicles';
+  price: number;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
+export interface Vacation {
+  id: string;
+  name: string;
+  type: 'vacations';
+  price: number;
+  duration: string;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
+export interface Experience {
+  id: string;
+  name: string;
+  type: 'experiences';
+  price: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
+export const luxuryItems: LuxuryItem[] = [
   {
     id: 'watch_entry',
     name: 'Entry Luxury Watch',
@@ -11,7 +75,15 @@ export const luxuryItems = [
     description: 'Well-crafted timepiece from a respected manufacturer.',
     prestige: 5,
     happiness: 10,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 5,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -2,
+      stressReduction: 5,
+      specialBenefits: ['Small conversation starter with colleagues']
+    }
   },
   {
     id: 'watch_mid',
@@ -150,7 +222,19 @@ export const vehicles = [
     description: 'Powerful sports car with exhilarating performance and head-turning design.',
     prestige: 45,
     happiness: 35,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 0,
+      timeCommitment: 5,
+      environmentalImpact: -35,
+      stressReduction: 25,
+      specialBenefits: [
+        'Immediate attention in social settings',
+        'Easier access to exclusive clubs and venues',
+        'Favorable impression on first business meetings'
+      ]
+    }
   },
   {
     id: 'exotic_car',
@@ -172,7 +256,21 @@ export const vehicles = [
     description: 'Opulent yacht with multiple cabins, entertainment areas, and professional crew.',
     prestige: 90,
     happiness: 55,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 65,
+      healthImpact: 10, // Relaxation and ocean air
+      timeCommitment: 15, // Management and planning
+      environmentalImpact: -45, // Significant fuel consumption
+      stressReduction: 45,
+      skillDevelopment: 10, // Navigation and maritime knowledge
+      specialBenefits: [
+        'Access to exclusive marina clubs worldwide',
+        'Ability to host high-profile business gatherings',
+        'Prestigious social networking opportunities',
+        'Access to restricted islands and coastal areas'
+      ]
+    }
   },
   {
     id: 'private_jet',
@@ -183,7 +281,22 @@ export const vehicles = [
     description: 'Luxurious private jet offering ultimate travel convenience and comfort.',
     prestige: 95,
     happiness: 60,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 85,
+      healthImpact: 15, // Reduced travel stress, better rest
+      timeCommitment: 10, // Maintenance and crew management
+      environmentalImpact: -75, // Extremely high carbon footprint
+      stressReduction: 65, // Elimination of commercial travel hassles
+      skillDevelopment: 5,
+      specialBenefits: [
+        'Ability to conduct private business meetings in-flight',
+        'Access to restricted VIP terminals at airports',
+        'Complete travel privacy and security',
+        'Global mobility without commercial flight constraints',
+        'Status symbol recognized by global elite'
+      ]
+    }
   }
 ];
 
@@ -219,7 +332,21 @@ export const vacations = [
     description: 'Exclusive vacation on a private island with dedicated staff.',
     prestige: 40,
     happiness: 40,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 25, // Complete rejuvenation and relaxation
+      timeCommitment: 7, // Full week plus travel
+      environmentalImpact: -20, // Remote location travel
+      stressReduction: 70, // Complete privacy and serenity
+      skillDevelopment: 5, // Water sports, local culture
+      specialBenefits: [
+        'Complete digital detox opportunity',
+        'Exclusive memories and photos for social sharing',
+        'Potential to host select friends for unique experiences',
+        'Refreshed perspective and creativity boost'
+      ]
+    }
   },
   {
     id: 'world_cruise',
@@ -241,7 +368,21 @@ export const vacations = [
     description: 'Groundbreaking journey to the edge of space for an unforgettable experience.',
     prestige: 100,
     happiness: 50,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 80,
+      healthImpact: -5, // Mild physical stress
+      timeCommitment: 14, // Training and preparation time
+      environmentalImpact: -40,
+      stressReduction: 60, // Perspective-changing experience
+      skillDevelopment: 20,
+      specialBenefits: [
+        'Membership in the exclusive space travelers club',
+        'Speaking engagement opportunities',
+        'Media coverage potential',
+        'Automatic entry to select scientific and futurist circles'
+      ]
+    }
   }
 ];
 
@@ -304,6 +445,20 @@ export const experiences = [
     description: 'Personal concert by a famous artist for you and your guests.',
     prestige: 60,
     happiness: 40,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 60,
+      healthImpact: 5, // Joy and wellbeing
+      timeCommitment: 5, // Planning and hosting
+      environmentalImpact: -15,
+      stressReduction: 35,
+      skillDevelopment: 5,
+      specialBenefits: [
+        'Significant social media exposure potential',
+        'Industry connections to entertainment business',
+        'Enhanced personal brand and status',
+        'Potential long-term relationship with the artist'
+      ]
+    }
   }
 ];
