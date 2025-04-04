@@ -6,11 +6,12 @@ import { useAudio } from '../lib/stores/useAudio';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { toast } from 'sonner';
-import { ChartBar, TrendingUp, TrendingDown, AlertCircle } from 'lucide-react';
+import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarChart3 } from 'lucide-react';
 import StockChart from './StockChart';
 import { formatCurrency } from '../lib/utils';
 import { VolatilityLevel, Stock } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Investments() {
   const { wealth, addWealth, addAsset, removeAsset, assets } = useCharacter();
@@ -283,140 +284,505 @@ export function Investments() {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div>
-          <h3 className="font-semibold mb-2 text-lg" id="available-stocks-heading">Available Stocks</h3>
-          
-          {/* Search and filter controls */}
-          <div className="mb-3 space-y-2">
-            <div className="relative">
-              <input
-                type="text"
-                placeholder="Search by name or symbol..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full p-2 pr-8 border rounded-md text-sm"
-              />
-              <div className="absolute right-2 top-2 text-gray-400">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-search"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+      <Tabs defaultValue="browse" className="mb-4">
+        <TabsList className="mb-4 grid w-full grid-cols-3 h-12">
+          <TabsTrigger value="browse" className="flex items-center justify-center gap-2">
+            <Search className="h-4 w-4" />
+            <span>Browse Stocks</span>
+          </TabsTrigger>
+          <TabsTrigger value="portfolio" className="flex items-center justify-center gap-2">
+            <Wallet className="h-4 w-4" />
+            <span>My Portfolio</span>
+          </TabsTrigger>
+          <TabsTrigger value="analysis" className="flex items-center justify-center gap-2">
+            <BarChart3 className="h-4 w-4" />
+            <span>Analysis</span>
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Browse Stocks Tab */}
+        <TabsContent value="browse" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg" id="available-stocks-heading">Available Stocks</h3>
+              
+              {/* Search and filter controls */}
+              <div className="mb-3 space-y-2">
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search by name or symbol..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full p-2 pr-8 border rounded-md text-sm"
+                  />
+                  <div className="absolute right-2 top-2 text-gray-400">
+                    <Search className="h-4 w-4" />
+                  </div>
+                </div>
+                
+                <select
+                  value={selectedSector}
+                  onChange={(e) => setSelectedSector(e.target.value)}
+                  className="w-full p-2 border rounded-md text-sm"
+                  aria-label="Filter by sector"
+                >
+                  <option value="all">All Sectors</option>
+                  {sectors.map(sector => (
+                    <option key={sector} value={sector}>
+                      {sector.charAt(0).toUpperCase() + sector.slice(1).replace('_', ' ')}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+              <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
+                <span>Showing {filteredStocks.length} of {expandedStockMarket.length} stocks</span>
+                {searchQuery && (
+                  <button 
+                    onClick={() => setSearchQuery('')} 
+                    className="text-accessible-blue"
+                    aria-label="Clear search"
+                  >
+                    Clear search
+                  </button>
+                )}
+              </div>
+              
+              <div 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                aria-labelledby="available-stocks-heading"
+                role="listbox"
+              >
+                {filteredStocks.map((stock, index) => (
+                  <div 
+                    key={`stock-${stock.id}-${index}`}
+                    role="option"
+                    aria-selected={selectedStock.id === stock.id}
+                    className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                      selectedStock.id === stock.id 
+                        ? 'bg-blue-50 border-accessible-blue shadow-sm' 
+                        : 'hover:bg-gray-50 hover:border-gray-300'
+                    }`}
+                    onClick={() => setSelectedStock(stock)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
+                      <span className={`font-mono font-semibold ${
+                        stockPrices[stock.id] > stock.basePrice 
+                          ? 'text-accessible-green' 
+                          : stockPrices[stock.id] < stock.basePrice 
+                            ? 'text-accessible-red' 
+                            : ''
+                      }`}>
+                        ${(stockPrices[stock.id] || stock.basePrice).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs mt-1">
+                      <span className={`px-2 py-0.5 rounded-full ${
+                        stock.volatility === 'extreme' ? 'bg-purple-200 text-purple-800' :
+                        stock.volatility === 'high' || stock.volatility === 'very_high'
+                          ? 'bg-accessible-red/10 text-accessible-red'
+                          : stock.volatility === 'medium'
+                            ? 'bg-accessible-orange/10 text-accessible-orange'
+                            : 'bg-accessible-green/10 text-accessible-green'
+                      }`}>
+                        Risk: {stock.volatility === 'extreme' ? 'Extreme' :
+                              stock.volatility === 'very_high' ? 'Very High' : 
+                              stock.volatility === 'high' ? 'High' : 
+                              stock.volatility === 'medium' ? 'Medium' : 
+                              stock.volatility === 'low' ? 'Low' : 'Very Low'}
+                      </span>
+                      <span className="text-gray-600">
+                        Owned: <span className="font-medium">{getOwnedStockQuantity(stock.id).toFixed(2)}</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
             
-            <select
-              value={selectedSector}
-              onChange={(e) => setSelectedSector(e.target.value)}
-              className="w-full p-2 border rounded-md text-sm"
-              aria-label="Filter by sector"
-            >
-              <option value="all">All Sectors</option>
-              {sectors.map(sector => (
-                <option key={sector} value={sector}>
-                  {sector.charAt(0).toUpperCase() + sector.slice(1).replace('_', ' ')}
-                </option>
-              ))}
-            </select>
-          </div>
-          
-          <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
-            <span>Showing {filteredStocks.length} of {expandedStockMarket.length} stocks</span>
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')} 
-                className="text-accessible-blue"
-                aria-label="Clear search"
-              >
-                Clear search
-              </button>
-            )}
-          </div>
-          
-          <div 
-            className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
-            aria-labelledby="available-stocks-heading"
-            role="listbox"
-          >
-            {filteredStocks.map((stock, index) => (
-              <div 
-                key={`stock-${stock.id}-${index}`}
-                role="option"
-                aria-selected={selectedStock.id === stock.id}
-                className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
-                  selectedStock.id === stock.id 
-                    ? 'bg-blue-50 border-accessible-blue shadow-sm' 
-                    : 'hover:bg-gray-50 hover:border-gray-300'
-                }`}
-                onClick={() => setSelectedStock(stock)}
-              >
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
-                  <span className={`font-mono font-semibold ${
-                    stockPrices[stock.id] > stock.basePrice 
-                      ? 'text-accessible-green' 
-                      : stockPrices[stock.id] < stock.basePrice 
-                        ? 'text-accessible-red' 
-                        : ''
-                  }`}>
-                    ${(stockPrices[stock.id] || stock.basePrice).toFixed(2)}
-                  </span>
+            <div>
+              <h3 className="font-semibold mb-2 text-lg flex items-center">
+                {selectedStock.name} ({selectedStock.symbol})
+                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                  priceChangePercent > 0 
+                    ? 'bg-accessible-green/10 text-accessible-green' 
+                    : priceChangePercent < 0 
+                      ? 'bg-accessible-red/10 text-accessible-red' 
+                      : 'bg-gray-100'
+                }`}>
+                  {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
+                </span>
+              </h3>
+              <div className="h-40 mb-3 border p-1 rounded-md bg-white">
+                <StockChart 
+                  stockId={selectedStock.id}
+                  currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
+                  basePrice={selectedStock.basePrice}
+                  volatility={selectedStock.volatility}
+                />
+              </div>
+              <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Current Price</p>
+                  <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
                 </div>
-                <div className="flex justify-between text-xs mt-1">
-                  <span className={`px-2 py-0.5 rounded-full ${
-                    stock.volatility === 'extreme' ? 'bg-purple-200 text-purple-800' :
-                    stock.volatility === 'high' || stock.volatility === 'very_high'
-                      ? 'bg-accessible-red/10 text-accessible-red'
-                      : stock.volatility === 'medium'
-                        ? 'bg-accessible-orange/10 text-accessible-orange'
-                        : 'bg-accessible-green/10 text-accessible-green'
-                  }`}>
-                    Risk: {stock.volatility === 'extreme' ? 'Extreme' :
-                          stock.volatility === 'very_high' ? 'Very High' : 
-                          stock.volatility === 'high' ? 'High' : 
-                          stock.volatility === 'medium' ? 'Medium' : 
-                          stock.volatility === 'low' ? 'Low' : 'Very Low'}
-                  </span>
-                  <span className="text-gray-600">
-                    Owned: <span className="font-medium">{getOwnedStockQuantity(stock.id).toFixed(2)}</span>
-                  </span>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Owned Value</p>
+                  <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
+        </TabsContent>
         
-        <div>
-          <h3 className="font-semibold mb-2 text-lg flex items-center">
-            {selectedStock.name} ({selectedStock.symbol})
-            <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-              priceChangePercent > 0 
-                ? 'bg-accessible-green/10 text-accessible-green' 
-                : priceChangePercent < 0 
-                  ? 'bg-accessible-red/10 text-accessible-red' 
-                  : 'bg-gray-100'
-            }`}>
-              {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
-            </span>
-          </h3>
-          <div className="h-40 mb-3 border p-1 rounded-md bg-white">
-            <StockChart 
-              stockId={selectedStock.id}
-              currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
-              basePrice={selectedStock.basePrice}
-              volatility={selectedStock.volatility}
-            />
-          </div>
-          <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
-          <div className="grid grid-cols-2 gap-3 mb-2">
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-xs text-gray-500">Current Price</p>
-              <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+        {/* Portfolio Tab */}
+        <TabsContent value="portfolio" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>
+              
+              {/* Portfolio Summary */}
+              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+                <div className="flex justify-between items-center">
+                  <p className="text-sm font-medium">Total Stocks:</p>
+                  <p className="font-semibold">{assets.filter(a => a.type === 'stock').length}</p>
+                </div>
+                <div className="flex justify-between items-center mt-1">
+                  <p className="text-sm font-medium">Total Value:</p>
+                  <p className="font-semibold">{formatCurrency(
+                    assets
+                      .filter(a => a.type === 'stock')
+                      .reduce((total, asset) => {
+                        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                        return total + (asset.quantity * currentPrice);
+                      }, 0)
+                  )}</p>
+                </div>
+              </div>
+              
+              {/* Owned Stocks List */}
+              <div 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                aria-labelledby="portfolio-heading"
+                role="listbox"
+              >
+                {assets.filter(a => a.type === 'stock').length > 0 ? (
+                  assets
+                    .filter(a => a.type === 'stock')
+                    .map((asset) => {
+                      const stock = expandedStockMarket.find(s => s.id === asset.id);
+                      if (!stock) return null;
+                      
+                      const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                      const totalValue = asset.quantity * currentPrice;
+                      const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
+                      const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                      
+                      return (
+                        <div 
+                          key={`portfolio-${asset.id}`}
+                          role="option"
+                          aria-selected={selectedStock.id === asset.id}
+                          className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                            selectedStock.id === asset.id 
+                              ? 'bg-blue-50 border-accessible-blue shadow-sm' 
+                              : 'hover:bg-gray-50 hover:border-gray-300'
+                          }`}
+                          onClick={() => {
+                            const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                            if (stockData) setSelectedStock(stockData);
+                          }}
+                        >
+                          <div className="flex justify-between items-center">
+                            <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
+                            <span className="font-semibold">{formatCurrency(totalValue)}</span>
+                          </div>
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-gray-600">
+                              Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
+                            </span>
+                            <span className={`${
+                              profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-gray-600'
+                            }`}>
+                              {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-xs mt-1">
+                            <span className="text-gray-600">
+                              Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
+                            </span>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                // Set selected stock and prepare for selling
+                                const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                if (stockData) {
+                                  setSelectedStock(stockData);
+                                  setBuyMode('shares');
+                                  setShareQuantity(asset.quantity);
+                                }
+                              }}
+                              className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
+                            >
+                              Sell
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })
+                ) : (
+                  <div className="p-4 text-center bg-gray-50 rounded-md">
+                    <p className="text-gray-500">You don't own any stocks yet</p>
+                    <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
+                  </div>
+                )}
+              </div>
             </div>
-            <div className="bg-gray-50 p-2 rounded">
-              <p className="text-xs text-gray-500">Owned Value</p>
-              <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-lg flex items-center">
+                {selectedStock.name} ({selectedStock.symbol})
+                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                  priceChangePercent > 0 
+                    ? 'bg-accessible-green/10 text-accessible-green' 
+                    : priceChangePercent < 0 
+                      ? 'bg-accessible-red/10 text-accessible-red' 
+                      : 'bg-gray-100'
+                }`}>
+                  {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
+                </span>
+              </h3>
+              <div className="h-40 mb-3 border p-1 rounded-md bg-white">
+                <StockChart 
+                  stockId={selectedStock.id}
+                  currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
+                  basePrice={selectedStock.basePrice}
+                  volatility={selectedStock.volatility}
+                />
+              </div>
+              <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
+              <div className="grid grid-cols-2 gap-3 mb-2">
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Current Price</p>
+                  <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+                </div>
+                <div className="bg-gray-50 p-2 rounded">
+                  <p className="text-xs text-gray-500">Owned Value</p>
+                  <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        </TabsContent>
+        
+        {/* Analysis Tab */}
+        <TabsContent value="analysis" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">Performance Analysis</h3>
+              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+                <h4 className="font-medium mb-2">Top Performers</h4>
+                {assets.filter(a => a.type === 'stock').length > 0 ? (
+                  <div className="space-y-2">
+                    {assets
+                      .filter(a => a.type === 'stock')
+                      .map(asset => {
+                        const stock = expandedStockMarket.find(s => s.id === asset.id);
+                        if (!stock) return null;
+                        
+                        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                        const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                        
+                        return {
+                          asset,
+                          stock,
+                          profitLossPercent
+                        };
+                      })
+                      .filter(Boolean)
+                      .sort((a, b) => b!.profitLossPercent - a!.profitLossPercent)
+                      .slice(0, 3)
+                      .map(item => {
+                        if (!item) return null;
+                        return (
+                          <div key={`top-${item.asset.id}`} className="flex justify-between items-center p-2 bg-white rounded border">
+                            <span className="font-medium">{item.stock.name}</span>
+                            <span className={`text-sm font-semibold ${
+                              item.profitLossPercent > 0 ? 'text-accessible-green' : 'text-accessible-red'
+                            }`}>
+                              {item.profitLossPercent > 0 ? '+' : ''}{item.profitLossPercent.toFixed(1)}%
+                            </span>
+                          </div>
+                        );
+                      })}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm text-center">No stock data available</p>
+                )}
+              </div>
+              
+              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+                <h4 className="font-medium mb-2">Sector Distribution</h4>
+                {assets.filter(a => a.type === 'stock').length > 0 ? (
+                  <div className="space-y-2">
+                    {(() => {
+                      const sectorData: Record<string, {
+                        name: string,
+                        value: number,
+                        count: number
+                      }> = {};
+                      
+                      assets
+                        .filter(a => a.type === 'stock')
+                        .forEach(asset => {
+                          const stock = expandedStockMarket.find(s => s.id === asset.id);
+                          if (!stock) return;
+                          
+                          const sector = stock.sector;
+                          const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                          const value = asset.quantity * currentPrice;
+                          
+                          if (sectorData[sector]) {
+                            sectorData[sector].value += value;
+                            sectorData[sector].count += 1;
+                          } else {
+                            sectorData[sector] = {
+                              name: sector,
+                              value,
+                              count: 1
+                            };
+                          }
+                        });
+                      
+                      const totalValue = Object.values(sectorData).reduce((sum, item) => sum + item.value, 0);
+                      
+                      return Object.values(sectorData)
+                        .sort((a, b) => b.value - a.value)
+                        .map(sector => {
+                          const percentage = (sector.value / totalValue) * 100;
+                          return (
+                            <div key={`sector-${sector.name}`} className="mb-1">
+                              <div className="flex justify-between text-sm mb-1">
+                                <span>{sector.name.charAt(0).toUpperCase() + sector.name.slice(1).replace('_', ' ')}</span>
+                                <span className="font-medium">{percentage.toFixed(1)}%</span>
+                              </div>
+                              <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="h-2 rounded-full bg-accessible-blue"
+                                  style={{ width: `${percentage}%` }}
+                                ></div>
+                              </div>
+                            </div>
+                          );
+                        });
+                    })()}
+                  </div>
+                ) : (
+                  <p className="text-gray-500 text-sm text-center">No sector data available</p>
+                )}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">Market Recommendations</h3>
+              
+              {marketTrend === 'bull' && (
+                <div className="p-3 bg-accessible-green/10 rounded-md border border-accessible-green mb-3">
+                  <h4 className="font-medium flex items-center text-accessible-green">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    Bull Market Strategy
+                  </h4>
+                  <p className="text-sm mt-1">
+                    In a bull market, consider investing in growth stocks with higher volatility for potentially greater returns.
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium">Recommended Sectors:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Technology</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Consumer Discretionary</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Communication Services</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {marketTrend === 'bear' && (
+                <div className="p-3 bg-accessible-red/10 rounded-md border border-accessible-red mb-3">
+                  <h4 className="font-medium flex items-center text-accessible-red">
+                    <TrendingDown className="h-4 w-4 mr-1" />
+                    Bear Market Strategy
+                  </h4>
+                  <p className="text-sm mt-1">
+                    During a bear market, consider defensive stocks with lower volatility and stable dividends.
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium">Recommended Sectors:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Utilities</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Consumer Staples</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Healthcare</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {marketTrend === 'stable' && (
+                <div className="p-3 bg-gray-100 rounded-md border border-gray-200 mb-3">
+                  <h4 className="font-medium flex items-center">
+                    <ChartBar className="h-4 w-4 mr-1" />
+                    Stable Market Strategy
+                  </h4>
+                  <p className="text-sm mt-1">
+                    In a stable market, a balanced approach with diversification across sectors is recommended.
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    <p className="text-xs font-medium">Recommended Approach:</p>
+                    <div className="flex flex-wrap gap-1">
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Diversification</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Value Investing</span>
+                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Mixed Portfolio</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+                <h4 className="font-medium mb-2">Volatility Spectrum</h4>
+                <div className="flex items-center mb-1">
+                  <span className="text-xs w-24">Low Risk</span>
+                  <div className="flex-1 h-2 bg-gradient-to-r from-accessible-green to-accessible-red rounded-full"></div>
+                  <span className="text-xs w-24 text-right">High Risk</span>
+                </div>
+                <div className="grid grid-cols-5 gap-1 text-center text-xs mt-2">
+                  <div>
+                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-green/10 text-accessible-green">Very Low</span>
+                    <span className="text-gray-500">Utilities</span>
+                  </div>
+                  <div>
+                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-green/20 text-accessible-green">Low</span>
+                    <span className="text-gray-500">Consumer<br/>Staples</span>
+                  </div>
+                  <div>
+                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-orange/20 text-accessible-orange">Medium</span>
+                    <span className="text-gray-500">Industrials</span>
+                  </div>
+                  <div>
+                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-red/10 text-accessible-red">High</span>
+                    <span className="text-gray-500">Technology</span>
+                  </div>
+                  <div>
+                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-red/20 text-accessible-red">Very High</span>
+                    <span className="text-gray-500">Growth<br/>Startups</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
       
       {/* Context-sensitive tips */}
       {isPotentialBuy && (
