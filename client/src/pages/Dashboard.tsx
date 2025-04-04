@@ -1,9 +1,10 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
+import { useGame } from '../lib/stores/useGame';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -13,18 +14,34 @@ import {
   Briefcase,
   HeartPulse,
   Crown,
-  ArrowRight
+  ArrowRight,
+  Settings,
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Progress } from '../components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "../components/ui/alert-dialog";
+import { Separator } from '../components/ui/separator';
 import GameUI from '../components/GameUI';
 import MainScene from '../components/MainScene';
 import { formatCurrency } from '../lib/utils';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { name, wealth, netWorth, happiness, prestige, assets, properties, lifestyleItems } = useCharacter();
+  const { name, wealth, netWorth, happiness, prestige, assets, properties, lifestyleItems, resetProgress } = useCharacter();
   const { currentDay, currentMonth, currentYear } = useTime();
   const { 
     marketTrend, 
@@ -35,6 +52,17 @@ export default function Dashboard() {
     interestRate
   } = useEconomy();
   const { backgroundMusic, isMuted } = useAudio();
+  const { restart } = useGame();
+  
+  // Track active tab
+  const [activeTab, setActiveTab] = useState("overview");
+  
+  // Handle reset confirmation
+  const handleResetProgress = () => {
+    resetProgress();
+    restart();
+    navigate('/create');
+  };
   
   // Start background music when dashboard loads
   useEffect(() => {
@@ -83,8 +111,17 @@ export default function Dashboard() {
         <div className="relative w-full max-w-4xl mx-auto p-4">
           <Card className="bg-white bg-opacity-90 backdrop-blur-sm shadow-xl">
             <CardHeader className="pb-2">
-              <CardTitle className="text-2xl">
-                Welcome, {name}
+              <CardTitle className="text-2xl flex justify-between items-center">
+                <span>Welcome, {name}</span>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                  <TabsList>
+                    <TabsTrigger value="overview" className="text-sm">Overview</TabsTrigger>
+                    <TabsTrigger value="settings" className="text-sm flex items-center">
+                      <Settings className="h-3.5 w-3.5 mr-1" />
+                      Settings
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </CardTitle>
               <CardDescription>
                 {formattedDate} | {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
@@ -92,160 +129,208 @@ export default function Dashboard() {
             </CardHeader>
             
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                {/* Wealth Overview */}
-                <Card>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-lg flex items-center">
-                      <DollarSign className="h-5 w-5 mr-1 text-green-500" />
-                      Wealth Overview
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Cash:</span>
-                        <span className="font-semibold">{formatCurrency(wealth)}</span>
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsContent value="overview" className="mt-0 p-0">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    {/* Wealth Overview */}
+                    <Card>
+                      <CardHeader className="py-3">
+                        <CardTitle className="text-lg flex items-center">
+                          <DollarSign className="h-5 w-5 mr-1 text-green-500" />
+                          Wealth Overview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="py-2">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span>Cash:</span>
+                            <span className="font-semibold">{formatCurrency(wealth)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Net Worth:</span>
+                            <span className="font-semibold">{formatCurrency(netWorth)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm text-gray-600">
+                            <span>Portfolio Growth:</span>
+                            <span className={netWorth > wealth ? "text-green-600" : "text-red-600"}>
+                              {((netWorth / Math.max(wealth, 1) - 1) * 100).toFixed(1)}%
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                    
+                    {/* Status Overview */}
+                    <Card>
+                      <CardHeader className="py-3">
+                        <CardTitle className="text-lg flex items-center">
+                          <Crown className="h-5 w-5 mr-1 text-amber-500" />
+                          Status Overview
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="py-2">
+                        <div className="space-y-3">
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm flex items-center">
+                                <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
+                                Happiness
+                              </span>
+                              <span className="text-sm font-medium">{happiness}%</span>
+                            </div>
+                            <Progress value={happiness} className="h-2" />
+                          </div>
+                          <div>
+                            <div className="flex justify-between mb-1">
+                              <span className="text-sm flex items-center">
+                                <Crown className="h-4 w-4 mr-1 text-amber-500" />
+                                Prestige
+                              </span>
+                              <span className="text-sm font-medium">{prestige} points</span>
+                            </div>
+                            <Progress value={Math.min(prestige, 100)} className="h-2" />
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  {/* Portfolio Breakdown */}
+                  <Card className="mb-6">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-lg flex items-center">
+                        <Briefcase className="h-5 w-5 mr-1 text-blue-500" />
+                        Portfolio Breakdown
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <DollarSign className="h-6 w-6 mx-auto text-green-500" />
+                          <p className="text-sm text-gray-500">Cash</p>
+                          <p className="font-semibold">{formatCurrency(wealth)}</p>
+                          <p className="text-xs">{((wealth / netWorth) * 100).toFixed(1)}% of total</p>
+                        </div>
+                        
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <ChartBar className="h-6 w-6 mx-auto text-blue-500" />
+                          <p className="text-sm text-gray-500">Stocks</p>
+                          <p className="font-semibold">{formatCurrency(stocksValue)}</p>
+                          <p className="text-xs">{((stocksValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        </div>
+                        
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <Home className="h-6 w-6 mx-auto text-purple-500" />
+                          <p className="text-sm text-gray-500">Properties</p>
+                          <p className="font-semibold">{formatCurrency(propertiesValue)}</p>
+                          <p className="text-xs">{((propertiesValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        </div>
+                        
+                        <div className="text-center p-2 bg-gray-50 rounded-lg">
+                          <Crown className="h-6 w-6 mx-auto text-amber-500" />
+                          <p className="text-sm text-gray-500">Lifestyle</p>
+                          <p className="font-semibold">{formatCurrency(lifestyleValue)}</p>
+                          <p className="text-xs">{((lifestyleValue / netWorth) * 100).toFixed(1)}% of total</p>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Net Worth:</span>
-                        <span className="font-semibold">{formatCurrency(netWorth)}</span>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Market Indicators */}
+                  <Card>
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-lg flex items-center">
+                        <TrendingUp className="h-5 w-5 mr-1 text-blue-500" />
+                        Market Indicators
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-2">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Stock Market</p>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm font-medium flex items-center">
+                              {marketTrend === 'bull' ? (
+                                <TrendingUp className="h-4 w-4 mr-1 text-green-500" />
+                              ) : marketTrend === 'bear' ? (
+                                <TrendingUp className="h-4 w-4 mr-1 text-red-500 transform rotate-180" />
+                              ) : (
+                                <span className="h-4 w-4 mr-1" />
+                              )}
+                              {marketTrend.charAt(0).toUpperCase() + marketTrend.slice(1)}
+                            </span>
+                            <span className="text-sm">{stockMarketHealth}%</span>
+                          </div>
+                          <Progress value={stockMarketHealth} className="h-2" />
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Real Estate Market</p>
+                          <div className="flex justify-between mb-1">
+                            <span className="text-sm font-medium">Health</span>
+                            <span className="text-sm">{realEstateMarketHealth}%</span>
+                          </div>
+                          <Progress value={realEstateMarketHealth} className="h-2" />
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm text-gray-500">Inflation Rate</p>
+                          <p className="font-medium">{inflation.toFixed(1)}%</p>
+                        </div>
+                        
+                        <div>
+                          <p className="text-sm text-gray-500">Interest Rate</p>
+                          <p className="font-medium">{interestRate.toFixed(1)}%</p>
+                        </div>
                       </div>
-                      <div className="flex justify-between text-sm text-gray-600">
-                        <span>Portfolio Growth:</span>
-                        <span className={netWorth > wealth ? "text-green-600" : "text-red-600"}>
-                          {((netWorth / Math.max(wealth, 1) - 1) * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
                 
-                {/* Status Overview */}
-                <Card>
-                  <CardHeader className="py-3">
-                    <CardTitle className="text-lg flex items-center">
-                      <Crown className="h-5 w-5 mr-1 text-amber-500" />
-                      Status Overview
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-2">
-                    <div className="space-y-3">
+                <TabsContent value="settings" className="mt-0 p-0">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-xl">Game Settings</CardTitle>
+                      <CardDescription>
+                        Configure your game options
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
                       <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm flex items-center">
-                            <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
-                            Happiness
-                          </span>
-                          <span className="text-sm font-medium">{happiness}%</span>
-                        </div>
-                        <Progress value={happiness} className="h-2" />
+                        <h3 className="text-lg font-medium mb-2">Game Data</h3>
+                        <Separator className="my-2" />
+                        <p className="text-sm text-gray-600 mb-4">
+                          Your game progress is automatically saved to your device. 
+                          You can reset your progress if you want to start a new game.
+                        </p>
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button variant="destructive" className="flex items-center">
+                              <RefreshCw className="h-4 w-4 mr-2" />
+                              Reset Progress
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>Reset Game Progress?</AlertDialogTitle>
+                              <AlertDialogDescription>
+                                This will delete all your character data, assets, properties, and lifestyle items.
+                                You'll be returned to the character creation screen. This action cannot be undone.
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                              <AlertDialogAction onClick={handleResetProgress}>
+                                Reset Progress
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
-                      <div>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm flex items-center">
-                            <Crown className="h-4 w-4 mr-1 text-amber-500" />
-                            Prestige
-                          </span>
-                          <span className="text-sm font-medium">{prestige} points</span>
-                        </div>
-                        <Progress value={Math.min(prestige, 100)} className="h-2" />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              {/* Portfolio Breakdown */}
-              <Card className="mb-6">
-                <CardHeader className="py-3">
-                  <CardTitle className="text-lg flex items-center">
-                    <Briefcase className="h-5 w-5 mr-1 text-blue-500" />
-                    Portfolio Breakdown
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-2">
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                      <DollarSign className="h-6 w-6 mx-auto text-green-500" />
-                      <p className="text-sm text-gray-500">Cash</p>
-                      <p className="font-semibold">{formatCurrency(wealth)}</p>
-                      <p className="text-xs">{((wealth / netWorth) * 100).toFixed(1)}% of total</p>
-                    </div>
-                    
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                      <ChartBar className="h-6 w-6 mx-auto text-blue-500" />
-                      <p className="text-sm text-gray-500">Stocks</p>
-                      <p className="font-semibold">{formatCurrency(stocksValue)}</p>
-                      <p className="text-xs">{((stocksValue / netWorth) * 100).toFixed(1)}% of total</p>
-                    </div>
-                    
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                      <Home className="h-6 w-6 mx-auto text-purple-500" />
-                      <p className="text-sm text-gray-500">Properties</p>
-                      <p className="font-semibold">{formatCurrency(propertiesValue)}</p>
-                      <p className="text-xs">{((propertiesValue / netWorth) * 100).toFixed(1)}% of total</p>
-                    </div>
-                    
-                    <div className="text-center p-2 bg-gray-50 rounded-lg">
-                      <Crown className="h-6 w-6 mx-auto text-amber-500" />
-                      <p className="text-sm text-gray-500">Lifestyle</p>
-                      <p className="font-semibold">{formatCurrency(lifestyleValue)}</p>
-                      <p className="text-xs">{((lifestyleValue / netWorth) * 100).toFixed(1)}% of total</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* Market Indicators */}
-              <Card>
-                <CardHeader className="py-3">
-                  <CardTitle className="text-lg flex items-center">
-                    <TrendingUp className="h-5 w-5 mr-1 text-blue-500" />
-                    Market Indicators
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="py-2">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Stock Market</p>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium flex items-center">
-                          {marketTrend === 'bull' ? (
-                            <TrendingUp className="h-4 w-4 mr-1 text-green-500" />
-                          ) : marketTrend === 'bear' ? (
-                            <TrendingUp className="h-4 w-4 mr-1 text-red-500 transform rotate-180" />
-                          ) : (
-                            <span className="h-4 w-4 mr-1" />
-                          )}
-                          {marketTrend.charAt(0).toUpperCase() + marketTrend.slice(1)}
-                        </span>
-                        <span className="text-sm">{stockMarketHealth}%</span>
-                      </div>
-                      <Progress value={stockMarketHealth} className="h-2" />
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500 mb-1">Real Estate Market</p>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-sm font-medium">Health</span>
-                        <span className="text-sm">{realEstateMarketHealth}%</span>
-                      </div>
-                      <Progress value={realEstateMarketHealth} className="h-2" />
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500">Inflation Rate</p>
-                      <p className="font-medium">{inflation.toFixed(1)}%</p>
-                    </div>
-                    
-                    <div>
-                      <p className="text-sm text-gray-500">Interest Rate</p>
-                      <p className="font-medium">{interestRate.toFixed(1)}%</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              </Tabs>
             </CardContent>
             
             <CardFooter className="flex justify-between">
