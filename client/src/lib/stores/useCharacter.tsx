@@ -306,11 +306,8 @@ export const useCharacter = create<CharacterState>()(
         // Reset achievements (by clearing localStorage for achievements)
         localStorage.removeItem('business-empire-achievements');
         
-        // Reset game time and set new start date
-        const timeStore = useTime.getState();
-        if (typeof timeStore.resetGameStart === 'function') {
-          timeStore.resetGameStart();
-        }
+        // Just clear the time store data instead
+        localStorage.removeItem('luxury_lifestyle_time');
         
         // Reset other stores if necessary
         // This approach ensures a clean slate when starting a new game
