@@ -21,6 +21,7 @@ import { EventDebugger } from "./components/EventDebugger";
 import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
 import AchievementNotification from "./components/AchievementNotification";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
+import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 
 import "@fontsource/inter";
 
@@ -52,6 +53,22 @@ function App() {
       return () => clearInterval(eventCheckInterval);
     }
   }, [phase, checkForNewEvents]);
+
+  // Initialize health monitoring system
+  useEffect(() => {
+    if (phase === "playing") {
+      // Do an initial health check
+      checkHealthStatus();
+      
+      // Set up health monitoring
+      const cleanupHealthMonitor = initializeHealthMonitor();
+      
+      // Clean up on unmount
+      return () => {
+        cleanupHealthMonitor();
+      };
+    }
+  }, [phase]);
 
   return (
     <ThemeProvider defaultTheme="dark">

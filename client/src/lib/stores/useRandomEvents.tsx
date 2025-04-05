@@ -10,7 +10,8 @@ export type EventCategory =
   | "business" 
   | "lifestyle"
   | "career" 
-  | "special";
+  | "special"
+  | "health";
 
 // Define event effect directions
 export type EffectDirection = "positive" | "negative" | "neutral";
@@ -35,22 +36,31 @@ export interface EventChoice {
   };
 }
 
+// Define event severity (mainly for health events)
+export type EventSeverity = 'minor' | 'moderate' | 'severe' | 'critical';
+
 // Define active event structure (for longer-term effects)
 export interface ActiveEvent {
   id: string;
-  name: string;
+  title?: string; // Used for health events
+  name?: string; // Keep for backward compatibility
   description: string;
   category: EventCategory;
-  startTime: number;
-  duration: number; // in milliseconds
-  expires: number; // timestamp when it expires
+  type?: string; // Type of event (e.g., 'health', 'market', etc.)
+  startTime?: number; // When the event started
+  duration?: number; // in milliseconds, duration of the event
+  expiry?: number; // When the event expires
+  expires?: number; // Keeping for backward compatibility
   effects: {
     incomeMultiplier?: number;
     happinessChange?: number;
     stressChange?: number;
     healthChange?: number;
     prestigeChange?: number;
+    wealth?: number; // For health events that impact wealth
   };
+  severity?: EventSeverity; // Severity of the event (mainly for health events)
+  isActive?: boolean; // Whether the event is currently active
 }
 
 // Define random event structure
@@ -114,6 +124,9 @@ interface RandomEventsState {
   };
   setDebugMode: (mode: boolean) => void;
   forceEvent: (eventId: string) => void;
+  
+  // Add a new active event directly (for health events, etc.)
+  addActiveEvent: (event: ActiveEvent) => void;
 }
 
 const STORAGE_KEY = 'business-empire-events';
@@ -219,7 +232,11 @@ export const useRandomEvents = create<RandomEventsState>()(
         const { activeEvents } = get();
         
         // Filter out expired events
-        const updatedEvents = activeEvents.filter(event => event.expires > now);
+        const updatedEvents = activeEvents.filter(event => {
+          // Check for both expires and expiry fields for backward compatibility
+          const expiryTime = event.expires || event.expiry || 0;
+          return expiryTime > now;
+        });
         
         // Only update if there's a change
         if (updatedEvents.length !== activeEvents.length) {
@@ -248,7 +265,11 @@ export const useRandomEvents = create<RandomEventsState>()(
         }
         
         // Filter to only current active events
-        const currentActiveEvents = activeEvents.filter(event => event.expires > now);
+        const currentActiveEvents = activeEvents.filter(event => {
+          // Check for both expires and expiry fields for backward compatibility
+          const expiryTime = event.expires || event.expiry || 0;
+          return expiryTime > now;
+        });
         
         // Combine all effects
         return currentActiveEvents.reduce((acc, event) => {
@@ -277,6 +298,22 @@ export const useRandomEvents = create<RandomEventsState>()(
         } else {
           console.error(`Event with ID ${eventId} not found`);
         }
+      },
+      
+      // Add a new active event directly
+      addActiveEvent: (event: ActiveEvent) => {
+        const { activeEvents } = get();
+        
+        // Ensure the event has an expiry time if not already set
+        if (!event.expiry && !event.expires) {
+          // Default to 7 days if not specified
+          const duration = event.duration || 7 * 24 * 60 * 60 * 1000;
+          event.expiry = Date.now() + duration;
+        }
+        
+        // Add the new event to active events
+        set({ activeEvents: [...activeEvents, event] });
+        saveState();
       }
     };
   })
