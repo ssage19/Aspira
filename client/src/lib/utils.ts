@@ -24,4 +24,23 @@ export const formatCurrency = (amount: number, currency: string = 'USD'): string
   }).format(amount);
 };
 
+/**
+ * Check if the game is running in emergency mode
+ * Emergency mode is a simplified version of the game that works
+ * without 3D/WebGL to prevent crashes
+ * @returns Boolean indicating if emergency mode is active
+ */
+export const isEmergencyMode = (): boolean => {
+  const emergencyMode = getLocalStorage('emergency-mode');
+  return emergencyMode === true;
+};
+
+/**
+ * Set the emergency mode state in local storage
+ * @param enabled Whether emergency mode should be enabled
+ */
+export const setEmergencyMode = (enabled: boolean): void => {
+  setLocalStorage('emergency-mode', enabled);
+};
+
 export { getLocalStorage, setLocalStorage };

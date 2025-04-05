@@ -1,171 +1,121 @@
-import React, { useState, useEffect } from "react";
-import { useCharacter } from "./lib/stores/useCharacter";
-import { useTime } from "./lib/stores/useTime";
-import { ThemeProvider } from "./lib/ThemeProvider";
-import { formatCurrency } from "./lib/utils";
+import { Suspense, useEffect } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { Toaster } from "sonner";
 import { useGame } from "./lib/stores/useGame";
+import { ThemeProvider } from "./lib/ThemeProvider";
+import Dashboard from "./pages/Dashboard";
+import CharacterCreation from "./pages/CharacterCreation";
+import InvestmentScreen from "./pages/InvestmentScreen";
+import LifestyleScreen from "./pages/LifestyleScreen";
+import PropertyScreen from "./pages/PropertyScreen";
+import AchievementsScreen from "./pages/AchievementsScreen";
+import JobScreen from "./pages/JobScreen";
+import TestPage from "./pages/TestPage";
+import NotFound from "./pages/not-found";
+import { RandomEventModal } from "./components/RandomEventModal";
+import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
+import AchievementNotification from "./components/AchievementNotification";
+import { useRandomEvents } from "./lib/stores/useRandomEvents";
+import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
+import { useTime } from "./lib/stores/useTime";
+
 import "@fontsource/inter";
 
-// Emergency simplified App to prevent crashes
+// Main App component
 function App() {
-  // Basic state
-  const { name, wealth, income, expenses, netWorth, happiness, prestige } = useCharacter();
-  const { currentDay, currentMonth, currentYear, isRunning, toggleTimeRunning, startTime } = useTime();
   const { phase, start } = useGame();
-  const [viewMode, setViewMode] = useState("dashboard");
-  
-  // Initialize game
+  const { checkForNewEvents } = useRandomEvents();
+  const { startTime } = useTime();
+
+  // Initialize game state
   useEffect(() => {
-    // Start the game if it's not already started
-    if (phase === "ready") {
-      console.log("Starting game in emergency mode");
-      start();
-      startTime();
+    try {
+      // Start the game if it's not already started
+      if (phase === "ready") {
+        console.log("Starting game...");
+        start();
+        startTime();
+      }
+    } catch (error) {
+      console.error("Error initializing game:", error);
     }
   }, [phase, start, startTime]);
+  
+  // Set up timer to check for random events
+  useEffect(() => {
+    try {
+      // Check for new events when the app loads
+      if (phase === "playing") {
+        checkForNewEvents();
+        
+        // Set up interval to check for events periodically (every 30 seconds)
+        const eventCheckInterval = setInterval(() => {
+          try {
+            checkForNewEvents();
+          } catch (error) {
+            console.error("Error checking for events:", error);
+          }
+        }, 30000); // 30 seconds
+        
+        return () => clearInterval(eventCheckInterval);
+      }
+    } catch (error) {
+      console.error("Error setting up event checking:", error);
+    }
+  }, [phase, checkForNewEvents]);
 
-  // Format the date
-  const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)
-    .toLocaleDateString('en-US', { 
-      weekday: 'long',
-      month: 'long', 
-      day: 'numeric', 
-      year: 'numeric' 
-    });
-
-  // Simple dashboard view
-  const DashboardView = () => (
-    <div className="p-6 glass-effect border rounded-lg shadow-md mb-6">
-      <h2 className="text-2xl font-bold mb-4">Dashboard</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="p-4 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Finances</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Cash:</span>
-              <span className="font-medium">{formatCurrency(wealth)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Income:</span>
-              <span className="font-medium text-green-500">{formatCurrency(income)}/yr</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Expenses:</span>
-              <span className="font-medium text-red-500">{formatCurrency(expenses)}/yr</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Net Worth:</span>
-              <span className="font-medium">{formatCurrency(netWorth)}</span>
-            </div>
-          </div>
-        </div>
-        <div className="p-4 border rounded-lg">
-          <h3 className="text-lg font-semibold mb-2">Status</h3>
-          <div className="space-y-2">
-            <div className="flex justify-between">
-              <span>Happiness:</span>
-              <span className="font-medium">{happiness}%</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Prestige:</span>
-              <span className="font-medium">{prestige} points</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  // Initialize health monitoring system
+  useEffect(() => {
+    try {
+      if (phase === "playing") {
+        // Do an initial health check
+        checkHealthStatus();
+        
+        // Set up health monitoring
+        const cleanupHealthMonitor = initializeHealthMonitor();
+        
+        // Clean up on unmount
+        return () => {
+          cleanupHealthMonitor();
+        };
+      }
+    } catch (error) {
+      console.error("Error initializing health monitor:", error);
+    }
+  }, [phase]);
 
   return (
     <ThemeProvider defaultTheme="dark">
-      <div className="min-h-screen bg-gray-900 text-white p-6">
-        <div className="max-w-3xl mx-auto">
-          <header className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h1 className="text-3xl font-bold text-gradient">Business Empire: RichMan</h1>
-              <button 
-                onClick={() => toggleTimeRunning()}
-                className={`px-4 py-2 rounded-md ${isRunning ? 'bg-red-600 hover:bg-red-700' : 'bg-green-600 hover:bg-green-700'}`}
-              >
-                {isRunning ? 'Pause Game' : 'Resume Game'}
-              </button>
-            </div>
-            <div className="flex justify-between items-center">
-              <div>
-                <h2 className="text-xl font-semibold">Welcome, {name || 'Entrepreneur'}</h2>
-                <p className="text-gray-400">{formattedDate}</p>
-              </div>
-              <div className="text-right">
-                <p className="text-lg font-semibold">{formatCurrency(wealth)}</p>
-                <p className="text-sm text-gray-400">
-                  Net Worth: {formatCurrency(netWorth)}
-                </p>
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Suspense fallback={
+            <div className="w-full h-full flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-16 h-16 border-4 border-t-4 border-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
+                <p className="text-lg font-medium">Loading...</p>
               </div>
             </div>
-          </header>
-
-          <nav className="mb-6">
-            <div className="flex overflow-x-auto space-x-2 pb-2">
-              <button 
-                onClick={() => setViewMode("dashboard")}
-                className={`px-4 py-2 rounded-md ${viewMode === "dashboard" ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-              >
-                Dashboard
-              </button>
-              <button 
-                onClick={() => setViewMode("investments")}
-                className={`px-4 py-2 rounded-md ${viewMode === "investments" ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-              >
-                Investments
-              </button>
-              <button 
-                onClick={() => setViewMode("properties")}
-                className={`px-4 py-2 rounded-md ${viewMode === "properties" ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-              >
-                Properties
-              </button>
-              <button 
-                onClick={() => setViewMode("lifestyle")}
-                className={`px-4 py-2 rounded-md ${viewMode === "lifestyle" ? 'bg-blue-600' : 'bg-gray-700 hover:bg-gray-600'}`}
-              >
-                Lifestyle
-              </button>
-            </div>
-          </nav>
-
-          <main>
-            {viewMode === "dashboard" && <DashboardView />}
-            {viewMode === "investments" && (
-              <div className="p-6 glass-effect border rounded-lg shadow-md mb-6">
-                <h2 className="text-2xl font-bold mb-4">Investments</h2>
-                <p>Your investment portfolio will appear here.</p>
-              </div>
-            )}
-            {viewMode === "properties" && (
-              <div className="p-6 glass-effect border rounded-lg shadow-md mb-6">
-                <h2 className="text-2xl font-bold mb-4">Properties</h2>
-                <p>Your properties will appear here.</p>
-              </div>
-            )}
-            {viewMode === "lifestyle" && (
-              <div className="p-6 glass-effect border rounded-lg shadow-md mb-6">
-                <h2 className="text-2xl font-bold mb-4">Lifestyle</h2>
-                <p>Your lifestyle items will appear here.</p>
-              </div>
-            )}
-
-            <div className="p-6 glass-effect border rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold mb-4">Emergency Mode</h2>
-              <p className="mb-4">
-                The game is currently running in emergency mode due to stability issues. This is a simplified version of the game that should be more stable.
-              </p>
-              <p>
-                Core functionality is still working: time progression, wealth tracking, and basic information display, but some advanced features are temporarily disabled.
-              </p>
-            </div>
-          </main>
-        </div>
-      </div>
+          }>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/create" element={<CharacterCreation />} />
+              <Route path="/job" element={<JobScreen />} />
+              <Route path="/investments" element={<InvestmentScreen />} />
+              <Route path="/lifestyle" element={<LifestyleScreen />} />
+              <Route path="/properties" element={<PropertyScreen />} />
+              <Route path="/achievements" element={<AchievementsScreen />} />
+              <Route path="/test" element={<TestPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <RandomEventModal />
+            <ActiveEventsIndicator />
+            <AchievementNotification />
+          </Suspense>
+        </Router>
+        <Toaster position="top-right" richColors />
+      </QueryClientProvider>
     </ThemeProvider>
   );
 }

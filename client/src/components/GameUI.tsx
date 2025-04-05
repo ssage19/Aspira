@@ -18,10 +18,12 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  GraduationCap
+  GraduationCap,
+  Shield,
+  AlertTriangle
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, isEmergencyMode, setEmergencyMode } from '../lib/utils';
 import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
@@ -50,6 +52,27 @@ export function GameUI() {
   } = useTime();
   const { isMuted, setMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
+  const [emergencyModeEnabled, setEmergencyModeEnabled] = useState(isEmergencyMode);
+  
+  // Update emergency mode state when it changes
+  useEffect(() => {
+    const checkEmergencyMode = () => {
+      setEmergencyModeEnabled(isEmergencyMode());
+    };
+    
+    // Check on mount
+    checkEmergencyMode();
+    
+    // Set up a storage event listener to detect changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'emergency-mode') {
+        checkEmergencyMode();
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   
   // Update passive income every 5 seconds
   useEffect(() => {
@@ -667,6 +690,45 @@ export function GameUI() {
           {showTooltip === 'sound' && (
             <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
               {isMuted ? "Unmute Sound" : "Mute Sound"}
+            </span>
+          )}
+        </Button>
+        
+        {/* Emergency Mode toggle */}
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => {
+            const newMode = !emergencyModeEnabled;
+            setEmergencyMode(newMode);
+            setEmergencyModeEnabled(newMode);
+            toast.success(
+              newMode 
+                ? "Emergency Mode enabled. Please reload the page for changes to take effect." 
+                : "Emergency Mode disabled. Please reload the page for changes to take effect.",
+              { duration: 5000 }
+            );
+          }}
+          onMouseEnter={() => setShowTooltip('emergency')}
+          onMouseLeave={() => setShowTooltip('')}
+          className="relative glass-effect h-14 w-14 rounded-full p-0"
+          aria-label="Toggle Emergency Mode"
+        >
+          <div className={`p-3 rounded-full ${emergencyModeEnabled ? 'bg-amber-500/20' : 'bg-emerald-500/10'}`}>
+            {emergencyModeEnabled 
+              ? <AlertTriangle className="h-5 w-5 text-amber-500" /> 
+              : <Shield className="h-5 w-5 text-emerald-500" />
+            }
+          </div>
+          {showTooltip === 'emergency' && (
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
+              {emergencyModeEnabled ? "Disable Emergency Mode" : "Enable Emergency Mode"}
+              <div className="text-xs mt-1 max-w-[200px]">
+                {emergencyModeEnabled 
+                  ? "Currently using simplified version to prevent crashes" 
+                  : "Use a simplified version that works better on older devices"
+                }
+              </div>
             </span>
           )}
         </Button>
