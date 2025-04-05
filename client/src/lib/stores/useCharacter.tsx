@@ -330,10 +330,23 @@ export const useCharacter = create<CharacterState>()(
       
       // Economy functions
       addWealth: (amount) => {
-        set((state) => ({ 
-          wealth: state.wealth + amount,
-          netWorth: state.netWorth + amount
-        }));
+        // Ensure amount is a valid number
+        const validAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+        
+        set((state) => {
+          // Ensure wealth and netWorth are valid numbers
+          const currentWealth = typeof state.wealth === 'number' && !isNaN(state.wealth) 
+                              ? state.wealth : 0;
+          const currentNetWorth = typeof state.netWorth === 'number' && !isNaN(state.netWorth) 
+                                ? state.netWorth : 0;
+                                
+          return { 
+            wealth: currentWealth + validAmount,
+            netWorth: currentNetWorth + validAmount
+          };
+        });
+        
+        console.log(`Adding ${validAmount} to wealth. New wealth: ${get().wealth}`);
         saveState();
       },
       

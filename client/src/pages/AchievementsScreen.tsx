@@ -252,17 +252,23 @@ export default function AchievementsScreen() {
       // Apply the reward
       switch (achievement.reward.type) {
         case 'cash':
-          console.log(`Adding cash reward: ${achievement.reward.value}`);
+          // Ensure reward value is a valid number
+          const rewardValue = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                            ? achievement.reward.value : 0;
+                            
+          console.log(`Adding cash reward: ${rewardValue}`);
           
           // IMPORTANT FIX: Update both stores for cash rewards
           // Add to game store cash (just for tracking purposes)
-          gameStore.addCash(achievement.reward.value);
+          gameStore.addCash(rewardValue);
           
           // Add to character store wealth (this is the actual game money implementation)
-          characterStore.addWealth(achievement.reward.value);
+          characterStore.addWealth(rewardValue);
           
-          // Log the updated character wealth
-          console.log(`Current character wealth after reward: ${characterStore.wealth}`);
+          // Log the updated character wealth with NaN check
+          const currentWealth = typeof characterStore.wealth === 'number' && !isNaN(characterStore.wealth)
+                              ? characterStore.wealth : 0;
+          console.log(`Current character wealth after reward: ${currentWealth}`);
           break;
         case 'multiplier':
           console.log(`Applying income multiplier: ${achievement.reward.value}`);
@@ -280,14 +286,18 @@ export default function AchievementsScreen() {
           if (achievement.id.startsWith('lifestyle') || achievement.id.startsWith('character')) {
             // For happiness bonus
             if (achievement.reward.description.includes('Happiness')) {
-              const bonusAmount = achievement.reward.value;
+              // Ensure bonus amount is a valid number
+              const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                               ? achievement.reward.value : 0;
               console.log(`Applying happiness bonus: +${bonusAmount}`);
               characterStore.addHappiness(bonusAmount);
             }
             
             // For prestige bonus
             if (achievement.reward.description.includes('Prestige')) {
-              const bonusAmount = achievement.reward.value;
+              // Ensure bonus amount is a valid number
+              const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                               ? achievement.reward.value : 0;
               console.log(`Applying prestige bonus: +${bonusAmount}`);
               characterStore.addPrestige(bonusAmount);
             }

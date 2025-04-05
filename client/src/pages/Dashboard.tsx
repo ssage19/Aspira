@@ -528,7 +528,10 @@ export default function Dashboard() {
                                     .reduce((sum, asset) => {
                                       // Calculate a monthly dividend based on stock value (avg 2% annual yield = 0.167% monthly)
                                       const monthlyYield = 0.00167; // 2% annual divided by 12 months
-                                      return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                                      // Make sure we have valid values for price and quantity
+                                      const price = asset.currentPrice || 0;
+                                      const quantity = asset.quantity || 0;
+                                      return sum + (price * quantity * monthlyYield);
                                     }, 0)
                                 )}/mo
                               </span>
@@ -544,13 +547,16 @@ export default function Dashboard() {
                                   // Salary
                                   (job ? job.salary / 12 : 0) + 
                                   // Property income
-                                  properties.reduce((sum, p) => sum + p.monthlyIncome, 0) +
+                                  properties.reduce((sum, p) => sum + (p.monthlyIncome || 0), 0) +
                                   // Stock dividends (avg 2% annual yield = 0.167% monthly)
                                   assets
                                     .filter(asset => asset.type === 'stock')
                                     .reduce((sum, asset) => {
                                       const monthlyYield = 0.00167; // 2% annual divided by 12 months
-                                      return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                                      // Make sure we have valid values for price and quantity
+                                      const price = asset.currentPrice || 0;
+                                      const quantity = asset.quantity || 0;
+                                      return sum + (price * quantity * monthlyYield);
                                     }, 0)
                                 )}/mo
                               </span>
@@ -625,7 +631,7 @@ export default function Dashboard() {
                                 Lifestyle Items ({lifestyleItems.length} items)
                               </span>
                               <span className="text-sm font-medium text-red-500">
-                                {formatCurrency(lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0))}/mo
+                                {formatCurrency(lifestyleItems.reduce((sum, item) => sum + (item.monthlyCost || 0), 0))}/mo
                               </span>
                             </div>
                           </div>
@@ -652,7 +658,7 @@ export default function Dashboard() {
                                   // Food costs
                                   600 +
                                   // Lifestyle costs
-                                  lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0)
+                                  lifestyleItems.reduce((sum, item) => sum + (item.monthlyCost || 0), 0)
                                 )}/mo
                               </span>
                             </div>
@@ -672,14 +678,17 @@ export default function Dashboard() {
                               .filter(asset => asset.type === 'stock')
                               .reduce((sum, asset) => {
                                 const monthlyYield = 0.00167; // 2% annual divided by 12 months
-                                return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                                // Make sure we have valid values for price and quantity
+                                const price = asset.currentPrice || 0;
+                                const quantity = asset.quantity || 0;
+                                return sum + (price * quantity * monthlyYield);
                               }, 0);
                               
                             const monthlyIncome = 
                               // Salary
                               (job ? job.salary / 12 : 0) + 
                               // Property income
-                              properties.reduce((sum, p) => sum + p.monthlyIncome, 0) +
+                              properties.reduce((sum, p) => sum + (p.monthlyIncome || 0), 0) +
                               // Stock dividends
                               stockDividends;
                             
@@ -701,7 +710,7 @@ export default function Dashboard() {
                               // Food costs
                               600 +
                               // Lifestyle costs
-                              lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0);
+                              lifestyleItems.reduce((sum, item) => sum + (item.monthlyCost || 0), 0);
                             
                             const monthlyBalance = monthlyIncome - monthlyExpenses;
                             

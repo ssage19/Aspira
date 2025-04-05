@@ -397,18 +397,26 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
       // Apply the reward based on its type
       switch (achievement.reward.type) {
         case 'cash':
-          console.log(`Adding cash reward: ${achievement.reward.value}`);
+          // Ensure reward value is a valid number
+          const cashReward = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                            ? achievement.reward.value : 0;
+                            
+          console.log(`Adding cash reward: ${cashReward}`);
           
           // Add to game store cash (just for tracking)
-          gameStore.addCash(achievement.reward.value);
+          gameStore.addCash(cashReward);
           
           // Add to character store wealth (actual money implementation)
-          characterStore.addWealth(achievement.reward.value);
+          characterStore.addWealth(cashReward);
           break;
           
         case 'multiplier':
-          console.log(`Applying income multiplier: ${achievement.reward.value}`);
-          gameStore.applyIncomeMultiplier(achievement.reward.value);
+          // Ensure multiplier value is a valid number
+          const multiplier = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                          ? achievement.reward.value : 1.0;
+                          
+          console.log(`Applying income multiplier: ${multiplier}`);
+          gameStore.applyIncomeMultiplier(multiplier);
           break;
           
         case 'unlock':
@@ -418,7 +426,25 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
           
         case 'bonus':
           console.log(`Applying bonus: ${achievement.reward.description}`);
-          // Handle bonus logic
+          
+          // For happiness and prestige bonuses
+          if (achievement.reward.description.includes('Happiness') || 
+              achievement.reward.description.includes('Prestige')) {
+            
+            // Ensure bonus amount is a valid number
+            const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                             ? achievement.reward.value : 0;
+            
+            if (achievement.reward.description.includes('Happiness')) {
+              console.log(`Applying happiness bonus: +${bonusAmount}`);
+              characterStore.addHappiness(bonusAmount);
+            }
+            
+            if (achievement.reward.description.includes('Prestige')) {
+              console.log(`Applying prestige bonus: +${bonusAmount}`);
+              characterStore.addPrestige(bonusAmount);
+            }
+          }
           break;
       }
       

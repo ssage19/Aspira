@@ -160,7 +160,10 @@ export const useGame = create<GameState>()(
       
       // Add cash (stub implementation - will be connected in AchievementOverlay.tsx)
       addCash: (amount) => {
-        console.log(`Adding cash reward: ${amount}`);
+        // Ensure amount is a valid number
+        const validAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+        
+        console.log(`Adding cash reward: ${validAmount}`);
         // This is just a stub - the actual functionality is implemented
         // in the AchievementOverlay and AchievementsScreen components
         // where they have direct access to both stores
@@ -168,7 +171,10 @@ export const useGame = create<GameState>()(
       
       // Apply income multiplier (stub implementation - will be connected in AchievementOverlay.tsx)
       applyIncomeMultiplier: (multiplier) => {
-        console.log(`Applied income multiplier: ${multiplier}x`);
+        // Ensure multiplier is a valid number
+        const validMultiplier = typeof multiplier === 'number' && !isNaN(multiplier) ? multiplier : 1.0;
+        
+        console.log(`Applied income multiplier: ${validMultiplier}x`);
         // This is just a stub - the actual functionality is implemented
         // in the AchievementOverlay and AchievementsScreen components
         // where they have direct access to both stores
