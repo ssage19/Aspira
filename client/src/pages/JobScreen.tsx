@@ -378,8 +378,11 @@ export default function JobScreen() {
           const startDate = new Date(challenge.startDate);
           const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
           
-          // If enough days have passed, mark challenge as ready for completion
-          if (daysPassed >= challenge.completionTime) {
+          // Convert days to months (every 30 days = 1 month in game time)
+          const monthsPassed = Math.floor(daysPassed / 30);
+          
+          // If enough months have passed, mark challenge as ready for completion
+          if (monthsPassed >= challenge.completionTime) {
             // Only notify if we're transitioning from not ready to ready
             if (!challenge.readyForCompletion) {
               setTimeout(() => {
@@ -471,11 +474,15 @@ export default function JobScreen() {
     // Check if the challenge is ready for completion
     if (challenge.inProgress && challenge.startDate) {
       const startDate = new Date(challenge.startDate);
+      // Calculate days passed since challenge started
       const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      if (daysPassed < challenge.completionTime) {
+      // Convert days to months (every 30 days = 1 month in game time)
+      const monthsPassed = Math.floor(daysPassed / 30);
+      
+      if (monthsPassed < challenge.completionTime) {
         // Not enough time has passed
-        const monthsRemaining = challenge.completionTime - daysPassed;
+        const monthsRemaining = challenge.completionTime - monthsPassed;
         toast.error(`This challenge will be complete in ${monthsRemaining} more month${monthsRemaining !== 1 ? 's' : ''}.`);
         return;
       }
@@ -887,7 +894,7 @@ export default function JobScreen() {
                                     <span>Progress</span>
                                     <span>
                                       {Math.min(
-                                        Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
+                                        Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)), 
                                         selectedChallenge.completionTime
                                       )} / {selectedChallenge.completionTime} months
                                     </span>
@@ -895,7 +902,7 @@ export default function JobScreen() {
                                   <Progress 
                                     value={Math.min(
                                       100, 
-                                      (Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) / selectedChallenge.completionTime) * 100
+                                      (Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) / selectedChallenge.completionTime) * 100
                                     )} 
                                     className="h-2"
                                   />
@@ -904,7 +911,7 @@ export default function JobScreen() {
                                     <div className="flex justify-between text-xs text-muted-foreground mt-1">
                                       <span>Started: {new Date(selectedChallenge.startDate).toLocaleDateString()}</span>
                                       <span>
-                                        ETA: {new Date(new Date(selectedChallenge.startDate).getTime() + (selectedChallenge.completionTime * 24 * 60 * 60 * 1000)).toLocaleDateString()}
+                                        ETA: {new Date(new Date(selectedChallenge.startDate).getTime() + (selectedChallenge.completionTime * 30 * 24 * 60 * 60 * 1000)).toLocaleDateString()}
                                       </span>
                                     </div>
                                   )}
@@ -1018,7 +1025,7 @@ export default function JobScreen() {
                                                 <span>Progress</span>
                                                 <span>
                                                   {Math.min(
-                                                    Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
+                                                    Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)), 
                                                     challenge.completionTime
                                                   )} / {challenge.completionTime} months
                                                 </span>
@@ -1026,7 +1033,7 @@ export default function JobScreen() {
                                               <Progress 
                                                 value={Math.min(
                                                   100, 
-                                                  (Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) / challenge.completionTime) * 100
+                                                  (Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) / challenge.completionTime) * 100
                                                 )} 
                                                 className="h-1.5"
                                               />
