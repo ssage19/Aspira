@@ -132,34 +132,16 @@ export function GameUI() {
 
   // Process daily income and expenses
   const processDailyFinances = () => {
-    // Calculate income from properties
-    const { properties, lifestyleItems } = useCharacter.getState();
-    
-    // Property income
-    const propertyIncome = properties.reduce((total, property) => {
-      return total + property.monthlyIncome / 30; // Daily income from monthly income
-    }, 0);
-    
-    // Property expenses (maintenance, taxes, etc.) - using a fixed percentage of property value
-    const propertyExpenses = properties.reduce((total, property) => {
-      return total + (property.currentValue * 0.0001); // 0.01% of property value per day for expenses
-    }, 0);
-    
-    // Lifestyle item maintenance costs
-    const lifestyleExpenses = lifestyleItems.reduce((total, item) => {
-      return total + (item.monthlyCost / 30); // Daily expenses from monthly cost
-    }, 0);
+    // Note: Property income is now handled in the Character store's processDailyUpdate
+    // to avoid duplicating the calculation. This function now only processes investments
+    // and other financial updates not handled elsewhere.
     
     // Process investments - this doesn't directly affect cash, just net worth
     const investmentChanges = updateInvestments();
     
-    // Calculate net daily change from income/expenses
-    const netDailyChange = propertyIncome - propertyExpenses - lifestyleExpenses;
-    
-    // Apply cash flow changes to character's wealth
-    if (netDailyChange !== 0) {
-      addWealth(netDailyChange);
-    }
+    // Note: Income and expenses from properties and lifestyle items are now
+    // handled completely in the Character store's processDailyUpdate function
+    // to avoid duplicating these calculations.
     
     // We're removing the financial notification completely per user request
     // The function still processes all finances but doesn't display notification
@@ -170,9 +152,9 @@ export function GameUI() {
     
     // Return the summary for potential other uses
     return {
-      income: propertyIncome,
-      expenses: propertyExpenses + lifestyleExpenses,
-      net: netDailyChange,
+      income: 0, // No longer calculating this here
+      expenses: 0, // No longer calculating this here
+      net: 0, // No longer calculating this here
       investmentChange: investmentChanges.netChange
     };
   };
