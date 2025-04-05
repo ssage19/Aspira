@@ -22,6 +22,8 @@ interface EconomyStore {
   
   // Functions
   updateEconomy: () => void;
+  processWeeklyUpdate: () => void; // Update economy trends weekly
+  processMonthlyUpdate: () => void; // Process larger economic shifts monthly
   setEconomyState: (state: EconomyState) => void;
   setMarketTrend: (trend: MarketTrend) => void;
   setStockMarketHealth: (health: number) => void;
@@ -61,9 +63,112 @@ export const useEconomy = create<EconomyStore>()(
       
       // Update economy based on time and random factors
       updateEconomy: () => {
-        // This would eventually implement a more complex economic model
+        // This is a general update method that can be called any time
         // For now, it's a simple placeholder
         console.log("Updating economy...");
+      },
+      
+      // Process weekly economic updates - called when dayCounter % 7 === 0
+      processWeeklyUpdate: () => {
+        const state = get();
+        
+        // Small fluctuations in market health (±1-3 points)
+        const stockChange = (Math.random() * 6) - 3; // -3 to +3
+        const realEstateChange = (Math.random() * 4) - 2; // -2 to +2
+        
+        // Update stock market health with small weekly fluctuations
+        const newStockHealth = Math.max(0, Math.min(100, state.stockMarketHealth + stockChange));
+        
+        // Update real estate market with smaller fluctuations (more stable)
+        const newRealEstateHealth = Math.max(0, Math.min(100, state.realEstateMarketHealth + realEstateChange));
+        
+        // Adjust market trend based on recent movements
+        // Simple rule: If stock health is trending up over threshold, market is bullish
+        let newMarketTrend = state.marketTrend;
+        if (newStockHealth > 65 && state.marketTrend !== "bull") {
+          newMarketTrend = "bull";
+        } else if (newStockHealth < 35 && state.marketTrend !== "bear") {
+          newMarketTrend = "bear";
+        } else if (newStockHealth >= 35 && newStockHealth <= 65 && state.marketTrend !== "stable") {
+          newMarketTrend = "stable";
+        }
+        
+        // Update the state with all new values
+        set({
+          stockMarketHealth: newStockHealth,
+          realEstateMarketHealth: newRealEstateHealth,
+          marketTrend: newMarketTrend as MarketTrend
+        });
+        
+        // Save state after all updates
+        saveState();
+        console.log("Weekly economy update processed");
+      },
+      
+      // Process monthly economic updates - more significant shifts
+      // Called when dayCounter % 30 === 0
+      processMonthlyUpdate: () => {
+        const state = get();
+        
+        // Larger monthly shifts (±2-5 points)
+        const stockChange = (Math.random() * 10) - 5; // -5 to +5
+        const realEstateChange = (Math.random() * 8) - 4; // -4 to +4
+        
+        // Economy state can shift based on market health
+        // Simplistic model:
+        // - Both markets healthy (>60) = boom
+        // - Both markets poor (<40) = recession
+        // - Mixed or average = stable
+        const newStockHealth = Math.max(0, Math.min(100, state.stockMarketHealth + stockChange));
+        const newRealEstateHealth = Math.max(0, Math.min(100, state.realEstateMarketHealth + realEstateChange));
+        
+        let newEconomyState = state.economyState;
+        
+        if (newStockHealth > 60 && newRealEstateHealth > 60) {
+          newEconomyState = "boom";
+        } else if (newStockHealth < 40 && newRealEstateHealth < 40) {
+          newEconomyState = "recession";
+        } else {
+          newEconomyState = "stable";
+        }
+        
+        // Small adjustments to inflation and interest rates
+        // More complex in real economy but simplified here
+        let newInflation = state.inflation;
+        let newInterestRate = state.interestRate;
+        
+        // In boom: inflation tends up, interest rates follow
+        // In recession: inflation tends down, interest rates lowered to stimulate
+        if (newEconomyState === "boom") {
+          newInflation += (Math.random() * 0.3); // Small increase
+          if (newInflation > 4) {
+            newInterestRate += (Math.random() * 0.2); // Rates rise to fight inflation
+          }
+        } else if (newEconomyState === "recession") {
+          newInflation -= (Math.random() * 0.2); // Small decrease
+          newInterestRate -= (Math.random() * 0.3); // Rates lower to stimulate
+        } else {
+          // Random small moves in stable economy
+          newInflation += (Math.random() * 0.4) - 0.2; // -0.2 to +0.2
+          newInterestRate += (Math.random() * 0.4) - 0.2; // -0.2 to +0.2
+        }
+        
+        // Constrain values to realistic ranges
+        newInflation = Math.max(0, Math.min(12, newInflation));
+        newInterestRate = Math.max(0, Math.min(10, newInterestRate));
+        
+        // Update all values
+        set({
+          stockMarketHealth: newStockHealth,
+          realEstateMarketHealth: newRealEstateHealth,
+          economyState: newEconomyState as EconomyState,
+          inflation: newInflation,
+          interestRate: newInterestRate
+        });
+        
+        // Save state after all updates
+        saveState();
+        console.log("Monthly economy update processed");
       },
       
       // Setters for each property

@@ -26,6 +26,9 @@ interface TimeState {
   pausedTimestamp: number; // Timestamp when time was paused
   accumulatedProgress: number; // Progress accumulated before pause (ms) - this helps in resuming time properly
   
+  // Daily counter for tracking weekly/monthly updates
+  dayCounter: number; // Tracks the number of days passed for weekly/biweekly updates
+  
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
   
@@ -104,6 +107,9 @@ export const useTime = create<TimeState>()(
       pausedTimestamp: savedTime?.pausedTimestamp || 0,
       accumulatedProgress: savedTime?.accumulatedProgress || 0,
       
+      // Day counter for weekly/biweekly updates
+      dayCounter: savedTime?.dayCounter || 0,
+      
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
         let newMonth = state.currentMonth;
@@ -127,12 +133,17 @@ export const useTime = create<TimeState>()(
         // Create a new Date object for the updated date
         const newGameDate = new Date(newYear, newMonth - 1, newDay);
         
+        // Increment the day counter for tracking weekly/biweekly updates
+        // With new time scale, 14 days (2 weeks) will pass every 5 minutes of real time
+        const newDayCounter = (state.dayCounter + 1) % 14;
+        
         const newState = {
           ...state, // Keep other values like start date
           currentDay: newDay,
           currentMonth: newMonth,
           currentYear: newYear,
-          currentGameDate: newGameDate
+          currentGameDate: newGameDate,
+          dayCounter: newDayCounter
         };
         
         // Save to local storage
@@ -194,7 +205,8 @@ export const useTime = create<TimeState>()(
           timeProgress: 0,
           lastTickTime: Date.now(),
           pausedTimestamp: 0,
-          accumulatedProgress: 0
+          accumulatedProgress: 0,
+          dayCounter: 0
         };
         
         // Save to local storage

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
+import useEconomy from '../lib/stores/useEconomy';
 import { 
   DollarSign, 
   Clock, 
@@ -25,8 +26,9 @@ import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
 
-// Each day lasts 10 minutes (600 seconds) as per the requirements
-const DAY_DURATION_MS = 600 * 1000;
+// New time scale: 5 minutes = 2 weeks (14 days) in-game time
+// So, each in-game day would last approximately 21.43 seconds of real time (5 * 60 / 14)
+const DAY_DURATION_MS = (5 * 60 * 1000) / 14; // about 21,429 ms per in-game day
 
 export function GameUI() {
   const navigate = useNavigate();
@@ -321,6 +323,21 @@ export function GameUI() {
         advanceTime();
         playSuccess();
         
+        // Get the updated dayCounter after advancing time
+        const { dayCounter } = useTime.getState();
+        
+        // Check for weekly updates (every 7 days)
+        if (dayCounter % 7 === 0) {
+          useEconomy.getState().processWeeklyUpdate();
+          console.log("Weekly update processed on day counter:", dayCounter);
+        }
+        
+        // Check for monthly updates (every 30 days)
+        if (dayCounter % 30 === 0) {
+          useEconomy.getState().processMonthlyUpdate();
+          console.log("Monthly update processed on day counter:", dayCounter);
+        }
+        
         // Check for unlockable achievements
         checkAllAchievements();
         
@@ -352,6 +369,21 @@ export function GameUI() {
     // Advance the day
     advanceTime();
     playSuccess();
+    
+    // Get the updated dayCounter after advancing time
+    const { dayCounter } = useTime.getState();
+    
+    // Check for weekly updates (every 7 days)
+    if (dayCounter % 7 === 0) {
+      useEconomy.getState().processWeeklyUpdate();
+      console.log("Weekly update processed on day counter:", dayCounter);
+    }
+    
+    // Check for monthly updates (every 30 days)
+    if (dayCounter % 30 === 0) {
+      useEconomy.getState().processMonthlyUpdate();
+      console.log("Monthly update processed on day counter:", dayCounter);
+    }
     
     // Check for unlockable achievements
     checkAllAchievements();
@@ -392,10 +424,10 @@ export function GameUI() {
             <span className="text-xs font-medium">
               {autoAdvanceEnabled ? 
                 timeSpeed === 'superfast' ? 
-                  `${Math.max(0, Math.floor((600 - (timeProgress * 600 / 100)) / 6))}m left (6x)` : 
+                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 6))}s left (6x)` : 
                 timeSpeed === 'fast' ? 
-                  `${Math.max(0, Math.floor((600 - (timeProgress * 600 / 100)) / 3))}m left (3x)` : 
-                  `${Math.max(0, Math.floor(600 - (timeProgress * 600 / 100)))}m left` 
+                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 3))}s left (3x)` : 
+                  `${Math.max(0, Math.floor(21.43 - (timeProgress * 21.43 / 100)))}s left` 
                 : "Paused"}
             </span>
           </div>
