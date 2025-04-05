@@ -450,7 +450,7 @@ export function CharacterAttributes() {
             <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
             <p className="mt-1">
               <strong className="text-primary">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
-              needs drop below 50%. The system prioritizes hunger and thirst first.
+              needs drop below 70%. The system prioritizes hunger and thirst first.
             </p>
           </div>
         </CardContent>

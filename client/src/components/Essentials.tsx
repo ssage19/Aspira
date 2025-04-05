@@ -406,13 +406,13 @@ export function Essentials() {
     
     // Track if any actions were taken
     let actionsTaken = 0;
-    const maxActionsPerCycle = 4; // Maximum actions per maintenance cycle
+    const maxActionsPerCycle = 8; // Increased maximum actions per maintenance cycle
     
     // Check and address all needs in order of priority
     
     // First check the most critical needs: hunger and thirst
-    // Check hunger level
-    if (hunger <= 50 && actionsTaken < maxActionsPerCycle) {
+    // Check hunger level - increased threshold to 70%
+    if (hunger <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestFood = findBestItemForNeed('hunger', foodItems);
       if (bestFood) {
         handleConsumeEssential(bestFood);
@@ -420,8 +420,8 @@ export function Essentials() {
       }
     }
     
-    // Check thirst level
-    if (thirst <= 50 && actionsTaken < maxActionsPerCycle) {
+    // Check thirst level - increased threshold to 70%
+    if (thirst <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestDrink = findBestItemForNeed('thirst', drinkItems);
       if (bestDrink) {
         handleConsumeEssential(bestDrink);
@@ -429,8 +429,8 @@ export function Essentials() {
       }
     }
     
-    // Check energy level
-    if (energy <= 50 && actionsTaken < maxActionsPerCycle) {
+    // Check energy level - increased threshold to 70%
+    if (energy <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestRest = findBestItemForNeed('energy', restActivities);
       if (bestRest) {
         handleConsumeEssential(bestRest);
@@ -438,8 +438,8 @@ export function Essentials() {
       }
     }
     
-    // Check social connections level
-    if (socialConnections <= 50 && actionsTaken < maxActionsPerCycle) {
+    // Check social connections level - increased threshold to 70%
+    if (socialConnections <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestSocial = findBestItemForNeed('socialConnections', socialActivities);
       if (bestSocial) {
         handleConsumeEssential(bestSocial);
@@ -475,9 +475,9 @@ export function Essentials() {
   useEffect(() => {
     if (!autoMaintain) return;
     
-    // This will run the auto-maintenance check every 5 seconds
-    // Shorter interval to be more responsive to needs falling below 50%
-    const intervalId = setInterval(handleAutoMaintenance, 5000);
+    // This will run the auto-maintenance check every 3 seconds
+    // Shorter interval to be more responsive to needs falling below 70%
+    const intervalId = setInterval(handleAutoMaintenance, 3000);
     
     // Cleanup function to prevent memory leaks
     return () => clearInterval(intervalId);
@@ -508,7 +508,7 @@ export function Essentials() {
           </div>
           <p className="text-xs text-blue-600 italic">
             {autoMaintain ? 
-              "Needs will be automatically maintained when they drop below 50%" : 
+              "Needs will be automatically maintained when they drop below 70%" : 
               "You need to manually maintain your needs"}
           </p>
         </div>
