@@ -13,6 +13,7 @@ import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
 import AchievementsScreen from "./pages/AchievementsScreen";
+import JobScreen from "./pages/JobScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
@@ -60,6 +61,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/create" element={<CharacterCreation />} />
+              <Route path="/job" element={<JobScreen />} />
               <Route path="/investments" element={<InvestmentScreen />} />
               <Route path="/lifestyle" element={<LifestyleScreen />} />
               <Route path="/properties" element={<PropertyScreen />} />

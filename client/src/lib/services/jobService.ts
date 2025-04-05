@@ -337,5 +337,8 @@ export {
   getProfession,
   getProfessionsByCategory,
   getAllProfessionCategories,
-  getCategoryLabel
+  getCategoryLabel,
+  getNextJobInCareerPath,
+  getJobByLevelInProfession,
+  meetsSkillRequirements
 };

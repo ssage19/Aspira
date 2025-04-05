@@ -16,7 +16,8 @@ import {
   Trophy,
   TrendingUp,
   TrendingDown,
-  ArrowRight
+  ArrowRight,
+  GraduationCap
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
@@ -31,7 +32,7 @@ export function GameUI() {
   const navigate = useNavigate();
   const { name, wealth, netWorth, addWealth } = useCharacter();
   const { currentDay, currentMonth, currentYear, advanceTime } = useTime();
-  const { toggleMute, isMuted, playSuccess } = useAudio();
+  const { isMuted, setMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
   const [timeProgress, setTimeProgress] = useState(0);
   const [autoAdvanceEnabled, setAutoAdvanceEnabled] = useState(true);
@@ -85,7 +86,7 @@ export function GameUI() {
         case 'bond':
           volatilityFactor = 0.005; // 0.5% daily movement potential
           break;
-        case 'startup':
+        case 'other':
           volatilityFactor = 0.03; // 3% daily movement potential
           break;
         default:
@@ -130,17 +131,17 @@ export function GameUI() {
     
     // Property income
     const propertyIncome = properties.reduce((total, property) => {
-      return total + property.income;
+      return total + property.monthlyIncome / 30; // Daily income from monthly income
     }, 0);
     
-    // Property expenses (maintenance, taxes, etc.)
+    // Property expenses (maintenance, taxes, etc.) - using a fixed percentage of property value
     const propertyExpenses = properties.reduce((total, property) => {
-      return total + property.expenses;
+      return total + (property.currentValue * 0.0001); // 0.01% of property value per day for expenses
     }, 0);
     
     // Lifestyle item maintenance costs
     const lifestyleExpenses = lifestyleItems.reduce((total, item) => {
-      return total + item.maintenanceCost;
+      return total + (item.monthlyCost / 30); // Daily expenses from monthly cost
     }, 0);
     
     // Process investments - this doesn't directly affect cash, just net worth
@@ -371,6 +372,26 @@ export function GameUI() {
         <Button 
           variant="ghost" 
           size="lg" 
+          onClick={() => navigate('/job')}
+          onMouseEnter={() => setShowTooltip('job')}
+          onMouseLeave={() => setShowTooltip('')}
+          className="relative py-4 glass-effect hover:bg-secondary/60"
+          aria-label="Go to Job"
+        >
+          <div className="p-2 rounded-full bg-indigo-500/10 mr-2">
+            <GraduationCap className="h-5 w-5 text-indigo-500" />
+          </div>
+          <span className="text-base">Career</span>
+          {showTooltip === 'job' && (
+            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
+              Career
+            </span>
+          )}
+        </Button>
+        
+        <Button 
+          variant="ghost" 
+          size="lg" 
           onClick={() => navigate('/investments')}
           onMouseEnter={() => setShowTooltip('investments')}
           onMouseLeave={() => setShowTooltip('')}
@@ -451,7 +472,7 @@ export function GameUI() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={toggleMute}
+          onClick={() => setMuted(!isMuted)}
           onMouseEnter={() => setShowTooltip('sound')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative glass-effect h-14 w-14 rounded-full p-0"

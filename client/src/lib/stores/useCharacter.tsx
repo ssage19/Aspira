@@ -731,6 +731,8 @@ export const useCharacter = create<CharacterState>()(
       setJob: (job) => {
         set((state) => ({
           job,
+          // We'll calculate income dynamically on a daily basis now
+          // but we'll keep income field as total annual income for reference
           income: job.salary,
           daysSincePromotion: 0,
           timeCommitment: job.timeCommitment,
@@ -752,6 +754,7 @@ export const useCharacter = create<CharacterState>()(
           return {
             job: { ...newJob, monthsInPosition: 0 }, // Reset months in position for new job
             jobHistory: updatedHistory,
+            // Keep income as the annual salary for reference
             income: newJob.salary,
             daysSincePromotion: 0,
             prestige: Math.min(100, state.prestige + newJob.prestigeImpact),
@@ -896,12 +899,37 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           // Update days since promotion if employed
           let daysSincePromotion = state.daysSincePromotion;
+          let dailyIncome = 0;
+          
           if (state.job) {
+            // Increment days since promotion
             daysSincePromotion += 1;
+            
+            // Calculate daily income based on annual salary
+            dailyIncome = state.job.salary / 365;
           }
           
-          return { daysSincePromotion };
+          // Add property income
+          const dailyPropertyIncome = state.properties.reduce((total, property) => {
+            return total + (property.monthlyIncome / 30); // Daily property income
+          }, 0);
+          
+          // Process lifestyle expenses
+          const dailyLifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
+            return total + (item.monthlyCost / 30); // Daily expense
+          }, 0);
+          
+          // Apply income and expenses
+          const netDailyChange = dailyIncome + dailyPropertyIncome - dailyLifestyleExpenses;
+          
+          return { 
+            daysSincePromotion,
+            wealth: state.wealth + netDailyChange,
+            netWorth: state.netWorth + netDailyChange
+          };
         });
+        
+        saveState();
       },
       
       weeklyUpdate: () => {
@@ -939,13 +967,7 @@ export const useCharacter = create<CharacterState>()(
       
       monthlyUpdate: () => {
         set((state) => {
-          // Add income
-          const updatedWealth = state.wealth + state.income - state.expenses;
-          
-          // Property income
-          const propertyIncome = state.properties.reduce((total, property) => {
-            return total + property.monthlyIncome;
-          }, 0);
+          // Property income is now calculated daily instead of monthly
           
           // Calculate health effects based on stress and happiness
           const stressEffect = (state.stress > 70) ? -5 : (state.stress < 30) ? 2 : 0;
@@ -964,7 +986,6 @@ export const useCharacter = create<CharacterState>()(
           }
           
           return {
-            wealth: updatedWealth + propertyIncome,
             health: updatedHealth,
             job: updatedJob
           };
