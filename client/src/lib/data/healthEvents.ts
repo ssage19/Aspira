@@ -620,13 +620,25 @@ export function calculateEventCost(event: HealthEvent, wealth: number): number {
   // Base cost
   let cost = event.baseCost;
   
-  // Apply wealth multiplier if exists
-  if (event.wealthMultiplier) {
-    // Add a percentage of wealth to the base cost
-    cost += wealth * event.wealthMultiplier;
+  // Ensure wealth is a valid number and at least 0
+  const validWealth = Math.max(0, isNaN(wealth) ? 0 : wealth);
+  
+  // Apply wealth multiplier if exists and wealth is positive
+  if (event.wealthMultiplier && validWealth > 0) {
+    // Add a percentage of wealth to the base cost, but cap at reasonable level
+    // Limit wealth-based increase to no more than 3x the base cost for better balance
+    const wealthBasedAddition = validWealth * event.wealthMultiplier;
+    cost += Math.min(wealthBasedAddition, event.baseCost * 3);
+  }
+  
+  // For very low wealth, reduce costs to prevent excessive debt
+  if (validWealth < cost * 2) {
+    // Scale down costs for players with very little money
+    cost = Math.max(cost * 0.25, Math.min(cost, validWealth * 0.5));
   }
   
   // Ensure cost doesn't exceed wealth
-  // People can still go into debt, but not beyond 90% of their wealth
-  return Math.min(cost, wealth * 0.9);
+  // People can still go into debt, but not beyond 50% of their wealth (reduced from 90%)
+  // Also add a floor to ensure the cost is always positive and reasonable
+  return Math.max(Math.min(cost, validWealth * 0.5), event.baseCost * 0.1);
 }
