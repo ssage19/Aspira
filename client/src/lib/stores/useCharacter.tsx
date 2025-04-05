@@ -83,6 +83,10 @@ interface CharacterState {
   // Skills (0-100)
   skills: CharacterSkills;
   
+  // Skill points - for allocation during character creation and gameplay
+  skillPoints: number;
+  earnedSkillPoints: number;
+  
   // Character possessions
   assets: Asset[];
   properties: Property[];
@@ -103,7 +107,7 @@ interface CharacterState {
   setName: (name: string) => void;
   
   // Character creation
-  createNewCharacter: (name: string, initialWealth: number, job: Job | null) => void;
+  createNewCharacter: (name: string, initialWealth: number, job: Job | null, customSkills?: CharacterSkills) => void;
   
   // Economy functions
   addWealth: (amount: number) => void;
@@ -144,6 +148,9 @@ interface CharacterState {
   
   // Skills
   improveSkill: (skill: keyof CharacterSkills, amount: number) => void;
+  allocateSkillPoint: (skill: keyof CharacterSkills) => boolean;
+  awardSkillPoints: (amount: number) => void;
+  spendEarnedSkillPoint: (skill: keyof CharacterSkills) => boolean;
   
   // Net worth calculation
   calculateNetWorth: () => number;
@@ -185,13 +192,20 @@ const getDefaultCharacter = () => ({
   freeTime: 40,
   timeCommitment: 40,
   
+  // Starting skill levels - these will be customized during character creation
   skills: {
-    intelligence: 50,
-    creativity: 50,
-    charisma: 50,
-    technical: 50,
-    leadership: 50
+    intelligence: 30,
+    creativity: 30,
+    charisma: 30,
+    technical: 30,
+    leadership: 30
   },
+  
+  // Skill points available to allocate during character creation
+  skillPoints: 50,
+  
+  // Earned skill points that can be spent later
+  earnedSkillPoints: 0,
   
   assets: [],
   properties: [],
@@ -225,7 +239,7 @@ export const useCharacter = create<CharacterState>()(
       },
       
       // Create a new character
-      createNewCharacter: (name, initialWealth, job) => {
+      createNewCharacter: (name, initialWealth, job, customSkills) => {
         const defaultCharacter = getDefaultCharacter();
         
         // Create a new character with the default values plus our overrides
@@ -236,6 +250,10 @@ export const useCharacter = create<CharacterState>()(
           netWorth: initialWealth,
           job,
           income: job ? job.salary : 0,
+          // Apply custom skills if provided, otherwise use defaults
+          skills: customSkills || defaultCharacter.skills,
+          // Set skill points to 0 since they've been allocated
+          skillPoints: 0,
           // Keep the functions from the current state
           setName: state.setName,
           createNewCharacter: state.createNewCharacter,
@@ -265,6 +283,9 @@ export const useCharacter = create<CharacterState>()(
           promoteJob: state.promoteJob,
           quitJob: state.quitJob,
           improveSkill: state.improveSkill,
+          allocateSkillPoint: state.allocateSkillPoint,
+          awardSkillPoints: state.awardSkillPoints,
+          spendEarnedSkillPoint: state.spendEarnedSkillPoint,
           calculateNetWorth: state.calculateNetWorth,
           processDailyUpdate: state.processDailyUpdate,
           weeklyUpdate: state.weeklyUpdate,
@@ -779,6 +800,77 @@ export const useCharacter = create<CharacterState>()(
         saveState();
       },
       
+      // Skill points allocation for character creation
+      allocateSkillPoint: (skill) => {
+        let success = false;
+        
+        set((state) => {
+          // Check if we have points to allocate
+          if (state.skillPoints <= 0) {
+            return state;
+          }
+          
+          // Check if the skill is already maxed out
+          if (state.skills[skill] >= 100) {
+            return state;
+          }
+          
+          // Allocate a point
+          const updatedSkills = { ...state.skills };
+          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + 1);
+          
+          success = true;
+          
+          return {
+            skills: updatedSkills,
+            skillPoints: state.skillPoints - 1
+          };
+        });
+        
+        saveState();
+        return success;
+      },
+      
+      // Award skill points during gameplay (from quests, achievements, etc.)
+      awardSkillPoints: (amount) => {
+        set((state) => ({
+          earnedSkillPoints: state.earnedSkillPoints + amount
+        }));
+        
+        saveState();
+      },
+      
+      // Spend earned skill points during gameplay
+      spendEarnedSkillPoint: (skill) => {
+        let success = false;
+        
+        set((state) => {
+          // Check if we have points to spend
+          if (state.earnedSkillPoints <= 0) {
+            return state;
+          }
+          
+          // Check if the skill is already maxed out
+          if (state.skills[skill] >= 100) {
+            return state;
+          }
+          
+          // Allocate a point
+          const updatedSkills = { ...state.skills };
+          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + 1);
+          
+          success = true;
+          
+          return {
+            skills: updatedSkills,
+            earnedSkillPoints: state.earnedSkillPoints - 1
+          };
+        });
+        
+        saveState();
+        return success;
+      },
+      
       // Calculate net worth
       calculateNetWorth: () => {
         const state = get();
@@ -924,6 +1016,9 @@ export const useCharacter = create<CharacterState>()(
           promoteJob: state.promoteJob,
           quitJob: state.quitJob,
           improveSkill: state.improveSkill,
+          allocateSkillPoint: state.allocateSkillPoint,
+          awardSkillPoints: state.awardSkillPoints,
+          spendEarnedSkillPoint: state.spendEarnedSkillPoint,
           calculateNetWorth: state.calculateNetWorth,
           processDailyUpdate: state.processDailyUpdate,
           weeklyUpdate: state.weeklyUpdate,

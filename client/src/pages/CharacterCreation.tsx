@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCharacter, Job } from '../lib/stores/useCharacter';
+import { useCharacter, Job, CharacterSkills } from '../lib/stores/useCharacter';
 import { useGame } from '../lib/stores/useGame';
 import { useAudio } from '../lib/stores/useAudio';
 import { Button } from '../components/ui/button';
@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
-import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target } from 'lucide-react';
 import { getAvailableEntryLevelJobs, professions, getCategoryLabel } from '../lib/services/jobService';
 import type { JobCategory } from '../lib/data/jobs';
 
@@ -18,7 +18,7 @@ type WealthOption = 'bootstrapped' | 'middle-class' | 'wealthy';
 
 export default function CharacterCreation() {
   const navigate = useNavigate();
-  const { createNewCharacter } = useCharacter();
+  const { createNewCharacter, allocateSkillPoint } = useCharacter();
   const { start } = useGame();
   const { playSuccess } = useAudio();
   
@@ -28,6 +28,16 @@ export default function CharacterCreation() {
   const [selectedProfessionId, setSelectedProfessionId] = useState<string>('');
   const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  
+  // Skills state
+  const [skills, setSkills] = useState<CharacterSkills>({
+    intelligence: 30,
+    creativity: 30,
+    charisma: 30,
+    technical: 30,
+    leadership: 30
+  });
+  const [skillPoints, setSkillPoints] = useState(50);
   
   // Load available entry-level jobs on mount
   useEffect(() => {
@@ -66,6 +76,26 @@ export default function CharacterCreation() {
     }
   }, [selectedProfessionId, availableJobs]);
   
+  // Handle skill point allocation
+  const handleAllocateSkill = (skill: keyof CharacterSkills) => {
+    if (skillPoints <= 0) {
+      toast.error("You have no more skill points to allocate");
+      return;
+    }
+    
+    if (skills[skill] >= 100) {
+      toast.error("This skill is already at maximum level");
+      return;
+    }
+    
+    // Update local state first for immediate UI feedback
+    setSkills(prevSkills => ({
+      ...prevSkills,
+      [skill]: prevSkills[skill] + 1
+    }));
+    setSkillPoints(prevPoints => prevPoints - 1);
+  };
+  
   const handleStartGame = () => {
     if (!name.trim()) {
       toast.error("Please enter a name for your character");
@@ -79,8 +109,8 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Create new character with the numerical amount and selected job
-    createNewCharacter(name, selectedOption.startingAmount, selectedJob);
+    // Create new character with the numerical amount, selected job, and customized skills
+    createNewCharacter(name, selectedOption.startingAmount, selectedJob, skills);
     playSuccess();
     
     // Change game phase to playing
@@ -183,6 +213,163 @@ export default function CharacterCreation() {
             </Tabs>
           </div>
 
+          <div>
+            <h3 className="text-sm font-medium mb-3 flex items-center">
+              <Target className="h-4 w-4 mr-1" />
+              Allocate Skill Points
+            </h3>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="flex justify-between mb-3">
+                  <span className="text-sm font-medium">Available Skill Points:</span>
+                  <span className="font-bold text-lg">{skillPoints}</span>
+                </div>
+                
+                <div className="space-y-4">
+                  {/* Intelligence */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Brain className="h-4 w-4 mr-1 text-indigo-500" />
+                        <span className="font-medium">Intelligence</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mr-2 text-lg font-semibold">{skills.intelligence}</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 px-2" 
+                          onClick={() => handleAllocateSkill('intelligence')}
+                          disabled={skillPoints <= 0 || skills.intelligence >= 100}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-indigo-500 rounded-full" 
+                        style={{ width: `${skills.intelligence}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Creativity */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Sparkles className="h-4 w-4 mr-1 text-pink-500" />
+                        <span className="font-medium">Creativity</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mr-2 text-lg font-semibold">{skills.creativity}</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 px-2" 
+                          onClick={() => handleAllocateSkill('creativity')}
+                          disabled={skillPoints <= 0 || skills.creativity >= 100}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-pink-500 rounded-full" 
+                        style={{ width: `${skills.creativity}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Charisma */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Users className="h-4 w-4 mr-1 text-blue-500" />
+                        <span className="font-medium">Charisma</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mr-2 text-lg font-semibold">{skills.charisma}</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 px-2" 
+                          onClick={() => handleAllocateSkill('charisma')}
+                          disabled={skillPoints <= 0 || skills.charisma >= 100}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-blue-500 rounded-full" 
+                        style={{ width: `${skills.charisma}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Technical */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Wrench className="h-4 w-4 mr-1 text-amber-500" />
+                        <span className="font-medium">Technical</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mr-2 text-lg font-semibold">{skills.technical}</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 px-2" 
+                          onClick={() => handleAllocateSkill('technical')}
+                          disabled={skillPoints <= 0 || skills.technical >= 100}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-amber-500 rounded-full" 
+                        style={{ width: `${skills.technical}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Leadership */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Target className="h-4 w-4 mr-1 text-green-500" />
+                        <span className="font-medium">Leadership</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mr-2 text-lg font-semibold">{skills.leadership}</span>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="h-7 px-2" 
+                          onClick={() => handleAllocateSkill('leadership')}
+                          disabled={skillPoints <= 0 || skills.leadership >= 100}
+                        >
+                          +
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-green-500 rounded-full" 
+                        style={{ width: `${skills.leadership}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
           <div>
             <h3 className="text-sm font-medium mb-3 flex items-center">
               <Briefcase className="h-4 w-4 mr-1" />

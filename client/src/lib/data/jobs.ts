@@ -936,6 +936,719 @@ export const professions: Profession[] = [
         experience: 60
       }
     ]
+  },
+  
+  // Additional Technology Professions
+  {
+    id: 'cybersecurity-specialist',
+    name: 'Cybersecurity Specialist',
+    category: 'technology',
+    description: 'Protect computer systems, networks, and data from security breaches and cyber attacks.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Security Analyst',
+        salary: 70000,
+        description: 'Monitor networks for security issues and implement basic security measures.',
+        skillRequirements: { technical: 50, intelligence: 55 },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Security Specialist',
+        salary: 90000,
+        description: 'Implement security measures and respond to security incidents.',
+        skillRequirements: { technical: 65, intelligence: 65 },
+        happinessImpact: 7,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Security Engineer',
+        salary: 115000,
+        description: 'Design and implement robust security systems and lead security audits.',
+        skillRequirements: { technical: 75, intelligence: 75 },
+        happinessImpact: 9,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'senior',
+        title: 'Security Architect',
+        salary: 140000,
+        description: 'Design comprehensive security strategies and direct security implementations.',
+        skillRequirements: { technical: 85, intelligence: 80, leadership: 65 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Chief Information Security Officer',
+        salary: 200000,
+        description: 'Lead all security initiatives and ensure organizational security compliance.',
+        skillRequirements: { technical: 90, intelligence: 85, leadership: 80 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 48
+      }
+    ]
+  },
+  {
+    id: 'product-manager',
+    name: 'Product Manager',
+    category: 'technology',
+    description: 'Oversee product development, from conception to launch, ensuring market fit and business success.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Product Coordinator',
+        salary: 65000,
+        description: 'Support product teams with research, documentation, and administrative tasks.',
+        skillRequirements: { intelligence: 55, charisma: 50, leadership: 40 },
+        happinessImpact: 6,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Associate Product Manager',
+        salary: 85000,
+        description: 'Assist in planning and execution of product features and gather user feedback.',
+        skillRequirements: { intelligence: 65, charisma: 60, leadership: 50 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Product Manager',
+        salary: 120000,
+        description: 'Lead product vision, strategy, and roadmap for specific product areas.',
+        skillRequirements: { intelligence: 75, charisma: 70, leadership: 65 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'senior',
+        title: 'Senior Product Manager',
+        salary: 150000,
+        description: 'Define strategic direction for product lines and mentor product teams.',
+        skillRequirements: { intelligence: 80, charisma: 75, leadership: 75 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Director of Product',
+        salary: 200000,
+        description: 'Lead product organization, define product vision, and drive product innovation.',
+        skillRequirements: { intelligence: 85, charisma: 80, leadership: 85 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 48
+      }
+    ]
+  },
+  
+  // Additional Finance Professions
+  {
+    id: 'investment-banker',
+    name: 'Investment Banker',
+    category: 'finance',
+    description: 'Raise capital, facilitate mergers and acquisitions, and provide financial advisory services.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Investment Banking Analyst',
+        salary: 85000,
+        description: 'Perform financial analyses, prepare pitch books, and support deal execution.',
+        skillRequirements: { intelligence: 70, technical: 60 },
+        happinessImpact: 0,
+        prestigeImpact: 25,
+        timeCommitment: 70,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Investment Banking Associate',
+        salary: 150000,
+        description: 'Lead analytical work, client interactions, and coordinate deal activities.',
+        skillRequirements: { intelligence: 80, technical: 70, charisma: 60 },
+        happinessImpact: 2,
+        prestigeImpact: 35,
+        timeCommitment: 65,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Vice President',
+        salary: 250000,
+        description: 'Manage client relationships, lead deal teams, and develop new business.',
+        skillRequirements: { intelligence: 85, technical: 75, charisma: 75, leadership: 70 },
+        happinessImpact: 5,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Director',
+        salary: 400000,
+        description: 'Lead complex transactions, develop key client relationships, and mentor junior bankers.',
+        skillRequirements: { intelligence: 90, technical: 80, charisma: 80, leadership: 80 },
+        happinessImpact: 8,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Managing Director',
+        salary: 600000,
+        description: 'Lead banking divisions, secure major deals, and drive firm strategy.',
+        skillRequirements: { intelligence: 95, technical: 85, charisma: 90, leadership: 90 },
+        happinessImpact: 10,
+        prestigeImpact: 65,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Additional Healthcare Professions
+  {
+    id: 'pharmacist',
+    name: 'Pharmacist',
+    category: 'healthcare',
+    description: 'Dispense medications, advise on proper use, and monitor patient health and progress.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Staff Pharmacist',
+        salary: 110000,
+        description: 'Dispense prescriptions, advise patients, and ensure medication safety.',
+        skillRequirements: { intelligence: 75, technical: 65 },
+        happinessImpact: 7,
+        prestigeImpact: 25,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Clinical Pharmacist',
+        salary: 125000,
+        description: 'Provide specialized clinical services and collaborate with healthcare teams.',
+        skillRequirements: { intelligence: 80, technical: 70, charisma: 60 },
+        happinessImpact: 9,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Pharmacy Manager',
+        salary: 140000,
+        description: 'Oversee pharmacy operations, supervise staff, and ensure regulatory compliance.',
+        skillRequirements: { intelligence: 80, technical: 75, leadership: 65 },
+        happinessImpact: 8,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Director of Pharmacy',
+        salary: 160000,
+        description: 'Lead pharmacy departments, develop protocols, and manage pharmacy budgets.',
+        skillRequirements: { intelligence: 85, technical: 80, leadership: 75 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Pharmacy Officer',
+        salary: 180000,
+        description: 'Direct pharmacy strategy, ensure optimal medication use, and lead pharmaceutical initiatives.',
+        skillRequirements: { intelligence: 90, technical: 85, leadership: 80 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Additional Education Professions
+  {
+    id: 'education-administrator',
+    name: 'Education Administrator',
+    category: 'education',
+    description: 'Manage educational institutions, develop academic policies, and oversee faculty and staff.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Administrative Assistant',
+        salary: 45000,
+        description: 'Support administrative functions in educational institutions.',
+        skillRequirements: { intelligence: 50, leadership: 40, charisma: 50 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Program Coordinator',
+        salary: 60000,
+        description: 'Coordinate educational programs, schedules, and student services.',
+        skillRequirements: { intelligence: 60, leadership: 50, charisma: 60 },
+        happinessImpact: 7,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Assistant Principal',
+        salary: 85000,
+        description: 'Assist in school leadership, discipline management, and teacher supervision.',
+        skillRequirements: { intelligence: 70, leadership: 65, charisma: 65 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal',
+        salary: 110000,
+        description: 'Lead school operations, develop educational vision, and oversee all staff.',
+        skillRequirements: { intelligence: 75, leadership: 80, charisma: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Superintendent',
+        salary: 160000,
+        description: 'Direct school district operations, shape educational policy, and manage district resources.',
+        skillRequirements: { intelligence: 80, leadership: 90, charisma: 80 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Additional Creative Professions
+  {
+    id: 'film-director',
+    name: 'Film Director',
+    category: 'creative',
+    description: 'Direct and oversee the creative aspects of film production, from concept to final cut.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Production Assistant',
+        salary: 35000,
+        description: 'Support film production with various tasks on and off set.',
+        skillRequirements: { creativity: 55, charisma: 50 },
+        happinessImpact: 6,
+        prestigeImpact: 10,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Assistant Director',
+        salary: 60000,
+        description: 'Coordinate on-set activities, manage production schedule, and assist director.',
+        skillRequirements: { creativity: 65, charisma: 60, leadership: 50 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 55,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Independent Director',
+        salary: 90000,
+        description: 'Direct small-budget films, shorts, or commercials independently.',
+        skillRequirements: { creativity: 75, charisma: 70, leadership: 65 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Feature Film Director',
+        salary: 150000,
+        description: 'Direct major films with larger budgets and established production companies.',
+        skillRequirements: { creativity: 85, charisma: 80, leadership: 75 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Award-Winning Director',
+        salary: 300000,
+        description: 'Direct high-profile films, win industry recognition, and shape cinematic trends.',
+        skillRequirements: { creativity: 95, charisma: 85, leadership: 85 },
+        happinessImpact: 18,
+        prestigeImpact: 60,
+        timeCommitment: 65,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Additional Business Professions
+  {
+    id: 'entrepreneur',
+    name: 'Entrepreneur',
+    category: 'business',
+    description: 'Start and grow business ventures, develop innovative products or services, and lead companies.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Startup Founder',
+        salary: 40000,
+        description: 'Launch and develop a new business venture with minimal resources.',
+        skillRequirements: { creativity: 60, leadership: 55, charisma: 60 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 70,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Small Business Owner',
+        salary: 75000,
+        description: 'Run a small, established business with steady revenue and a small team.',
+        skillRequirements: { creativity: 65, leadership: 65, charisma: 65, technical: 55 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 60,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Mid-Size Company CEO',
+        salary: 150000,
+        description: 'Lead a growing company with multiple employees and expanding market share.',
+        skillRequirements: { creativity: 70, leadership: 75, charisma: 75, technical: 65 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Serial Entrepreneur',
+        salary: 300000,
+        description: 'Successfully launch and grow multiple business ventures simultaneously.',
+        skillRequirements: { creativity: 80, leadership: 85, charisma: 80, technical: 70 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Industry Magnate',
+        salary: 500000,
+        description: 'Lead a business empire with multiple successful companies and substantial market influence.',
+        skillRequirements: { creativity: 85, leadership: 90, charisma: 85, technical: 75 },
+        happinessImpact: 15,
+        prestigeImpact: 60,
+        timeCommitment: 65,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Additional Legal Professions
+  {
+    id: 'judge',
+    name: 'Judge',
+    category: 'legal',
+    description: 'Preside over court proceedings, interpret laws, and issue legal decisions.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Law Clerk',
+        salary: 70000,
+        description: 'Assist judges with research, drafting opinions, and administrative tasks.',
+        skillRequirements: { intelligence: 75, charisma: 60 },
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Administrative Law Judge',
+        salary: 120000,
+        description: 'Preside over administrative hearings and issue decisions in specific regulatory areas.',
+        skillRequirements: { intelligence: 80, charisma: 70, leadership: 65 },
+        happinessImpact: 8,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 72
+      },
+      {
+        level: 'mid',
+        title: 'District Judge',
+        salary: 160000,
+        description: 'Preside over trial courts, conduct trials, and issue legal rulings.',
+        skillRequirements: { intelligence: 85, charisma: 75, leadership: 75 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 96
+      },
+      {
+        level: 'senior',
+        title: 'Appellate Judge',
+        salary: 200000,
+        description: 'Review lower court decisions, hear appeals, and establish legal precedents.',
+        skillRequirements: { intelligence: 90, charisma: 80, leadership: 80 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 120
+      },
+      {
+        level: 'executive',
+        title: 'Supreme Court Justice',
+        salary: 250000,
+        description: 'Serve on the highest court, decide constitutional issues, and shape legal interpretation.',
+        skillRequirements: { intelligence: 95, charisma: 85, leadership: 85 },
+        happinessImpact: 15,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 144
+      }
+    ]
+  },
+  
+  // Additional Science Professions
+  {
+    id: 'aerospace-engineer',
+    name: 'Aerospace Engineer',
+    category: 'science',
+    description: 'Design, develop, and test aircraft, spacecraft, satellites, and missiles.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Aerospace Engineer',
+        salary: 75000,
+        description: 'Assist with design, analysis, and testing of aerospace systems under supervision.',
+        skillRequirements: { intelligence: 70, technical: 65 },
+        happinessImpact: 7,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Aerospace Engineer',
+        salary: 95000,
+        description: 'Design components, conduct analyses, and solve engineering problems independently.',
+        skillRequirements: { intelligence: 75, technical: 75 },
+        happinessImpact: 9,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Aerospace Engineer',
+        salary: 120000,
+        description: 'Lead engineering projects, develop complex aerospace systems, and mentor junior engineers.',
+        skillRequirements: { intelligence: 80, technical: 85, leadership: 60 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Aerospace Engineer',
+        salary: 150000,
+        description: 'Direct major aerospace programs, lead research initiatives, and guide technical strategy.',
+        skillRequirements: { intelligence: 85, technical: 90, leadership: 70 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Engineer',
+        salary: 200000,
+        description: 'Set engineering vision, direct aerospace innovation, and lead engineering organizations.',
+        skillRequirements: { intelligence: 90, technical: 95, leadership: 80 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  
+  // New Government Profession
+  {
+    id: 'diplomat',
+    name: 'Diplomat',
+    category: 'government',
+    description: 'Represent your country abroad, negotiate international agreements, and promote foreign policy objectives.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Foreign Service Officer',
+        salary: 60000,
+        description: 'Provide consular services, report on political developments, and support diplomatic missions.',
+        skillRequirements: { charisma: 65, intelligence: 65 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Second Secretary',
+        salary: 80000,
+        description: 'Lead specific diplomatic portfolios and serve as specialized representatives in embassies.',
+        skillRequirements: { charisma: 75, intelligence: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'First Secretary',
+        salary: 100000,
+        description: 'Manage diplomatic relations in specific areas and negotiate international agreements.',
+        skillRequirements: { charisma: 80, intelligence: 75, leadership: 65 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Ambassador',
+        salary: 150000,
+        description: 'Serve as principal representative of your country in a foreign nation.',
+        skillRequirements: { charisma: 85, intelligence: 80, leadership: 75 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Secretary of State',
+        salary: 210000,
+        description: 'Direct all foreign policy, lead international negotiations, and shape global diplomacy.',
+        skillRequirements: { charisma: 90, intelligence: 85, leadership: 85 },
+        happinessImpact: 10,
+        prestigeImpact: 65,
+        timeCommitment: 70,
+        experience: 96
+      }
+    ]
+  },
+  
+  // New Trade Profession
+  {
+    id: 'electrician',
+    name: 'Electrician',
+    category: 'trade',
+    description: 'Install, maintain, and repair electrical systems in homes, businesses, and industrial facilities.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Apprentice Electrician',
+        salary: 40000,
+        description: 'Learn electrical work by assisting journeyman electricians with installations and repairs.',
+        skillRequirements: { technical: 50 },
+        happinessImpact: 5,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Journeyman Electrician',
+        salary: 60000,
+        description: 'Perform electrical installations and repairs independently with general supervision.',
+        skillRequirements: { technical: 65 },
+        happinessImpact: 7,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'mid',
+        title: 'Master Electrician',
+        salary: 80000,
+        description: 'Design electrical systems, obtain permits, and supervise other electricians.',
+        skillRequirements: { technical: 80, leadership: 60 },
+        happinessImpact: 9,
+        prestigeImpact: 20,
+        timeCommitment: 50,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Electrical Contractor',
+        salary: 110000,
+        description: 'Run an electrical contracting business, manage client relationships, and lead project teams.',
+        skillRequirements: { technical: 85, leadership: 70, charisma: 65 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Electrical Engineering Firm Owner',
+        salary: 150000,
+        description: 'Own and operate a successful electrical engineering and contracting company.',
+        skillRequirements: { technical: 90, leadership: 80, charisma: 75, intelligence: 75 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 60,
+        experience: 84
+      }
+    ]
   }
 ];
 
