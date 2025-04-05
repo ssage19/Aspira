@@ -90,30 +90,23 @@ export const useAudio = create<AudioState>()(
       
       // Play success sound for achievements
       playSuccess: () => {
-        // Try to play the achievement sound, but silently fail if it doesn't exist
-        try {
-          // We're using a default success sound
-          const successSound = '/sounds/achievement.mp3';
-          get().playSound(successSound);
-          console.log("Playing achievement sound");
-        } catch (error) {
-          // Silently ignore errors - this is not critical functionality
-          console.log("Could not play achievement sound, continuing silently");
-        }
+        // We'll just log the achievement without trying to play a sound
+        // to avoid the constant error messages and potential crashes
+        // This can be re-enabled once the sound file is available
+        if (get().isMuted) return;
+        
+        // Don't try to play a sound that doesn't exist
+        // console.log("Achievement completed");
       },
       
       // Play hit/error sound for notifications
       playHit: () => {
-        // Try to play the hit sound, but silently fail if it doesn't exist
-        try {
-          // We're using a default hit sound
-          const hitSound = '/sounds/error.mp3';
-          get().playSound(hitSound);
-          console.log("Playing hit sound");
-        } catch (error) {
-          // Silently ignore errors - this is not critical functionality
-          console.log("Could not play hit sound, continuing silently");
-        }
+        // Disable hit sound to avoid errors
+        // We'll just log the hit without trying to play a sound
+        if (get().isMuted) return;
+        
+        // Don't try to play a sound that doesn't exist
+        // console.log("Hit/error notification");
       },
       
       // Set muted state
