@@ -15,6 +15,7 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playUISound: (type: 'hit' | 'success') => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -69,6 +70,22 @@ export const useAudio = create<AudioState>((set, get) => ({
       successSound.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playUISound: (type: 'hit' | 'success') => {
+    const { playHit, playSuccess } = get();
+    
+    switch (type) {
+      case 'hit':
+        playHit();
+        break;
+      case 'success':
+        playSuccess();
+        break;
+      default:
+        // Default to success sound
+        playSuccess();
     }
   }
 }));

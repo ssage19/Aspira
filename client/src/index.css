@@ -106,6 +106,22 @@
     --chart-3: 8 38% 51%; /* 964734 */
     --chart-4: 187 40% 28%; /* 024950 */
     --chart-5: 189 100% 14%; /* 003135 */
+    
+    /* Achievement category colors */
+    --wealth-color-start: #00A4AF;
+    --wealth-color-end: #003135;
+    --property-color-start: #964734;
+    --property-color-end: #6D2516;
+    --investment-color-start: #024950;
+    --investment-color-end: #013138;
+    --lifestyle-color-start: #8465D4;
+    --lifestyle-color-end: #6951BC;
+    --general-color-start: #003135;
+    --general-color-end: #001B1D;
+    --challenge-color-start: #F97316;
+    --challenge-color-end: #C2580F;
+    --strategy-color-start: #06B6D4;
+    --strategy-color-end: #0891B2;
   }
 
   * {
@@ -174,6 +190,29 @@ canvas {
 @layer utilities {
   .scrollbar-modern {
     @apply scrollbar-thin scrollbar-track-secondary scrollbar-thumb-primary;
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  
+  .milestone-glow {
+    filter: drop-shadow(0 0 8px var(--milestone-color, rgba(255, 215, 0, 0.7)));
+    animation: glow 2s ease-in-out infinite alternate;
+  }
+  
+  @keyframes glow {
+    from {
+      filter: drop-shadow(0 0 4px var(--milestone-color, rgba(255, 215, 0, 0.3)));
+    }
+    to {
+      filter: drop-shadow(0 0 10px var(--milestone-color, rgba(255, 215, 0, 0.8)));
+    }
   }
 }
 

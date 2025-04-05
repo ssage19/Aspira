@@ -525,6 +525,9 @@ export const useCharacter = create<CharacterState>()(
         // Reset achievements (by clearing localStorage for achievements)
         localStorage.removeItem('business-empire-achievements');
         
+        // Also clear the claimed rewards to allow players to claim rewards for achievements they unlock again
+        localStorage.removeItem('business-empire-claimed-rewards');
+        
         // Just clear the time store data instead
         localStorage.removeItem('luxury_lifestyle_time');
         

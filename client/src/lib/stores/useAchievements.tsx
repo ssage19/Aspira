@@ -33,6 +33,7 @@ interface AchievementsState {
   achievements: Achievement[];
   lastAchievementUnlocked: Achievement | null;
   showAchievementNotification: boolean;
+  newlyUnlockedAchievements: Achievement[];
   
   // Actions
   unlockAchievement: (id: string) => void;
@@ -45,6 +46,7 @@ interface AchievementsState {
   getCategoryAchievements: (category: AchievementCategory) => Achievement[];
   getCompletedAchievements: () => Achievement[];
   getInProgressAchievements: () => Achievement[];
+  clearNewlyUnlocked: () => void;
 }
 
 // Initial achievements data
@@ -798,27 +800,30 @@ export const useAchievements = create<AchievementsState>()(
       achievements: initialAchievements,
       lastAchievementUnlocked: null,
       showAchievementNotification: false,
+      newlyUnlockedAchievements: [],
       
       unlockAchievement: (id) => {
         const achievement = get().achievements.find(a => a.id === id);
         
         if (achievement && !achievement.isUnlocked) {
+          // Create an unlocked version of the achievement
+          const unlockedAchievement = { 
+            ...achievement, 
+            isUnlocked: true, 
+            progress: 100, 
+            unlockedDate: new Date().toISOString() 
+          };
+          
           set(state => {
             const updatedAchievements = state.achievements.map(a => 
-              a.id === id 
-                ? { 
-                    ...a, 
-                    isUnlocked: true, 
-                    progress: 100, 
-                    unlockedDate: new Date().toISOString() 
-                  } 
-                : a
+              a.id === id ? unlockedAchievement : a
             );
             
             return {
               achievements: updatedAchievements,
-              lastAchievementUnlocked: achievement,
-              showAchievementNotification: true
+              lastAchievementUnlocked: unlockedAchievement,
+              showAchievementNotification: true,
+              newlyUnlockedAchievements: [...state.newlyUnlockedAchievements, unlockedAchievement]
             };
           });
         }
@@ -846,10 +851,11 @@ export const useAchievements = create<AchievementsState>()(
           // Check if achievement was just unlocked
           const updatedAchievement = get().achievements.find(a => a.id === id);
           if (updatedAchievement && updatedAchievement.isUnlocked) {
-            set({
+            set(state => ({
               lastAchievementUnlocked: updatedAchievement,
-              showAchievementNotification: true
-            });
+              showAchievementNotification: true,
+              newlyUnlockedAchievements: [...state.newlyUnlockedAchievements, updatedAchievement]
+            }));
           }
           
           return normalizedProgress;
@@ -899,8 +905,13 @@ export const useAchievements = create<AchievementsState>()(
         set({
           achievements: initialAchievements.map(a => ({ ...a })),
           lastAchievementUnlocked: null,
-          showAchievementNotification: false
+          showAchievementNotification: false,
+          newlyUnlockedAchievements: []
         });
+      },
+      
+      clearNewlyUnlocked: () => {
+        set({ newlyUnlockedAchievements: [] });
       }
     }),
     {
