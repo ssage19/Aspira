@@ -409,27 +409,31 @@ export function GameUI() {
         </div>
         
         {/* Date - placed center */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
+        <div className="absolute left-1/2 -translate-x-1/2" aria-label="Current date">
           <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
             <Calendar className="h-4 w-4 text-primary dark:text-primary" />
-            <div>
-              <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
+            <div className="flex flex-col items-center">
+              {/* Format the date to show full month name, day, and year */}
+              <p className="text-sm font-medium">
+                {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </p>
+              
+              {/* Show time flow indication without progress bar */}
+              <p className="text-xs text-muted-foreground">
+                {autoAdvanceEnabled ? 
+                  timeSpeed === 'superfast' ? 
+                    'Time flowing at 6x speed' : 
+                  timeSpeed === 'fast' ? 
+                    'Time flowing at 3x speed' : 
+                    'Time flowing at normal speed' 
+                  : "Time is paused"}
+              </p>
             </div>
-          </div>
-          
-          {/* Day progress bar */}
-          <div className="w-64 flex items-center gap-2">
-            <Progress value={timeProgress} className="h-2" 
-              aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
-            <span className="text-xs font-medium">
-              {autoAdvanceEnabled ? 
-                timeSpeed === 'superfast' ? 
-                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 6))}s left (6x)` : 
-                timeSpeed === 'fast' ? 
-                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 3))}s left (3x)` : 
-                  `${Math.max(0, Math.floor(21.43 - (timeProgress * 21.43 / 100)))}s left` 
-                : "Paused"}
-            </span>
           </div>
         </div>
         
