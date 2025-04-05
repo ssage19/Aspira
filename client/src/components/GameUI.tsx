@@ -52,7 +52,7 @@ export function GameUI() {
   } = useTime();
   const { isMuted, setMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
-  const [emergencyModeEnabled, setEmergencyModeEnabled] = useState(isEmergencyMode);
+  const [emergencyModeEnabled, setEmergencyModeEnabled] = useState(isEmergencyMode());
   
   // Update emergency mode state when it changes
   useEffect(() => {
