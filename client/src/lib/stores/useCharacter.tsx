@@ -803,11 +803,27 @@ export const useCharacter = create<CharacterState>()(
           }
           
           // Apply the quick flip adjustment to the property's current value
-          property.currentValue = Math.round(originalPropertyValue * quickFlipAdjustment);
+          // This will reduce the value of the property used for the sale calculation
+          // The original calculation was wrong because it added to the wealth
+          const adjustedValue = Math.round(originalPropertyValue * quickFlipAdjustment);
+          console.log(`Original property value: ${originalPropertyValue}, Adjusted value after quick-flip penalty: ${adjustedValue}`);
+          property.currentValue = adjustedValue;
           
           // Calculate net proceeds from sale
+          // Note: The property.currentValue already includes the quick flip adjustment
           const grossSalePrice = property.currentValue;
+          
+          // Calculate net proceeds properly deducting all costs
+          // We already applied the quick flip reduction to the property value,
+          // so we don't need to subtract the quickFlipFee again
           saleValue = grossSalePrice - closingCosts - outstandingLoan - earlyPayoffPenalty;
+          
+          console.log(`Detailed sale calculation:`);
+          console.log(`Gross sale price (after quick flip adjustment): ${grossSalePrice}`);
+          console.log(`Minus closing costs: ${closingCosts}`);
+          console.log(`Minus outstanding loan: ${outstandingLoan}`);
+          console.log(`Minus early payoff penalty: ${earlyPayoffPenalty}`);
+          console.log(`Equals net proceeds: ${saleValue}`);
           
           // If the property is underwater (worth less than what's owed + costs),
           // the player still needs to pay the difference to close the sale
@@ -841,14 +857,22 @@ export const useCharacter = create<CharacterState>()(
             if (quickFlipFee > 0) {
               // Make sure we don't show negative months (can happen if the system clock is off)
               const displayMonths = Math.max(0, monthsSincePurchase);
+              
+              // Show both the original value and the reduced value with the quick flip fee applied
+              const originalValue = property.currentValue / quickFlipAdjustment;
+              toast.info(`Original value: ${formatCurrency(originalValue)}, Sale value after ${displayMonths}-month quick flip penalty: ${formatCurrency(property.currentValue)}`, {
+                duration: 5000,
+                position: 'bottom-right',
+              });
+              
               toast.info(`Quick flip fee: ${formatCurrency(quickFlipFee)} due to selling after only ${displayMonths} months`, {
                 duration: 5000,
                 position: 'bottom-right',
               });
             }
             
-            // Ensure the quick flip fee is properly subtracted from the player's proceeds
-            console.log(`Sale proceeds before deducting quick flip fee: ${saleValue}`);
+            // Log detailed sale calculation
+            console.log(`Final sale proceeds: ${saleValue}`);
             
             // Now properly deduct the quick flip fee
             // Note: saleValue already includes the reduction in property.currentValue

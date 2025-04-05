@@ -203,8 +203,13 @@ export function Properties() {
       earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
     }
     
-    // Net proceeds calculation (quick-flip penalty applied during actual sale)
+    // Net proceeds calculation
+    // Note: The actual quick-flip penalty will be applied inside sellProperty
+    // This is just an estimate for confirming the sale; the actual amount may differ
     const netProceeds = currentMarketValue - closingCosts - outstandingLoan - earlyPayoffPenalty;
+    
+    // Log estimated net proceeds before quikc-flip penalty
+    console.log(`Estimated net proceeds before quick-flip penalty: ${netProceeds}`);
     
     // Show quick-flip warning if applicable
     if (monthsSincePurchase < 1) {
@@ -252,25 +257,27 @@ export function Properties() {
     
     // Display detailed sale information
     if (actualSaleProceeds >= 0) {
-      toast.success(`Sold ${property.name} for ${formatCurrency(currentMarketValue)}`, {
+      // Note: If a quick flip fee was applied, currentMarketValue doesn't reflect the actual sale price
+      // The actual sale price is computed in useCharacter.sellProperty after applying the quick flip adjustment
+      // So we don't show the sale price here to avoid confusing the user with inconsistent numbers
+      toast.success(`Successfully sold ${property.name}`, {
         duration: 3000,
         position: 'bottom-right',
       });
       
       const costsSummary = `Loan payoff: ${formatCurrency(outstandingLoan)}, Closing costs: ${formatCurrency(closingCosts)}`;
       
-      // If there's a discrepancy between netProceeds and actualSaleProceeds, a quick-flip fee was applied
-      if (Math.abs(netProceeds - actualSaleProceeds) > 1) {
-        toast(`${costsSummary}, Quick-flip fee applied. Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
-          duration: 5000,
-          position: 'bottom-right',
-        });
-      } else {
-        toast(`${costsSummary}, Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
-          duration: 5000,
-          position: 'bottom-right',
-        });
-      }
+      // Always show the net proceeds - the quick flip fee toast is handled in useCharacter.sellProperty
+      // This ensures consistency in the displayed calculations
+      toast.info(`${costsSummary}`, {
+        duration: 5000,
+        position: 'bottom-right',
+      });
+      
+      toast.info(`Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
+        duration: 5000,
+        position: 'bottom-right',
+      });
     } else {
       toast(`You had to pay ${formatCurrency(Math.abs(actualSaleProceeds))} to sell this underwater property`, {
         duration: 5000,
