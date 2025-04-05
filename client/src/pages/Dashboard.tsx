@@ -216,8 +216,25 @@ export default function Dashboard() {
   
   // Handle reset confirmation
   const handleResetProgress = () => {
+    // Reset character data
     resetCharacter();
+    
+    // Reset game state 
     restart();
+    
+    // Reset achievements
+    const { resetAchievements } = useAchievements.getState();
+    if (resetAchievements) {
+      resetAchievements();
+    }
+    
+    // Reset time to device time
+    const { resetTime } = useTime.getState();
+    if (resetTime) {
+      resetTime();
+    }
+    
+    // Navigate to character creation
     navigate('/create');
   };
   

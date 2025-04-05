@@ -30,8 +30,8 @@ export default function CharacterCreation() {
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   
   // Basic needs state
-  const [selectedHousing, setSelectedHousing] = useState<'homeless' | 'shared' | 'rental'>('shared');
-  const [selectedVehicle, setSelectedVehicle] = useState<'none' | 'bicycle' | 'economy'>('none');
+  const [selectedHousing, setSelectedHousing] = useState<'homeless' | 'shared' | 'rental' | 'owned' | 'luxury'>('shared');
+  const [selectedVehicle, setSelectedVehicle] = useState<'none' | 'bicycle' | 'economy' | 'standard' | 'luxury' | 'premium'>('none');
   
   // Skills state
   const [skills, setSkills] = useState<CharacterSkills>({
@@ -421,8 +421,11 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Home className={`h-5 w-5 ${selectedHousing === 'homeless' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">Homeless</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Homeless</span>
+                            <span className="text-green-600 font-semibold">$0/mo</span>
+                          </div>
                           <div className="text-xs text-gray-500">No housing costs, but negatively impacts health and comfort</div>
                         </div>
                       </div>
@@ -434,8 +437,11 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Home className={`h-5 w-5 ${selectedHousing === 'shared' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">Shared Housing</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Shared Housing</span>
+                            <span className="text-amber-600 font-semibold">$800/mo</span>
+                          </div>
                           <div className="text-xs text-gray-500">Basic accommodation with roommates at reasonable cost</div>
                         </div>
                       </div>
@@ -447,9 +453,44 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Home className={`h-5 w-5 ${selectedHousing === 'rental' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">Rental Housing</div>
-                          <div className="text-xs text-gray-500">Your own rental home with better comfort but higher cost</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Rental Housing</span>
+                            <span className="text-amber-600 font-semibold">$2,000/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Your own rental apartment with better comfort but higher cost</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'owned' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedHousing('owned')}
+                      >
+                        <div className="mr-3">
+                          <Home className={`h-5 w-5 ${selectedHousing === 'owned' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Owned Home</span>
+                            <span className="text-amber-600 font-semibold">$3,500/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Your own house with mortgage payments, but builds equity</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'luxury' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedHousing('luxury')}
+                      >
+                        <div className="mr-3">
+                          <Home className={`h-5 w-5 ${selectedHousing === 'luxury' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Luxury Housing</span>
+                            <span className="text-amber-600 font-semibold">$8,000/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">High-end living with premium amenities and significant prestige</div>
                         </div>
                       </div>
                     </div>
@@ -468,9 +509,12 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Car className={`h-5 w-5 ${selectedVehicle === 'none' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">No Vehicle</div>
-                          <div className="text-xs text-gray-500">Use public transportation, no ownership costs</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>No Vehicle</span>
+                            <span className="text-green-600 font-semibold">$150/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Use public transportation, lower monthly costs but limited mobility</div>
                         </div>
                       </div>
                       
@@ -481,9 +525,12 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Car className={`h-5 w-5 ${selectedVehicle === 'bicycle' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">Bicycle</div>
-                          <div className="text-xs text-gray-500">Environmentally friendly option with minimal costs</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Bicycle</span>
+                            <span className="text-green-600 font-semibold">$30/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Environmentally friendly with very low maintenance costs</div>
                         </div>
                       </div>
                       
@@ -494,9 +541,60 @@ export default function CharacterCreation() {
                         <div className="mr-3">
                           <Car className={`h-5 w-5 ${selectedVehicle === 'economy' ? 'text-blue-500' : 'text-gray-400'}`} />
                         </div>
-                        <div>
-                          <div className="font-medium">Economy Car</div>
-                          <div className="text-xs text-gray-500">Basic car with moderate costs and decent functionality</div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Economy Car</span>
+                            <span className="text-amber-600 font-semibold">$350/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Basic car with moderate costs, including gas and insurance</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'standard' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('standard')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'standard' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Standard Car</span>
+                            <span className="text-amber-600 font-semibold">$500/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Mid-range vehicle with good comfort and reliability</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'luxury' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('luxury')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'luxury' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Luxury Car</span>
+                            <span className="text-amber-600 font-semibold">$1,200/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">High-end vehicle with premium features and prestige</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'premium' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('premium')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'premium' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium flex justify-between">
+                            <span>Premium Car</span>
+                            <span className="text-amber-600 font-semibold">$2,500/mo</span>
+                          </div>
+                          <div className="text-xs text-gray-500">Exotic or ultra-premium vehicle with maximum prestige</div>
                         </div>
                       </div>
                     </div>
