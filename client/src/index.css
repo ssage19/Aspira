@@ -6,122 +6,122 @@
   :root {
     --radius: 0.75rem;
 
-    /* Cool and Collected Theme - Light Mode */
-    --background: 180 2% 95%;
-    --foreground: 189 100% 14%;
+    /* Bert Theme - Light Mode (based on provided colors) */
+    --background: 0 0% 98%;
+    --foreground: 200 33% 17%; /* #1F2833 */
 
-    --muted: 189 33% 85%;
-    --muted-foreground: 189 35% 30%;
+    --muted: 184 2% 78%; /* #C5C8C7 */
+    --muted-foreground: 200 33% 27%;
 
-    --accent: 179 51% 47%; /* 0FA4AF */
-    --accent-foreground: 0 0% 100%;
+    --accent: 178 93% 72%; /* #66FCF1 */
+    --accent-foreground: 200 33% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 189 100% 14%;
+    --popover-foreground: 200 33% 17%;
 
-    --border: 175 70% 85%;
-    --input: 189 33% 85%;
+    --border: 184 2% 78%; /* #C5C8C7 */
+    --input: 184 2% 78%;
 
-    --card: 180 5% 98%;
-    --card-foreground: 189 100% 14%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 33% 17%;
 
-    --primary: 189 100% 14%; /* 003135 */
+    --primary: 177 52% 48%; /* #45A29E */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 187 40% 28%; /* 024950 */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 178 93% 72%; /* #66FCF1 */
+    --secondary-foreground: 200 33% 17%;
 
-    --tertiary: 8 38% 51%; /* 964734 */
+    --tertiary: 180 100% 41%; /* #0BD0C10 (without the extra 0) */
     --tertiary-foreground: 0 0% 100%;
 
-    --quaternary: 180 100% 33%; /* 00A4AF */
+    --quaternary: 177 52% 48%; /* #45A29E */
     --quaternary-foreground: 0 0% 100%;
 
-    --quinary: 180 33% 84%; /* AFDDDF - light accent */
-    --quinary-foreground: 189 100% 14%;
+    --quinary: 178 93% 72%; /* #66FCF1 */
+    --quinary-foreground: 200 33% 17%;
     
-    --destructive: 8 38% 51%;
+    --destructive: 0 91% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --ring: 179 51% 47%;
+    --ring: 178 93% 72%; /* #66FCF1 */
 
     /* Sidebar styles */
-    --sidebar-background: 189 100% 14%;
+    --sidebar-background: 200 33% 17%; /* #1F2833 */
     --sidebar-foreground: 0 0% 100%;
   }
 
   .dark {
-    /* Cool and Collected Theme - Dark Mode */
-    --background: 189 100% 8%;
-    --foreground: 180 33% 94%;
+    /* Bert Theme - Dark Mode */
+    --background: 200 33% 17%; /* #1F2833 */
+    --foreground: 184 2% 78%; /* #C5C8C7 */
 
-    --muted: 189 33% 18%;
-    --muted-foreground: 180 10% 70%;
+    --muted: 200 33% 27%;
+    --muted-foreground: 184 2% 78%; /* #C5C8C7 */
 
-    --accent: 179 51% 37%; /* darker accent */
-    --accent-foreground: 0 0% 100%;
+    --accent: 178 93% 72%; /* #66FCF1 */
+    --accent-foreground: 200 33% 17%; /* #1F2833 */
 
-    --popover: 189 100% 10%;
-    --popover-foreground: 180 33% 94%;
+    --popover: 200 33% 12%;
+    --popover-foreground: 184 2% 78%; /* #C5C8C7 */
 
-    --border: 189 33% 22%;
-    --input: 189 33% 18%;
+    --border: 200 33% 25%;
+    --input: 200 33% 25%;
 
-    --card: 189 100% 10%;
-    --card-foreground: 180 33% 94%;
+    --card: 200 33% 12%;
+    --card-foreground: 184 2% 78%;
 
-    --primary: 180 33% 84%; /* AFDDDF - light becomes dark in dark mode */
-    --primary-foreground: 189 100% 14%;
+    --primary: 178 93% 72%; /* #66FCF1 */
+    --primary-foreground: 200 33% 17%; /* #1F2833 */
 
-    --secondary: 180 100% 33%; /* 00A4AF */
+    --secondary: 177 52% 48%; /* #45A29E */
     --secondary-foreground: 0 0% 100%;
 
-    --tertiary: 8 38% 41%; /* darker tertiary */
+    --tertiary: 180 100% 41%; /* #0BD0C10 (without the extra 0) */
     --tertiary-foreground: 0 0% 100%;
   
-    --quaternary: 187 40% 28%; /* 024950 */
+    --quaternary: 200 33% 27%; /* Darker variant of #1F2833 */
     --quaternary-foreground: 0 0% 100%;
 
-    --quinary: 189 100% 14%; /* 003135 */
-    --quinary-foreground: 0 0% 100%;
+    --quinary: 200 33% 17%; /* #1F2833 */
+    --quinary-foreground: 178 93% 72%; /* #66FCF1 */
 
-    --destructive: 8 38% 41%;
+    --destructive: 0 91% 42%;
     --destructive-foreground: 0 0% 100%;
 
-    --ring: 179 51% 37%;
+    --ring: 178 93% 72%; /* #66FCF1 */
 
     /* Sidebar styles */
-    --sidebar-background: 189 100% 6%;
-    --sidebar-foreground: 180 33% 94%;
-    --sidebar-primary: 179 51% 37%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 187 40% 23%;
+    --sidebar-background: 200 33% 10%;
+    --sidebar-foreground: 184 2% 78%; /* #C5C8C7 */
+    --sidebar-primary: 178 93% 72%; /* #66FCF1 */
+    --sidebar-primary-foreground: 200 33% 17%; /* #1F2833 */
+    --sidebar-accent: 177 52% 38%; /* Darker #45A29E */
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 189 33% 15%;
-    --sidebar-ring: 180 33% 74%;
+    --sidebar-border: 200 33% 25%;
+    --sidebar-ring: 178 93% 72%; /* #66FCF1 */
     
     /* Chart colors */
-    --chart-1: 180 33% 84%; /* AFDDDF */
-    --chart-2: 180 100% 33%; /* 00A4AF */
-    --chart-3: 8 38% 51%; /* 964734 */
-    --chart-4: 187 40% 28%; /* 024950 */
-    --chart-5: 189 100% 14%; /* 003135 */
+    --chart-1: 178 93% 72%; /* #66FCF1 */
+    --chart-2: 177 52% 48%; /* #45A29E */
+    --chart-3: 180 100% 41%; /* #0BD0C10 */
+    --chart-4: 200 33% 27%; /* Darker variant of #1F2833 */
+    --chart-5: 200 33% 17%; /* #1F2833 */
     
-    /* Achievement category colors */
-    --wealth-color-start: #00A4AF;
-    --wealth-color-end: #003135;
-    --property-color-start: #964734;
-    --property-color-end: #6D2516;
-    --investment-color-start: #024950;
-    --investment-color-end: #013138;
-    --lifestyle-color-start: #8465D4;
-    --lifestyle-color-end: #6951BC;
-    --general-color-start: #003135;
-    --general-color-end: #001B1D;
-    --challenge-color-start: #F97316;
-    --challenge-color-end: #C2580F;
-    --strategy-color-start: #06B6D4;
-    --strategy-color-end: #0891B2;
+    /* Achievement category colors - Bert theme */
+    --wealth-color-start: #66FCF1;
+    --wealth-color-end: #45A29E;
+    --property-color-start: #45A29E;
+    --property-color-end: #1F2833;
+    --investment-color-start: #66FCF1;
+    --investment-color-end: #0BD0C1;
+    --lifestyle-color-start: #0BD0C1;
+    --lifestyle-color-end: #45A29E;
+    --general-color-start: #1F2833;
+    --general-color-end: #0B0C10;
+    --challenge-color-start: #45A29E;
+    --challenge-color-end: #1F2833;
+    --strategy-color-start: #66FCF1;
+    --strategy-color-end: #0BD0C1;
   }
 
   * {
@@ -167,11 +167,11 @@ canvas {
 
 /* Gradient texts */
 .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#00A4AF] to-[#003135];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#66FCF1] to-[#45A29E];
 }
 
 .dark .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#AFDDDF] to-[#00A4AF];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#66FCF1] to-[#0BD0C1];
 }
 
 /* Button animations */
