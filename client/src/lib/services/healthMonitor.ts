@@ -61,8 +61,7 @@ export function checkHealthStatus() {
     triggerHealthEvent(character);
     lastHealthEventTime = currentTime;
     
-    // Play alert sound
-    playSound('hit');
+    // Sound disabled - no sound call
     
     // Show a severe warning
     toast.error(
@@ -79,8 +78,7 @@ export function checkHealthStatus() {
     triggerHealthEvent(character);
     lastHealthEventTime = currentTime;
     
-    // Play alert sound
-    playSound('hit');
+    // Sound disabled - no sound call
     
     // Show a warning
     toast.warning(
@@ -99,8 +97,7 @@ export function checkHealthStatus() {
       triggerHealthEvent(character);
       lastHealthEventTime = currentTime;
       
-      // Play alert sound
-      playSound('hit');
+      // Sound disabled - no sound call
       
       // Show an info toast
       toast.info(
@@ -180,8 +177,7 @@ function triggerHealthEvent(character: ReturnType<typeof useCharacter.getState>)
       }
     });
     
-    // Play a death sound if available
-    playSound('hit');
+    // Sound disabled - no sound call
     
     // Add death event to store
     randomEvents.addActiveEvent({
