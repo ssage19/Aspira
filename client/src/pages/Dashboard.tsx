@@ -31,7 +31,8 @@ import {
   Building,
   Building2,
   ShoppingBag,
-  ShoppingCart
+  ShoppingCart,
+  Wrench
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -628,6 +629,36 @@ export default function Dashboard() {
                             </div>
                           </div>
                           
+                          {/* Property Mortgage Payments */}
+                          {properties.length > 0 && (
+                            <div className="mb-3">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm text-muted-foreground flex items-center">
+                                  <Building className="h-3.5 w-3.5 mr-1 text-purple-400" />
+                                  Property Mortgage Payments ({properties.length} properties)
+                                </span>
+                                <span className="text-sm font-medium text-red-500">
+                                  {formatCurrency(properties.reduce((sum, p) => sum + (p.monthlyPayment || 0), 0))}/mo
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Property Maintenance Expenses */}
+                          {properties.length > 0 && (
+                            <div className="mb-3">
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-sm text-muted-foreground flex items-center">
+                                  <Wrench className="h-3.5 w-3.5 mr-1 text-purple-400" />
+                                  Property Maintenance ({properties.length} properties)
+                                </span>
+                                <span className="text-sm font-medium text-red-500">
+                                  {formatCurrency(properties.reduce((sum, p) => sum + (p.expenses || 0), 0))}/mo
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
                           {/* Lifestyle Items */}
                           <div className="mb-3">
                             <div className="flex justify-between items-center mb-1">
@@ -662,6 +693,10 @@ export default function Dashboard() {
                                    vehicleType === 'premium' ? 2000 : 0) +
                                   // Food costs
                                   600 +
+                                  // Property mortgage payments
+                                  properties.reduce((sum, p) => sum + (p.monthlyPayment || 0), 0) +
+                                  // Property maintenance expenses
+                                  properties.reduce((sum, p) => sum + (p.expenses || 0), 0) +
                                   // Lifestyle costs
                                   lifestyleItems.reduce((sum, item) => sum + (item.monthlyCost || 0), 0)
                                 )}/mo
@@ -714,6 +749,10 @@ export default function Dashboard() {
                                vehicleType === 'premium' ? 2000 : 0) +
                               // Food costs
                               600 +
+                              // Property mortgage payments - IMPORTANT: Must include these 
+                              properties.reduce((sum, p) => sum + (p.monthlyPayment || 0), 0) +
+                              // Property maintenance expenses
+                              properties.reduce((sum, p) => sum + (p.expenses || 0), 0) +
                               // Lifestyle costs
                               lifestyleItems.reduce((sum, item) => sum + (item.monthlyCost || 0), 0);
                             
