@@ -25,13 +25,13 @@ import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
 
-// Each day lasts 12 hours (43200 seconds) for more realistic gameplay
-const DAY_DURATION_MS = 43200 * 1000;
+// Each day lasts 10 minutes (600 seconds) as per the requirements
+const DAY_DURATION_MS = 600 * 1000;
 
 export function GameUI() {
   const navigate = useNavigate();
   const { name, wealth, netWorth, addWealth } = useCharacter();
-  const { currentDay, currentMonth, currentYear, advanceTime } = useTime();
+  const { currentDay, currentMonth, currentYear, advanceTime, timeSpeed, timeMultiplier, setTimeSpeed } = useTime();
   const { isMuted, setMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
   const [timeProgress, setTimeProgress] = useState(0);
@@ -228,6 +228,43 @@ export function GameUI() {
     };
   };
 
+  // Define toggleAutoAdvance function at the top before it's used in the effect
+  const toggleAutoAdvance = () => {
+    setAutoAdvanceEnabled(!autoAdvanceEnabled);
+    lastTickTime.current = Date.now();
+    setTimeProgress(0);
+  };
+  
+  // Keyboard shortcuts for time control
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle keyboard shortcuts if we're not in an input field
+      if (e.target instanceof HTMLInputElement || 
+          e.target instanceof HTMLTextAreaElement ||
+          e.target instanceof HTMLSelectElement) {
+        return;
+      }
+      
+      switch (e.key) {
+        case ' ': // Spacebar toggles pause/play
+          toggleAutoAdvance();
+          break;
+        case '1': // Normal speed
+          if (autoAdvanceEnabled) setTimeSpeed('normal');
+          break;
+        case '2': // Fast speed
+          if (autoAdvanceEnabled) setTimeSpeed('fast');
+          break;
+        case '3': // Super fast speed
+          if (autoAdvanceEnabled) setTimeSpeed('superfast');
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [autoAdvanceEnabled, setTimeSpeed]);
+  
   // Auto day advancement timer
   useEffect(() => {
     if (!autoAdvanceEnabled) return;
@@ -238,12 +275,19 @@ export function GameUI() {
     const intervalId = setInterval(() => {
       const currentTime = Date.now();
       const elapsed = currentTime - lastTickTime.current;
-      const progress = (elapsed / DAY_DURATION_MS) * 100;
+      
+      // Apply time multiplier to the elapsed time
+      const adjustedElapsed = elapsed * timeMultiplier;
+      const progress = (adjustedElapsed / DAY_DURATION_MS) * 100;
       
       setTimeProgress(Math.min(progress, 100));
       
+      // Calculate time left in minutes based on time multiplier
+      const msLeft = DAY_DURATION_MS - adjustedElapsed;
+      const minutesLeft = Math.max(0, Math.floor(msLeft / 60000));
+      
       // If a full day has passed, advance the day
-      if (elapsed >= DAY_DURATION_MS) {
+      if (adjustedElapsed >= DAY_DURATION_MS) {
         // Process daily finances
         processDailyFinances();
         
@@ -261,7 +305,7 @@ export function GameUI() {
     }, 1000); // Update progress every second
     
     return () => clearInterval(intervalId);
-  }, [autoAdvanceEnabled, advanceTime, playSuccess]);
+  }, [autoAdvanceEnabled, advanceTime, playSuccess, timeMultiplier]);
   
   const handleAdvanceTime = () => {
     // Process daily finances when manually advancing time too
@@ -275,12 +319,6 @@ export function GameUI() {
     checkAllAchievements();
     
     // Reset the timer
-    lastTickTime.current = Date.now();
-    setTimeProgress(0);
-  };
-  
-  const toggleAutoAdvance = () => {
-    setAutoAdvanceEnabled(!autoAdvanceEnabled);
     lastTickTime.current = Date.now();
     setTimeProgress(0);
   };
@@ -314,25 +352,107 @@ export function GameUI() {
             <Progress value={timeProgress} className="h-2" 
               aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
             <span className="text-xs font-medium">
-              {autoAdvanceEnabled ? `${Math.floor(43200 - (timeProgress * 43200 / 100)) / 3600}h left` : "Paused"}
+              {autoAdvanceEnabled ? 
+                timeSpeed === 'superfast' ? 
+                  `${Math.max(0, Math.floor((600 - (timeProgress * 600 / 100)) / 6))}m left (6x)` : 
+                timeSpeed === 'fast' ? 
+                  `${Math.max(0, Math.floor((600 - (timeProgress * 600 / 100)) / 3))}m left (3x)` : 
+                  `${Math.max(0, Math.floor(600 - (timeProgress * 600 / 100)))}m left` 
+                : "Paused"}
             </span>
           </div>
         </div>
         
-        {/* Time control buttons - removed manual day advance for realism */}
+        {/* Time control buttons */}
         <div className="flex items-center space-x-2">
-          <Button 
-            variant={autoAdvanceEnabled ? "outline" : "default"}
-            size="sm"
-            onClick={toggleAutoAdvance}
-            className={autoAdvanceEnabled ? 
-              "border-quaternary/80 text-quaternary" : 
-              "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
-            aria-label={autoAdvanceEnabled ? "Pause time passage" : "Resume time passage"}
-          >
-            <Clock className="mr-2 h-4 w-4" />
-            {autoAdvanceEnabled ? "Time: Flowing" : "Time: Paused"}
-          </Button>
+          <div className="relative">
+            <Button 
+              variant={autoAdvanceEnabled ? "outline" : "default"}
+              size="sm"
+              onClick={toggleAutoAdvance}
+              className={autoAdvanceEnabled ? 
+                "border-quaternary/80 text-quaternary" : 
+                "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
+              aria-label={autoAdvanceEnabled ? "Pause time passage" : "Resume time passage"}
+              onMouseEnter={() => setShowTooltip('time-toggle')}
+              onMouseLeave={() => setShowTooltip('')}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              {autoAdvanceEnabled ? "Time: Flowing" : "Time: Paused"}
+            </Button>
+            {showTooltip === 'time-toggle' && (
+              <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                Press Space to toggle play/pause
+              </span>
+            )}
+          </div>
+          
+          {autoAdvanceEnabled && (
+            <div className="flex space-x-1">
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'normal' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('normal')}
+                  className={timeSpeed === 'normal' ? 
+                    "bg-emerald-600 hover:bg-emerald-700 text-white" : 
+                    "border-emerald-600 text-emerald-600"}
+                  aria-label="Normal speed (1x)"
+                  onMouseEnter={() => setShowTooltip('speed-1x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  1x
+                </Button>
+                {showTooltip === 'speed-1x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 1 for normal speed
+                  </span>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'fast' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('fast')}
+                  className={timeSpeed === 'fast' ? 
+                    "bg-amber-600 hover:bg-amber-700 text-white" : 
+                    "border-amber-600 text-amber-600"}
+                  aria-label="Fast speed (3x)"
+                  onMouseEnter={() => setShowTooltip('speed-3x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  3x
+                </Button>
+                {showTooltip === 'speed-3x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 2 for fast speed
+                  </span>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'superfast' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('superfast')}
+                  className={timeSpeed === 'superfast' ? 
+                    "bg-red-600 hover:bg-red-700 text-white" : 
+                    "border-red-600 text-red-600"}
+                  aria-label="Super fast speed (6x)"
+                  onMouseEnter={() => setShowTooltip('speed-6x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  6x
+                </Button>
+                {showTooltip === 'speed-6x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 3 for super fast speed
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
       

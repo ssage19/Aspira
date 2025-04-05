@@ -2,6 +2,8 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
 
+export type GameTimeSpeed = 'paused' | 'normal' | 'fast' | 'superfast';
+
 interface TimeState {
   // Current date
   currentDay: number;
@@ -13,6 +15,10 @@ interface TimeState {
   startMonth: number;
   startYear: number;
   
+  // Time speed settings
+  timeSpeed: GameTimeSpeed;
+  timeMultiplier: number; // Multiplier for time passage (1.0 = normal, 2.0 = 2x speed, etc.)
+  
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
   
@@ -21,6 +27,7 @@ interface TimeState {
   setDate: (day: number, month: number, year: number) => void;
   resetGameStart: () => void; // Reset start date to current date
   resetTime: () => void; // Reset all time values to real-world current date
+  setTimeSpeed: (speed: GameTimeSpeed) => void; // Set the time speed
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -73,6 +80,10 @@ export const useTime = create<TimeState>()(
       startDay: savedTime?.startDay || realDate.day,
       startMonth: savedTime?.startMonth || realDate.month,
       startYear: savedTime?.startYear || realDate.year,
+      
+      // Time speed settings
+      timeSpeed: savedTime?.timeSpeed || 'normal',
+      timeMultiplier: savedTime?.timeMultiplier || 1.0,
       
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
@@ -157,7 +168,41 @@ export const useTime = create<TimeState>()(
           startDay: realDate.day,
           startMonth: realDate.month,
           startYear: realDate.year,
-          currentGameDate: newGameDate
+          currentGameDate: newGameDate,
+          timeSpeed: 'normal' as GameTimeSpeed,
+          timeMultiplier: 1.0
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      setTimeSpeed: (speed: GameTimeSpeed) => set((state) => {
+        // Set multiplier based on selected speed
+        let multiplier = 1.0;
+        switch(speed) {
+          case 'paused':
+            multiplier = 0;
+            break;
+          case 'normal':
+            multiplier = 1.0;
+            break;
+          case 'fast':
+            multiplier = 3.0; // 3x speed
+            break;
+          case 'superfast':
+            multiplier = 6.0; // 6x speed
+            break;
+          default:
+            multiplier = 1.0;
+        }
+        
+        const newState = {
+          ...state,
+          timeSpeed: speed,
+          timeMultiplier: multiplier
         };
         
         // Save to local storage
