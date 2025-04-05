@@ -6,12 +6,35 @@ import {
   Wind, 
   Clock, 
   Leaf, 
-  HeartPulse 
+  HeartPulse,
+  Activity,
+  User,
+  Brain,
+  Shield,
+  Zap,
+  AlertCircle,
+  CheckCircle,
+  ThumbsUp,
+  Calendar
 } from 'lucide-react';
 
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Progress } from './ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { cn } from '../lib/utils';
+
+// Define attribute details
+interface AttributeDetails {
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  scale: string[];
+  levels: string[];
+  colors: string[];
+  isInverted?: boolean;
+  isSpecialScale?: boolean;
+  unit?: string;
+}
 
 export function CharacterAttributes() {
   const { 
@@ -26,109 +49,202 @@ export function CharacterAttributes() {
     prestige
   } = useCharacter();
   
-  // Helper function to determine attribute level color
-  const getAttributeColor = (value: number, isGoodHigh: boolean = true, isInvertedScale: boolean = false) => {
-    // For standard metrics (higher is better)
-    if (isGoodHigh && !isInvertedScale) {
-      if (value >= 80) return "text-green-600";
-      if (value >= 60) return "text-green-500";
-      if (value >= 40) return "text-amber-500";
-      if (value >= 20) return "text-orange-500";
-      return "text-red-500";
-    }
-    // For inverted metrics (lower is better)
-    else if (!isGoodHigh && !isInvertedScale) {
-      if (value <= 20) return "text-green-600";
-      if (value <= 40) return "text-green-500";
-      if (value <= 60) return "text-amber-500";
-      if (value <= 80) return "text-orange-500";
-      return "text-red-500";
-    }
-    // For environmental impact (-100 to 100 scale)
-    else {
-      if (value >= 50) return "text-green-600"; // Very positive
-      if (value >= 0) return "text-green-500"; // Positive
-      if (value >= -30) return "text-amber-500"; // Slightly negative
-      if (value >= -60) return "text-orange-500"; // Negative
-      return "text-red-500"; // Very negative
+  // Define attribute configuration with human-readable scales
+  const attributeConfigs: Record<string, AttributeDetails> = {
+    health: {
+      name: 'Health',
+      icon: <Heart className="h-4 w-4" />,
+      description: 'Physical and mental wellbeing',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Critical', 'Poor', 'Average', 'Good', 'Excellent'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+    },
+    happiness: {
+      name: 'Happiness',
+      icon: <HeartPulse className="h-4 w-4" />,
+      description: 'Overall life satisfaction',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Miserable', 'Unhappy', 'Content', 'Happy', 'Blissful'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+    },
+    socialConnections: {
+      name: 'Social Network',
+      icon: <Users className="h-4 w-4" />,
+      description: 'Quality and quantity of relationships',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Isolated', 'Limited', 'Moderate', 'Strong', 'Thriving'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
+    },
+    skills: {
+      name: 'Skills',
+      icon: <BookOpen className="h-4 w-4" />,
+      description: 'Developed abilities and knowledge',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Novice', 'Beginner', 'Intermediate', 'Advanced', 'Expert'],
+      colors: ['text-gray-500', 'text-blue-400', 'text-blue-500', 'text-purple-500', 'text-purple-600']
+    },
+    stress: {
+      name: 'Stress',
+      icon: <Activity className="h-4 w-4" />,
+      description: 'Mental pressure and tension',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Minimal', 'Low', 'Moderate', 'High', 'Extreme'],
+      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      isInverted: true
+    },
+    timeManagement: {
+      name: 'Time Management',
+      icon: <Clock className="h-4 w-4" />,
+      description: 'Balance of free time vs commitments',
+      scale: ['High Ratio', 'Good Ratio', 'Balanced', 'Low Ratio', 'Very Low'],
+      levels: ['Relaxed', 'Balanced', 'Busy', 'Hectic', 'Overwhelmed'],
+      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      isSpecialScale: true,
+      unit: 'hrs'
+    },
+    environmentalImpact: {
+      name: 'Environmental Impact',
+      icon: <Leaf className="h-4 w-4" />,
+      description: 'Effect on the environment',
+      scale: ['< -60', '-60 to -30', '-30 to 0', '0 to 50', '> 50'],
+      levels: ['Harmful', 'Concerning', 'Neutral', 'Positive', 'Sustainable'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600'],
+      isSpecialScale: true
+    },
+    prestige: {
+      name: 'Prestige',
+      icon: <Award className="h-4 w-4" />,
+      description: 'Social status and recognition',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81+'],
+      levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
+      colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500']
     }
   };
   
-  // Helper function to get attribute level description
-  const getAttributeLevel = (value: number, attributeName: string, isGoodHigh: boolean = true, isInvertedScale: boolean = false) => {
-    const levels = isGoodHigh ? 
-      ['Critical', 'Poor', 'Average', 'Good', 'Excellent'] : 
-      ['Excellent', 'Good', 'Moderate', 'High', 'Critical'];
+  // Helper function to get level index for a given value
+  const getLevelIndex = (value: number, attributeName: string): number => {
+    const config = attributeConfigs[attributeName];
+    
+    if (!config) return 2; // Default to middle if config not found
+    
+    if (config.isSpecialScale) {
+      // Handle special scales
+      if (attributeName === 'environmentalImpact') {
+        if (value >= 50) return 4;
+        if (value >= 0) return 3;
+        if (value >= -30) return 2;
+        if (value >= -60) return 1;
+        return 0;
+      }
       
-    let index = 0;
-    if (isInvertedScale) {
-      // For environmental impact
-      if (value >= 50) index = 4;
-      else if (value >= 0) index = 3;
-      else if (value >= -30) index = 2;
-      else if (value >= -60) index = 1;
-      else index = 0;
+      if (attributeName === 'timeManagement') {
+        // For time management, we use the ratio of free time to committed time
+        const ratio = freeTime / (timeCommitment || 1);
+        if (ratio > 3) return 0; // Relaxed
+        if (ratio > 2) return 1; // Balanced
+        if (ratio > 1) return 2; // Busy
+        if (ratio > 0.5) return 3; // Hectic
+        return 4; // Overwhelmed
+      }
     } else {
-      // For standard attributes
-      if (value >= 80) index = 4;
-      else if (value >= 60) index = 3;
-      else if (value >= 40) index = 2;
-      else if (value >= 20) index = 1;
-      else index = 0;
+      // Standard percentile scales
+      if (value >= 80) return 4;
+      if (value >= 60) return 3;
+      if (value >= 40) return 2;
+      if (value >= 20) return 1;
+      return 0;
     }
     
-    // Special cases for specific attributes
-    if (attributeName === 'Environmental Impact') {
-      return ['Harmful', 'Concerning', 'Neutral', 'Positive', 'Sustainable'][index];
-    }
-    
-    if (attributeName === 'Time Management') {
-      // For time management, we calculate based on the free hours to time commitment ratio
-      const ratio = freeTime / (timeCommitment || 1);
-      if (ratio > 3) return 'Relaxed';
-      if (ratio > 2) return 'Balanced';
-      if (ratio > 1) return 'Busy';
-      if (ratio > 0.5) return 'Hectic';
-      return 'Overwhelmed';
-    }
-    
-    return levels[index];
+    return 2; // Default to middle
   };
   
-  // Render each attribute with colored progress bar
-  const renderAttribute = (
-    name: string, 
-    value: number, 
-    icon: React.ReactNode, 
-    isGoodHigh: boolean = true, 
-    isInvertedScale: boolean = false,
-    range: [number, number] = [0, 100]
-  ) => {
-    const [min, max] = range;
-    const normalizedValue = isInvertedScale ? 
-      // For environmental impact, convert -100 to 100 range to 0-100 progress
-      ((value - min) / (max - min)) * 100 : 
-      value;
-      
-    const color = getAttributeColor(value, isGoodHigh, isInvertedScale);
-    const level = getAttributeLevel(value, name, isGoodHigh, isInvertedScale);
+  // Format display value based on attribute
+  const formatValue = (value: number, attributeName: string): string => {
+    const config = attributeConfigs[attributeName];
+    
+    if (attributeName === 'timeManagement') {
+      return `${freeTime}${config.unit} free / ${timeCommitment}${config.unit} used`;
+    }
+    
+    if (attributeName === 'environmentalImpact') {
+      return value.toString(); // No % for environmental impact
+    }
+    
+    return attributeName === 'prestige' ? value.toString() : `${value}%`;
+  };
+  
+  // Render each attribute with visual indicator and description
+  const renderAttribute = (attributeName: string, value: number) => {
+    const config = attributeConfigs[attributeName];
+    if (!config) return null;
+    
+    const levelIndex = getLevelIndex(value, attributeName);
+    const displayLevel = config.levels[levelIndex];
+    const color = config.colors[levelIndex];
+    const displayValue = formatValue(value, attributeName);
+    
+    // Calculate progress value
+    let progressValue: number;
+    
+    if (attributeName === 'environmentalImpact') {
+      // Convert -100 to 100 range to 0-100 for progress bar
+      progressValue = ((value + 100) / 200) * 100;
+    } else if (attributeName === 'timeManagement') {
+      // For time management, use the ratio-based calculation
+      const ratio = freeTime / (timeCommitment || 1);
+      progressValue = Math.min(100, Math.max(0, ratio * 33.33)); // Scale to make 3:1 ratio = 100%
+    } else {
+      progressValue = value;
+    }
+    
+    // Invert progress for stress (lower is better)
+    if (config.isInverted) {
+      progressValue = 100 - progressValue;
+    }
     
     return (
       <div className="mb-3">
         <div className="flex justify-between mb-1 items-center">
           <div className="flex items-center">
-            <span className={`mr-2 ${color}`}>{icon}</span>
-            <span className="text-sm font-medium">{name}</span>
+            <span className={`mr-2 ${color}`}>{config.icon}</span>
+            <span className="text-sm font-medium">{config.name}</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`text-sm font-medium ${color}`}>{level}</span>
-            <span className="text-xs text-gray-500">{value}{isInvertedScale ? '' : '%'}</span>
+            <span className={`text-sm font-medium ${color}`}>{displayLevel}</span>
+            <span className="text-xs text-gray-500">{displayValue}</span>
           </div>
         </div>
-        <Progress 
-          value={normalizedValue} 
-          className={`${color.replace('text-', 'bg-')} bg-opacity-20 h-2`} 
-        />
+        
+        {/* Progress bar */}
+        <div className="relative pt-1">
+          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <div 
+              className={cn("h-full rounded-full transition-all duration-700", color.replace('text-', 'bg-'))}
+              style={{ width: `${progressValue}%` }}
+            />
+          </div>
+          
+          {/* Scale indicators */}
+          <div className="flex justify-between mt-1 text-[0.65rem] text-gray-400">
+            {config.scale.map((label, i) => (
+              <div 
+                key={i} 
+                className={cn(
+                  "relative", 
+                  i === levelIndex ? color : "text-gray-400",
+                  i === levelIndex ? "font-medium" : ""
+                )}
+              >
+                {i === levelIndex && (
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 -translate-y-full">
+                    <div className={cn("w-1.5 h-1.5 rounded-full", color.replace('text-', 'bg-'))}></div>
+                  </div>
+                )}
+                {label}
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   };
@@ -140,23 +256,23 @@ export function CharacterAttributes() {
     <Card className="shadow-md">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
-          <HeartPulse className="mr-2 h-5 w-5 text-pink-500" />
+          <User className="mr-2 h-5 w-5 text-blue-500" />
           Personal Attributes
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            {renderAttribute('Health', health, <Heart className="h-4 w-4" />)}
-            {renderAttribute('Happiness', happiness, <HeartPulse className="h-4 w-4" />)}
-            {renderAttribute('Social Connections', socialConnections, <Users className="h-4 w-4" />)}
-            {renderAttribute('Skills', skills, <BookOpen className="h-4 w-4" />)}
+            {renderAttribute('health', health)}
+            {renderAttribute('happiness', happiness)}
+            {renderAttribute('socialConnections', socialConnections)}
+            {renderAttribute('skills', skills)}
           </div>
           <div>
-            {renderAttribute('Stress', stress, <Wind className="h-4 w-4" />, false)}
-            {renderAttribute('Time Management', timeManagementValue, <Clock className="h-4 w-4" />)}
-            {renderAttribute('Environmental Impact', environmentalImpact, <Leaf className="h-4 w-4" />, true, true, [-100, 100])}
-            {renderAttribute('Prestige', prestige, <Award className="h-4 w-4" />)}
+            {renderAttribute('stress', stress)}
+            {renderAttribute('timeManagement', timeManagementValue)}
+            {renderAttribute('environmentalImpact', environmentalImpact)}
+            {renderAttribute('prestige', prestige)}
           </div>
         </div>
         
