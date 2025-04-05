@@ -407,40 +407,58 @@ export function Essentials() {
   const handleAutoMaintenance = () => {
     if (!autoMaintain) return;
     
+    // Track if any actions were taken
+    let actionsTaken = 0;
+    const maxActionsPerCycle = 4; // Maximum actions per maintenance cycle
+    
+    // Check and address all needs in order of priority
+    
+    // First check the most critical needs: hunger and thirst
     // Check hunger level
-    if (hunger <= 50) {
+    if (hunger <= 50 && actionsTaken < maxActionsPerCycle) {
       const bestFood = findBestItemForNeed('hunger', foodItems);
       if (bestFood) {
         handleConsumeEssential(bestFood);
-        return; // Only handle one need at a time to avoid too much activity at once
+        actionsTaken++;
       }
     }
     
     // Check thirst level
-    if (thirst <= 50) {
+    if (thirst <= 50 && actionsTaken < maxActionsPerCycle) {
       const bestDrink = findBestItemForNeed('thirst', drinkItems);
       if (bestDrink) {
         handleConsumeEssential(bestDrink);
-        return;
+        actionsTaken++;
       }
     }
     
     // Check energy level
-    if (energy <= 50) {
+    if (energy <= 50 && actionsTaken < maxActionsPerCycle) {
       const bestRest = findBestItemForNeed('energy', restActivities);
       if (bestRest) {
         handleConsumeEssential(bestRest);
-        return;
+        actionsTaken++;
       }
     }
     
     // Check social connections level
-    if (socialConnections <= 50) {
+    if (socialConnections <= 50 && actionsTaken < maxActionsPerCycle) {
       const bestSocial = findBestItemForNeed('socialConnections', socialActivities);
       if (bestSocial) {
         handleConsumeEssential(bestSocial);
-        return;
+        actionsTaken++;
       }
+    }
+    
+    // If any actions were taken, show notification and log to console
+    if (actionsTaken > 0) {
+      // Show a subtle toast notification
+      toast.info(`Auto-maintenance addressed ${actionsTaken} need${actionsTaken > 1 ? 's' : ''}`, {
+        duration: 2000, // Show for just 2 seconds to avoid being intrusive
+      });
+      
+      // Also log to console for debugging
+      console.log(`Auto-maintenance addressed ${actionsTaken} needs`);
     }
   };
   
@@ -468,8 +486,9 @@ export function Essentials() {
   useEffect(() => {
     if (!autoMaintain) return;
     
-    // This will run the auto-maintenance check every 10 seconds
-    const intervalId = setInterval(handleAutoMaintenance, 10000);
+    // This will run the auto-maintenance check every 5 seconds
+    // Shorter interval to be more responsive to needs falling below 50%
+    const intervalId = setInterval(handleAutoMaintenance, 5000);
     
     // Cleanup function to prevent memory leaks
     return () => clearInterval(intervalId);
