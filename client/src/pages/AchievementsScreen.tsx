@@ -255,13 +255,13 @@ export default function AchievementsScreen() {
           console.log(`Adding cash reward: ${achievement.reward.value}`);
           
           // IMPORTANT FIX: Update both stores for cash rewards
-          // Add to game store cash
+          // Add to game store cash (just for tracking purposes)
           gameStore.addCash(achievement.reward.value);
           
-          // Also add to character store wealth
+          // Add to character store wealth (this is the actual game money implementation)
           characterStore.addWealth(achievement.reward.value);
           
-          console.log(`Current game cash after reward: ${gameStore.getCash()}`);
+          // Log the updated character wealth
           console.log(`Current character wealth after reward: ${characterStore.wealth}`);
           break;
         case 'multiplier':
@@ -278,20 +278,18 @@ export default function AchievementsScreen() {
           
           // Apply character bonuses for the "bonus" type rewards
           if (achievement.id.startsWith('lifestyle') || achievement.id.startsWith('character')) {
-            const { updateAttributes } = characterStore;
-            
             // For happiness bonus
             if (achievement.reward.description.includes('Happiness')) {
               const bonusAmount = achievement.reward.value;
               console.log(`Applying happiness bonus: +${bonusAmount}`);
-              updateAttributes({ happiness: bonusAmount });
+              characterStore.addHappiness(bonusAmount);
             }
             
             // For prestige bonus
             if (achievement.reward.description.includes('Prestige')) {
               const bonusAmount = achievement.reward.value;
               console.log(`Applying prestige bonus: +${bonusAmount}`);
-              updateAttributes({ prestige: bonusAmount });
+              characterStore.addPrestige(bonusAmount);
             }
           }
           break;

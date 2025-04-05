@@ -347,7 +347,7 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<AchievementCategory>('wealth');
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
-  const { playUISound } = useAudio();
+  const { playSound } = useAudio();
   
   const { 
     achievements, 
@@ -390,7 +390,7 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
     
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
       // Play a success sound
-      playUISound('success');
+      playSound('success.mp3');
       
       console.log(`Claiming reward for achievement: ${achievement.title}`);
       
@@ -399,10 +399,10 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
         case 'cash':
           console.log(`Adding cash reward: ${achievement.reward.value}`);
           
-          // Add to game store cash
+          // Add to game store cash (just for tracking)
           gameStore.addCash(achievement.reward.value);
           
-          // Also add to character store wealth
+          // Add to character store wealth (actual money implementation)
           characterStore.addWealth(achievement.reward.value);
           break;
           
