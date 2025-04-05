@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { useAudio } from "./lib/stores/useAudio";
 import { useGame } from "./lib/stores/useGame";
 import { useEconomy } from "./lib/stores/useEconomy";
+import { ThemeProvider } from "./lib/ThemeProvider";
 import Dashboard from "./pages/Dashboard";
 import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
@@ -51,25 +52,27 @@ function App() {
   }, [phase, start, updateEconomy]);
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <Router>
-        <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/create" element={<CharacterCreation />} />
-            <Route path="/investments" element={<InvestmentScreen />} />
-            <Route path="/lifestyle" element={<LifestyleScreen />} />
-            <Route path="/properties" element={<PropertyScreen />} />
-            <Route path="/achievements" element={<AchievementsScreen />} />
-            <Route path="/test" element={<TestPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <DebugPanel />
-          <AchievementNotification />
-        </Suspense>
-      </Router>
-      <Toaster position="top-right" richColors />
-    </QueryClientProvider>
+    <ThemeProvider defaultTheme="dark">
+      <QueryClientProvider client={queryClient}>
+        <Router>
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/create" element={<CharacterCreation />} />
+              <Route path="/investments" element={<InvestmentScreen />} />
+              <Route path="/lifestyle" element={<LifestyleScreen />} />
+              <Route path="/properties" element={<PropertyScreen />} />
+              <Route path="/achievements" element={<AchievementsScreen />} />
+              <Route path="/test" element={<TestPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <DebugPanel />
+            <AchievementNotification />
+          </Suspense>
+        </Router>
+        <Toaster position="top-right" richColors />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }
 

@@ -251,7 +251,7 @@ export default function Dashboard() {
     });
   
   return (
-    <div className="w-full min-h-screen bg-background pt-20 pb-32">
+    <div className="w-full min-h-screen bg-background dark:bg-[#1F2833] pt-20 pb-32">
       {/* 3D Scene - Fixed Position */}
       <div className="fixed inset-0 z-0">
         <MainScene />
