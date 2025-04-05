@@ -692,6 +692,7 @@ export const useCharacter = create<CharacterState>()(
       sellProperty: (propertyId) => {
         let saleValue = 0;
         let propertyExpenseReduction = 0;
+        let incomeReduction = 0;
         
         set((state) => {
           const propertyIndex = state.properties.findIndex(p => p.id === propertyId);
@@ -722,29 +723,65 @@ export const useCharacter = create<CharacterState>()(
             earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
           }
           
+          // For quick flips (less than 1 month), add significant transaction costs
+          // This reflects market reality and prevents exploiting quick buy/sell
+          let quickFlipFee = 0;
+          if (monthsSincePurchase < 1) {
+            // For very quick flips, add 15% transaction fee to simulate 
+            // market inefficiency in quick transactions
+            quickFlipFee = property.currentValue * 0.15;
+          } else if (monthsSincePurchase < 6) {
+            // For moderately quick flips (1-6 months), add a smaller fee
+            quickFlipFee = property.currentValue * 0.08;
+          }
+          
           // Calculate net proceeds from sale
           const grossSalePrice = property.currentValue;
-          saleValue = grossSalePrice - closingCosts - outstandingLoan - earlyPayoffPenalty;
+          saleValue = grossSalePrice - closingCosts - outstandingLoan - earlyPayoffPenalty - quickFlipFee;
           
-          // If the property is underwater (worth less than the remaining loan),
-          // the player still needs to pay the difference
+          // If the property is underwater (worth less than what's owed + costs),
+          // the player still needs to pay the difference to close the sale
           if (saleValue < 0) {
-            // Display a message to the user
-            toast.warning(`You had to pay ${formatCurrency(Math.abs(saleValue))} to sell this underwater property`, {
+            // Cap the loss at the player's available wealth if they can't cover it all
+            const maxLoss = Math.min(Math.abs(saleValue), state.wealth);
+            
+            // Display a message to the user about the underwater property
+            toast.warning(`This property is underwater - you paid ${formatCurrency(maxLoss)} to close the sale`, {
               duration: 5000,
               position: 'bottom-right',
             });
-            saleValue = 0; // Don't give negative money, just set to 0
+            
+            // Track the monthly payment and income we're removing
+            propertyExpenseReduction = property.monthlyPayment || 0;
+            incomeReduction = property.income || 0;
+            
+            return {
+              properties: state.properties.filter(p => p.id !== propertyId),
+              wealth: state.wealth - maxLoss, // Subtract the loss from wealth
+              expenses: state.expenses - propertyExpenseReduction,
+              income: state.income - incomeReduction
+            };
+          } else {
+            // Property sold with positive proceeds
+            // Track the monthly payment and income we're removing
+            propertyExpenseReduction = property.monthlyPayment || 0;
+            incomeReduction = property.income || 0;
+            
+            // For quick flips, show breakdown of the transaction costs
+            if (quickFlipFee > 0) {
+              toast.info(`Quick flip fee: ${formatCurrency(quickFlipFee)} due to selling after only ${monthsSincePurchase} months`, {
+                duration: 5000,
+                position: 'bottom-right',
+              });
+            }
+            
+            return {
+              properties: state.properties.filter(p => p.id !== propertyId),
+              wealth: state.wealth + saleValue,
+              expenses: state.expenses - propertyExpenseReduction,
+              income: state.income - incomeReduction
+            };
           }
-          
-          // Track the monthly payment we're removing from expenses
-          propertyExpenseReduction = property.monthlyPayment || 0;
-          
-          return {
-            properties: state.properties.filter(p => p.id !== propertyId),
-            wealth: state.wealth + saleValue,
-            expenses: state.expenses - propertyExpenseReduction
-          };
         });
         
         // Calculate new net worth

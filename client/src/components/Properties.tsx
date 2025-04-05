@@ -143,23 +143,72 @@ export function Properties() {
     const property = ownedProperties.find(p => p.id === propertyId);
     if (!property) return;
     
-    // Calculate current value (could be more or less than purchase price)
+    // Calculate current market value
     const marketFactor = realEstateMarketHealth / 65;
     // Use currentValue if available, or fallback to value and finally purchasePrice
     const propertyValue = property.currentValue || (property.value ?? property.purchasePrice);
-    const sellingValue = Math.round(propertyValue * marketFactor);
+    const currentMarketValue = Math.round(propertyValue * marketFactor);
     
-    // Update the property's currentValue to match what we're selling it for
-    // This ensures the useCharacter store has the correct value
-    property.currentValue = sellingValue;
+    // Update the property's currentValue to match current market value
+    property.currentValue = currentMarketValue;
     
-    // Process sale - sellProperty will use the currentValue from the property
+    // Calculate selling costs (typically 6-7% of sale price)
+    const closingCostPercentage = 0.07; // 7%
+    const closingCosts = currentMarketValue * closingCostPercentage;
+    
+    // Calculate remaining loan amount
+    const outstandingLoan = property.loanAmount || 0;
+    
+    // Calculate early payoff penalty if applicable (2-3% if sold within first 3 years)
+    const purchaseDate = new Date(property.purchaseDate);
+    const currentDate = new Date();
+    const monthsSincePurchase = 
+      (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+      (currentDate.getMonth() - purchaseDate.getMonth());
+      
+    let earlyPayoffPenalty = 0;
+    if (monthsSincePurchase < 36) { // Less than 3 years
+      earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
+    }
+    
+    // Net proceeds calculation
+    const netProceeds = currentMarketValue - closingCosts - outstandingLoan - earlyPayoffPenalty;
+    
+    // Ensure the user understands what's happening with the sale
+    if (netProceeds < 0) {
+      // The property is underwater (worth less than what is owed)
+      toast.warning(`This property is underwater - selling will require you to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan`, {
+        duration: 5000,
+        position: 'bottom-right',
+      });
+      
+      // Confirm sale for underwater properties
+      if (!confirm(`Are you sure you want to sell ${property.name}? You'll need to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan and closing costs.`)) {
+        return; // User canceled the sale
+      }
+    }
+    
+    // Process sale
     sellProperty(propertyId);
-    // Don't add wealth here, as sellProperty already updates wealth
-    // Instead of: addWealth(sellingValue);
+    
+    // Display detailed sale information
+    if (netProceeds >= 0) {
+      toast.success(`Sold ${property.name} for ${formatCurrency(currentMarketValue)}`, {
+        duration: 3000,
+        position: 'bottom-right',
+      });
+      toast(`After paying off the loan (${formatCurrency(outstandingLoan)}) and closing costs (${formatCurrency(closingCosts)}), you received ${formatCurrency(netProceeds)}`, {
+        duration: 5000,
+        position: 'bottom-right',
+      });
+    } else {
+      toast(`You had to pay ${formatCurrency(Math.abs(netProceeds))} to sell this underwater property`, {
+        duration: 5000,
+        position: 'bottom-right',
+      });
+    }
     
     playSuccess();
-    toast.success(`Sold ${property.name} for ${formatCurrency(sellingValue)}`);
   };
   
   // Calculate monthly payment for a mortgage
