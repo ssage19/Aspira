@@ -314,6 +314,9 @@ export function GameUI() {
         // Process daily finances
         processDailyFinances();
         
+        // Process daily character update (including salary)
+        useCharacter.getState().processDailyUpdate();
+        
         // Advance the day
         advanceTime();
         playSuccess();
@@ -342,6 +345,9 @@ export function GameUI() {
   const handleAdvanceTime = () => {
     // Process daily finances when manually advancing time too
     processDailyFinances();
+    
+    // Process daily character update (including salary)
+    useCharacter.getState().processDailyUpdate();
     
     // Advance the day
     advanceTime();

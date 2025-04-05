@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { toast } from "sonner";
 import { useTime } from "./useTime";
 
 export interface CharacterSkills {
@@ -981,8 +982,14 @@ export const useCharacter = create<CharacterState>()(
             // Increment days since promotion
             daysSincePromotion += 1;
             
-            // Calculate daily income based on annual salary
-            dailyIncome = state.job.salary / 365;
+            // Calculate daily income based on monthly salary (salary is stored as annual amount)
+            // Most jobs pay monthly, so we'll divide by 12 to get monthly, then by 30 for daily
+            const monthlyIncome = state.job.salary / 12;
+            dailyIncome = monthlyIncome / 30;
+            
+            // Add a small random variation to make payments more interesting (±5%)
+            const variation = 1 + ((Math.random() * 0.1) - 0.05);
+            dailyIncome = dailyIncome * variation;
           }
           
           // Add property income
@@ -1041,6 +1048,32 @@ export const useCharacter = create<CharacterState>()(
           // If multiple needs are critical, health declines faster
           if ((hunger < 10 && thirst < 10) || (hunger < 10 && energy < 10) || (thirst < 10 && energy < 10)) {
             health = Math.max(0, health - 3);
+          }
+          
+          // Format currency for notifications
+          const formatCurrency = (amount: number) => {
+            return new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD'
+            }).format(amount);
+          };
+          
+          // Show a salary notification if there's a job
+          if (state.job && dailyIncome > 0) {
+            toast(`Daily salary payment received: ${formatCurrency(dailyIncome)}`, {
+              duration: 3000,
+              position: 'bottom-right',
+              icon: '💰'
+            });
+          }
+          
+          // Show property income notification if there's any
+          if (dailyPropertyIncome > 0) {
+            toast(`Property income received: ${formatCurrency(dailyPropertyIncome)}`, {
+              duration: 3000,
+              position: 'bottom-right',
+              icon: '🏢'
+            });
           }
           
           // Apply changes
