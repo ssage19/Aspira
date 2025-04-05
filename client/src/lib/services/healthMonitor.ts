@@ -1,7 +1,8 @@
 import { useCharacter } from '../stores/useCharacter';
 import { useRandomEvents, EventSeverity } from '../stores/useRandomEvents';
 import { useAudio } from '../stores/useAudio';
-import { getEventBySeverity, calculateEventCost, HealthEvent } from '../data/healthEvents';
+import { getEventBySeverity, calculateEventCost, HealthEvent, checkForCharacterDeath, getEventCount } from '../data/healthEvents';
+import { useGame } from '../stores/useGame';
 import { toast } from 'sonner';
 import React from 'react';
 
@@ -14,6 +15,9 @@ const HEALTH_CHECK_INTERVAL = 60000; // Check health every minute
 let lastHealthEventTime = 0;
 // Cooldown between health events (in milliseconds)
 const HEALTH_EVENT_COOLDOWN = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// Track if character has died
+let characterDied = false;
 
 export function initializeHealthMonitor() {
   // Start monitoring health
@@ -91,6 +95,8 @@ export function checkHealthStatus() {
 function triggerHealthEvent(character: ReturnType<typeof useCharacter.getState>) {
   const { health, wealth, addWealth, addHealth, addStress } = character;
   const randomEvents = useRandomEvents.getState();
+  const game = useGame.getState();
+  const { playSound } = useAudio.getState();
   
   // Get event based on current health
   const healthEvent = getEventBySeverity(health);
@@ -114,7 +120,62 @@ function triggerHealthEvent(character: ReturnType<typeof useCharacter.getState>)
   // Create an event description
   const eventDescription = createEventDescription(healthEvent, actualCost);
   
-  // Add as an active event
+  // Check for character death (only possible with critical events)
+  if (!characterDied && checkForCharacterDeath(healthEvent)) {
+    // Set the flag to prevent multiple death events
+    characterDied = true;
+    
+    // Create a special death message
+    const deathMessage = `${healthEvent.title} has resulted in a fatal outcome. Your character has died.`;
+    
+    // Show a special death notification immediately
+    toast.error(deathMessage, { 
+      duration: Infinity, // Keep visible until user interaction
+      position: 'top-center', // Valid position value
+      style: { 
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        color: 'white',
+        border: '2px solid #ff0000',
+        padding: '20px',
+        fontSize: '1.2rem'
+      }
+    });
+    
+    // Play a death sound if available
+    playSound('hit');
+    
+    // Add death event to store
+    randomEvents.addActiveEvent({
+      id: `death-event-${Date.now()}`,
+      title: 'FATAL: ' + healthEvent.title,
+      description: deathMessage,
+      category: 'health',
+      type: 'death',
+      expiry: Date.now() + (100 * 365 * 24 * 60 * 60 * 1000), // Essentially never expires
+      effects: {
+        healthChange: -100, // Complete health loss
+        wealth: -actualCost
+      },
+      severity: 'critical' as EventSeverity,
+      isActive: true
+    });
+    
+    // Show prompt for character reset after a delay
+    setTimeout(() => {
+      if (confirm('Your character has died. Would you like to start over with a new character?')) {
+        // Reset character
+        character.resetCharacter();
+        characterDied = false;
+        
+        // Navigate to character creation
+        window.location.href = '/create';
+      }
+    }, 3000);
+    
+    return;
+  }
+  
+  // For non-death events, continue with regular event processing
   randomEvents.addActiveEvent({
     id: `health-event-${Date.now()}`,
     title: healthEvent.title,
@@ -131,8 +192,12 @@ function triggerHealthEvent(character: ReturnType<typeof useCharacter.getState>)
     isActive: true
   });
   
-  // Show a detailed notification
+  // Show event details in UI
   showHealthEventNotification(healthEvent, actualCost);
+  
+  // Add health event stats to UI (for testing)
+  const eventCountMessage = `Health event #${getEventCount()} | Severity: ${healthEvent.severity}`;
+  toast.info(eventCountMessage, { duration: 3000 });
 }
 
 function createEventDescription(event: HealthEvent, cost: number): string {

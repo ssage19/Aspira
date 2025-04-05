@@ -561,12 +561,42 @@ export function getRandomHealthEvent(severity?: 'minor' | 'moderate' | 'severe' 
   return filteredEvents[randomIndex];
 }
 
+// Keep track of health events globally
+let healthEventCounter = 0;
+const BASE_CRITICAL_CHANCE = 0.8; // 80% chance of critical event when health <= 10
+const EVENT_COUNT_MULTIPLIER = 0.02; // Each event increases critical chance by 2%
+const DEATH_CHANCE = 0.01; // 1% chance of death after a critical event
+
+export function getEventCount(): number {
+  return healthEventCounter;
+}
+
+export function resetEventCount(): void {
+  healthEventCounter = 0;
+}
+
+export function incrementEventCount(): void {
+  healthEventCounter++;
+}
+
 export function getEventBySeverity(health: number): HealthEvent {
-  // Determine severity based on health level
+  // Determine severity based on health level and event history
   let severity: 'minor' | 'moderate' | 'severe' | 'critical';
   
+  // Increment the event counter
+  incrementEventCount();
+  
   if (health <= 10) {
-    severity = 'critical';
+    // Calculate critical event probability based on event count
+    // Base chance starts at 80%, increases by 2% for every past health event
+    const criticalChance = Math.min(1.0, BASE_CRITICAL_CHANCE + (healthEventCounter * EVENT_COUNT_MULTIPLIER));
+    
+    // Determine if this is a critical event based on calculated probability
+    if (Math.random() <= criticalChance) {
+      severity = 'critical';
+    } else {
+      severity = 'severe';
+    }
   } else if (health <= 25) {
     severity = 'severe';
   } else if (health <= 40) {
@@ -576,6 +606,14 @@ export function getEventBySeverity(health: number): HealthEvent {
   }
   
   return getRandomHealthEvent(severity);
+}
+
+// Calculate if this event results in character death (only for critical events)
+export function checkForCharacterDeath(event: HealthEvent): boolean {
+  if (event.severity === 'critical' && Math.random() <= DEATH_CHANCE) {
+    return true;
+  }
+  return false;
 }
 
 export function calculateEventCost(event: HealthEvent, wealth: number): number {
