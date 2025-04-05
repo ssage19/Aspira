@@ -160,6 +160,44 @@ export const trackAssetAchievements = (assets: any[]) => {
     }
   });
   
+  // Track investment-specific achievements
+  const investmentAchievements = ['investment-1', 'investment-2', 'investment-3'];
+  
+  // Check if we have any stocks
+  if (assetTypes.stock > 0) {
+    const achievement = getAchievement('investment-1');
+    if (achievement && !achievement.isUnlocked) {
+      // This is the "Novice Investor" achievement - "Make your first stock purchase"
+      const progress = updateProgress('investment-1', 1);
+      if (progress >= 100) {
+        console.log("Unlocking Novice Investor achievement!");
+        unlockAchievement('investment-1');
+        playSuccess();
+      }
+    }
+  }
+  
+  // Check if we have 5 different assets for "Portfolio Manager" achievement
+  const uniqueAssetCount = Object.values(assetTypes).filter(count => count > 0).length;
+  const portfolioManagerAchievement = getAchievement('investment-2');
+  if (portfolioManagerAchievement && !portfolioManagerAchievement.isUnlocked) {
+    const progress = updateProgress('investment-2', uniqueAssetCount);
+    if (progress >= 100) {
+      unlockAchievement('investment-2');
+      playSuccess();
+    }
+  }
+  
+  // Check investment value for "Investment Guru" achievement
+  const investmentGuruAchievement = getAchievement('investment-3');
+  if (investmentGuruAchievement && !investmentGuruAchievement.isUnlocked) {
+    const progress = updateProgress('investment-3', totalValue);
+    if (progress >= 100) {
+      unlockAchievement('investment-3');
+      playSuccess();
+    }
+  }
+  
   // Track asset portfolio value
   const portfolioValueAchievements = ['asset-value-1', 'asset-value-2', 'asset-value-3'];
   

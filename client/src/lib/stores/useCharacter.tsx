@@ -491,6 +491,13 @@ export const useCharacter = create<CharacterState>()(
         // of equal value, but recalculate to ensure all values are in sync
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
+        
+        // Import here to avoid circular dependency
+        const { trackAssetAchievements } = require('../services/achievementTracker');
+        
+        // Explicitly track achievements for the new asset state
+        trackAssetAchievements(get().assets);
+        
         saveState();
       },
       
@@ -535,6 +542,13 @@ export const useCharacter = create<CharacterState>()(
         // Calculate new net worth
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
+        
+        // Import here to avoid circular dependency
+        const { trackAssetAchievements } = require('../services/achievementTracker');
+        
+        // Explicitly track achievements for the updated asset state
+        trackAssetAchievements(get().assets);
+        
         saveState();
         
         return saleValue;

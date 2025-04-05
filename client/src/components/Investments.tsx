@@ -149,11 +149,12 @@ export function Investments() {
       type: 'stock',
       quantity,
       purchasePrice: stockPrice,
-      currentPrice: stockPrice, // Add the currentPrice
+      currentPrice: stockPrice,
       purchaseDate: `${currentDay}`
     });
     
-    addWealth(-totalCost);
+    // Note: addWealth is intentionally removed from here because addAsset already
+    // subtracts the cost from wealth. Adding it here would subtract it twice.
     playSuccess();
     toast.success(`Purchased ${quantity.toFixed(2)} shares of ${selectedStock.name}`);
   };
@@ -186,7 +187,8 @@ export function Investments() {
       sellAsset(selectedStock.id, ownedQuantity);
     }
     
-    addWealth(sellValue);
+    // Note: addWealth is intentionally removed because sellAsset already 
+    // adds the sale value to wealth. Adding it here would add it twice.
     playSuccess();
     
     if (isPartialSale) {
