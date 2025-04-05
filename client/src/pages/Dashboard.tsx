@@ -6,6 +6,7 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
+import { ThemeToggle } from '../components/ui/theme-toggle';
 import CharacterAttributes from '../components/CharacterAttributes';
 import { 
   DollarSign, 
@@ -628,6 +629,20 @@ export default function Dashboard() {
                             </AlertDialogFooter>
                           </AlertDialogContent>
                         </AlertDialog>
+                      </div>
+
+                      <div className="bg-secondary/30 p-5 rounded-lg glass-effect border border-secondary/10">
+                        <h3 className="text-lg font-medium mb-2 flex items-center">
+                          <Settings className="h-5 w-5 mr-2 text-purple-400" />
+                          Display Settings
+                        </h3>
+                        <Separator className="my-3 bg-secondary/50" />
+                        <div className="flex justify-between items-center">
+                          <p className="text-sm text-muted-foreground">
+                            Toggle between light and dark mode for the game interface.
+                          </p>
+                          <ThemeToggle />
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
