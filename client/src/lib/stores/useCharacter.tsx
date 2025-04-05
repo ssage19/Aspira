@@ -746,12 +746,7 @@ export const useCharacter = create<CharacterState>()(
           
           // Calculate closing costs and realtor fees (typically 6-7% of sale price)
           const closingCostPercentage = 0.07; // 7%
-          const closingCosts = property.currentValue * closingCostPercentage;
           
-          // Calculate outstanding loan balance
-          const outstandingLoan = property.loanAmount || 0;
-          
-          // Calculate early payoff penalty if applicable (usually 2-3% if within first few years)
           // Calculate months since purchase
           const purchaseDate = new Date(property.purchaseDate);
           const currentDate = new Date();
@@ -762,60 +757,82 @@ export const useCharacter = create<CharacterState>()(
           
           // Ensure we never have negative months (could happen with system clock issues)
           monthsSincePurchase = Math.max(0, monthsSincePurchase);
-            
-          let earlyPayoffPenalty = 0;
-          if (monthsSincePurchase < 36) { // Less than 3 years
-            earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
-          }
           
-          // For quick flips (less than 1 month), add significant transaction costs
-          // This reflects market reality and prevents exploiting quick buy/sell
-          let quickFlipFee = 0;
-          let quickFlipAdjustment = 1.0; // Default: no adjustment
-          
-          if (monthsSincePurchase < 1) {
-            // For very quick flips (< 1 month), the property loses 15% of its value
-            // This simulates significant transaction costs and market inefficiency
-            quickFlipAdjustment = 0.85; // 15% loss in value
-            
-            // Log for debugging
-            console.log(`Quick flip detected (< 1 month): Applying 15% value reduction`);
-            console.log(`Original purchase price: ${property.purchasePrice}, Current market value before reduction: ${property.currentValue}`);
-          } else if (monthsSincePurchase < 6) {
-            // For moderately quick flips (1-6 months), the property loses 8% of its value
-            quickFlipAdjustment = 0.92; // 8% loss in value
-            
-            // Log for debugging
-            console.log(`Quick flip detected (1-6 months): Applying 8% value reduction`);
-            console.log(`Original purchase price: ${property.purchasePrice}, Current market value before reduction: ${property.currentValue}`);
-          }
+          // Store original purchase price for reference
+          const originalPurchasePrice = property.purchasePrice || property.currentValue; 
           
           // Store the original property value before any adjustments
           const originalPropertyValue = property.currentValue;
+          console.log(`Original property value: ${originalPropertyValue}`);
           
-          // Calculate the quick flip fee 
-          if (quickFlipAdjustment < 1.0) {
-            // The quick-flip fee is the difference between original value and adjusted value
-            quickFlipFee = originalPropertyValue * (1 - quickFlipAdjustment);
-            console.log(`Original property value: ${originalPropertyValue}`);
-            console.log(`Quick flip adjustment: ${quickFlipAdjustment}`);
-            console.log(`Quick flip fee calculated: ${quickFlipFee}`);
+          // Calculate outstanding loan balance
+          const outstandingLoan = property.loanAmount || 0;
+          console.log(`Outstanding loan: ${outstandingLoan}`);
+          
+          /*
+           * MAJOR CHANGE: For properties that are flipped too quickly, we need to ensure
+           * the player takes a loss compared to their initial investment. 
+           * 
+           * 1. For immediate flips, the sale value should be substantially reduced
+           * 2. Additional transaction costs should apply to make quick-flipping unprofitable
+           * 3. The player should lose money when selling very recent purchases
+           */
+          
+          // Define our scaling factors for quick flips
+          let quickFlipAdjustment = 1.0; // Default: no adjustment
+          let transactionCostMultiplier = 1.0; // Default: standard transaction costs
+          let additionalTransactionCosts = 0; // Additional flat costs
+          
+          if (monthsSincePurchase < 1) {
+            // For very quick flips (< 1 month):
+            // 1. Reduce property value by 15%
+            // 2. Increase transaction costs by 50%
+            // 3. Add flat costs to ensure it's never profitable
+            quickFlipAdjustment = 0.85; // 15% reduction in property value
+            transactionCostMultiplier = 1.5; // 50% more in closing costs
+            
+            // Add additional transaction costs that scale with property value
+            // This ensures the player always loses some money on an immediate flip
+            additionalTransactionCosts = originalPurchasePrice * 0.05; // Additional 5% transaction costs
+            
+            console.log(`Quick flip detected (< 1 month): Applying severe penalties`);
+          } else if (monthsSincePurchase < 6) {
+            // For moderately quick flips (1-6 months):
+            // 1. Reduce property value by 8%
+            // 2. Increase transaction costs by 25%
+            quickFlipAdjustment = 0.92; // 8% reduction in property value
+            transactionCostMultiplier = 1.25; // 25% more in closing costs
+            
+            // Add smaller additional transaction costs
+            additionalTransactionCosts = originalPurchasePrice * 0.03; // Additional 3% transaction costs
+            
+            console.log(`Quick flip detected (1-6 months): Applying moderate penalties`);
           }
           
-          // Apply the quick flip adjustment to the property's current value
-          // This will reduce the value of the property used for the sale calculation
-          // The original calculation was wrong because it added to the wealth
+          // Calculate the adjusted market value after quick-flip adjustments
           const adjustedValue = Math.round(originalPropertyValue * quickFlipAdjustment);
-          console.log(`Original property value: ${originalPropertyValue}, Adjusted value after quick-flip penalty: ${adjustedValue}`);
+          console.log(`Property value after quick-flip adjustment: ${adjustedValue} (was ${originalPropertyValue})`);
           property.currentValue = adjustedValue;
           
+          // Calculate the quick flip fee (the value reduction)
+          const quickFlipFee = originalPropertyValue - adjustedValue;
+          console.log(`Quick flip fee (value reduction): ${quickFlipFee}`);
+          
+          // Calculate closing costs with the adjusted multiplier and after value reduction
+          const closingCosts = (property.currentValue * closingCostPercentage * transactionCostMultiplier) + additionalTransactionCosts;
+          console.log(`Closing costs: ${closingCosts} (includes additional transaction costs of ${additionalTransactionCosts})`);
+          
+          // Calculate early payoff penalty if applicable (usually 2-3% if within first few years)
+          let earlyPayoffPenalty = 0;
+          if (monthsSincePurchase < 36) { // Less than 3 years
+            earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
+            console.log(`Early payoff penalty: ${earlyPayoffPenalty}`);
+          }
+          
           // Calculate net proceeds from sale
-          // Note: The property.currentValue already includes the quick flip adjustment
           const grossSalePrice = property.currentValue;
           
           // Calculate net proceeds properly deducting all costs
-          // We already applied the quick flip reduction to the property value,
-          // so we don't need to subtract the quickFlipFee again
           saleValue = grossSalePrice - closingCosts - outstandingLoan - earlyPayoffPenalty;
           
           console.log(`Detailed sale calculation:`);
@@ -825,6 +842,12 @@ export const useCharacter = create<CharacterState>()(
           console.log(`Minus early payoff penalty: ${earlyPayoffPenalty}`);
           console.log(`Equals net proceeds: ${saleValue}`);
           
+          // Compare with initial investment (down payment)
+          const downPayment = originalPurchasePrice - outstandingLoan;
+          const profitOrLoss = saleValue - downPayment;
+          console.log(`Initial down payment: ${downPayment}`);
+          console.log(`Profit/Loss on investment: ${profitOrLoss}`);
+          
           // If the property is underwater (worth less than what's owed + costs),
           // the player still needs to pay the difference to close the sale
           if (saleValue < 0) {
@@ -832,7 +855,7 @@ export const useCharacter = create<CharacterState>()(
             const maxLoss = Math.min(Math.abs(saleValue), state.wealth);
             
             // Display a message to the user about the underwater property
-            toast.warning(`This property is underwater - you paid ${formatCurrency(maxLoss)} to close the sale`, {
+            toast.error(`This property is underwater - you paid ${formatCurrency(maxLoss)} to close the sale`, {
               duration: 5000,
               position: 'bottom-right',
             });
@@ -853,19 +876,38 @@ export const useCharacter = create<CharacterState>()(
             propertyExpenseReduction = property.monthlyPayment || 0;
             incomeReduction = property.income || 0;
             
-            // For quick flips, show breakdown of the transaction costs
-            if (quickFlipFee > 0) {
+            // For quick flips, provide detailed breakdown to the player
+            if (quickFlipAdjustment < 1.0) {
               // Make sure we don't show negative months (can happen if the system clock is off)
               const displayMonths = Math.max(0, monthsSincePurchase);
               
-              // Show both the original value and the reduced value with the quick flip fee applied
-              const originalValue = property.currentValue / quickFlipAdjustment;
-              toast.info(`Original value: ${formatCurrency(originalValue)}, Sale value after ${displayMonths}-month quick flip penalty: ${formatCurrency(property.currentValue)}`, {
+              // Compare against original values
+              toast.info(`Original value: ${formatCurrency(originalPropertyValue)}, Sale value after ${displayMonths}-month quick flip: ${formatCurrency(property.currentValue)}`, {
                 duration: 5000,
                 position: 'bottom-right',
               });
               
-              toast.info(`Quick flip fee: ${formatCurrency(quickFlipFee)} due to selling after only ${displayMonths} months`, {
+              // Show breakdown of transaction costs
+              toast.info(`Quick flip fees: ${formatCurrency(quickFlipFee)} value reduction + ${formatCurrency(additionalTransactionCosts)} extra transaction costs`, {
+                duration: 5000,
+                position: 'bottom-right',
+              });
+              
+              // Show the profit/loss information
+              if (profitOrLoss < 0) {
+                toast.error(`You lost ${formatCurrency(Math.abs(profitOrLoss))} on this investment due to quick-flip penalties`, {
+                  duration: 5000,
+                  position: 'bottom-right',
+                });
+              } else {
+                toast.info(`Net proceeds: ${formatCurrency(saleValue)}`, {
+                  duration: 5000,
+                  position: 'bottom-right',
+                });
+              }
+            } else {
+              // Normal sale without quick-flip penalties
+              toast.info(`Property sold for ${formatCurrency(grossSalePrice)} with net proceeds of ${formatCurrency(saleValue)}`, {
                 duration: 5000,
                 position: 'bottom-right',
               });
@@ -874,9 +916,6 @@ export const useCharacter = create<CharacterState>()(
             // Log detailed sale calculation
             console.log(`Final sale proceeds: ${saleValue}`);
             
-            // Now properly deduct the quick flip fee
-            // Note: saleValue already includes the reduction in property.currentValue
-            // so we don't need to subtract quickFlipFee again
             return {
               properties: state.properties.filter(p => p.id !== propertyId),
               wealth: state.wealth + saleValue,

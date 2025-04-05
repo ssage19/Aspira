@@ -190,100 +190,61 @@ export function Properties() {
     
     console.log(`Months since purchase: ${monthsSincePurchase}`);
     
-    // Calculate standard selling costs (typically 6-7% of sale price)
-    const closingCostPercentage = 0.07; // 7%
-    const closingCosts = currentMarketValue * closingCostPercentage;
-    
     // Calculate remaining loan amount
     const outstandingLoan = property.loanAmount || 0;
     
-    // Calculate early payoff penalty if applicable (2-3% if sold within first 3 years)
-    let earlyPayoffPenalty = 0;
-    if (monthsSincePurchase < 36) { // Less than 3 years
-      earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
-    }
+    // Calculate initial investment (down payment)
+    const originalPurchasePrice = property.purchasePrice;
+    const downPayment = originalPurchasePrice - outstandingLoan;
     
-    // Net proceeds calculation
-    // Note: The actual quick-flip penalty will be applied inside sellProperty
-    // This is just an estimate for confirming the sale; the actual amount may differ
-    const netProceeds = currentMarketValue - closingCosts - outstandingLoan - earlyPayoffPenalty;
-    
-    // Log estimated net proceeds before quikc-flip penalty
-    console.log(`Estimated net proceeds before quick-flip penalty: ${netProceeds}`);
-    
-    // Show quick-flip warning if applicable
+    // Show appropriate warning based on how long the property has been owned
     if (monthsSincePurchase < 1) {
+      // Very quick flip - severe penalties will apply
       toast.warning(
-        `Quick flip warning: Selling after less than 1 month will result in a 15% loss in value`, 
+        `Warning: Selling after less than 1 month will result in significant financial loss due to penalties and transaction costs.`, 
         { duration: 5000 }
       );
+      
+      // Show specific breakdown of penalties
+      toast.warning(
+        `You will incur: 15% reduction in property value, 50% increased closing costs, and additional transaction fees.`, 
+        { duration: 5000 }
+      );
+      
+      // Confirm with clear warning about financial impact
+      if (!confirm(`Are you sure you want to sell ${property.name}? This is a very quick flip (less than 1 month) and WILL result in financial loss compared to your initial investment.`)) {
+        return; // User canceled the sale
+      }
     } else if (monthsSincePurchase < 6) {
-      // We already ensured that monthsSincePurchase is not negative, but as an extra precaution
+      // Moderately quick flip - moderate penalties will apply
       const displayMonths = Math.max(0, monthsSincePurchase);
       toast.warning(
-        `Quick flip warning: Selling after ${displayMonths} months will result in an 8% loss in value`, 
+        `Warning: Selling after only ${displayMonths} months will result in reduced profits due to penalties and transaction costs.`, 
         { duration: 5000 }
       );
-    }
-    
-    // Ensure the user understands what's happening with the sale
-    if (netProceeds < 0) {
-      // The property is underwater (worth less than what's owed)
-      toast.warning(`This property is underwater - selling will require you to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan`, {
-        duration: 5000,
-        position: 'bottom-right',
-      });
       
-      // Confirm sale for underwater properties
-      if (!confirm(`Are you sure you want to sell ${property.name}? You'll need to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan and closing costs.`)) {
+      // Show specific breakdown of penalties
+      toast.warning(
+        `You will incur: 8% reduction in property value, 25% increased closing costs, and additional transaction fees.`, 
+        { duration: 5000 }
+      );
+      
+      // Confirm with clear warning about financial impact
+      if (!confirm(`Are you sure you want to sell ${property.name}? This is a quick flip (${displayMonths} months) and may result in reduced profits or even loss due to transaction costs.`)) {
         return; // User canceled the sale
       }
     } else {
-      // For non-underwater properties, still confirm the sale
-      if (monthsSincePurchase < 6) {
-        if (!confirm(`Are you sure you want to sell ${property.name}? This is a quick flip and will result in reduced sale value.`)) {
-          return; // User canceled the sale
-        }
+      // Normal sale, just confirm
+      if (!confirm(`Are you sure you want to sell ${property.name}?`)) {
+        return; // User canceled the sale
       }
     }
     
-    // Log final values before sale for debugging
-    console.log(`Final values before sale`);
-    console.log(`Market value: ${currentMarketValue}, Outstanding loan: ${outstandingLoan}`);
-    console.log(`Closing costs: ${closingCosts}, Early payoff penalty: ${earlyPayoffPenalty}`);
-    
-    // Process sale (quick-flip penalties applied inside sellProperty)
+    // Process sale (quick-flip penalties and calculations are handled inside sellProperty)
     const actualSaleProceeds = sellProperty(propertyId);
     
-    // Display detailed sale information
-    if (actualSaleProceeds >= 0) {
-      // Note: If a quick flip fee was applied, currentMarketValue doesn't reflect the actual sale price
-      // The actual sale price is computed in useCharacter.sellProperty after applying the quick flip adjustment
-      // So we don't show the sale price here to avoid confusing the user with inconsistent numbers
-      toast.success(`Successfully sold ${property.name}`, {
-        duration: 3000,
-        position: 'bottom-right',
-      });
-      
-      const costsSummary = `Loan payoff: ${formatCurrency(outstandingLoan)}, Closing costs: ${formatCurrency(closingCosts)}`;
-      
-      // Always show the net proceeds - the quick flip fee toast is handled in useCharacter.sellProperty
-      // This ensures consistency in the displayed calculations
-      toast.info(`${costsSummary}`, {
-        duration: 5000,
-        position: 'bottom-right',
-      });
-      
-      toast.info(`Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
-        duration: 5000,
-        position: 'bottom-right',
-      });
-    } else {
-      toast(`You had to pay ${formatCurrency(Math.abs(actualSaleProceeds))} to sell this underwater property`, {
-        duration: 5000,
-        position: 'bottom-right',
-      });
-    }
+    // The detailed breakdown and toast messages are now handled in the useCharacter.sellProperty function
+    // We don't need to show any additional messages here to avoid duplicate/conflicting information
     
     playSuccess();
   };
