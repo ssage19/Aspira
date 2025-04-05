@@ -1284,6 +1284,7 @@ export const useCharacter = create<CharacterState>()(
           propertyEquity: 0,
           propertyValue: 0,
           propertyDebt: 0,
+          lifestyleItems: 0, // Add lifestyle items to the breakdown
           total: 0
         };
         
@@ -1326,6 +1327,37 @@ export const useCharacter = create<CharacterState>()(
           netWorth += equity;
         });
         
+        // Add lifestyle item values to net worth
+        // These should be considered depreciating assets but still have some value
+        state.lifestyleItems.forEach(item => {
+          // For lifestyle items, use purchase price with depreciation 
+          // or a fixed value based on their monthly cost
+          const purchasePrice = item.purchasePrice || 0;
+          let itemValue = 0;
+          
+          if (purchasePrice > 0) {
+            // Calculate time since purchase to apply depreciation
+            const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
+            const currentDate = new Date();
+            const monthsSincePurchase = Math.max(0, 
+              (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+              (currentDate.getMonth() - purchaseDate.getMonth())
+            );
+            
+            // Apply depreciation based on months owned
+            // Lifestyle items lose value over time but retain some residual value
+            const depreciation = Math.min(0.75, monthsSincePurchase * 0.05); // Max 75% depreciation
+            itemValue = purchasePrice * (1 - depreciation);
+          } else {
+            // If no purchase price, estimate value based on monthly cost
+            // This is for subscriptions and other recurring items
+            itemValue = item.monthlyCost * 3; // Value as 3 months of payments
+          }
+          
+          breakdown.lifestyleItems += itemValue;
+          netWorth += itemValue;
+        });
+        
         // Calculate total for percentage calculation
         breakdown.total = netWorth;
         
@@ -1337,6 +1369,7 @@ export const useCharacter = create<CharacterState>()(
         console.log(`Bonds: ${breakdown.bonds} (${((breakdown.bonds / breakdown.total) * 100).toFixed(2)}%)`);
         console.log(`Other investments: ${breakdown.otherInvestments} (${((breakdown.otherInvestments / breakdown.total) * 100).toFixed(2)}%)`);
         console.log(`Property equity: ${breakdown.propertyEquity} (${((breakdown.propertyEquity / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Lifestyle Items: ${breakdown.lifestyleItems} (${((breakdown.lifestyleItems / breakdown.total) * 100).toFixed(2)}%)`);
         console.log(`Property value: ${breakdown.propertyValue}`);
         console.log(`Property debt: ${breakdown.propertyDebt}`);
         console.log(`Total net worth: ${breakdown.total}`);
@@ -1360,6 +1393,7 @@ export const useCharacter = create<CharacterState>()(
           propertyEquity: 0,
           propertyValue: 0,
           propertyDebt: 0,
+          lifestyleItems: 0, // Include lifestyle items in the default response
           total: get().wealth
         };
       },

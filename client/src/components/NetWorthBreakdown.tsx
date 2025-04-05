@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function NetWorthBreakdown() {
-  const { wealth, assets, properties, calculateNetWorth } = useCharacter();
+  const { wealth, assets, properties, lifestyleItems, getNetWorthBreakdown } = useCharacter();
   const [netWorth, setNetWorth] = useState(0);
   const [breakdown, setBreakdown] = useState<any>({
     cash: 0,
@@ -20,59 +20,19 @@ export function NetWorthBreakdown() {
     propertyEquity: 0,
     propertyValue: 0,
     propertyDebt: 0,
+    lifestyleItems: 0,
     total: 0
   });
 
-  // Recalculate net worth and breakdown when assets or properties change
+  // Use the breakdown directly from the useCharacter store
   useEffect(() => {
-    const updatedNetWorth = calculateNetWorth();
-    setNetWorth(updatedNetWorth);
-    
-    // Calculate the net worth breakdown manually if needed
-    // Start with cash (liquid assets)
-    const breakdown = {
-      cash: wealth,
-      stocks: 0,
-      crypto: 0,
-      bonds: 0,
-      otherInvestments: 0,
-      propertyEquity: 0,
-      propertyValue: 0,
-      propertyDebt: 0,
-      total: updatedNetWorth
-    };
-    
-    // Add investment assets by type
-    assets.forEach(asset => {
-      const assetValue = asset.currentPrice * asset.quantity;
-      
-      switch(asset.type) {
-        case 'stock':
-          breakdown.stocks += assetValue;
-          break;
-        case 'crypto':
-          breakdown.crypto += assetValue;
-          break;
-        case 'bond':
-          breakdown.bonds += assetValue;
-          break;
-        default:
-          breakdown.otherInvestments += assetValue;
-      }
-    });
-    
-    // Add property values
-    properties.forEach(property => {
-      const equity = property.currentValue - property.loanAmount;
-      breakdown.propertyEquity += equity;
-      breakdown.propertyValue += property.currentValue;
-      breakdown.propertyDebt += property.loanAmount;
-    });
-    
-    setBreakdown(breakdown);
-  }, [wealth, assets, properties, calculateNetWorth]);
+    // Get the net worth breakdown directly from the store
+    const storeBreakdown = getNetWorthBreakdown();
+    setBreakdown(storeBreakdown);
+    setNetWorth(storeBreakdown.total);
+  }, [wealth, assets, properties, lifestyleItems, getNetWorthBreakdown]);
 
-  // Prepare chart data
+  // Prepare chart data - now include lifestyle items
   const chartData = {
     labels: [
       'Cash', 
@@ -80,7 +40,8 @@ export function NetWorthBreakdown() {
       'Crypto',
       'Bonds',
       'Other Investments',
-      'Property Equity'
+      'Property Equity',
+      'Lifestyle Items'
     ],
     datasets: [
       {
@@ -90,7 +51,8 @@ export function NetWorthBreakdown() {
           breakdown.crypto,
           breakdown.bonds,
           breakdown.otherInvestments,
-          breakdown.propertyEquity
+          breakdown.propertyEquity,
+          breakdown.lifestyleItems || 0 // Handle if this property is missing
         ],
         backgroundColor: [
           '#3B82F6', // Cash - Blue
@@ -98,7 +60,8 @@ export function NetWorthBreakdown() {
           '#F59E0B', // Crypto - Amber
           '#6366F1', // Bonds - Indigo
           '#8B5CF6', // Other - Purple
-          '#EC4899'  // Property - Pink
+          '#EC4899', // Property - Pink
+          '#FB7185'  // Lifestyle - Rose
         ],
         borderColor: [
           '#2563EB',
@@ -106,7 +69,8 @@ export function NetWorthBreakdown() {
           '#D97706',
           '#4F46E5',
           '#7C3AED',
-          '#DB2777'
+          '#DB2777',
+          '#E11D48'
         ],
         borderWidth: 1,
       },
@@ -154,7 +118,8 @@ export function NetWorthBreakdown() {
             { label: 'Crypto', value: breakdown.crypto, color: 'bg-amber-500' },
             { label: 'Bonds', value: breakdown.bonds, color: 'bg-indigo-500' },
             { label: 'Other Investments', value: breakdown.otherInvestments, color: 'bg-purple-500' },
-            { label: 'Property Equity', value: breakdown.propertyEquity, color: 'bg-pink-500' }
+            { label: 'Property Equity', value: breakdown.propertyEquity, color: 'bg-pink-500' },
+            { label: 'Lifestyle Items', value: breakdown.lifestyleItems || 0, color: 'bg-rose-500' }
           ].map((item, index) => (
             <div key={index} className="flex items-center space-x-1">
               <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
@@ -193,6 +158,16 @@ export function NetWorthBreakdown() {
                 <span className="text-gray-600">Property Leverage</span>
                 <span className={`font-medium ${(breakdown.propertyDebt / breakdown.propertyValue) < 0.5 ? 'text-green-600' : (breakdown.propertyDebt / breakdown.propertyValue) < 0.8 ? 'text-amber-600' : 'text-red-600'}`}>
                   {formatPercentage(breakdown.propertyDebt / breakdown.propertyValue)}
+                </span>
+              </div>
+            )}
+            
+            {/* Lifestyle Asset Ratio */}
+            {(breakdown.lifestyleItems || 0) > 0 && (
+              <div className="flex justify-between items-center col-span-2">
+                <span className="text-gray-600">Lifestyle Assets</span>
+                <span className={`font-medium ${((breakdown.lifestyleItems || 0) / breakdown.total) < 0.15 ? 'text-green-600' : ((breakdown.lifestyleItems || 0) / breakdown.total) < 0.3 ? 'text-amber-600' : 'text-red-600'}`}>
+                  {formatPercentage((breakdown.lifestyleItems || 0) / breakdown.total)}
                 </span>
               </div>
             )}
