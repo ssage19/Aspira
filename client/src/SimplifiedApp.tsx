@@ -16,16 +16,40 @@ export default function SimplifiedApp() {
   };
 
   const resetAllGameData = () => {
-    // Clear all localStorage data
-    localStorage.removeItem('business-empire-game');
-    localStorage.removeItem('business-empire-character');
-    localStorage.removeItem('business-empire-time');
-    localStorage.removeItem('business-empire-economy');
-    localStorage.removeItem('business-empire-audio');
-    localStorage.removeItem('emergency-mode');
-    
-    // Reload the page
-    window.location.reload();
+    try {
+      // Clear all localStorage data that starts with business-empire
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('business-empire') || key === 'emergency-mode')) {
+          console.log('Removing', key);
+          localStorage.removeItem(key);
+          i--; // Adjust index since we're removing items
+        }
+      }
+      
+      // Additional specific keys to remove
+      const keysToRemove = [
+        'business-empire-game',
+        'business-empire-character',
+        'business-empire-time',
+        'business-empire-economy',
+        'business-empire-audio',
+        'business-empire-achievements',
+        'emergency-mode'
+      ];
+      
+      keysToRemove.forEach(key => {
+        localStorage.removeItem(key);
+      });
+      
+      console.log('All game data cleared successfully.');
+      
+      // Reload the page
+      window.location.reload();
+    } catch (error) {
+      console.error('Error resetting game data:', error);
+      alert('Error resetting game data. Please try again.');
+    }
   };
 
   return (
