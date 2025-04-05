@@ -14,7 +14,7 @@ import { expandedStockMarket } from '../lib/data/sp500Stocks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Investments() {
-  const { wealth, addWealth, addAsset, removeAsset, assets } = useCharacter();
+  const { wealth, addWealth, addAsset, sellAsset, assets } = useCharacter();
   const { marketTrend, stockMarketHealth } = useEconomy();
   const { currentDay } = useTime();
   const { playSuccess, playHit } = useAudio();
@@ -149,6 +149,7 @@ export function Investments() {
       type: 'stock',
       quantity,
       purchasePrice: stockPrice,
+      currentPrice: stockPrice, // Add the currentPrice
       purchaseDate: `${currentDay}`
     });
     
@@ -178,21 +179,11 @@ export function Investments() {
     const sellValue = quantityToSell * stockPrice;
     
     if (isPartialSale) {
-      // Partial sell - create a new asset with reduced quantity
-      const existingAsset = assets.find(asset => asset.id === selectedStock.id && asset.type === 'stock');
-      if (existingAsset) {
-        // Remove the asset completely first
-        removeAsset(selectedStock.id, 'stock');
-        
-        // Add it back with reduced quantity
-        addAsset({
-          ...existingAsset,
-          quantity: existingAsset.quantity - quantityToSell
-        });
-      }
+      // Partial sell - use sellAsset for the specified quantity
+      sellAsset(selectedStock.id, quantityToSell);
     } else {
       // Sell all shares
-      removeAsset(selectedStock.id, 'stock');
+      sellAsset(selectedStock.id, ownedQuantity);
     }
     
     addWealth(sellValue);

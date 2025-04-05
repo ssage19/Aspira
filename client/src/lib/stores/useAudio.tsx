@@ -14,6 +14,7 @@ interface AudioState {
   stopMusic: () => void;
   playSound: (sound: string) => void;
   playSuccess: () => void;
+  playHit: () => void;
   setMuted: (muted: boolean) => void;
   setVolume: (volume: number) => void;
 }
@@ -98,6 +99,20 @@ export const useAudio = create<AudioState>()(
         } catch (error) {
           // Silently ignore errors - this is not critical functionality
           console.log("Could not play achievement sound, continuing silently");
+        }
+      },
+      
+      // Play hit/error sound for notifications
+      playHit: () => {
+        // Try to play the hit sound, but silently fail if it doesn't exist
+        try {
+          // We're using a default hit sound
+          const hitSound = '/sounds/error.mp3';
+          get().playSound(hitSound);
+          console.log("Playing hit sound");
+        } catch (error) {
+          // Silently ignore errors - this is not critical functionality
+          console.log("Could not play hit sound, continuing silently");
         }
       },
       
