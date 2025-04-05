@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
+import SimplifiedApp from "./SimplifiedApp";
 import "./index.css";
 import { ThemeProvider } from "./lib/ThemeProvider";
 import React from "react";
@@ -16,6 +17,19 @@ class GlobalErrorBoundary extends React.Component<{children: React.ReactNode}> {
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Log the error to console
     console.error("Global error caught by error boundary:", error, errorInfo);
+    
+    // Clear any problematic local storage that might be causing issues
+    try {
+      // Remove specific localStorage items that might be causing issues
+      localStorage.removeItem('business-empire-game');
+      localStorage.removeItem('business-empire-character');
+      localStorage.removeItem('business-empire-time');
+      localStorage.removeItem('business-empire-economy');
+      localStorage.removeItem('business-empire-audio');
+      localStorage.removeItem('emergency-mode');
+    } catch (err) {
+      console.error("Failed to clean localStorage:", err);
+    }
   }
 
   render() {
@@ -108,7 +122,12 @@ if (rootElement) {
       <React.StrictMode>
         <GlobalErrorBoundary>
           <ThemeProvider defaultTheme="dark">
-            <App />
+            {/* Use the simplified app when ?simplified=true is in the URL */}
+            {window.location.search.includes('simplified=true') ? (
+              <SimplifiedApp />
+            ) : (
+              <App />
+            )}
           </ThemeProvider>
         </GlobalErrorBoundary>
       </React.StrictMode>
@@ -116,6 +135,24 @@ if (rootElement) {
 
     // Start the cleanup process after the app has loaded
     window.addEventListener('load', cleanupNaNElements);
+    
+    // Add a utility function to reset the game state
+    // This will be available in the browser console via window.resetGame()
+    (window as any).resetGame = () => {
+      try {
+        console.log("Attempting to reset game state...");
+        localStorage.removeItem('business-empire-game');
+        localStorage.removeItem('business-empire-character');
+        localStorage.removeItem('business-empire-time');
+        localStorage.removeItem('business-empire-economy');
+        localStorage.removeItem('business-empire-audio');
+        localStorage.removeItem('emergency-mode');
+        console.log("Game state reset successful. Reloading page...");
+        window.location.reload();
+      } catch (err) {
+        console.error("Failed to reset game state:", err);
+      }
+    };
   } catch (error) {
     console.error("Error during initial render:", error);
     // Fallback if React fails to start

@@ -2,6 +2,93 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Emergency mode indicator */
+.emergency-mode-indicator {
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background-color: #ff4a4a;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 9000;
+  font-weight: bold;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+/* Background animation */
+.background-animation {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  z-index: -1;
+}
+
+.floating-cloud {
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  opacity: 0.2;
+  animation: float linear infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateX(-5%);
+  }
+  100% {
+    transform: translateX(105%);
+  }
+}
+
+/* Fix page that appears when there's a blank screen */
+#game-fix-page {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1e293b;
+  color: #fff;
+  font-family: sans-serif;
+  z-index: 9999;
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Show the fix page after 5 seconds if the app hasn't rendered */
+@keyframes showFixPage {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+    display: flex;
+  }
+}
+
+/* Apply the animation only to the fix page */
+#game-fix-page {
+  animation: showFixPage 1s ease-in-out 5s forwards;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Make it visible after animation completes */
+#game-fix-page.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Hide NaNm button elements - handled by JavaScript */
 
 @layer base {

@@ -5,10 +5,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-const getLocalStorage = (key: string): any =>
-  JSON.parse(window.localStorage.getItem(key) || "null");
-const setLocalStorage = (key: string, value: any): void =>
-  window.localStorage.setItem(key, JSON.stringify(value));
+/**
+ * Get data from localStorage, with error handling
+ * @param key The localStorage key
+ * @returns The parsed data or null if not found or error
+ */
+const getLocalStorage = (key: string): any => {
+  try {
+    const data = window.localStorage.getItem(key);
+    if (!data) return null;
+    return JSON.parse(data);
+  } catch (error) {
+    console.error(`Error reading from localStorage[${key}]:`, error);
+    return null;
+  }
+};
+
+/**
+ * Save data to localStorage, with error handling
+ * @param key The localStorage key
+ * @param value The data to save
+ */
+const setLocalStorage = (key: string, value: any): void => {
+  try {
+    // Special handling for values that might cause issues
+    const sanitizedValue = JSON.parse(JSON.stringify(value));
+    window.localStorage.setItem(key, JSON.stringify(sanitizedValue));
+  } catch (error) {
+    console.error(`Error writing to localStorage[${key}]:`, error);
+  }
+};
 
 /**
  * Format a number as currency
