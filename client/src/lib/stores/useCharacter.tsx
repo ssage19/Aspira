@@ -131,6 +131,7 @@ interface CharacterState {
   addStress: (amount: number) => void;
   addHealth: (amount: number) => void;
   addPrestige: (amount: number) => void;
+  updateSocialConnections: (amount: number) => void;
   
   // Basic needs
   updateHunger: (amount: number) => void;
@@ -389,6 +390,14 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const newPrestige = Math.max(0, Math.min(100, state.prestige + amount));
           return { prestige: newPrestige };
+        });
+        saveState();
+      },
+      
+      updateSocialConnections: (amount) => {
+        set((state) => {
+          const newSocialConnections = Math.max(0, Math.min(100, state.socialConnections + amount));
+          return { socialConnections: newSocialConnections };
         });
         saveState();
       },
