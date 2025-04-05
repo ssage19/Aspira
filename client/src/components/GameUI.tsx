@@ -161,69 +161,12 @@ export function GameUI() {
       addWealth(netDailyChange);
     }
     
-    // Build notification content
+    // We're removing the financial notification completely per user request
+    // The function still processes all finances but doesn't display notification
+    
+    // For reference/debugging, we can still access:
     const gains = investmentChanges.gains || 0;
     const losses = investmentChanges.losses || 0;
-    const gainers = investmentChanges.gainers || 0;
-    const losers = investmentChanges.losers || 0;
-    
-    let showNotification = propertyIncome > 0 || propertyExpenses > 0 || lifestyleExpenses > 0 || 
-                         (gains > 0 || losses > 0);
-    
-    if (showNotification) {
-      // Show financial summary toast
-      toast(
-        <div className="flex flex-col gap-2">
-          <h3 className="text-lg font-bold">Financial Update</h3>
-          
-          {propertyIncome > 0 && (
-            <div className="flex items-center text-emerald-500 gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>Property Income: {formatCurrency(propertyIncome)}</span>
-            </div>
-          )}
-          
-          {(propertyExpenses + lifestyleExpenses) > 0 && (
-            <div className="flex items-center text-red-500 gap-2">
-              <TrendingDown className="h-4 w-4" />
-              <span>Expenses: {formatCurrency(propertyExpenses + lifestyleExpenses)}</span>
-            </div>
-          )}
-          
-          {gains > 0 && (
-            <div className="flex items-center text-emerald-500 gap-2">
-              <TrendingUp className="h-4 w-4" />
-              <span>Investment Gains: {formatCurrency(gains)} ({gainers} assets)</span>
-            </div>
-          )}
-          
-          {losses > 0 && (
-            <div className="flex items-center text-red-500 gap-2">
-              <TrendingDown className="h-4 w-4" />
-              <span>Investment Losses: {formatCurrency(losses)} ({losers} assets)</span>
-            </div>
-          )}
-          
-          <div className="border-t border-border mt-1 pt-1"></div>
-          
-          <div className={`flex items-center gap-2 ${netDailyChange >= 0 ? 'text-emerald-500' : 'text-red-500'} font-bold`}>
-            <ArrowRight className="h-4 w-4" />
-            <span>Net Cash Flow: {formatCurrency(netDailyChange)}</span>
-          </div>
-          
-          {investmentChanges.netChange !== 0 && (
-            <div className={`flex items-center gap-2 ${investmentChanges.netChange >= 0 ? 'text-emerald-500' : 'text-red-500'} font-bold`}>
-              <ArrowRight className="h-4 w-4" />
-              <span>Net Investment Change: {formatCurrency(investmentChanges.netChange)}</span>
-            </div>
-          )}
-        </div>,
-        {
-          duration: 6000,
-          position: 'top-center'
-        }
-      );
-    }
     
     // Return the summary for potential other uses
     return {
