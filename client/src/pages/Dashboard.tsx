@@ -212,7 +212,9 @@ export default function Dashboard() {
     stockMarketHealth, 
     realEstateMarketHealth,
     inflation,
-    interestRate
+    interestRate,
+    getStockMarketHealthCategory,
+    getRealEstateMarketHealthCategory
   } = useEconomy();
   const { backgroundMusic, isMuted } = useAudio();
   const { restart } = useGame();
@@ -785,7 +787,15 @@ export default function Dashboard() {
                                 </div>
                               )}
                             </span>
-                            <span className="text-sm font-medium px-2 py-1 bg-secondary rounded-full">{stockMarketHealth}%</span>
+                            <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                              stockMarketHealth >= 80 ? 'bg-emerald-100 text-emerald-800' : 
+                              stockMarketHealth >= 60 ? 'bg-green-100 text-green-800' : 
+                              stockMarketHealth >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+                              stockMarketHealth >= 20 ? 'bg-orange-100 text-orange-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {getStockMarketHealthCategory().toUpperCase()}
+                            </span>
                           </div>
                           <div className="relative pt-1">
                             <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
@@ -810,7 +820,15 @@ export default function Dashboard() {
                           </p>
                           <div className="flex justify-between mb-2">
                             <span className="text-sm font-medium">Market Health</span>
-                            <span className="text-sm font-medium px-2 py-1 bg-secondary rounded-full">{realEstateMarketHealth}%</span>
+                            <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                              realEstateMarketHealth >= 80 ? 'bg-emerald-100 text-emerald-800' : 
+                              realEstateMarketHealth >= 60 ? 'bg-green-100 text-green-800' : 
+                              realEstateMarketHealth >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+                              realEstateMarketHealth >= 20 ? 'bg-orange-100 text-orange-800' :
+                              'bg-red-100 text-red-800'
+                            }`}>
+                              {getRealEstateMarketHealthCategory().toUpperCase()}
+                            </span>
                           </div>
                           <div className="relative pt-1">
                             <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">

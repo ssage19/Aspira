@@ -15,7 +15,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Investments() {
   const { wealth, addWealth, addAsset, sellAsset, assets } = useCharacter();
-  const { marketTrend, stockMarketHealth } = useEconomy();
+  const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
   const { currentDay } = useTime();
   const { playSuccess, playHit } = useAudio();
   
@@ -244,15 +244,25 @@ export function Investments() {
             <div className="w-40 bg-gray-200 rounded-full h-3 mr-2">
               <div 
                 className={`h-3 rounded-full ${
-                  stockMarketHealth >= 70 ? 'bg-accessible-green' : 
+                  stockMarketHealth >= 80 ? 'bg-emerald-500' : 
+                  stockMarketHealth >= 60 ? 'bg-accessible-green' : 
                   stockMarketHealth >= 40 ? 'bg-accessible-yellow' : 
+                  stockMarketHealth >= 20 ? 'bg-accessible-orange' :
                   'bg-accessible-red'
                 }`}
                 style={{ width: `${stockMarketHealth}%` }}
                 aria-hidden="true"
               ></div>
             </div>
-            <span className="text-sm font-semibold">{stockMarketHealth}%</span>
+            <span className={`text-sm font-semibold px-2 py-1 rounded-full ${
+              stockMarketHealth >= 80 ? 'bg-emerald-100 text-emerald-800' : 
+              stockMarketHealth >= 60 ? 'bg-green-100 text-green-800' : 
+              stockMarketHealth >= 40 ? 'bg-yellow-100 text-yellow-800' : 
+              stockMarketHealth >= 20 ? 'bg-orange-100 text-orange-800' :
+              'bg-red-100 text-red-800'
+            }`}>
+              {getStockMarketHealthCategory().toUpperCase()}
+            </span>
           </div>
         </div>
         

@@ -7,6 +7,15 @@ export type MarketTrend = "bull" | "bear" | "stable";
 export type MarketHealth = "excellent" | "good" | "average" | "poor" | "critical";
 export type VolatilityLevel = "low" | "medium" | "high" | "extreme";
 
+// Helper function to convert numeric health value to market health category
+export const getMarketHealthCategory = (healthValue: number): MarketHealth => {
+  if (healthValue >= 80) return "excellent";
+  if (healthValue >= 60) return "good";
+  if (healthValue >= 40) return "average";
+  if (healthValue >= 20) return "poor";
+  return "critical";
+};
+
 interface EconomyStore {
   // Current state of the economy
   economyState: EconomyState;
@@ -15,6 +24,10 @@ interface EconomyStore {
   // Market health indicators (0-100)
   stockMarketHealth: number;
   realEstateMarketHealth: number;
+  
+  // Helper methods for getting categorized health
+  getStockMarketHealthCategory: () => MarketHealth;
+  getRealEstateMarketHealthCategory: () => MarketHealth;
   
   // Economy factors
   inflation: number;
@@ -56,6 +69,15 @@ export const useEconomy = create<EconomyStore>()(
       // Market health indicators
       stockMarketHealth: savedData?.stockMarketHealth || 50,
       realEstateMarketHealth: savedData?.realEstateMarketHealth || 50,
+      
+      // Helper methods for getting categorized health
+      getStockMarketHealthCategory: () => {
+        return getMarketHealthCategory(get().stockMarketHealth);
+      },
+      
+      getRealEstateMarketHealthCategory: () => {
+        return getMarketHealthCategory(get().realEstateMarketHealth);
+      },
       
       // Economy factors
       inflation: savedData?.inflation || 2.5,
