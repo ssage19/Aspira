@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
-import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import { useRandomEvents } from '../lib/stores/useRandomEvents';
@@ -214,7 +213,6 @@ export default function Dashboard() {
     inflation,
     interestRate
   } = useEconomy();
-  const { backgroundMusic, isMuted } = useAudio();
   const { restart } = useGame();
   
   // Track active tab
@@ -247,20 +245,7 @@ export default function Dashboard() {
     navigate('/create');
   };
   
-  // Start background music when dashboard loads
-  useEffect(() => {
-    if (backgroundMusic && !isMuted) {
-      backgroundMusic.play().catch(err => {
-        console.log("Audio autoplay was prevented:", err);
-      });
-    }
-    
-    return () => {
-      if (backgroundMusic) {
-        backgroundMusic.pause();
-      }
-    };
-  }, [backgroundMusic, isMuted]);
+  // Background music removed for stability
   
   // Calculate portfolio stats
   const stocksValue = assets

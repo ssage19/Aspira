@@ -1,155 +1,81 @@
-import React, { useRef, useEffect, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment, Stars } from '@react-three/drei';
+import React from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
-import Character from './Character';
-import PropertyCard from './PropertyCard';
 
-// Error boundary fallback component
-function WebGLErrorFallback() {
+// Completely simplified MainScene that doesn't use any 3D or WebGL
+// This is a fallback to prevent crashes
+
+export function MainScene() {
+  const { properties } = useCharacter();
+  
+  // Create a simple gradient background instead of 3D scene
   return (
-    <div className="webgl-error-fallback">
-      <div style={{
-        padding: '20px', 
-        background: '#f8d7da', 
-        color: '#721c24',
-        border: '1px solid #f5c6cb',
-        borderRadius: '4px',
-        margin: '20px',
-        textAlign: 'center'
-      }}>
-        <h3>3D Rendering Error</h3>
-        <p>We encountered an issue with the 3D scene.</p>
-        <p>The game will continue to function normally, but without the 3D visualization.</p>
+    <div 
+      style={{ 
+        position: 'relative', 
+        width: '100%', 
+        height: '100%',
+        background: 'linear-gradient(to bottom, #87CEEB, #45b1e8)',
+        overflow: 'hidden'
+      }}
+    >
+      {/* Simple decorative elements */}
+      <div className="absolute inset-0 flex items-center justify-center opacity-10">
+        <div className="flex flex-wrap justify-center items-center w-full gap-8">
+          {/* Simple cloud shapes */}
+          <div className="bg-white rounded-full w-32 h-16 absolute top-1/4 left-1/4 blur-md"></div>
+          <div className="bg-white rounded-full w-48 h-20 absolute top-1/3 right-1/4 blur-md"></div>
+          <div className="bg-white rounded-full w-24 h-12 absolute bottom-1/3 left-1/3 blur-md"></div>
+          
+          {/* Property visual indicators - simplified */}
+          {Array.isArray(properties) && properties.map((property, index) => (
+            <div 
+              key={property.id}
+              className="relative animate-pulse"
+              style={{
+                width: '60px',
+                height: '60px',
+                background: getPropertyColor(property.type),
+                borderRadius: '8px',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                transform: `translate(${(index % 5) * 120 - 240}px, ${Math.floor(index / 5) * 100 - 100}px)`,
+                opacity: 0.7
+              }}
+            >
+              <div 
+                className="absolute inset-0 flex items-center justify-center text-white font-bold text-lg"
+                style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)' }}
+              >
+                {getPropertyIcon(property.type)}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );
 }
 
-// Simple error boundary component for Three.js scene elements
-class ErrorBoundary extends React.Component<{
-  children: React.ReactNode;
-  fallback: React.ReactNode;
-}> {
-  state = { hasError: false };
-  
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-  
-  componentDidCatch(error: Error) {
-    console.error('Error in 3D scene component:', error);
-  }
-  
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback;
-    }
-    return this.props.children;
+// Helper functions for the simplified view
+function getPropertyColor(type: string): string {
+  switch (type) {
+    case 'residential': return '#4CAF50';
+    case 'commercial': return '#2196F3';
+    case 'industrial': return '#FF9800';
+    case 'land': return '#795548';
+    case 'special': return '#9C27B0';
+    default: return '#607D8B';
   }
 }
 
-export function MainScene() {
-  const { wealth, properties } = useCharacter();
-  const [hasError, setHasError] = useState(false);
-  
-  // Calculate camera position based on wealth level - with NaN protection
-  const validWealth = (typeof wealth === 'number' && !isNaN(wealth)) ? wealth : 0;
-  const cameraHeight = Math.min(10 + (validWealth / 1000000) * 5, 30);
-  
-  // Handler for WebGL context loss
-  const handleContextLoss = () => {
-    console.log('THREE.WebGLRenderer: Context Lost. Handling gracefully.');
-    setHasError(true);
-  };
-  
-  // If there was a rendering error, show a fallback
-  if (hasError) {
-    return <WebGLErrorFallback />;
+function getPropertyIcon(type: string): string {
+  switch (type) {
+    case 'residential': return '🏠';
+    case 'commercial': return '🏢';
+    case 'industrial': return '🏭';
+    case 'land': return '🌳';
+    case 'special': return '🏆';
+    default: return '🏡';
   }
-  
-  return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* The Canvas is wrapped in an error boundary */}
-      <Canvas 
-        shadows 
-        onCreated={({ gl }) => {
-          // Set up canvas with error handling
-          gl.setClearColor("#87CEEB");
-          
-          // Add event listener for context lost
-          gl.domElement.addEventListener('webglcontextlost', (event) => {
-            event.preventDefault();
-            handleContextLoss();
-          }, false);
-        }}
-        style={{ background: '#87CEEB' }}
-      >
-        <color attach="background" args={["#87CEEB"]} />
-        
-        {/* Scene contents wrapped in error boundaries */}
-        <ErrorBoundary fallback={null}>
-          {/* Camera */}
-          <PerspectiveCamera makeDefault position={[0, cameraHeight, 20]} fov={45} />
-          <OrbitControls 
-            enablePan={false}
-            minPolarAngle={Math.PI / 6}
-            maxPolarAngle={Math.PI / 2.5}
-            minDistance={10}
-            maxDistance={50}
-          />
-          
-          {/* Lighting */}
-          <ambientLight intensity={0.5} />
-          <directionalLight 
-            position={[10, 15, 10]} 
-            intensity={1.5} 
-            castShadow 
-            shadow-mapSize-width={1024} 
-            shadow-mapSize-height={1024} 
-          />
-          
-          {/* Scenery - simpler to prevent crashes */}
-          <Environment preset="sunset" />
-          {validWealth > 10000000 && <Stars radius={100} depth={50} count={2500} factor={4} />}
-        </ErrorBoundary>
-        
-        <ErrorBoundary fallback={null}>
-          {/* Ground */}
-          <mesh 
-            rotation={[-Math.PI / 2, 0, 0]} 
-            position={[0, -0.5, 0]} 
-            receiveShadow
-          >
-            <planeGeometry args={[1000, 1000]} />
-            <meshStandardMaterial color="#8ab56a" />
-          </mesh>
-          
-          {/* Character */}
-          <Character position={[0, 0, 0]} scale={1} />
-        </ErrorBoundary>
-        
-        <ErrorBoundary fallback={null}>
-          {/* Properties - with safe array handling */}
-          {Array.isArray(properties) && properties.map((property, index) => {
-            // Calculate property position in a semi-circle around the character
-            const angle = (index / Math.max(1, properties.length)) * Math.PI;
-            const radius = 8 + (index % 3) * 4;
-            const x = Math.cos(angle) * radius;
-            const z = Math.sin(angle) * radius;
-            
-            return (
-              <PropertyCard 
-                key={property.id}
-                property={property}
-                position={[x, 0, z]}
-              />
-            );
-          })}
-        </ErrorBoundary>
-      </Canvas>
-    </div>
-  );
 }
 
 export default MainScene;
