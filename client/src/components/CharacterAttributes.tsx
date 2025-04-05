@@ -407,6 +407,10 @@ export function CharacterAttributes() {
           
           <div className="mt-4 text-xs text-gray-500">
             <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
+            <p className="mt-1">
+              <strong className="text-primary">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
+              Keep all basic needs above 50% for optimal health.
+            </p>
           </div>
         </CardContent>
       </Card>
@@ -444,6 +448,10 @@ export function CharacterAttributes() {
           
           <div className="mt-4 text-xs text-gray-500">
             <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
+            <p className="mt-1">
+              <strong className="text-primary">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
+              needs drop below 50%. The system prioritizes hunger and thirst first.
+            </p>
           </div>
         </CardContent>
       </Card>

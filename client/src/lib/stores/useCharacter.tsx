@@ -1066,23 +1066,50 @@ export const useCharacter = create<CharacterState>()(
               break;
           }
           
-          // Health impact from basic needs
+          // Comprehensive health calculation based on all basic needs and stress
+          
+          // Get weighted averages of needs with different importance factors
+          // Scale is 0-100 for each need, and we'll use the following weights:
+          const hungerWeight = 0.25;     // 25% - critical for survival
+          const thirstWeight = 0.25;     // 25% - critical for survival
+          const energyWeight = 0.2;      // 20% - important for daily functioning
+          const comfortWeight = 0.1;     // 10% - impacts long-term wellbeing
+          
+          // Calculate the base health score from weighted needs
+          const basicNeedsScore = (
+            (hunger * hungerWeight) +
+            (thirst * thirstWeight) +
+            (energy * energyWeight) +
+            (comfort * comfortWeight)
+          ) / (hungerWeight + thirstWeight + energyWeight + comfortWeight);
+          
+          // Apply stress penalty (high stress hurts health)
+          // Stress is on a scale of 0-100, where 0 is best (no stress)
+          const stressScore = Math.max(0, 100 - state.stress);
+          const stressWeight = 0.2;      // 20% - significant impact on health
+          
+          // Calculate final health score with both needs and stress factored in
+          const targetHealth = (
+            (basicNeedsScore * (1 - stressWeight)) +
+            (stressScore * stressWeight)
+          );
+          
+          // Gradually adjust current health toward the target (don't change too abruptly)
+          // Health changes slowly, at a rate of up to 5% per day
+          const maxDailyChange = 3; // Max points change per day
+          const healthDifference = targetHealth - state.health;
+          
           let health = state.health;
-          
-          // If any needs are very low, affect health
-          if (hunger < 20 || thirst < 20 || energy < 20) {
-            health = Math.max(0, health - 2);
+          if (Math.abs(healthDifference) > 0) {
+            // Move health toward target, but limit the daily change rate
+            health += Math.sign(healthDifference) * Math.min(Math.abs(healthDifference), maxDailyChange);
+            // Ensure health stays within bounds
+            health = Math.max(0, Math.min(100, health));
           }
           
-          // Very low comfort also affects health
-          if (comfort < 30) {
-            health = Math.max(0, health - 1);
-          }
-          
-          // If multiple needs are critical, health declines faster
-          if ((hunger < 10 && thirst < 10) || (hunger < 10 && energy < 10) || (thirst < 10 && energy < 10)) {
-            health = Math.max(0, health - 3);
-          }
+          // Debug log to see health calculation (commented out in production)
+          // console.log(`Health calc: needs=${basicNeedsScore.toFixed(1)}, stress=${stressScore.toFixed(1)}, target=${targetHealth.toFixed(1)}, actual=${health.toFixed(1)}`);
+         
           
           // Format currency for notifications
           const formatCurrency = (amount: number) => {
@@ -1163,11 +1190,28 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           // Property income is now calculated daily instead of monthly
           
-          // Calculate health effects based on stress and happiness
-          const stressEffect = (state.stress > 70) ? -5 : (state.stress < 30) ? 2 : 0;
-          const happinessEffect = (state.happiness > 70) ? 3 : (state.happiness < 30) ? -3 : 0;
+          // Monthly health adjustments based on happiness and environmental factors
+          // Daily calculation handles basic needs and stress, this handles longer-term factors
           
-          const updatedHealth = Math.max(0, Math.min(100, state.health + stressEffect + happinessEffect));
+          // Happiness has a gradual effect on health (positive or negative)
+          const happinessEffect = state.happiness > 75 ? 3 : // Very happy: significant health boost
+                                state.happiness > 50 ? 1 : // Moderately happy: small health boost
+                                state.happiness < 25 ? -3 : // Very unhappy: significant health decline
+                                state.happiness < 50 ? -1 : // Moderately unhappy: small health decline
+                                0; // Neutral happiness: no effect
+          
+          // Social connections impact health (loneliness is detrimental to health)
+          const socialEffect = state.socialConnections > 70 ? 2 : // Strong social network: health benefit
+                             state.socialConnections < 30 ? -2 : // Limited social connections: health penalty
+                             0; // Average social life: neutral effect
+          
+          // Environmental impact can affect health (pollution, etc.)
+          const environmentEffect = state.environmentalImpact > 50 ? -1 : // High environmental impact: slight health penalty
+                                  state.environmentalImpact > 75 ? -2 : // Very high impact: larger health penalty
+                                  0; // Low environmental impact: no effect
+          
+          // Apply monthly health adjustments (smaller than daily adjustments to avoid large swings)
+          const updatedHealth = Math.max(0, Math.min(100, state.health + happinessEffect + socialEffect + environmentEffect));
           
           // Update job experience if employed
           let updatedJob = state.job;
