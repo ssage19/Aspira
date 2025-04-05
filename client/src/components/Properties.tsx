@@ -40,6 +40,8 @@ export function Properties() {
   
   // Adjust property values based on market health
   const getAdjustedPrice = (basePrice: number) => {
+    // Use 65 as the baseline market health (represent a neutral market)
+    // Market factor should be 1.0 at 65% health, higher above, lower below
     const marketFactor = realEstateMarketHealth / 65; // Normalize around 65% as baseline
     return Math.round(basePrice * marketFactor);
   };
@@ -81,8 +83,13 @@ export function Properties() {
       return;
     }
     
-    // Don't call addWealth here, as the addProperty function already deducts the cost
-    // from wealth when adding the property
+    // Display a warning for low down payments - these are riskier
+    if (downPaymentPercent < 20) {
+      toast.warning(
+        `Low down payment (${downPaymentPercent}%) means higher monthly payments and more interest paid over time`, 
+        { duration: 5000 }
+      );
+    }
     
     // Store property count before adding
     const propertiesCountBefore = ownedProperties.length;
@@ -100,6 +107,10 @@ export function Properties() {
     const denominator = Math.pow(1 + monthlyInterestRate, loanTermMonths) - 1;
     const monthlyPayment = loanAmount * (numerator / denominator);
     
+    // Format the purchase date properly (YYYY-MM-DD format)
+    // This ensures proper date comparison when calculating months owned
+    const formattedDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
+    
     // Add property to owned properties with mortgage details
     addProperty({
       id: selectedProperty.id,
@@ -114,7 +125,7 @@ export function Properties() {
       monthlyPayment: monthlyPayment, // Monthly mortgage payment
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
-      purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
+      purchaseDate: formattedDate,
       currentValue: adjustedPrice, // For future value calculations and selling
       location: selectedProperty.location,
       appreciationRate: selectedProperty.appreciationRate,
@@ -131,7 +142,14 @@ export function Properties() {
     // Check if the property was successfully added by checking if the property count increased
     if (useCharacter.getState().properties.length > propertiesCountBefore) {
       playSuccess();
-      toast.success(`Purchased ${selectedProperty.name}`);
+      toast.success(`Purchased ${selectedProperty.name} for ${formatCurrency(adjustedPrice)}`);
+      
+      // Display finance details
+      if (downPaymentPercent < 100) {
+        toast(`Down payment: ${formatCurrency(downPaymentAmount)}, Loan: ${formatCurrency(loanAmount)}, Monthly payment: ${formatCurrency(monthlyPayment)}`, {
+          duration: 5000
+        });
+      }
     } else {
       // The purchase failed (likely due to insufficient funds check in addProperty)
       playHit();

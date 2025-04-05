@@ -638,7 +638,20 @@ export const useCharacter = create<CharacterState>()(
       
       // Properties management
       addProperty: (property) => {
-        // In the realistic mortgage model, purchasePrice is the down payment only
+        // Ensure consistent property value handling
+        // Make sure currentValue and purchasePrice are the same at purchase time
+        if (property.purchasePrice && !property.currentValue) {
+          property.currentValue = property.purchasePrice;
+        } else if (property.currentValue && !property.purchasePrice) {
+          property.purchasePrice = property.currentValue;
+        }
+        
+        // Ensure we have both value and currentValue set for backward compatibility
+        if (property.currentValue && !property.value) {
+          property.value = property.currentValue;
+        }
+        
+        // Get the down payment amount from the property
         const downPayment = property.downPayment;
         
         // If not provided, default required mortgage fields
@@ -673,12 +686,27 @@ export const useCharacter = create<CharacterState>()(
           return false; // Indicate failure
         }
         
+        // Ensure income is properly set (backward compatibility)
+        if (property.monthlyIncome && !property.income) {
+          property.income = property.monthlyIncome;
+        } else if (property.income && !property.monthlyIncome) {
+          property.monthlyIncome = property.income;
+        }
+        
+        // Add the property to the collection
         set((state) => ({
           properties: [...state.properties, property],
           wealth: state.wealth - downPayment,
           // Also add the monthly payment to ongoing expenses
-          expenses: state.expenses + property.monthlyPayment
+          expenses: state.expenses + property.monthlyPayment,
+          // Add property income to player's income
+          income: state.income + property.income
         }));
+        
+        // Log purchase details for debugging
+        console.log(`Property purchased: ${property.name}`);
+        console.log(`Purchase price: ${property.purchasePrice}, Current value: ${property.currentValue}`);
+        console.log(`Down payment: ${downPayment}, Loan amount: ${property.loanAmount}`);
         
         // Calculate new net worth after purchase
         // Net worth = assets (property value) - liabilities (loan amount)
