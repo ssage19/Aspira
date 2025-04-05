@@ -526,22 +526,24 @@ export function Lifestyle() {
                               <AlertDialogTitle>Remove {item.name}?</AlertDialogTitle>
                               <AlertDialogDescription>
                                 Removing this item will reverse its effects on your character attributes.
+                              </AlertDialogDescription>
+                              <div className="mt-3 mb-3 text-sm text-muted-foreground">
                                 {item.type === 'hobbies' && (
-                                  <p className="mt-2">You'll gain back {item.timeCommitment} hours of free time per week.</p>
+                                  <div className="mt-2">You'll gain back {item.timeCommitment} hours of free time per week.</div>
                                 )}
                                 {item.healthImpact !== undefined && item.healthImpact !== 0 && (
-                                  <p className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact)} points.</p>
+                                  <div className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact)} points.</div>
                                 )}
                                 {item.stressReduction !== undefined && item.stressReduction !== 0 && (
-                                  <p className="mt-1">Your stress will increase by {Math.abs(item.stressReduction)} points.</p>
+                                  <div className="mt-1">Your stress will increase by {Math.abs(item.stressReduction)} points.</div>
                                 )}
                                 {item.socialStatus !== undefined && item.socialStatus !== 0 && (
-                                  <p className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus)} points.</p>
+                                  <div className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus)} points.</div>
                                 )}
                                 {item.skillDevelopment !== undefined && item.skillDevelopment !== 0 && (
-                                  <p className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment)} points.</p>
+                                  <div className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment)} points.</div>
                                 )}
-                              </AlertDialogDescription>
+                              </div>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>

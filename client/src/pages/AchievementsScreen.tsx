@@ -245,16 +245,24 @@ export default function AchievementsScreen() {
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
       console.log(`Claiming reward for achievement: ${achievement.title}`);
       
-      // Get the game store directly (not through hooks)
+      // Get both game and character stores directly
       const gameStore = useGame.getState();
+      const characterStore = useCharacter.getState();
       
       // Apply the reward
       switch (achievement.reward.type) {
         case 'cash':
           console.log(`Adding cash reward: ${achievement.reward.value}`);
-          // Call method directly on the store instance
+          
+          // IMPORTANT FIX: Update both stores for cash rewards
+          // Add to game store cash
           gameStore.addCash(achievement.reward.value);
-          console.log(`Current cash after reward: ${gameStore.getCash()}`);
+          
+          // Also add to character store wealth
+          characterStore.addWealth(achievement.reward.value);
+          
+          console.log(`Current game cash after reward: ${gameStore.getCash()}`);
+          console.log(`Current character wealth after reward: ${characterStore.wealth}`);
           break;
         case 'multiplier':
           console.log(`Applying income multiplier: ${achievement.reward.value}`);
@@ -270,7 +278,7 @@ export default function AchievementsScreen() {
           
           // Apply character bonuses for the "bonus" type rewards
           if (achievement.id.startsWith('lifestyle') || achievement.id.startsWith('character')) {
-            const { updateAttributes } = useCharacter.getState();
+            const { updateAttributes } = characterStore;
             
             // For happiness bonus
             if (achievement.reward.description.includes('Happiness')) {
