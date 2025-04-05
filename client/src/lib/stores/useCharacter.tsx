@@ -29,8 +29,18 @@ export interface Property {
   location: string;
   purchasePrice: number;
   currentValue: number;
-  monthlyIncome: number;
+  income: number;           // Monthly income
+  expenses: number;         // Monthly expenses
+  monthlyIncome?: number;   // Legacy field, replaced by income
+  appreciationRate: number; // Annual appreciation rate
   purchaseDate: string;
+  squareFeet?: number;
+  bedrooms?: number;
+  bathrooms?: number;
+  description?: string;
+  value?: number;           // Alias for currentValue in some places
+  roi?: number;             // Return on investment for commercial properties
+  prestige?: number;        // For luxury properties
   imageUrl?: string;
 }
 
@@ -713,6 +723,8 @@ export const useCharacter = create<CharacterState>()(
           const updatedProperties = [...state.properties];
           updatedProperties[propertyIndex] = {
             ...updatedProperties[propertyIndex],
+            income: newIncome,
+            // For backwards compatibility
             monthlyIncome: newIncome
           };
           
@@ -742,7 +754,9 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const updatedProperties = state.properties.map(property => ({
             ...property,
-            monthlyIncome: property.monthlyIncome * multiplier
+            income: property.income * multiplier,
+            // For backwards compatibility
+            monthlyIncome: property.income * multiplier
           }));
           
           return { properties: updatedProperties };
@@ -795,14 +809,18 @@ export const useCharacter = create<CharacterState>()(
                 if (idFilter.includes(property.id)) {
                   return {
                     ...property,
-                    monthlyIncome: property.monthlyIncome * multiplier
+                    income: (property.income || 0) * multiplier,
+                    // For backwards compatibility
+                    monthlyIncome: (property.income || 0) * multiplier
                   };
                 }
               } else {
                 // No ID filter, update all properties of this type
                 return {
                   ...property,
-                  monthlyIncome: property.monthlyIncome * multiplier
+                  income: (property.income || 0) * multiplier,
+                  // For backwards compatibility
+                  monthlyIncome: (property.income || 0) * multiplier
                 };
               }
             }

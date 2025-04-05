@@ -252,13 +252,16 @@ export default function Dashboard() {
   // Start background music when dashboard loads
   useEffect(() => {
     if (backgroundMusic && !isMuted) {
-      backgroundMusic.play().catch(err => {
-        console.log("Audio autoplay was prevented:", err);
-      });
+      // Check if backgroundMusic has play method before calling it
+      if (typeof backgroundMusic.play === 'function') {
+        backgroundMusic.play().catch((err: Error) => {
+          console.log("Audio autoplay was prevented:", err);
+        });
+      }
     }
     
     return () => {
-      if (backgroundMusic) {
+      if (backgroundMusic && typeof backgroundMusic.pause === 'function') {
         backgroundMusic.pause();
       }
     };
@@ -511,7 +514,7 @@ export default function Dashboard() {
                                 Property Income ({properties.length} properties)
                               </span>
                               <span className="text-sm font-medium text-green-500">
-                                {formatCurrency(properties.reduce((sum, p) => sum + p.monthlyIncome, 0))}/mo
+                                {formatCurrency(properties.reduce((sum, p) => sum + (p.income || 0), 0))}/mo
                               </span>
                             </div>
                           </div>
@@ -549,7 +552,7 @@ export default function Dashboard() {
                                   // Salary
                                   (job ? job.salary / 12 : 0) + 
                                   // Property income
-                                  properties.reduce((sum, p) => sum + (p.monthlyIncome || 0), 0) +
+                                  properties.reduce((sum, p) => sum + (p.income || 0), 0) +
                                   // Stock dividends (avg 2% annual yield = 0.167% monthly)
                                   assets
                                     .filter(asset => asset.type === 'stock')
@@ -690,7 +693,7 @@ export default function Dashboard() {
                               // Salary
                               (job ? job.salary / 12 : 0) + 
                               // Property income
-                              properties.reduce((sum, p) => sum + (p.monthlyIncome || 0), 0) +
+                              properties.reduce((sum, p) => sum + (p.income || 0), 0) +
                               // Stock dividends
                               stockDividends;
                             

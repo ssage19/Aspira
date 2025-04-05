@@ -26,6 +26,7 @@ import {
   industrialProperties,
   calculateMortgage
 } from '../lib/data/properties';
+import { PropertyType } from '../lib/types/PropertyTypes';
 
 export function Properties() {
   const { wealth, addWealth, addProperty, sellProperty, properties: ownedProperties } = useCharacter();
@@ -34,7 +35,7 @@ export function Properties() {
   const { playSuccess, playHit } = useAudio();
   
   const [activeTab, setActiveTab] = useState('residential');
-  const [selectedProperty, setSelectedProperty] = useState(residentialProperties[0]);
+  const [selectedProperty, setSelectedProperty] = useState<PropertyType>(residentialProperties[0]);
   const [downPaymentPercent, setDownPaymentPercent] = useState(20);
   
   // Adjust property values based on market health
@@ -83,21 +84,35 @@ export function Properties() {
     // Don't call addWealth here, as the addProperty function already deducts the cost
     // from wealth when adding the property
     
+    // Store property count before adding
+    const propertiesCountBefore = ownedProperties.length;
+    
     // Add property to owned properties - note the property.purchasePrice will be used
     // to deduct from wealth in the addProperty function
-    const purchased = addProperty({
+    addProperty({
       id: selectedProperty.id,
       name: selectedProperty.name,
-      type: selectedProperty.type,
+      type: selectedProperty.type as "residential" | "commercial" | "industrial" | "mansion", // Cast to valid type
       value: adjustedPrice, // Current value for display
       purchasePrice: downPaymentAmount, // This is what will be deducted from wealth
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
-      currentValue: adjustedPrice // For future value calculations and selling
+      currentValue: adjustedPrice, // For future value calculations and selling
+      location: selectedProperty.location,
+      appreciationRate: selectedProperty.appreciationRate,
+      squareFeet: selectedProperty.squareFeet,
+      ...(('bedrooms' in selectedProperty) ? { 
+        bedrooms: selectedProperty.bedrooms,
+        bathrooms: selectedProperty.bathrooms 
+      } : {}),
+      description: selectedProperty.description,
+      ...('roi' in selectedProperty ? { roi: selectedProperty.roi } : {}),
+      ...('prestige' in selectedProperty ? { prestige: selectedProperty.prestige } : {})
     });
     
-    if (purchased) {
+    // Check if the property was successfully added by checking if the property count increased
+    if (useCharacter.getState().properties.length > propertiesCountBefore) {
       playSuccess();
       toast.success(`Purchased ${selectedProperty.name}`);
     } else {
@@ -113,15 +128,13 @@ export function Properties() {
     
     // Calculate current value (could be more or less than purchase price)
     const marketFactor = realEstateMarketHealth / 65;
-    const sellingValue = Math.round(property.value * marketFactor);
+    // Use currentValue if available, or fallback to value and finally purchasePrice
+    const propertyValue = property.currentValue || (property.value ?? property.purchasePrice);
+    const sellingValue = Math.round(propertyValue * marketFactor);
     
     // Update the property's currentValue to match what we're selling it for
     // This ensures the useCharacter store has the correct value
-    if (property.currentValue === undefined) {
-      property.currentValue = sellingValue;
-    } else {
-      property.currentValue = sellingValue;
-    }
+    property.currentValue = sellingValue;
     
     // Process sale - sellProperty will use the currentValue from the property
     sellProperty(propertyId);
@@ -225,7 +238,7 @@ export function Properties() {
                     <span>{property.location}</span>
                     <span>
                       {property.squareFeet} sq ft
-                      {property.bedrooms ? ` • ${property.bedrooms} bd, ${property.bathrooms} ba` : ''}
+                      {'bedrooms' in property && property.bedrooms ? ` • ${property.bedrooms} bd, ${property.bathrooms} ba` : ''}
                     </span>
                   </div>
                   {isPropertyOwned(property.id) && (
@@ -358,7 +371,7 @@ export function Properties() {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span>Current Value:</span>
-                        <span className="font-semibold">{formatCurrency(property.value)}</span>
+                        <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Monthly Income:</span>
