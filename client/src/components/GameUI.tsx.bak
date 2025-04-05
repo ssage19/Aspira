@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
@@ -30,7 +30,7 @@ const DAY_DURATION_MS = 600 * 1000;
 
 export function GameUI() {
   const navigate = useNavigate();
-  const { wealth, netWorth, addWealth } = useCharacter();
+  const { name, wealth, netWorth, addWealth } = useCharacter();
   const { 
     currentDay, 
     currentMonth, 
@@ -115,9 +115,16 @@ export function GameUI() {
         totalLoss += Math.abs(valueChange);
         losersCount++;
       }
+      
+      // In a real implementation, we would update the asset's current price here
+      // For this simplified version, we're just calculating the change
     });
     
     const netChange = totalGain - totalLoss;
+    
+    // In a real implementation with current prices tracked separately from purchase prices,
+    // we would apply this change to the character's net worth
+    // For now, we'll just return the information for notifications
     
     return {
       gainers: gainersCount,
@@ -232,7 +239,7 @@ export function GameUI() {
     };
   };
 
-  // Toggle auto advance time
+  // Define toggleAutoAdvance function at the top before it's used in the effect
   const toggleAutoAdvance = () => {
     setAutoAdvance(!autoAdvanceEnabled);
     updateLastTickTime(Date.now());
@@ -273,10 +280,8 @@ export function GameUI() {
   useEffect(() => {
     if (!autoAdvanceEnabled) return;
     
-    // Update the last tick time when starting
-    if (lastTickTime === 0) {
-      updateLastTickTime(Date.now());
-    }
+    const now = Date.now();
+    updateLastTickTime(now);
     
     const intervalId = setInterval(() => {
       const currentTime = Date.now();
@@ -287,6 +292,10 @@ export function GameUI() {
       const progress = (adjustedElapsed / DAY_DURATION_MS) * 100;
       
       setTimeProgress(Math.min(progress, 100));
+      
+      // Calculate time left in minutes based on time multiplier
+      const msLeft = DAY_DURATION_MS - adjustedElapsed;
+      const minutesLeft = Math.max(0, Math.floor(msLeft / 60000));
       
       // If a full day has passed, advance the day
       if (adjustedElapsed >= DAY_DURATION_MS) {
@@ -307,17 +316,8 @@ export function GameUI() {
     }, 1000); // Update progress every second
     
     return () => clearInterval(intervalId);
-  }, [
-    autoAdvanceEnabled, 
-    lastTickTime, 
-    timeMultiplier, 
-    advanceTime, 
-    playSuccess, 
-    setTimeProgress, 
-    updateLastTickTime
-  ]);
+  }, [autoAdvanceEnabled, advanceTime, playSuccess, timeMultiplier, lastTickTime, setTimeProgress, updateLastTickTime]);
   
-  // Handle manual time advance
   const handleAdvanceTime = () => {
     // Process daily finances when manually advancing time too
     processDailyFinances();

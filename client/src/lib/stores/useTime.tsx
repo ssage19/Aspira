@@ -19,6 +19,11 @@ interface TimeState {
   timeSpeed: GameTimeSpeed;
   timeMultiplier: number; // Multiplier for time passage (1.0 = normal, 2.0 = 2x speed, etc.)
   
+  // Auto-advance settings
+  autoAdvanceEnabled: boolean; // Whether time automatically advances
+  timeProgress: number; // Current progress towards next day (0-100)
+  lastTickTime: number; // Timestamp of last tick
+  
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
   
@@ -28,6 +33,9 @@ interface TimeState {
   resetGameStart: () => void; // Reset start date to current date
   resetTime: () => void; // Reset all time values to real-world current date
   setTimeSpeed: (speed: GameTimeSpeed) => void; // Set the time speed
+  setAutoAdvance: (enabled: boolean) => void; // Toggle auto-advance
+  setTimeProgress: (progress: number) => void; // Update time progress
+  updateLastTickTime: (time: number) => void; // Update last tick timestamp
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -84,6 +92,11 @@ export const useTime = create<TimeState>()(
       // Time speed settings
       timeSpeed: savedTime?.timeSpeed || 'normal',
       timeMultiplier: savedTime?.timeMultiplier || 1.0,
+      
+      // Auto-advance settings
+      autoAdvanceEnabled: savedTime?.autoAdvanceEnabled !== undefined ? savedTime.autoAdvanceEnabled : true,
+      timeProgress: savedTime?.timeProgress || 0,
+      lastTickTime: savedTime?.lastTickTime || Date.now(),
       
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
@@ -170,7 +183,13 @@ export const useTime = create<TimeState>()(
           startYear: realDate.year,
           currentGameDate: newGameDate,
           timeSpeed: 'normal' as GameTimeSpeed,
-          timeMultiplier: 1.0
+          timeMultiplier: 1.0,
+          autoAdvanceEnabled: true,
+          timeProgress: 0,
+          lastTickTime: Date.now(),
+          setAutoAdvance: () => {},
+          setTimeProgress: () => {},
+          updateLastTickTime: () => {}
         };
         
         // Save to local storage
@@ -203,6 +222,46 @@ export const useTime = create<TimeState>()(
           ...state,
           timeSpeed: speed,
           timeMultiplier: multiplier
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Auto-advance control
+      setAutoAdvance: (enabled: boolean) => set((state) => {
+        const newState = {
+          ...state,
+          autoAdvanceEnabled: enabled,
+          lastTickTime: Date.now() // Reset the tick time when toggling
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Update time progress
+      setTimeProgress: (progress: number) => set((state) => {
+        const newState = {
+          ...state,
+          timeProgress: progress
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Update last tick time
+      updateLastTickTime: (time: number) => set((state) => {
+        const newState = {
+          ...state,
+          lastTickTime: time
         };
         
         // Save to local storage
