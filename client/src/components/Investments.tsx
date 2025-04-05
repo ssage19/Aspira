@@ -444,143 +444,149 @@ export function Investments() {
         
         {/* Portfolio Tab */}
         <TabsContent value="portfolio" className="animate-fade-in">
-          {/* Net Worth Breakdown at the top of the portfolio tab */}
-          <div className="mb-6">
-            <NetWorthBreakdown />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>
-              
-              {/* Portfolio Summary */}
-              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm font-medium">Total Stocks:</p>
-                  <p className="font-semibold">{assets.filter(a => a.type === 'stock').length}</p>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm font-medium">Total Value:</p>
-                  <p className="font-semibold">{formatCurrency(
-                    assets
-                      .filter(a => a.type === 'stock')
-                      .reduce((total, asset) => {
-                        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
-                        return total + (asset.quantity * currentPrice);
-                      }, 0)
-                  )}</p>
-                </div>
-              </div>
-              
-              {/* Owned Stocks List */}
-              <div 
-                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
-                aria-labelledby="portfolio-heading"
-                role="listbox"
-              >
-                {assets.filter(a => a.type === 'stock').length > 0 ? (
-                  assets
-                    .filter(a => a.type === 'stock')
-                    .map((asset) => {
-                      const stock = expandedStockMarket.find(s => s.id === asset.id);
-                      if (!stock) return null;
-                      
-                      const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
-                      const totalValue = asset.quantity * currentPrice;
-                      const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
-                      const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
-                      
-                      return (
-                        <div 
-                          key={`portfolio-${asset.id}`}
-                          role="option"
-                          aria-selected={selectedStock.id === asset.id}
-                          className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
-                            selectedStock.id === asset.id 
-                              ? 'bg-blue-50 border-accessible-blue shadow-sm' 
-                              : 'hover:bg-gray-50 hover:border-gray-300'
-                          }`}
-                          onClick={() => {
-                            const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                            if (stockData) setSelectedStock(stockData);
-                          }}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
-                            <span className="font-semibold">{formatCurrency(totalValue)}</span>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-gray-600">
-                              Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
-                            </span>
-                            <span className={`${
-                              profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-gray-600'
-                            }`}>
-                              {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-gray-600">
-                              Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
-                            </span>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Set selected stock and prepare for selling
-                                const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                                if (stockData) {
-                                  setSelectedStock(stockData);
-                                  setBuyMode('shares');
-                                  setShareQuantity(asset.quantity);
-                                }
-                              }}
-                              className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
-                            >
-                              Sell
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div className="p-4 text-center bg-gray-50 rounded-md">
-                    <p className="text-gray-500">You don't own any stocks yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
-                  </div>
-                )}
-              </div>
+          {/* Two-column layout for Portfolio tab with Net Worth Breakdown on the left */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left column with Net Worth Breakdown */}
+            <div className="lg:col-span-1">
+              <NetWorthBreakdown />
             </div>
             
-            <div>
-              <h3 className="font-semibold mb-2 text-lg flex items-center">
-                {selectedStock.name} ({selectedStock.symbol})
-                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                  priceChangePercent > 0 
-                    ? 'bg-accessible-green/10 text-accessible-green' 
-                    : priceChangePercent < 0 
-                      ? 'bg-accessible-red/10 text-accessible-red' 
-                      : 'bg-gray-100'
-                }`}>
-                  {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
-                </span>
-              </h3>
-              <div className="h-40 mb-3 border p-1 rounded-md bg-white">
-                <StockChart 
-                  stockId={selectedStock.id}
-                  currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
-                  basePrice={selectedStock.basePrice}
-                  volatility={selectedStock.volatility}
-                />
-              </div>
-              <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Current Price</p>
-                  <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+            {/* Right column with portfolio details */}
+            <div className="lg:col-span-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>
+                  
+                  {/* Portfolio Summary */}
+                  <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+                    <div className="flex justify-between items-center">
+                      <p className="text-sm font-medium">Total Stocks:</p>
+                      <p className="font-semibold">{assets.filter(a => a.type === 'stock').length}</p>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <p className="text-sm font-medium">Total Value:</p>
+                      <p className="font-semibold">{formatCurrency(
+                        assets
+                          .filter(a => a.type === 'stock')
+                          .reduce((total, asset) => {
+                            const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                            return total + (asset.quantity * currentPrice);
+                          }, 0)
+                      )}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Owned Stocks List */}
+                  <div 
+                    className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                    aria-labelledby="portfolio-heading"
+                    role="listbox"
+                  >
+                    {assets.filter(a => a.type === 'stock').length > 0 ? (
+                      assets
+                        .filter(a => a.type === 'stock')
+                        .map((asset) => {
+                          const stock = expandedStockMarket.find(s => s.id === asset.id);
+                          if (!stock) return null;
+                          
+                          const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                          const totalValue = asset.quantity * currentPrice;
+                          const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
+                          const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                          
+                          return (
+                            <div 
+                              key={`portfolio-${asset.id}`}
+                              role="option"
+                              aria-selected={selectedStock.id === asset.id}
+                              className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                                selectedStock.id === asset.id 
+                                  ? 'bg-blue-50 border-accessible-blue shadow-sm' 
+                                  : 'hover:bg-gray-50 hover:border-gray-300'
+                              }`}
+                              onClick={() => {
+                                const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                if (stockData) setSelectedStock(stockData);
+                              }}
+                            >
+                              <div className="flex justify-between items-center">
+                                <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
+                                <span className="font-semibold">{formatCurrency(totalValue)}</span>
+                              </div>
+                              <div className="flex justify-between text-xs mt-1">
+                                <span className="text-gray-600">
+                                  Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
+                                </span>
+                                <span className={`${
+                                  profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-gray-600'
+                                }`}>
+                                  {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-xs mt-1">
+                                <span className="text-gray-600">
+                                  Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
+                                </span>
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // Set selected stock and prepare for selling
+                                    const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                    if (stockData) {
+                                      setSelectedStock(stockData);
+                                      setBuyMode('shares');
+                                      setShareQuantity(asset.quantity);
+                                    }
+                                  }}
+                                  className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
+                                >
+                                  Sell
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="p-4 text-center bg-gray-50 rounded-md">
+                        <p className="text-gray-500">You don't own any stocks yet</p>
+                        <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <div className="bg-gray-50 p-2 rounded">
-                  <p className="text-xs text-gray-500">Owned Value</p>
-                  <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                
+                <div>
+                  <h3 className="font-semibold mb-2 text-lg flex items-center">
+                    {selectedStock.name} ({selectedStock.symbol})
+                    <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                      priceChangePercent > 0 
+                        ? 'bg-accessible-green/10 text-accessible-green' 
+                        : priceChangePercent < 0 
+                          ? 'bg-accessible-red/10 text-accessible-red' 
+                          : 'bg-gray-100'
+                    }`}>
+                      {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
+                    </span>
+                  </h3>
+                  <div className="h-40 mb-3 border p-1 rounded-md bg-white">
+                    <StockChart 
+                      stockId={selectedStock.id}
+                      currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
+                      basePrice={selectedStock.basePrice}
+                      volatility={selectedStock.volatility}
+                    />
+                  </div>
+                  <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
+                  <div className="grid grid-cols-2 gap-3 mb-2">
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">Current Price</p>
+                      <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+                    </div>
+                    <div className="bg-gray-50 p-2 rounded">
+                      <p className="text-xs text-gray-500">Owned Value</p>
+                      <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

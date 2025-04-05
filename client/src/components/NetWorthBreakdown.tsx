@@ -117,13 +117,7 @@ export function NetWorthBreakdown() {
   const chartOptions = {
     plugins: {
       legend: {
-        position: 'bottom' as const,
-        labels: {
-          font: {
-            size: 12
-          },
-          padding: 20
-        }
+        display: false, // Hide the legend to save space
       },
       tooltip: {
         callbacks: {
@@ -141,19 +135,19 @@ export function NetWorthBreakdown() {
   };
 
   return (
-    <Card className="w-full shadow-sm">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl flex justify-between items-center">
+    <Card className="w-full shadow-sm h-full">
+      <CardHeader className="pb-1">
+        <CardTitle className="text-lg flex justify-between items-center">
           <span>Net Worth Breakdown</span>
-          <span className="text-lg font-normal text-gray-600">{formatCurrency(netWorth)}</span>
+          <span className="text-base font-normal text-gray-600">{formatCurrency(netWorth)}</span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="h-64">
+      <CardContent className="pt-2 px-3">
+        <div className="h-40 mx-auto">
           <Doughnut data={chartData} options={chartOptions} />
         </div>
         
-        <div className="grid grid-cols-2 gap-3 mt-4">
+        <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-3">
           {[
             { label: 'Cash', value: breakdown.cash, color: 'bg-blue-500' },
             { label: 'Stocks', value: breakdown.stocks, color: 'bg-green-500' },
@@ -162,9 +156,9 @@ export function NetWorthBreakdown() {
             { label: 'Other Investments', value: breakdown.otherInvestments, color: 'bg-purple-500' },
             { label: 'Property Equity', value: breakdown.propertyEquity, color: 'bg-pink-500' }
           ].map((item, index) => (
-            <div key={index} className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full ${item.color}`}></div>
-              <div className="flex justify-between w-full text-sm">
+            <div key={index} className="flex items-center space-x-1">
+              <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
+              <div className="flex justify-between w-full text-xs">
                 <span>{item.label}</span>
                 <span className="font-medium">{formatPercentage(item.value / breakdown.total)}</span>
               </div>
@@ -172,35 +166,37 @@ export function NetWorthBreakdown() {
           ))}
         </div>
         
-        {/* Additional financial details */}
-        <div className="mt-4 pt-4 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Financial Health Indicators</h4>
+        {/* Financial health indicators */}
+        <div className="mt-2 pt-2 border-t border-gray-200">
+          <h4 className="text-xs font-medium text-gray-700 mb-1">Financial Health</h4>
           
-          {/* Cash Ratio */}
-          <div className="flex justify-between items-center mb-1 text-sm">
-            <span className="text-gray-600">Cash Ratio</span>
-            <span className={`font-medium ${(breakdown.cash / breakdown.total) > 0.15 ? 'text-green-600' : (breakdown.cash / breakdown.total) > 0.05 ? 'text-amber-600' : 'text-red-600'}`}>
-              {formatPercentage(breakdown.cash / breakdown.total)}
-            </span>
-          </div>
-          
-          {/* Investment Diversification */}
-          <div className="flex justify-between items-center mb-1 text-sm">
-            <span className="text-gray-600">Investment Diversification</span>
-            <span className="font-medium">
-              {[breakdown.stocks, breakdown.crypto, breakdown.bonds, breakdown.otherInvestments].filter(v => v > 0).length} types
-            </span>
-          </div>
-          
-          {/* Property Leverage */}
-          {breakdown.propertyValue > 0 && (
-            <div className="flex justify-between items-center mb-1 text-sm">
-              <span className="text-gray-600">Property Leverage</span>
-              <span className={`font-medium ${(breakdown.propertyDebt / breakdown.propertyValue) < 0.5 ? 'text-green-600' : (breakdown.propertyDebt / breakdown.propertyValue) < 0.8 ? 'text-amber-600' : 'text-red-600'}`}>
-                {formatPercentage(breakdown.propertyDebt / breakdown.propertyValue)}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-xs">
+            {/* Cash Ratio */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Cash Ratio</span>
+              <span className={`font-medium ${(breakdown.cash / breakdown.total) > 0.15 ? 'text-green-600' : (breakdown.cash / breakdown.total) > 0.05 ? 'text-amber-600' : 'text-red-600'}`}>
+                {formatPercentage(breakdown.cash / breakdown.total)}
               </span>
             </div>
-          )}
+            
+            {/* Investment Diversification */}
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600">Diversification</span>
+              <span className="font-medium">
+                {[breakdown.stocks, breakdown.crypto, breakdown.bonds, breakdown.otherInvestments].filter(v => v > 0).length} types
+              </span>
+            </div>
+            
+            {/* Property Leverage */}
+            {breakdown.propertyValue > 0 && (
+              <div className="flex justify-between items-center col-span-2">
+                <span className="text-gray-600">Property Leverage</span>
+                <span className={`font-medium ${(breakdown.propertyDebt / breakdown.propertyValue) < 0.5 ? 'text-green-600' : (breakdown.propertyDebt / breakdown.propertyValue) < 0.8 ? 'text-amber-600' : 'text-red-600'}`}>
+                  {formatPercentage(breakdown.propertyDebt / breakdown.propertyValue)}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
