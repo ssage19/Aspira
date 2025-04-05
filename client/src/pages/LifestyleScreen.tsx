@@ -1,8 +1,15 @@
 import { useNavigate } from 'react-router-dom';
 import GameUI from '../components/GameUI';
 import { Lifestyle } from '../components/Lifestyle';
+import { Essentials } from '../components/Essentials';
 import { Button } from '../components/ui/button';
 import { ChevronLeft } from 'lucide-react';
+import { 
+  Tabs, 
+  TabsContent, 
+  TabsList, 
+  TabsTrigger 
+} from "../components/ui/tabs";
 
 export default function LifestyleScreen() {
   const navigate = useNavigate();
@@ -26,7 +33,20 @@ export default function LifestyleScreen() {
             Back to Dashboard
           </Button>
           
-          <Lifestyle />
+          <Tabs defaultValue="lifestyle" className="mb-8">
+            <TabsList className="mb-4">
+              <TabsTrigger value="lifestyle">Lifestyle & Luxury</TabsTrigger>
+              <TabsTrigger value="essentials">Basic Needs</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="lifestyle">
+              <Lifestyle />
+            </TabsContent>
+            
+            <TabsContent value="essentials">
+              <Essentials />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
