@@ -48,4 +48,14 @@ export const formatInteger = (num: number): string => {
   return Math.round(num).toString();
 };
 
+/**
+ * Format a number as a percentage with specified decimal places
+ * @param value The number to format (e.g., 0.1234 for 12.34%)
+ * @param fixed The number of decimal places (default: 1)
+ * @returns Formatted percentage string (e.g., "12.3%")
+ */
+export const formatPercentage = (value: number, fixed: number = 1): string => {
+  return (value * 100).toFixed(fixed) + '%';
+};
+
 export { getLocalStorage, setLocalStorage };

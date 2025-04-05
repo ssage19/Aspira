@@ -7,8 +7,9 @@ import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { toast } from 'sonner';
 import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarChart3 } from 'lucide-react';
-import StockChart from './StockChart';
-import { formatCurrency } from '../lib/utils';
+import { StockChart } from './StockChart';
+import { NetWorthBreakdown } from './NetWorthBreakdown';
+import { formatCurrency, formatPercentage } from '../lib/utils';
 import { VolatilityLevel, Stock } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -443,6 +444,11 @@ export function Investments() {
         
         {/* Portfolio Tab */}
         <TabsContent value="portfolio" className="animate-fade-in">
+          {/* Net Worth Breakdown at the top of the portfolio tab */}
+          <div className="mb-6">
+            <NetWorthBreakdown />
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>

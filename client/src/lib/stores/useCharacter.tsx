@@ -78,6 +78,18 @@ export interface Job {
   experienceRequired: number;
 }
 
+interface NetWorthBreakdown {
+  cash: number;
+  stocks: number;
+  crypto: number;
+  bonds: number;
+  otherInvestments: number;
+  propertyEquity: number;
+  propertyValue: number;
+  propertyDebt: number;
+  total: number;
+}
+
 interface CharacterState {
   // Basic info
   name: string;
@@ -190,6 +202,7 @@ interface CharacterState {
   
   // Net worth calculation
   calculateNetWorth: () => number;
+  getNetWorthBreakdown: () => NetWorthBreakdown;
   
   // Daily/weekly updates
   processDailyUpdate: () => void;
@@ -1180,24 +1193,97 @@ export const useCharacter = create<CharacterState>()(
       calculateNetWorth: () => {
         const state = get();
         
-        // Add cash
+        // Start with cash (liquid assets)
         let netWorth = state.wealth;
         
-        // Add asset values
-        netWorth += state.assets.reduce((total, asset) => {
-          return total + (asset.currentPrice * asset.quantity);
-        }, 0);
+        // Map containing detailed breakdown of assets for logging
+        const breakdown = {
+          cash: state.wealth,
+          stocks: 0,
+          crypto: 0,
+          bonds: 0,
+          otherInvestments: 0,
+          propertyEquity: 0,
+          propertyValue: 0,
+          propertyDebt: 0,
+          total: 0
+        };
         
-        // Add property equity (value minus outstanding loan)
-        netWorth += state.properties.reduce((total, property) => {
-          // If there's a loan amount, subtract it from the property value
-          const loanToSubtract = property.loanAmount || 0;
-          // Property equity is the current value minus outstanding loan
-          const equity = property.currentValue - loanToSubtract;
-          return total + equity;
-        }, 0);
+        // Add investment assets
+        state.assets.forEach(asset => {
+          const assetValue = asset.currentPrice * asset.quantity;
+          netWorth += assetValue;
+          
+          // Track by investment type for breakdown
+          switch(asset.type) {
+            case 'stock':
+              breakdown.stocks += assetValue;
+              break;
+            case 'crypto':
+              breakdown.crypto += assetValue;
+              break;
+            case 'bond':
+              breakdown.bonds += assetValue;
+              break;
+            default:
+              breakdown.otherInvestments += assetValue;
+          }
+        });
+        
+        // Add property values and subtract outstanding loans
+        state.properties.forEach(property => {
+          // Get current property value
+          const propertyValue = property.currentValue;
+          breakdown.propertyValue += propertyValue;
+          
+          // Get outstanding loan amount
+          const loanAmount = property.loanAmount || 0;
+          breakdown.propertyDebt += loanAmount;
+          
+          // Property equity is value minus debt
+          const equity = propertyValue - loanAmount;
+          breakdown.propertyEquity += equity;
+          
+          // Add equity to net worth (value minus debt)
+          netWorth += equity;
+        });
+        
+        // Calculate total for percentage calculation
+        breakdown.total = netWorth;
+        
+        // Log the breakdown for debugging
+        console.log('Net worth breakdown:');
+        console.log(`Cash: ${breakdown.cash} (${((breakdown.cash / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Stocks: ${breakdown.stocks} (${((breakdown.stocks / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Crypto: ${breakdown.crypto} (${((breakdown.crypto / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Bonds: ${breakdown.bonds} (${((breakdown.bonds / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Other investments: ${breakdown.otherInvestments} (${((breakdown.otherInvestments / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Property equity: ${breakdown.propertyEquity} (${((breakdown.propertyEquity / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Property value: ${breakdown.propertyValue}`);
+        console.log(`Property debt: ${breakdown.propertyDebt}`);
+        console.log(`Total net worth: ${breakdown.total}`);
+        
+        // Store the breakdown for UI access
+        // We don't use set() here to avoid triggering a loop
+        // Instead, we'll make this accessible via a getter
+        (state as any).netWorthBreakdown = breakdown;
         
         return netWorth;
+      },
+      
+      // Getter for the net worth breakdown
+      getNetWorthBreakdown: () => {
+        return (get() as any).netWorthBreakdown || {
+          cash: get().wealth,
+          stocks: 0,
+          crypto: 0,
+          bonds: 0,
+          otherInvestments: 0,
+          propertyEquity: 0,
+          propertyValue: 0,
+          propertyDebt: 0,
+          total: get().wealth
+        };
       },
       
       // Daily/weekly/monthly updates
