@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Hide NaNm button elements - handled by JavaScript */
+
 @layer base {
   :root {
     --radius: 0.75rem;
