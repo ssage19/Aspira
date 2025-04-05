@@ -492,11 +492,8 @@ export const useCharacter = create<CharacterState>()(
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         
-        // Import here to avoid circular dependency
-        const { trackAssetAchievements } = require('../services/achievementTracker');
-        
-        // Explicitly track achievements for the new asset state
-        trackAssetAchievements(get().assets);
+        // We don't need to explicitly track achievements here
+        // Instead, they will be tracked in the component that calls this function
         
         saveState();
       },
@@ -543,11 +540,8 @@ export const useCharacter = create<CharacterState>()(
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         
-        // Import here to avoid circular dependency
-        const { trackAssetAchievements } = require('../services/achievementTracker');
-        
-        // Explicitly track achievements for the updated asset state
-        trackAssetAchievements(get().assets);
+        // We don't need to explicitly track achievements here
+        // Instead, they will be tracked in the component that calls this function
         
         saveState();
         
