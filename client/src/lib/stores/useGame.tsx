@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { persist } from "zustand/middleware";
 import { useAchievements } from "./useAchievements";
+import { useTime } from "./useTime";
 
 export type GamePhase = "ready" | "playing" | "ended";
 
@@ -51,12 +52,19 @@ export const useGame = create<GameState>()(
           incomeMultiplier: 1.0
         }));
         
-        // Reset achievements when game is restarted
+        // Reset achievements and time when game is restarted
         // Using setTimeout to prevent circular dependency issues
         setTimeout(() => {
+          // Reset achievements
           const { resetAchievements } = useAchievements.getState();
           if (resetAchievements) {
             resetAchievements();
+          }
+          
+          // Reset time to current device date/time
+          const { resetTime } = useTime.getState();
+          if (resetTime) {
+            resetTime();
           }
         }, 0);
       },

@@ -17,6 +17,7 @@ interface TimeState {
   advanceTime: () => void;
   setDate: (day: number, month: number, year: number) => void;
   resetGameStart: () => void; // Reset start date to current date
+  resetTime: () => void; // Reset all time values to real-world current date
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -30,26 +31,34 @@ const loadSavedTime = () => {
   return null;
 };
 
+// Get the current real device date
+const getCurrentDeviceDate = () => {
+  const now = new Date();
+  return {
+    day: now.getDate(),
+    month: now.getMonth() + 1, // JavaScript months are 0-indexed
+    year: now.getFullYear()
+  };
+};
+
 export const useTime = create<TimeState>()(
   subscribeWithSelector((set) => {
     // Try to load saved time
     const savedTime = loadSavedTime();
     
-    // Default current date
-    const defaultDay = 1;
-    const defaultMonth = 1;
-    const defaultYear = 2023;
+    // Get current real-world date
+    const realDate = getCurrentDeviceDate();
     
     return {
-      // Default state - will be overwritten if saved data exists
-      currentDay: savedTime?.currentDay || defaultDay,
-      currentMonth: savedTime?.currentMonth || defaultMonth,
-      currentYear: savedTime?.currentYear || defaultYear,
+      // Default state uses real device time if no saved data exists
+      currentDay: savedTime?.currentDay || realDate.day,
+      currentMonth: savedTime?.currentMonth || realDate.month,
+      currentYear: savedTime?.currentYear || realDate.year,
       
       // Start date - when game began
-      startDay: savedTime?.startDay || defaultDay,
-      startMonth: savedTime?.startMonth || defaultMonth,
-      startYear: savedTime?.startYear || defaultYear,
+      startDay: savedTime?.startDay || realDate.day,
+      startMonth: savedTime?.startMonth || realDate.month,
+      startYear: savedTime?.startYear || realDate.year,
       
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
@@ -104,6 +113,25 @@ export const useTime = create<TimeState>()(
           startDay: state.currentDay,
           startMonth: state.currentMonth,
           startYear: state.currentYear
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      resetTime: () => set(() => {
+        // Get current real-world date
+        const realDate = getCurrentDeviceDate();
+        
+        const newState = {
+          currentDay: realDate.day,
+          currentMonth: realDate.month,
+          currentYear: realDate.year,
+          startDay: realDate.day,
+          startMonth: realDate.month,
+          startYear: realDate.year
         };
         
         // Save to local storage
