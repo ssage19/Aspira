@@ -25,8 +25,8 @@ import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
 
-// Each day lasts 5 minutes (300 seconds)
-const DAY_DURATION_MS = 300 * 1000;
+// Each day lasts 12 hours (43200 seconds) for more realistic gameplay
+const DAY_DURATION_MS = 43200 * 1000;
 
 export function GameUI() {
   const navigate = useNavigate();
@@ -314,12 +314,12 @@ export function GameUI() {
             <Progress value={timeProgress} className="h-2" 
               aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
             <span className="text-xs font-medium">
-              {autoAdvanceEnabled ? `${Math.floor(300 - (timeProgress * 300 / 100))}s` : "Paused"}
+              {autoAdvanceEnabled ? `${Math.floor(43200 - (timeProgress * 43200 / 100)) / 3600}h left` : "Paused"}
             </span>
           </div>
         </div>
         
-        {/* Time control buttons */}
+        {/* Time control buttons - removed manual day advance for realism */}
         <div className="flex items-center space-x-2">
           <Button 
             variant={autoAdvanceEnabled ? "outline" : "default"}
@@ -328,21 +328,10 @@ export function GameUI() {
             className={autoAdvanceEnabled ? 
               "border-quaternary/80 text-quaternary" : 
               "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
-            aria-label={autoAdvanceEnabled ? "Pause auto day advancement" : "Resume auto day advancement"}
+            aria-label={autoAdvanceEnabled ? "Pause time passage" : "Resume time passage"}
           >
             <Clock className="mr-2 h-4 w-4" />
-            {autoAdvanceEnabled ? "Auto: On" : "Auto: Off"}
-          </Button>
-          
-          <Button 
-            variant="default"
-            size="sm" 
-            onClick={handleAdvanceTime}
-            className="button-pulse bg-quaternary/80 hover:bg-quaternary/90 text-white dark:bg-quaternary/90 dark:hover:bg-quaternary"
-            aria-label="Advance to next day"
-          >
-            <Clock className="mr-2 h-4 w-4" />
-            Next Day
+            {autoAdvanceEnabled ? "Time: Flowing" : "Time: Paused"}
           </Button>
         </div>
       </div>

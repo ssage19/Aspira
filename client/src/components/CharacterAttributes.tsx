@@ -15,7 +15,12 @@ import {
   AlertCircle,
   CheckCircle,
   ThumbsUp,
-  Calendar
+  Calendar,
+  Coffee,
+  Droplet,
+  Battery,
+  Home,
+  Car
 } from 'lucide-react';
 
 import { useCharacter } from '../lib/stores/useCharacter';
@@ -46,7 +51,16 @@ export function CharacterAttributes() {
     timeCommitment,
     environmentalImpact,
     happiness,
-    prestige
+    prestige,
+    // Basic needs
+    hunger,
+    thirst,
+    energy,
+    comfort,
+    // Transportation & Housing
+    hasVehicle,
+    vehicleType,
+    housingType
   } = useCharacter();
   
   // Calculate an average skill level for display
@@ -54,6 +68,7 @@ export function CharacterAttributes() {
   
   // Define attribute configuration with human-readable scales
   const attributeConfigs: Record<string, AttributeDetails> = {
+    // Core attributes
     health: {
       name: 'Health',
       icon: <Heart className="h-4 w-4" />,
@@ -121,6 +136,40 @@ export function CharacterAttributes() {
       scale: ['0-20', '21-40', '41-60', '61-80', '81+'],
       levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
       colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500']
+    },
+    
+    // Basic needs
+    hunger: {
+      name: 'Hunger',
+      icon: <Coffee className="h-4 w-4" />,
+      description: 'Satiety and nutritional status',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Starving', 'Hungry', 'Satisfied', 'Full', 'Very Full'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+    },
+    thirst: {
+      name: 'Hydration',
+      icon: <Droplet className="h-4 w-4" />,
+      description: 'Fluid balance and hydration',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Dehydrated', 'Thirsty', 'Hydrated', 'Well-Hydrated', 'Perfectly Hydrated'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
+    },
+    energy: {
+      name: 'Energy',
+      icon: <Battery className="h-4 w-4" />,
+      description: 'Physical and mental energy levels',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Exhausted', 'Tired', 'Rested', 'Energetic', 'Fully Charged'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+    },
+    comfort: {
+      name: 'Comfort',
+      icon: <Home className="h-4 w-4" />,
+      description: 'Housing and general comfort',
+      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      levels: ['Miserable', 'Uncomfortable', 'Adequate', 'Comfortable', 'Luxurious'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     }
   };
   
@@ -255,35 +304,150 @@ export function CharacterAttributes() {
   // Calculate the time management score based on free time vs committed time
   const timeManagementValue = Math.max(0, Math.min(100, (freeTime / (freeTime + timeCommitment) * 100))); 
   
+  // Helper function to render housing status
+  const renderHousingStatus = () => {
+    let housingLabel = '';
+    let housingIcon = <Home className="mr-2 h-4 w-4" />;
+    let colorClass = 'text-gray-500';
+    
+    switch(housingType) {
+      case 'homeless':
+        housingLabel = 'Homeless';
+        colorClass = 'text-red-500';
+        break;
+      case 'shared':
+        housingLabel = 'Shared Housing';
+        colorClass = 'text-amber-500';
+        break;
+      case 'rental':
+        housingLabel = 'Rental Housing';
+        colorClass = 'text-green-500';
+        break;
+      case 'owned':
+        housingLabel = 'Home Owner';
+        colorClass = 'text-blue-500';
+        break;
+      case 'luxury':
+        housingLabel = 'Luxury Housing';
+        colorClass = 'text-purple-500';
+        break;
+    }
+    
+    return (
+      <div className="flex items-center mb-2">
+        <span className={`${colorClass}`}>{housingIcon}</span>
+        <span className={`text-sm font-medium ${colorClass}`}>{housingLabel}</span>
+      </div>
+    );
+  };
+  
+  // Helper function to render vehicle status
+  const renderVehicleStatus = () => {
+    let vehicleLabel = 'No Vehicle';
+    let vehicleIcon = <Car className="mr-2 h-4 w-4" />;
+    let colorClass = 'text-gray-500';
+    
+    if (hasVehicle) {
+      switch(vehicleType) {
+        case 'bicycle':
+          vehicleLabel = 'Bicycle';
+          colorClass = 'text-green-500';
+          break;
+        case 'economy':
+          vehicleLabel = 'Economy Car';
+          colorClass = 'text-amber-500';
+          break;
+        case 'standard':
+          vehicleLabel = 'Standard Car';
+          colorClass = 'text-blue-500';
+          break;
+        case 'luxury':
+          vehicleLabel = 'Luxury Car';
+          colorClass = 'text-purple-500';
+          break;
+        case 'premium':
+          vehicleLabel = 'Premium Car';
+          colorClass = 'text-yellow-500';
+          break;
+      }
+    }
+    
+    return (
+      <div className="flex items-center">
+        <span className={`${colorClass}`}>{vehicleIcon}</span>
+        <span className={`text-sm font-medium ${colorClass}`}>{vehicleLabel}</span>
+      </div>
+    );
+  };
+
   return (
-    <Card className="shadow-md">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg flex items-center">
-          <User className="mr-2 h-5 w-5 text-blue-500" />
-          Personal Attributes
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            {renderAttribute('health', health)}
-            {renderAttribute('happiness', happiness)}
-            {renderAttribute('socialConnections', socialConnections)}
-            {renderAttribute('skills', skills)}
+    <div className="flex flex-col gap-4">
+      <Card className="shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center">
+            <User className="mr-2 h-5 w-5 text-blue-500" />
+            Personal Attributes
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              {renderAttribute('health', health)}
+              {renderAttribute('happiness', happiness)}
+              {renderAttribute('socialConnections', socialConnections)}
+              {renderAttribute('skills', skills)}
+            </div>
+            <div>
+              {renderAttribute('stress', stress)}
+              {renderAttribute('timeManagement', timeManagementValue)}
+              {renderAttribute('environmentalImpact', environmentalImpact)}
+              {renderAttribute('prestige', prestige)}
+            </div>
           </div>
-          <div>
-            {renderAttribute('stress', stress)}
-            {renderAttribute('timeManagement', timeManagementValue)}
-            {renderAttribute('environmentalImpact', environmentalImpact)}
-            {renderAttribute('prestige', prestige)}
+          
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
           </div>
-        </div>
-        
-        <div className="mt-4 text-xs text-gray-500">
-          <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+      
+      <Card className="shadow-md">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-lg flex items-center">
+            <Heart className="mr-2 h-5 w-5 text-red-500" />
+            Basic Needs
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              {renderAttribute('hunger', hunger)}
+              {renderAttribute('thirst', thirst)}
+            </div>
+            <div>
+              {renderAttribute('energy', energy)}
+              {renderAttribute('comfort', comfort)}
+            </div>
+          </div>
+          
+          <div className="mt-4">
+            <div className="text-sm font-medium mb-2">Living Situation</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div>
+                {renderHousingStatus()}
+              </div>
+              <div>
+                {renderVehicleStatus()}
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 text-xs text-gray-500">
+            <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 

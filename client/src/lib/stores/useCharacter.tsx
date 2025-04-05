@@ -76,6 +76,17 @@ interface CharacterState {
   socialConnections: number;
   environmentalImpact: number;
   
+  // Basic needs (0-100)
+  hunger: number;      // 0 = starving, 100 = full
+  thirst: number;      // 0 = dehydrated, 100 = hydrated
+  energy: number;      // 0 = exhausted, 100 = energetic
+  comfort: number;     // 0 = uncomfortable, 100 = comfortable
+  
+  // Transportation & Housing
+  hasVehicle: boolean;
+  vehicleType: 'none' | 'bicycle' | 'economy' | 'standard' | 'luxury' | 'premium';
+  housingType: 'homeless' | 'shared' | 'rental' | 'owned' | 'luxury';
+  
   // Time management
   freeTime: number;
   timeCommitment: number;
@@ -119,6 +130,14 @@ interface CharacterState {
   addStress: (amount: number) => void;
   addHealth: (amount: number) => void;
   addPrestige: (amount: number) => void;
+  
+  // Basic needs
+  updateHunger: (amount: number) => void;
+  updateThirst: (amount: number) => void;
+  updateEnergy: (amount: number) => void;
+  updateComfort: (amount: number) => void;
+  setVehicle: (type: CharacterState['vehicleType']) => void;
+  setHousing: (type: CharacterState['housingType']) => void;
   
   // Assets management
   addAsset: (asset: Asset) => void;
@@ -188,6 +207,17 @@ const getDefaultCharacter = () => ({
   health: 80,
   socialConnections: 60,
   environmentalImpact: 0,
+  
+  // Initialize basic needs with default values
+  hunger: 90,      // Start well-fed
+  thirst: 90,      // Start well-hydrated
+  energy: 80,      // Start rested
+  comfort: 70,     // Start reasonably comfortable
+  
+  // Transportation & Housing
+  hasVehicle: false,
+  vehicleType: 'none' as const,
+  housingType: 'shared' as const,
   
   freeTime: 40,
   timeCommitment: 40,
@@ -346,6 +376,52 @@ export const useCharacter = create<CharacterState>()(
           const newPrestige = Math.max(0, Math.min(100, state.prestige + amount));
           return { prestige: newPrestige };
         });
+        saveState();
+      },
+      
+      // Basic needs
+      updateHunger: (amount) => {
+        set((state) => {
+          const newHunger = Math.max(0, Math.min(100, state.hunger + amount));
+          return { hunger: newHunger };
+        });
+        saveState();
+      },
+      
+      updateThirst: (amount) => {
+        set((state) => {
+          const newThirst = Math.max(0, Math.min(100, state.thirst + amount));
+          return { thirst: newThirst };
+        });
+        saveState();
+      },
+      
+      updateEnergy: (amount) => {
+        set((state) => {
+          const newEnergy = Math.max(0, Math.min(100, state.energy + amount));
+          return { energy: newEnergy };
+        });
+        saveState();
+      },
+      
+      updateComfort: (amount) => {
+        set((state) => {
+          const newComfort = Math.max(0, Math.min(100, state.comfort + amount));
+          return { comfort: newComfort };
+        });
+        saveState();
+      },
+      
+      setVehicle: (type) => {
+        set((state) => ({
+          vehicleType: type,
+          hasVehicle: type !== 'none'
+        }));
+        saveState();
+      },
+      
+      setHousing: (type) => {
+        set((state) => ({ housingType: type }));
         saveState();
       },
       
@@ -922,10 +998,61 @@ export const useCharacter = create<CharacterState>()(
           // Apply income and expenses
           const netDailyChange = dailyIncome + dailyPropertyIncome - dailyLifestyleExpenses;
           
+          // Basic needs changes (hunger, thirst, energy decrease over time)
+          let hunger = Math.max(0, state.hunger - 15); // Lose hunger more quickly
+          let thirst = Math.max(0, state.thirst - 20); // Lose thirst most quickly
+          let energy = Math.max(0, state.energy - 10); // Lose energy more slowly
+          
+          // Housing type affects comfort
+          let comfort = state.comfort;
+          switch(state.housingType) {
+            case 'homeless':
+              comfort = Math.max(0, comfort - 5); // Decrease comfort if homeless
+              energy = Math.max(0, energy - 5);   // Extra energy loss if homeless
+              break;
+            case 'shared':
+              // Comfort stays neutral in shared housing
+              break;
+            case 'rental':
+              comfort = Math.min(100, comfort + 1); // Slight comfort gain with rental
+              break;
+            case 'owned':
+              comfort = Math.min(100, comfort + 2); // Better comfort gain with owned home
+              break;
+            case 'luxury':
+              comfort = Math.min(100, comfort + 3); // Best comfort with luxury housing
+              energy = Math.min(100, energy + 2);   // Extra energy gain with luxury
+              break;
+          }
+          
+          // Health impact from basic needs
+          let health = state.health;
+          
+          // If any needs are very low, affect health
+          if (hunger < 20 || thirst < 20 || energy < 20) {
+            health = Math.max(0, health - 2);
+          }
+          
+          // Very low comfort also affects health
+          if (comfort < 30) {
+            health = Math.max(0, health - 1);
+          }
+          
+          // If multiple needs are critical, health declines faster
+          if ((hunger < 10 && thirst < 10) || (hunger < 10 && energy < 10) || (thirst < 10 && energy < 10)) {
+            health = Math.max(0, health - 3);
+          }
+          
+          // Apply changes
           return { 
             daysSincePromotion,
             wealth: state.wealth + netDailyChange,
-            netWorth: state.netWorth + netDailyChange
+            netWorth: state.netWorth + netDailyChange,
+            hunger,
+            thirst,
+            energy,
+            comfort,
+            health
           };
         });
         

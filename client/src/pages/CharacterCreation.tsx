@@ -10,7 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
-import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery } from 'lucide-react';
 import { getAvailableEntryLevelJobs, professions, getCategoryLabel } from '../lib/services/jobService';
 import type { JobCategory } from '../lib/data/jobs';
 
@@ -28,6 +28,10 @@ export default function CharacterCreation() {
   const [selectedProfessionId, setSelectedProfessionId] = useState<string>('');
   const [availableJobs, setAvailableJobs] = useState<Job[]>([]);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  
+  // Basic needs state
+  const [selectedHousing, setSelectedHousing] = useState<'homeless' | 'shared' | 'rental'>('shared');
+  const [selectedVehicle, setSelectedVehicle] = useState<'none' | 'bicycle' | 'economy'>('none');
   
   // Skills state
   const [skills, setSkills] = useState<CharacterSkills>({
@@ -111,6 +115,32 @@ export default function CharacterCreation() {
     
     // Create new character with the numerical amount, selected job, and customized skills
     createNewCharacter(name, selectedOption.startingAmount, selectedJob, skills);
+    
+    // Get the latest state after creation
+    const { 
+      setHousing, 
+      setVehicle,
+      updateHunger,
+      updateThirst,
+      updateEnergy,
+      updateComfort
+    } = useCharacter.getState();
+    
+    // Apply the selected housing type
+    setHousing(selectedHousing);
+    
+    // Apply vehicle if selected
+    if (selectedVehicle !== 'none') {
+      setVehicle(selectedVehicle);
+    }
+    
+    // Set initial basic needs values
+    // They start high since the character just started
+    updateHunger(80);
+    updateThirst(80);
+    updateEnergy(90);
+    updateComfort(70);
+    
     playSuccess();
     
     // Change game phase to playing
@@ -365,6 +395,116 @@ export default function CharacterCreation() {
                       />
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          <div>
+            <h3 className="text-sm font-medium mb-3 flex items-center">
+              <Home className="h-4 w-4 mr-1 text-blue-500" />
+              Basic Needs
+            </h3>
+            <Card>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Housing Options */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Housing
+                    </label>
+                    <div className="space-y-2">
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'homeless' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedHousing('homeless')}
+                      >
+                        <div className="mr-3">
+                          <Home className={`h-5 w-5 ${selectedHousing === 'homeless' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Homeless</div>
+                          <div className="text-xs text-gray-500">No housing costs, but negatively impacts health and comfort</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'shared' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedHousing('shared')}
+                      >
+                        <div className="mr-3">
+                          <Home className={`h-5 w-5 ${selectedHousing === 'shared' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Shared Housing</div>
+                          <div className="text-xs text-gray-500">Basic accommodation with roommates at reasonable cost</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'rental' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedHousing('rental')}
+                      >
+                        <div className="mr-3">
+                          <Home className={`h-5 w-5 ${selectedHousing === 'rental' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Rental Housing</div>
+                          <div className="text-xs text-gray-500">Your own rental home with better comfort but higher cost</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Vehicle Options */}
+                  <div>
+                    <label className="block text-sm font-medium mb-2">
+                      Transportation
+                    </label>
+                    <div className="space-y-2">
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'none' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('none')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'none' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">No Vehicle</div>
+                          <div className="text-xs text-gray-500">Use public transportation, no ownership costs</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'bicycle' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('bicycle')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'bicycle' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Bicycle</div>
+                          <div className="text-xs text-gray-500">Environmentally friendly option with minimal costs</div>
+                        </div>
+                      </div>
+                      
+                      <div 
+                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'economy' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        onClick={() => setSelectedVehicle('economy')}
+                      >
+                        <div className="mr-3">
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'economy' ? 'text-blue-500' : 'text-gray-400'}`} />
+                        </div>
+                        <div>
+                          <div className="font-medium">Economy Car</div>
+                          <div className="text-xs text-gray-500">Basic car with moderate costs and decent functionality</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 text-xs text-gray-500">
+                  <p>Your basic needs affect your health, happiness, and overall wellbeing. Maintaining them requires ongoing expenses.</p>
                 </div>
               </CardContent>
             </Card>
