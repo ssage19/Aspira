@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
-import { Line } from 'recharts';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   ResponsiveContainer,
   AreaChart, 
@@ -24,10 +23,23 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   const { currentDay } = useTime();
   const { marketTrend } = useEconomy();
   const [data, setData] = useState<Array<{day: number, price: number}>>([]);
-  const previousDataRef = useRef<Array<{day: number, price: number}>>([]);
+  const previousDataRef = useRef<{
+    id: string, 
+    data: Array<{day: number, price: number}>
+  }>({ id: '', data: [] });
+  
+  // Reset data when stock changes
+  useEffect(() => {
+    if (previousDataRef.current.id !== stockId) {
+      setData([]);
+      previousDataRef.current = { id: stockId, data: [] };
+    }
+  }, [stockId]);
   
   // Generate historical stock data
   useEffect(() => {
+    console.log(`Updating chart for stock: ${stockId} at price: ${currentPrice}`);
+    
     const volatilityFactor = volatility === 'extreme' ? 0.20 :
                             volatility === 'very_high' ? 0.12 :
                             volatility === 'high' ? 0.08 : 
@@ -36,32 +48,49 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     const trendFactor = marketTrend === 'bull' ? 0.01 : 
                         marketTrend === 'bear' ? -0.01 : 0;
     
-    const newData = [];
-    let prevPrice = basePrice;
-    
-    // Generate last 30 days of data
-    for (let i = Math.max(1, currentDay - 30); i <= currentDay; i++) {
-      // Create some randomness with trend influence
-      const randomFactor = (Math.random() - 0.5) * volatilityFactor;
-      const dayTrendFactor = trendFactor * (1 + Math.sin(i / 10) * 0.5);
+    // Generate new historical data if it's a new stock
+    if (previousDataRef.current.data.length === 0 || previousDataRef.current.id !== stockId) {
+      const newData = [];
+      let prevPrice = basePrice;
       
-      // Calculate price
-      prevPrice = prevPrice * (1 + randomFactor + dayTrendFactor);
+      // Generate last 30 days of data
+      for (let i = Math.max(1, currentDay - 30); i <= currentDay; i++) {
+        // Use a seeded random based on stock ID and day to ensure consistency
+        const seed = stockId.split('').reduce((a, b) => a + b.charCodeAt(0), 0) + i;
+        const pseudoRandom = Math.sin(seed) * 10000 - Math.floor(Math.sin(seed) * 10000);
+        
+        // Create some randomness with trend influence
+        const randomFactor = (pseudoRandom - 0.5) * volatilityFactor;
+        const dayTrendFactor = trendFactor * (1 + Math.sin(i / 10) * 0.5);
+        
+        // Calculate price
+        prevPrice = prevPrice * (1 + randomFactor + dayTrendFactor);
+        
+        // Ensure price doesn't go too low
+        prevPrice = Math.max(prevPrice, basePrice * 0.5);
+        
+        newData.push({
+          day: i,
+          price: parseFloat(prevPrice.toFixed(2))
+        });
+      }
       
-      // Ensure price doesn't go too low
-      prevPrice = Math.max(prevPrice, basePrice * 0.5);
+      // Make sure the last data point matches current price
+      if (newData.length > 0) {
+        newData[newData.length - 1].price = currentPrice;
+      }
       
-      newData.push({
-        day: i,
-        price: parseFloat(prevPrice.toFixed(2))
-      });
-    }
-    
-    // If we have previous data, merge it with new data for smooth transitions
-    if (previousDataRef.current.length > 0) {
-      const mergedData = [...previousDataRef.current];
-      // Add new day's data
-      if (mergedData.findIndex(d => d.day === currentDay) === -1) {
+      setData(newData);
+      previousDataRef.current = { id: stockId, data: newData };
+    } else {
+      // Update existing data
+      const mergedData = [...previousDataRef.current.data];
+      
+      // Update or add the current day's price
+      const currentDayIndex = mergedData.findIndex(d => d.day === currentDay);
+      if (currentDayIndex >= 0) {
+        mergedData[currentDayIndex].price = currentPrice;
+      } else {
         mergedData.push({
           day: currentDay,
           price: currentPrice
@@ -74,11 +103,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         .sort((a, b) => a.day - b.day);
       
       setData(finalData);
-      previousDataRef.current = finalData;
-    } else {
-      // First render, use generated data
-      setData(newData);
-      previousDataRef.current = newData;
+      previousDataRef.current = { id: stockId, data: finalData };
     }
   }, [currentDay, stockId, currentPrice, basePrice, volatility, marketTrend]);
   
@@ -101,20 +126,9 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return null;
   };
   
+  // Create a unique gradient ID for each stock to prevent conflicts
+  const gradientId = useMemo(() => `color-${stockId}`, [stockId]);
   const primaryColor = currentPrice >= basePrice ? '#10b981' : '#ef4444';
-  const gradientOffset = () => {
-    const dataMax = Math.max(...data.map((i) => i.price));
-    const dataMin = Math.min(...data.map((i) => i.price));
-  
-    if (dataMax <= 0) {
-      return 0;
-    }
-    if (dataMin >= 0) {
-      return 1;
-    }
-  
-    return dataMax / (dataMax - dataMin);
-  };
   
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -123,7 +137,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
       >
         <defs>
-          <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor={primaryColor} stopOpacity={0.8} />
             <stop offset="95%" stopColor={primaryColor} stopOpacity={0.2} />
           </linearGradient>
@@ -148,7 +162,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           dataKey="price" 
           stroke={primaryColor} 
           fillOpacity={1} 
-          fill="url(#colorPrice)" 
+          fill={`url(#${gradientId})`} 
           animationDuration={500}
         />
       </AreaChart>
