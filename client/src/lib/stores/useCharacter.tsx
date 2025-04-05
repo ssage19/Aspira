@@ -53,10 +53,13 @@ export interface Job {
   stress: number;
   happinessImpact: number;
   prestigeImpact: number;
+  timeCommitment: number;
   skillGains: Partial<CharacterSkills>;
-  skillRequirements?: Partial<CharacterSkills>;
-  careerTrack: string;
-  level: number;
+  skillRequirements: Partial<CharacterSkills>;
+  professionId: string;
+  jobLevel: 'entry' | 'junior' | 'mid' | 'senior' | 'executive';
+  monthsInPosition: number;
+  experienceRequired: number;
 }
 
 interface CharacterState {
@@ -708,7 +711,9 @@ export const useCharacter = create<CharacterState>()(
         set((state) => ({
           job,
           income: job.salary,
-          daysSincePromotion: 0
+          daysSincePromotion: 0,
+          timeCommitment: job.timeCommitment,
+          freeTime: Math.max(0, 168 - job.timeCommitment) // 168 hours in a week
         }));
         
         saveState();
@@ -718,14 +723,21 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const oldJob = state.job;
           
+          // Add the old job to history
+          const updatedHistory = oldJob 
+            ? [...state.jobHistory, { ...oldJob, monthsInPosition: state.daysSincePromotion / 30 }] 
+            : state.jobHistory;
+          
           return {
-            job: newJob,
-            jobHistory: oldJob ? [...state.jobHistory, oldJob] : state.jobHistory,
+            job: { ...newJob, monthsInPosition: 0 }, // Reset months in position for new job
+            jobHistory: updatedHistory,
             income: newJob.salary,
             daysSincePromotion: 0,
             prestige: Math.min(100, state.prestige + newJob.prestigeImpact),
             happiness: Math.min(100, state.happiness + newJob.happinessImpact),
-            stress: Math.min(100, state.stress + newJob.stress)
+            stress: Math.min(100, state.stress + newJob.stress),
+            timeCommitment: newJob.timeCommitment,
+            freeTime: Math.max(0, 168 - newJob.timeCommitment) // 168 hours in a week
           };
         });
         
@@ -736,12 +748,19 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const oldJob = state.job;
           
+          // Add the old job to history
+          const updatedHistory = oldJob 
+            ? [...state.jobHistory, { ...oldJob, monthsInPosition: state.daysSincePromotion / 30 }] 
+            : state.jobHistory;
+          
           return {
             job: null,
-            jobHistory: oldJob ? [...state.jobHistory, oldJob] : state.jobHistory,
+            jobHistory: updatedHistory,
             income: 0,
             stress: Math.max(0, state.stress - 20), // Reduce stress
-            happiness: Math.max(0, state.happiness - 10) // Temporary happiness loss
+            happiness: Math.max(0, state.happiness - 10), // Temporary happiness loss
+            timeCommitment: 0,
+            freeTime: 168 // All time is free when unemployed (168 hours in a week)
           };
         });
         
@@ -842,9 +861,20 @@ export const useCharacter = create<CharacterState>()(
           
           const updatedHealth = Math.max(0, Math.min(100, state.health + stressEffect + happinessEffect));
           
+          // Update job experience if employed
+          let updatedJob = state.job;
+          if (updatedJob) {
+            // Increment months in current position
+            updatedJob = {
+              ...updatedJob,
+              monthsInPosition: (updatedJob.monthsInPosition || 0) + 1
+            };
+          }
+          
           return {
             wealth: updatedWealth + propertyIncome,
-            health: updatedHealth
+            health: updatedHealth,
+            job: updatedJob
           };
         });
         

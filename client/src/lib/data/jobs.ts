@@ -1,1070 +1,1050 @@
-// Define job career types
-export type JobCategory = 
-  | 'technology' 
-  | 'finance' 
-  | 'healthcare' 
-  | 'education' 
-  | 'media' 
-  | 'business' 
-  | 'legal' 
-  | 'government'
+import { CharacterSkills } from "../stores/useCharacter";
+
+// Define job categories
+export type JobCategory =
+  | 'technology'
+  | 'finance'
+  | 'healthcare'
+  | 'education'
   | 'creative'
-  | 'trades';
+  | 'business'
+  | 'legal'
+  | 'science'
+  | 'government'
+  | 'trade';
 
-// Define skill requirements for jobs
-export interface JobSkillRequirements {
-  intelligence: number; // 0-100 scale
-  creativity: number; // 0-100 scale
-  charisma: number; // 0-100 scale
-  technical: number; // 0-100 scale
-  leadership: number; // 0-100 scale
-}
+// Define job levels
+export type JobLevel = 'entry' | 'junior' | 'mid' | 'senior' | 'executive';
 
-// Define career level structure
-export interface CareerLevel {
+// Define a single position in a career path
+export interface CareerPath {
+  level: JobLevel;
   title: string;
   salary: number;
-  prestige: number;
-  timeCommitment: number; // hours per week
-  stressLevel: number; // 0-100 scale
-  skillRequirements: JobSkillRequirements;
   description: string;
-  promotionTimeRequired?: number | null; // months to promotion eligibility
-  promotionChance?: number | null; // % chance of promotion when eligible
+  skillRequirements: Partial<CharacterSkills>;
+  happinessImpact: number;
+  prestigeImpact: number;
+  timeCommitment: number; // Hours per week
+  experience: number; // Months needed at previous level to be eligible
 }
 
-// Define job structure
-export interface Job {
+// Define a profession (collection of related jobs forming a career path)
+export interface Profession {
   id: string;
   name: string;
   category: JobCategory;
   description: string;
-  baseSalary: number;
-  careerLevels: CareerLevel[];
-  educationRequired?: string;
-  special?: string; // any special considerations
-  skillGrowth?: Partial<JobSkillRequirements>; // how this job increases skills per year
-  specialBenefits?: string[];
+  careerPath: CareerPath[];
 }
 
-// Job definitions
-export const jobs: Job[] = [
+// List of professions with career paths
+export const professions: Profession[] = [
+  // Technology Professions
   {
     id: 'software-engineer',
     name: 'Software Engineer',
     category: 'technology',
-    description: 'Develop applications and systems software by designing, building, and maintaining efficient code.',
-    baseSalary: 85000,
-    careerLevels: [
+    description: 'Design, develop, and maintain software applications using various programming languages and frameworks.',
+    careerPath: [
       {
+        level: 'entry',
         title: 'Junior Developer',
-        salary: 85000,
-        prestige: 10,
+        salary: 65000,
+        description: 'Write code, fix bugs, and participate in code reviews under senior guidance.',
+        skillRequirements: { technical: 40, intelligence: 50 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
         timeCommitment: 40,
-        stressLevel: 30,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 40,
-          charisma: 30,
-          technical: 60,
-          leadership: 20
-        },
-        description: 'Entry-level position responsible for writing code under supervision of more senior developers.',
-        promotionTimeRequired: 18,
-        promotionChance: 70
+        experience: 0
       },
       {
-        title: 'Software Engineer',
-        salary: 120000,
-        prestige: 20,
+        level: 'junior',
+        title: 'Software Developer',
+        salary: 85000,
+        description: 'Develop software components independently and collaborate on larger projects.',
+        skillRequirements: { technical: 55, intelligence: 60 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
         timeCommitment: 45,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 50,
-          charisma: 40,
-          technical: 75,
-          leadership: 30
-        },
-        description: 'Mid-level developer responsible for designing and implementing software solutions.',
-        promotionTimeRequired: 24,
-        promotionChance: 50
+        experience: 18
       },
       {
-        title: 'Senior Engineer',
-        salary: 160000,
-        prestige: 30,
+        level: 'mid',
+        title: 'Senior Developer',
+        salary: 115000,
+        description: 'Lead development of software projects and mentor junior developers.',
+        skillRequirements: { technical: 70, intelligence: 70, leadership: 50 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
         timeCommitment: 50,
-        stressLevel: 50,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 60,
-          charisma: 50,
-          technical: 85,
-          leadership: 60
-        },
-        description: 'Experienced developer who designs complex solutions and mentors junior team members.',
-        promotionTimeRequired: 36,
-        promotionChance: 40
+        experience: 24
       },
       {
-        title: 'Principal Engineer',
-        salary: 220000,
-        prestige: 45,
-        timeCommitment: 50,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 70,
-          charisma: 60,
-          technical: 95,
-          leadership: 70
-        },
-        description: 'Technical leader responsible for system architecture and setting technical direction.',
-        promotionTimeRequired: 48,
-        promotionChance: 20
-      },
-      {
-        title: 'Chief Technology Officer',
-        salary: 350000,
-        prestige: 80,
+        level: 'senior',
+        title: 'Lead Developer',
+        salary: 145000,
+        description: 'Oversee multiple projects, make architectural decisions, and manage development teams.',
+        skillRequirements: { technical: 80, intelligence: 75, leadership: 65 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
         timeCommitment: 55,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 80,
-          charisma: 80,
-          technical: 90,
-          leadership: 90
-        },
-        description: 'Executive responsible for the organization\'s technological needs and research and development.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Chief Technology Officer',
+        salary: 210000,
+        description: 'Define technical vision, strategy, and oversee all technical operations of the company.',
+        skillRequirements: { technical: 90, intelligence: 85, leadership: 80 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 48
       }
-    ],
-    skillGrowth: {
-      intelligence: 3,
-      technical: 4,
-      creativity: 2
-    },
-    specialBenefits: ['Remote work potential', 'Stock options', 'Cutting-edge technology exposure']
+    ]
   },
+  {
+    id: 'data-scientist',
+    name: 'Data Scientist',
+    category: 'technology',
+    description: 'Analyze and interpret complex data to help organizations make better decisions.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Data Analyst',
+        salary: 70000,
+        description: 'Collect, clean, and analyze data to support business decisions.',
+        skillRequirements: { intelligence: 60, technical: 40 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Junior Data Scientist',
+        salary: 90000,
+        description: 'Develop statistical models and begin working with machine learning algorithms.',
+        skillRequirements: { intelligence: 70, technical: 55 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Data Scientist',
+        salary: 120000,
+        description: 'Create advanced models and lead data-driven initiatives.',
+        skillRequirements: { intelligence: 80, technical: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'senior',
+        title: 'Senior Data Scientist',
+        salary: 150000,
+        description: 'Lead teams, design complex data systems, and drive organizational data strategy.',
+        skillRequirements: { intelligence: 85, technical: 80, leadership: 60 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Chief Data Officer',
+        salary: 200000,
+        description: 'Set data vision, lead data governance, and maximize data value across the organization.',
+        skillRequirements: { intelligence: 90, technical: 85, leadership: 80 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 48
+      }
+    ]
+  },
+  
+  // Finance Professions
   {
     id: 'financial-analyst',
     name: 'Financial Analyst',
     category: 'finance',
-    description: 'Analyze financial data, market trends, and investment opportunities to guide business decisions.',
-    baseSalary: 75000,
-    careerLevels: [
+    description: 'Analyze financial data and market trends to guide investment decisions.',
+    careerPath: [
       {
+        level: 'entry',
         title: 'Junior Financial Analyst',
-        salary: 75000,
-        prestige: 15,
+        salary: 65000,
+        description: 'Gather financial data, perform basic analysis, and prepare reports.',
+        skillRequirements: { intelligence: 55, technical: 40 },
+        happinessImpact: 3,
+        prestigeImpact: 15,
         timeCommitment: 45,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 30,
-          charisma: 40,
-          technical: 60,
-          leadership: 20
-        },
-        description: 'Entry-level position analyzing financial data and preparing reports under supervision.',
-        promotionTimeRequired: 18,
-        promotionChance: 70
+        experience: 0
       },
       {
+        level: 'junior',
         title: 'Financial Analyst',
-        salary: 95000,
-        prestige: 25,
+        salary: 85000,
+        description: 'Conduct detailed financial analysis and create financial models.',
+        skillRequirements: { intelligence: 65, technical: 50 },
+        happinessImpact: 5,
+        prestigeImpact: 20,
         timeCommitment: 50,
-        stressLevel: 50,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 40,
-          charisma: 50,
-          technical: 70,
-          leadership: 30
-        },
-        description: 'Mid-level analyst who evaluates investments and creates financial models.',
-        promotionTimeRequired: 24,
-        promotionChance: 60
+        experience: 18
       },
       {
+        level: 'mid',
         title: 'Senior Financial Analyst',
-        salary: 130000,
-        prestige: 40,
-        timeCommitment: 50,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 50,
-          charisma: 60,
-          technical: 80,
-          leadership: 60
-        },
-        description: 'Experienced analyst who leads complex financial analyses and oversees junior analysts.',
-        promotionTimeRequired: 36,
-        promotionChance: 40
-      },
-      {
-        title: 'Investment Manager',
-        salary: 200000,
-        prestige: 60,
+        salary: 110000,
+        description: 'Lead complex financial analyses and provide strategic investment recommendations.',
+        skillRequirements: { intelligence: 75, technical: 60, leadership: 40 },
+        happinessImpact: 8,
+        prestigeImpact: 30,
         timeCommitment: 55,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 60,
-          charisma: 70,
-          technical: 85,
-          leadership: 80
-        },
-        description: 'Senior position managing investment portfolios and making high-level financial decisions.',
-        promotionTimeRequired: 48,
-        promotionChance: 30
+        experience: 24
       },
       {
-        title: 'Chief Financial Officer',
-        salary: 320000,
-        prestige: 85,
+        level: 'senior',
+        title: 'Investment Manager',
+        salary: 150000,
+        description: 'Manage portfolios, create investment strategies, and lead analyst teams.',
+        skillRequirements: { intelligence: 85, technical: 70, leadership: 60 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
         timeCommitment: 60,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 95,
-          creativity: 70,
-          charisma: 80,
-          technical: 85,
-          leadership: 90
-        },
-        description: 'Executive responsible for managing financial risks and planning the financial strategy of the entire organization.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Chief Investment Officer',
+        salary: 200000,
+        description: 'Direct all investment activities, develop investment philosophy, and maximize portfolio performance.',
+        skillRequirements: { intelligence: 90, technical: 80, leadership: 80 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 65,
+        experience: 48
       }
-    ],
-    skillGrowth: {
-      intelligence: 3,
-      technical: 3,
-      leadership: 2
-    },
-    specialBenefits: ['Investment opportunities', 'Performance bonuses', 'Financial industry connections']
+    ]
   },
+  {
+    id: 'accountant',
+    name: 'Accountant',
+    category: 'finance',
+    description: 'Prepare and examine financial records, ensuring accuracy and compliance with regulations.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Accountant',
+        salary: 55000,
+        description: 'Assist with financial record-keeping, reconciliations, and basic report preparation.',
+        skillRequirements: { intelligence: 50, technical: 35 },
+        happinessImpact: 2,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Staff Accountant',
+        salary: 70000,
+        description: 'Prepare financial statements, handle tax preparations, and ensure regulatory compliance.',
+        skillRequirements: { intelligence: 60, technical: 45 },
+        happinessImpact: 4,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Senior Accountant',
+        salary: 90000,
+        description: 'Oversee accounting operations, complex financial analyses, and audit preparations.',
+        skillRequirements: { intelligence: 70, technical: 55, leadership: 40 },
+        happinessImpact: 6,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'senior',
+        title: 'Accounting Manager',
+        salary: 120000,
+        description: 'Lead accounting teams, manage financial systems, and provide strategic financial advice.',
+        skillRequirements: { intelligence: 80, technical: 65, leadership: 60 },
+        happinessImpact: 8,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'executive',
+        title: 'Chief Financial Officer',
+        salary: 180000,
+        description: 'Direct all financial activities, develop financial strategies, and ensure financial health.',
+        skillRequirements: { intelligence: 85, technical: 75, leadership: 80 },
+        happinessImpact: 10,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 48
+      }
+    ]
+  },
+  
+  // Healthcare Professions
   {
     id: 'physician',
     name: 'Physician',
     category: 'healthcare',
-    description: 'Diagnose and treat injuries, diseases, and medical conditions to improve patient health.',
-    baseSalary: 200000,
-    careerLevels: [
+    description: 'Diagnose and treat illnesses, injuries, and medical conditions.',
+    careerPath: [
       {
+        level: 'entry',
         title: 'Medical Resident',
         salary: 60000,
-        prestige: 40,
+        description: 'Complete supervised medical training after medical school.',
+        skillRequirements: { intelligence: 70, technical: 60 },
+        happinessImpact: 2,
+        prestigeImpact: 20,
         timeCommitment: 70,
-        stressLevel: 80,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 50,
-          charisma: 60,
-          technical: 80,
-          leadership: 30
-        },
-        description: 'Physician in training who works under supervision while completing medical specialty education.',
-        promotionTimeRequired: 36,
-        promotionChance: 90
+        experience: 0
       },
       {
+        level: 'junior',
         title: 'Attending Physician',
-        salary: 220000,
-        prestige: 70,
+        salary: 180000,
+        description: 'Provide patient care in hospital or clinical settings.',
+        skillRequirements: { intelligence: 80, technical: 70, charisma: 60 },
+        happinessImpact: 5,
+        prestigeImpact: 40,
         timeCommitment: 60,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 60,
-          charisma: 70,
-          technical: 85,
-          leadership: 60
-        },
-        description: 'Licensed physician who diagnoses and treats patients independently.',
-        promotionTimeRequired: 60,
-        promotionChance: 50
+        experience: 36
       },
       {
-        title: 'Senior Physician',
-        salary: 280000,
-        prestige: 80,
+        level: 'mid',
+        title: 'Specialist Physician',
+        salary: 250000,
+        description: 'Provide specialized care in a particular medical field.',
+        skillRequirements: { intelligence: 85, technical: 80, charisma: 65 },
+        happinessImpact: 8,
+        prestigeImpact: 45,
         timeCommitment: 55,
-        stressLevel: 65,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 70,
-          charisma: 75,
-          technical: 90,
-          leadership: 70
-        },
-        description: 'Experienced doctor with established practice and reputation in their specialty.',
-        promotionTimeRequired: 72,
-        promotionChance: 40
+        experience: 48
       },
       {
-        title: 'Department Chief',
-        salary: 350000,
-        prestige: 85,
+        level: 'senior',
+        title: 'Chief of Medicine',
+        salary: 300000,
+        description: 'Lead medical departments, establish protocols, and oversee patient care.',
+        skillRequirements: { intelligence: 90, technical: 85, leadership: 75, charisma: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 50,
         timeCommitment: 60,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 75,
-          charisma: 80,
-          technical: 90,
-          leadership: 85
-        },
-        description: 'Leads a medical department in a hospital or large practice.',
-        promotionTimeRequired: 84,
-        promotionChance: 20
+        experience: 60
       },
       {
-        title: 'Chief Medical Officer',
-        salary: 450000,
-        prestige: 90,
+        level: 'executive',
+        title: 'Hospital Medical Director',
+        salary: 350000,
+        description: 'Direct all medical operations and ensure high-quality healthcare delivery.',
+        skillRequirements: { intelligence: 95, technical: 90, leadership: 85, charisma: 75 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
         timeCommitment: 65,
-        stressLevel: 80,
-        skillRequirements: {
-          intelligence: 95,
-          creativity: 80,
-          charisma: 85,
-          technical: 90,
-          leadership: 95
-        },
-        description: 'Top executive physician responsible for all medical operations in a healthcare organization.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 72
       }
-    ],
-    educationRequired: 'Medical Degree',
-    skillGrowth: {
-      intelligence: 2,
-      technical: 3,
-      charisma: 2
-    },
-    specialBenefits: ['High job security', 'Social prestige', 'Opportunity to help others']
+    ]
   },
+  {
+    id: 'nurse',
+    name: 'Nurse',
+    category: 'healthcare',
+    description: 'Provide patient care, administer treatments, and support overall healthcare delivery.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Registered Nurse',
+        salary: 65000,
+        description: 'Provide direct patient care, administer medications, and monitor patient conditions.',
+        skillRequirements: { technical: 50, charisma: 55 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Charge Nurse',
+        salary: 80000,
+        description: 'Coordinate nursing care for a unit, assign tasks, and supervise nursing staff.',
+        skillRequirements: { technical: 60, charisma: 65, leadership: 50 },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Nurse Practitioner',
+        salary: 110000,
+        description: 'Diagnose and treat patients, prescribe medications, and coordinate care plans.',
+        skillRequirements: { technical: 70, charisma: 70, intelligence: 65 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Nursing Director',
+        salary: 130000,
+        description: 'Lead nursing departments, develop policies, and ensure quality patient care.',
+        skillRequirements: { technical: 75, charisma: 75, leadership: 70, intelligence: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Nursing Officer',
+        salary: 160000,
+        description: 'Direct all nursing operations, develop nursing strategy, and shape healthcare delivery.',
+        skillRequirements: { technical: 80, charisma: 80, leadership: 80, intelligence: 75 },
+        happinessImpact: 8,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Education Professions
   {
     id: 'teacher',
     name: 'Teacher',
     category: 'education',
-    description: 'Educate students in various academic subjects, helping them develop knowledge and skills.',
-    baseSalary: 45000,
-    careerLevels: [
+    description: 'Educate students in various subjects and grade levels.',
+    careerPath: [
       {
+        level: 'entry',
         title: 'Teacher Assistant',
-        salary: 30000,
-        prestige: 10,
+        salary: 35000,
+        description: 'Support lead teachers with classroom activities and student management.',
+        skillRequirements: { charisma: 50, intelligence: 40 },
+        happinessImpact: 10,
+        prestigeImpact: 5,
         timeCommitment: 35,
-        stressLevel: 30,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 50,
-          charisma: 60,
-          technical: 30,
-          leadership: 40
-        },
-        description: 'Assists lead teachers with classroom activities and student support.',
-        promotionTimeRequired: 12,
-        promotionChance: 80
+        experience: 0
       },
       {
+        level: 'junior',
         title: 'Teacher',
         salary: 50000,
-        prestige: 25,
+        description: 'Develop lesson plans, teach students, and assess learning progress.',
+        skillRequirements: { charisma: 60, intelligence: 55, creativity: 45 },
+        happinessImpact: 12,
+        prestigeImpact: 15,
         timeCommitment: 45,
-        stressLevel: 50,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 60,
-          charisma: 70,
-          technical: 40,
-          leadership: 60
-        },
-        description: 'Full-time educator responsible for classroom instruction and student development.',
-        promotionTimeRequired: 36,
-        promotionChance: 50
+        experience: 12
       },
       {
+        level: 'mid',
         title: 'Senior Teacher',
         salary: 65000,
-        prestige: 35,
+        description: 'Mentor other teachers, develop curriculum, and take on specialized teaching roles.',
+        skillRequirements: { charisma: 70, intelligence: 65, creativity: 55, leadership: 50 },
+        happinessImpact: 15,
+        prestigeImpact: 25,
         timeCommitment: 50,
-        stressLevel: 55,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 70,
-          charisma: 80,
-          technical: 50,
-          leadership: 70
-        },
-        description: 'Experienced educator who mentors other teachers and develops curriculum.',
-        promotionTimeRequired: 60,
-        promotionChance: 40
+        experience: 36
       },
       {
+        level: 'senior',
         title: 'Department Head',
         salary: 80000,
-        prestige: 45,
+        description: 'Lead subject departments, coordinate curriculum, and supervise teachers.',
+        skillRequirements: { charisma: 75, intelligence: 70, creativity: 60, leadership: 65 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
         timeCommitment: 55,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 75,
-          charisma: 80,
-          technical: 60,
-          leadership: 85
-        },
-        description: 'Leads a subject department and coordinates educational strategies.',
-        promotionTimeRequired: 72,
-        promotionChance: 30
+        experience: 48
       },
       {
-        title: 'Principal',
-        salary: 120000,
-        prestige: 60,
-        timeCommitment: 60,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 80,
-          charisma: 85,
-          technical: 70,
-          leadership: 90
-        },
-        description: 'Manages an entire school, overseeing all educational and administrative operations.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
-      }
-    ],
-    educationRequired: 'Bachelor\'s Degree in Education',
-    skillGrowth: {
-      intelligence: 2,
-      creativity: 3,
-      charisma: 4
-    },
-    specialBenefits: ['Summers off', 'Fulfilling work', 'Stable pension']
-  },
-  {
-    id: 'journalist',
-    name: 'Journalist',
-    category: 'media',
-    description: 'Research, write, and report news stories for print, broadcast, or digital media.',
-    baseSalary: 55000,
-    careerLevels: [
-      {
-        title: 'Junior Reporter',
-        salary: 40000,
-        prestige: 15,
-        timeCommitment: 45,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 65,
-          charisma: 60,
-          technical: 40,
-          leadership: 20
-        },
-        description: 'Entry-level journalist covering local stories and assisting senior reporters.',
-        promotionTimeRequired: 18,
-        promotionChance: 70
-      },
-      {
-        title: 'Staff Reporter',
-        salary: 60000,
-        prestige: 30,
-        timeCommitment: 50,
-        stressLevel: 55,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 70,
-          charisma: 70,
-          technical: 50,
-          leadership: 40
-        },
-        description: 'Full-time journalist responsible for regularly researching and producing original stories.',
-        promotionTimeRequired: 24,
-        promotionChance: 60
-      },
-      {
-        title: 'Senior Reporter',
-        salary: 80000,
-        prestige: 45,
-        timeCommitment: 55,
-        stressLevel: 65,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 80,
-          charisma: 80,
-          technical: 60,
-          leadership: 60
-        },
-        description: 'Experienced journalist covering major stories and developing special features.',
-        promotionTimeRequired: 36,
-        promotionChance: 50
-      },
-      {
-        title: 'Editor',
-        salary: 100000,
-        prestige: 60,
-        timeCommitment: 60,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 85,
-          charisma: 75,
-          technical: 70,
-          leadership: 80
-        },
-        description: 'Manages content development and editing for a section or department.',
-        promotionTimeRequired: 48,
-        promotionChance: 30
-      },
-      {
-        title: 'Editor-in-Chief',
-        salary: 150000,
-        prestige: 75,
-        timeCommitment: 60,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 90,
-          charisma: 85,
-          technical: 75,
-          leadership: 90
-        },
-        description: 'Leads the entire editorial operation of a publication or news outlet.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
-      }
-    ],
-    skillGrowth: {
-      intelligence: 3,
-      creativity: 4,
-      charisma: 3
-    },
-    specialBenefits: ['Access to exclusive events', 'Meeting influential people', 'Potential for public recognition']
-  },
-  {
-    id: 'marketing-executive',
-    name: 'Marketing Executive',
-    category: 'business',
-    description: 'Develop and implement marketing strategies to promote products, services, and brands.',
-    baseSalary: 70000,
-    careerLevels: [
-      {
-        title: 'Marketing Coordinator',
-        salary: 50000,
-        prestige: 15,
-        timeCommitment: 40,
-        stressLevel: 35,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 70,
-          charisma: 65,
-          technical: 50,
-          leadership: 30
-        },
-        description: 'Entry-level position assisting with marketing campaigns and social media.',
-        promotionTimeRequired: 18,
-        promotionChance: 75
-      },
-      {
-        title: 'Marketing Manager',
-        salary: 80000,
-        prestige: 30,
-        timeCommitment: 45,
-        stressLevel: 50,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 80,
-          charisma: 75,
-          technical: 60,
-          leadership: 60
-        },
-        description: 'Develops and implements marketing campaigns across various channels.',
-        promotionTimeRequired: 24,
-        promotionChance: 60
-      },
-      {
-        title: 'Senior Marketing Manager',
-        salary: 120000,
-        prestige: 45,
-        timeCommitment: 50,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 85,
-          charisma: 85,
-          technical: 70,
-          leadership: 75
-        },
-        description: 'Oversees major marketing initiatives and leads a team of marketers.',
-        promotionTimeRequired: 36,
-        promotionChance: 50
-      },
-      {
-        title: 'Marketing Director',
-        salary: 180000,
-        prestige: 60,
-        timeCommitment: 55,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 90,
-          charisma: 90,
-          technical: 75,
-          leadership: 85
-        },
-        description: 'Leads the marketing function and develops brand strategy.',
-        promotionTimeRequired: 48,
-        promotionChance: 30
-      },
-      {
-        title: 'Chief Marketing Officer',
-        salary: 250000,
-        prestige: 80,
-        timeCommitment: 60,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 95,
-          charisma: 95,
-          technical: 80,
-          leadership: 95
-        },
-        description: 'Executive responsible for all marketing activities across the organization.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
-      }
-    ],
-    skillGrowth: {
-      creativity: 4,
-      charisma: 3,
-      leadership: 2
-    },
-    specialBenefits: ['Brand partnerships', 'Creative working environment', 'Industry events and travel']
-  },
-  {
-    id: 'lawyer',
-    name: 'Lawyer',
-    category: 'legal',
-    description: 'Represent and advise clients on legal matters in various fields of law.',
-    baseSalary: 100000,
-    careerLevels: [
-      {
-        title: 'Legal Associate',
-        salary: 100000,
-        prestige: 40,
-        timeCommitment: 60,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 60,
-          charisma: 70,
-          technical: 70,
-          leadership: 40
-        },
-        description: 'Entry-level lawyer working on cases under partner supervision.',
-        promotionTimeRequired: 36,
-        promotionChance: 60
-      },
-      {
-        title: 'Senior Associate',
-        salary: 150000,
-        prestige: 50,
-        timeCommitment: 65,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 70,
-          charisma: 75,
-          technical: 80,
-          leadership: 60
-        },
-        description: 'Experienced lawyer handling more complex cases with greater autonomy.',
-        promotionTimeRequired: 48,
-        promotionChance: 50
-      },
-      {
-        title: 'Junior Partner',
-        salary: 250000,
-        prestige: 70,
-        timeCommitment: 65,
-        stressLevel: 80,
-        skillRequirements: {
-          intelligence: 95,
-          creativity: 75,
-          charisma: 85,
-          technical: 85,
-          leadership: 80
-        },
-        description: 'Partial owner of the firm with increased management responsibilities.',
-        promotionTimeRequired: 60,
-        promotionChance: 40
-      },
-      {
-        title: 'Senior Partner',
-        salary: 400000,
-        prestige: 85,
-        timeCommitment: 60,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 95,
-          creativity: 80,
-          charisma: 90,
-          technical: 90,
-          leadership: 90
-        },
-        description: 'Senior leadership role with significant equity in the firm.',
-        promotionTimeRequired: 84,
-        promotionChance: 20
-      },
-      {
-        title: 'Managing Partner',
-        salary: 600000,
-        prestige: 95,
-        timeCommitment: 60,
-        stressLevel: 80,
-        skillRequirements: {
-          intelligence: 95,
-          creativity: 85,
-          charisma: 95,
-          technical: 90,
-          leadership: 95
-        },
-        description: 'Top leadership position overseeing all firm operations and strategic direction.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
-      }
-    ],
-    educationRequired: 'Law Degree',
-    skillGrowth: {
-      intelligence: 3,
-      charisma: 2,
-      leadership: 2
-    },
-    specialBenefits: ['High earning potential', 'Professional prestige', 'Intellectual challenge']
-  },
-  {
-    id: 'civil-servant',
-    name: 'Civil Servant',
-    category: 'government',
-    description: 'Work in public administration to implement policies and provide services to citizens.',
-    baseSalary: 60000,
-    careerLevels: [
-      {
-        title: 'Administrative Assistant',
-        salary: 45000,
-        prestige: 10,
-        timeCommitment: 40,
-        stressLevel: 30,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 30,
-          charisma: 50,
-          technical: 50,
-          leadership: 20
-        },
-        description: 'Entry-level position supporting government departments and officials.',
-        promotionTimeRequired: 24,
-        promotionChance: 70
-      },
-      {
-        title: 'Policy Analyst',
-        salary: 65000,
-        prestige: 25,
-        timeCommitment: 40,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 50,
-          charisma: 60,
-          technical: 60,
-          leadership: 40
-        },
-        description: 'Analyzes and develops public policies and programs.',
-        promotionTimeRequired: 36,
-        promotionChance: 60
-      },
-      {
-        title: 'Department Manager',
-        salary: 85000,
-        prestige: 40,
-        timeCommitment: 45,
-        stressLevel: 55,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 60,
-          charisma: 70,
-          technical: 70,
-          leadership: 70
-        },
-        description: 'Leads a government department or program area.',
-        promotionTimeRequired: 48,
-        promotionChance: 50
-      },
-      {
-        title: 'Director',
+        level: 'executive',
+        title: 'School Principal',
         salary: 110000,
-        prestige: 55,
-        timeCommitment: 50,
-        stressLevel: 65,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 70,
-          charisma: 80,
-          technical: 75,
-          leadership: 85
-        },
-        description: 'Oversees multiple departments and implements strategic initiatives.',
-        promotionTimeRequired: 60,
-        promotionChance: 30
+        description: 'Lead school operations, develop educational vision, and oversee all staff.',
+        skillRequirements: { charisma: 80, intelligence: 75, leadership: 80 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'professor',
+    name: 'Professor',
+    category: 'education',
+    description: 'Conduct research and teach students at the college or university level.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Teaching Assistant',
+        salary: 40000,
+        description: 'Assist professors with courses and begin academic research.',
+        skillRequirements: { intelligence: 70, charisma: 50 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
       },
       {
-        title: 'Deputy Minister',
-        salary: 180000,
-        prestige: 75,
+        level: 'junior',
+        title: 'Assistant Professor',
+        salary: 75000,
+        description: 'Teach courses independently and pursue research projects.',
+        skillRequirements: { intelligence: 80, charisma: 60, creativity: 55 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Associate Professor',
+        salary: 95000,
+        description: 'Lead courses, conduct significant research, and mentor junior faculty.',
+        skillRequirements: { intelligence: 85, charisma: 65, creativity: 70 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
         timeCommitment: 55,
-        stressLevel: 75,
-        skillRequirements: {
-          intelligence: 90,
-          creativity: 80,
-          charisma: 90,
-          technical: 80,
-          leadership: 95
-        },
-        description: 'Top non-political official in a government ministry or department.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Full Professor',
+        salary: 120000,
+        description: 'Lead advanced courses, direct major research initiatives, and shape department direction.',
+        skillRequirements: { intelligence: 90, charisma: 70, creativity: 80, leadership: 60 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      },
+      {
+        level: 'executive',
+        title: 'Department Chair',
+        salary: 150000,
+        description: 'Lead academic departments, manage faculty, and direct academic programs.',
+        skillRequirements: { intelligence: 95, charisma: 75, leadership: 80 },
+        happinessImpact: 10,
+        prestigeImpact: 50,
+        timeCommitment: 65,
+        experience: 72
       }
-    ],
-    skillGrowth: {
-      intelligence: 2,
-      charisma: 2,
-      leadership: 3
-    },
-    specialBenefits: ['Job security', 'Excellent benefits', 'Public service impact']
+    ]
   },
+  
+  // Creative Professions
   {
     id: 'graphic-designer',
     name: 'Graphic Designer',
     category: 'creative',
-    description: 'Create visual concepts, using computer software or by hand, to communicate ideas that inspire, inform, or captivate consumers.',
-    baseSalary: 55000,
-    careerLevels: [
+    description: 'Create visual concepts to communicate ideas that inspire and inform consumers.',
+    careerPath: [
       {
+        level: 'entry',
         title: 'Junior Designer',
         salary: 45000,
-        prestige: 10,
+        description: 'Create basic designs, learn design tools, and assist senior designers.',
+        skillRequirements: { creativity: 55, technical: 40 },
+        happinessImpact: 8,
+        prestigeImpact: 5,
         timeCommitment: 40,
-        stressLevel: 30,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 80,
-          charisma: 50,
-          technical: 70,
-          leadership: 20
-        },
-        description: 'Entry-level position creating basic design elements under supervision.',
-        promotionTimeRequired: 18,
-        promotionChance: 75
+        experience: 0
       },
       {
+        level: 'junior',
         title: 'Graphic Designer',
         salary: 60000,
-        prestige: 20,
-        timeCommitment: 40,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 65,
-          creativity: 85,
-          charisma: 60,
-          technical: 80,
-          leadership: 30
-        },
-        description: 'Creates a wide range of visual assets for products, services, or campaigns.',
-        promotionTimeRequired: 24,
-        promotionChance: 65
+        description: 'Develop original designs, work on client projects, and build a portfolio.',
+        skillRequirements: { creativity: 65, technical: 50, charisma: 45 },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 18
       },
       {
+        level: 'mid',
         title: 'Senior Designer',
         salary: 80000,
-        prestige: 35,
-        timeCommitment: 45,
-        stressLevel: 50,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 90,
-          charisma: 70,
-          technical: 85,
-          leadership: 60
-        },
-        description: 'Leads design projects and mentors junior designers.',
-        promotionTimeRequired: 36,
-        promotionChance: 50
-      },
-      {
-        title: 'Art Director',
-        salary: 110000,
-        prestige: 50,
+        description: 'Lead design projects, develop creative strategies, and mentor junior designers.',
+        skillRequirements: { creativity: 75, technical: 60, charisma: 55 },
+        happinessImpact: 12,
+        prestigeImpact: 25,
         timeCommitment: 50,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 95,
-          charisma: 80,
-          technical: 85,
-          leadership: 80
-        },
-        description: 'Oversees design teams and establishes the visual direction of projects.',
-        promotionTimeRequired: 48,
-        promotionChance: 30
+        experience: 36
       },
       {
-        title: 'Creative Director',
-        salary: 150000,
-        prestige: 70,
+        level: 'senior',
+        title: 'Art Director',
+        salary: 100000,
+        description: 'Oversee design teams, set creative direction, and ensure brand consistency.',
+        skillRequirements: { creativity: 85, technical: 70, leadership: 60, charisma: 65 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
         timeCommitment: 55,
-        stressLevel: 70,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 95,
-          charisma: 90,
-          technical: 85,
-          leadership: 90
-        },
-        description: 'Top creative position determining the creative vision across all projects.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Creative Director',
+        salary: 130000,
+        description: 'Shape overall creative vision, direct multiple teams, and build client relationships.',
+        skillRequirements: { creativity: 90, leadership: 75, charisma: 75 },
+        happinessImpact: 18,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
       }
-    ],
-    skillGrowth: {
-      creativity: 5,
-      technical: 3,
-      charisma: 1
-    },
-    specialBenefits: ['Portfolio development', 'Creative fulfillment', 'Flexible work arrangements']
+    ]
   },
   {
-    id: 'electrician',
-    name: 'Electrician',
-    category: 'trades',
-    description: 'Install, maintain, and repair electrical power, communications, lighting, and control systems.',
-    baseSalary: 60000,
-    careerLevels: [
+    id: 'writer',
+    name: 'Writer',
+    category: 'creative',
+    description: 'Create written content across various media, including books, articles, scripts, and more.',
+    careerPath: [
       {
-        title: 'Apprentice Electrician',
-        salary: 35000,
-        prestige: 5,
-        timeCommitment: 40,
-        stressLevel: 30,
-        skillRequirements: {
-          intelligence: 60,
-          creativity: 40,
-          charisma: 40,
-          technical: 70,
-          leadership: 10
-        },
-        description: 'Training position learning under a licensed electrician.',
-        promotionTimeRequired: 36,
-        promotionChance: 80
+        level: 'entry',
+        title: 'Content Writer',
+        salary: 40000,
+        description: 'Write web content, blog posts, and basic marketing materials.',
+        skillRequirements: { creativity: 50, intelligence: 45 },
+        happinessImpact: 7,
+        prestigeImpact: 5,
+        timeCommitment: 35,
+        experience: 0
       },
       {
-        title: 'Journeyman Electrician',
-        salary: 65000,
-        prestige: 15,
+        level: 'junior',
+        title: 'Staff Writer',
+        salary: 55000,
+        description: 'Write feature articles, longer content pieces, and develop editorial voice.',
+        skillRequirements: { creativity: 60, intelligence: 55 },
+        happinessImpact: 9,
+        prestigeImpact: 15,
         timeCommitment: 40,
-        stressLevel: 40,
-        skillRequirements: {
-          intelligence: 70,
-          creativity: 50,
-          charisma: 50,
-          technical: 85,
-          leadership: 30
-        },
-        description: 'Licensed electrician qualified to work independently on most electrical systems.',
-        promotionTimeRequired: 48,
-        promotionChance: 60
+        experience: 18
       },
       {
-        title: 'Master Electrician',
-        salary: 85000,
-        prestige: 25,
+        level: 'mid',
+        title: 'Senior Writer',
+        salary: 70000,
+        description: 'Lead content creation, develop content strategies, and mentor junior writers.',
+        skillRequirements: { creativity: 70, intelligence: 65, charisma: 50 },
+        happinessImpact: 12,
+        prestigeImpact: 25,
         timeCommitment: 45,
-        stressLevel: 45,
-        skillRequirements: {
-          intelligence: 75,
-          creativity: 60,
-          charisma: 60,
-          technical: 95,
-          leadership: 60
-        },
-        description: 'Highly skilled electrician qualified to design electrical systems and supervise others.',
-        promotionTimeRequired: 60,
-        promotionChance: 50
+        experience: 36
       },
       {
-        title: 'Electrical Contractor',
+        level: 'senior',
+        title: 'Editor',
+        salary: 90000,
+        description: 'Direct content development, manage writers, and shape publication voice.',
+        skillRequirements: { creativity: 80, intelligence: 75, leadership: 60 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Editor-in-Chief',
         salary: 120000,
-        prestige: 35,
-        timeCommitment: 50,
-        stressLevel: 60,
-        skillRequirements: {
-          intelligence: 80,
-          creativity: 70,
-          charisma: 70,
-          technical: 95,
-          leadership: 80
-        },
-        description: 'Runs own electrical contracting business with employees.',
-        promotionTimeRequired: 60,
-        promotionChance: 30
+        description: 'Guide overall editorial direction, manage content operations, and build publication brand.',
+        skillRequirements: { creativity: 85, intelligence: 80, leadership: 75, charisma: 70 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Business Professions
+  {
+    id: 'marketing-specialist',
+    name: 'Marketing Specialist',
+    category: 'business',
+    description: 'Develop and implement marketing strategies to promote products and services.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Marketing Coordinator',
+        salary: 50000,
+        description: 'Assist with marketing campaigns, gather market data, and support marketing initiatives.',
+        skillRequirements: { charisma: 50, creativity: 45 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
       },
       {
-        title: 'Master Electrical Engineer',
-        salary: 150000,
-        prestige: 50,
+        level: 'junior',
+        title: 'Marketing Specialist',
+        salary: 65000,
+        description: 'Develop marketing materials, manage social media, and analyze campaign performance.',
+        skillRequirements: { charisma: 60, creativity: 55, intelligence: 50 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Marketing Manager',
+        salary: 85000,
+        description: 'Develop and implement comprehensive marketing strategies and lead marketing initiatives.',
+        skillRequirements: { charisma: 70, creativity: 65, intelligence: 60, leadership: 50 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
         timeCommitment: 50,
-        stressLevel: 55,
-        skillRequirements: {
-          intelligence: 85,
-          creativity: 75,
-          charisma: 70,
-          technical: 95,
-          leadership: 85
-        },
-        description: 'Top level electrician who designs complex electrical systems and manages large projects.',
-        promotionTimeRequired: undefined,
-        promotionChance: undefined
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior Marketing Director',
+        salary: 120000,
+        description: 'Lead marketing departments, develop brand strategy, and drive market growth.',
+        skillRequirements: { charisma: 80, creativity: 75, leadership: 70 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Marketing Officer',
+        salary: 180000,
+        description: 'Direct all marketing activities, shape brand vision, and drive corporate growth strategies.',
+        skillRequirements: { charisma: 85, creativity: 80, leadership: 80, intelligence: 75 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
       }
-    ],
-    skillGrowth: {
-      technical: 5,
-      intelligence: 2,
-      creativity: 1
-    },
-    specialBenefits: ['High job security', 'Independence', 'Entrepreneurial opportunities']
+    ]
+  },
+  {
+    id: 'business-consultant',
+    name: 'Business Consultant',
+    category: 'business',
+    description: 'Provide expert advice to help organizations improve performance and efficiency.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Consultant',
+        salary: 65000,
+        description: 'Gather data, perform analysis, and support consulting projects.',
+        skillRequirements: { intelligence: 60, charisma: 50 },
+        happinessImpact: 3,
+        prestigeImpact: 15,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Consultant',
+        salary: 90000,
+        description: 'Work directly with clients, develop recommendations, and lead specific project components.',
+        skillRequirements: { intelligence: 70, charisma: 60, technical: 55 },
+        happinessImpact: 5,
+        prestigeImpact: 25,
+        timeCommitment: 55,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Consultant',
+        salary: 120000,
+        description: 'Manage client relationships, lead project teams, and develop consulting frameworks.',
+        skillRequirements: { intelligence: 80, charisma: 70, leadership: 60 },
+        happinessImpact: 8,
+        prestigeImpact: 35,
+        timeCommitment: 60,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Consultant',
+        salary: 160000,
+        description: 'Lead major consulting engagements, develop new business, and mentor consultant teams.',
+        skillRequirements: { intelligence: 85, charisma: 80, leadership: 75 },
+        happinessImpact: 10,
+        prestigeImpact: 45,
+        timeCommitment: 65,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Managing Partner',
+        salary: 250000,
+        description: 'Lead consulting practice, direct firm strategy, and build high-level client relationships.',
+        skillRequirements: { intelligence: 90, charisma: 85, leadership: 85 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
+        timeCommitment: 70,
+        experience: 60
+      }
+    ]
+  },
+  
+  // Legal Professions
+  {
+    id: 'lawyer',
+    name: 'Lawyer',
+    category: 'legal',
+    description: 'Provide legal advice and representation to individuals, businesses, and organizations.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Legal Associate',
+        salary: 80000,
+        description: 'Conduct legal research, draft documents, and support senior attorneys.',
+        skillRequirements: { intelligence: 70, charisma: 55 },
+        happinessImpact: 2,
+        prestigeImpact: 20,
+        timeCommitment: 60,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Attorney',
+        salary: 110000,
+        description: 'Represent clients, handle cases independently, and develop legal expertise.',
+        skillRequirements: { intelligence: 75, charisma: 65 },
+        happinessImpact: 5,
+        prestigeImpact: 30,
+        timeCommitment: 65,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Attorney',
+        salary: 150000,
+        description: 'Handle complex cases, mentor junior attorneys, and develop client relationships.',
+        skillRequirements: { intelligence: 85, charisma: 75, leadership: 60 },
+        happinessImpact: 8,
+        prestigeImpact: 40,
+        timeCommitment: 70,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Partner',
+        salary: 250000,
+        description: 'Lead legal teams, build practice areas, and develop new business.',
+        skillRequirements: { intelligence: 90, charisma: 80, leadership: 75 },
+        happinessImpact: 10,
+        prestigeImpact: 50,
+        timeCommitment: 65,
+        experience: 60
+      },
+      {
+        level: 'executive',
+        title: 'Managing Partner',
+        salary: 400000,
+        description: 'Lead law firm, direct firm strategy, and manage high-profile client relationships.',
+        skillRequirements: { intelligence: 95, charisma: 85, leadership: 85 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
+        timeCommitment: 70,
+        experience: 72
+      }
+    ]
+  },
+  
+  // Science Professions
+  {
+    id: 'scientist',
+    name: 'Scientist',
+    category: 'science',
+    description: 'Conduct research to advance knowledge in a specific scientific field.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Research Assistant',
+        salary: 50000,
+        description: 'Support research projects, collect and analyze data, and maintain lab equipment.',
+        skillRequirements: { intelligence: 65, technical: 50 },
+        happinessImpact: 8,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Scientist',
+        salary: 75000,
+        description: 'Conduct independent research, publish findings, and contribute to research teams.',
+        skillRequirements: { intelligence: 75, technical: 60 },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Scientist',
+        salary: 95000,
+        description: 'Lead research projects, secure funding, and guide research direction.',
+        skillRequirements: { intelligence: 85, technical: 70, leadership: 50 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Scientist',
+        salary: 120000,
+        description: 'Direct major research initiatives, mentor scientists, and shape field direction.',
+        skillRequirements: { intelligence: 90, technical: 80, leadership: 65 },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Research Director',
+        salary: 150000,
+        description: 'Lead research organizations, set research agenda, and drive scientific innovation.',
+        skillRequirements: { intelligence: 95, technical: 85, leadership: 80 },
+        happinessImpact: 18,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
   }
 ];
 
-// Get a job by ID
-export const getJobById = (id: string): Job | undefined => {
-  return jobs.find(job => job.id === id);
+// Helper functions for working with professions and jobs
+
+// Get a specific profession by ID
+export const getProfession = (id: string): Profession | undefined => {
+  return professions.find(p => p.id === id);
 };
 
-// Get all jobs
-export const getAllJobs = (): Job[] => {
-  return jobs;
+// Get a specific job level within a profession
+export const getJobByLevelInProfession = (professionId: string, level: JobLevel): CareerPath | undefined => {
+  const profession = getProfession(professionId);
+  if (!profession) return undefined;
+  
+  return profession.careerPath.find(path => path.level === level);
 };
 
-// Get jobs by category
-export const getJobsByCategory = (category: JobCategory): Job[] => {
-  return jobs.filter(job => job.category === category);
+// Get the next job level in a career path
+export const getNextJobInCareerPath = (professionId: string, currentLevel: JobLevel): CareerPath | undefined => {
+  const profession = getProfession(professionId);
+  if (!profession) return undefined;
+  
+  const levelOrder: JobLevel[] = ['entry', 'junior', 'mid', 'senior', 'executive'];
+  const currentIndex = levelOrder.indexOf(currentLevel);
+  
+  if (currentIndex < 0 || currentIndex >= levelOrder.length - 1) {
+    return undefined; // Either invalid level or already at the highest level
+  }
+  
+  const nextLevel = levelOrder[currentIndex + 1];
+  return profession.careerPath.find(path => path.level === nextLevel);
+};
+
+// Get all professions in a specific category
+export const getProfessionsByCategory = (category: JobCategory): Profession[] => {
+  return professions.filter(p => p.category === category);
+};
+
+// Get all profession categories
+export const getAllProfessionCategories = (): JobCategory[] => {
+  return Array.from(new Set(professions.map(p => p.category)));
+};
+
+// Get user-friendly category labels
+export const getCategoryLabel = (category: JobCategory): string => {
+  const labels: Record<JobCategory, string> = {
+    'technology': 'Technology',
+    'finance': 'Finance & Banking',
+    'healthcare': 'Healthcare',
+    'education': 'Education',
+    'creative': 'Creative Arts',
+    'business': 'Business',
+    'legal': 'Legal',
+    'science': 'Science & Research',
+    'government': 'Government & Public Sector',
+    'trade': 'Skilled Trades'
+  };
+  
+  return labels[category] || category.charAt(0).toUpperCase() + category.slice(1);
+};
+
+// Get user-friendly job level labels
+export const getJobLevelLabel = (level: JobLevel): string => {
+  const labels: Record<JobLevel, string> = {
+    'entry': 'Entry Level',
+    'junior': 'Junior',
+    'mid': 'Mid-Level',
+    'senior': 'Senior',
+    'executive': 'Executive'
+  };
+  
+  return labels[level] || level.charAt(0).toUpperCase() + level.slice(1);
+};
+
+// Check if character meets skill requirements for a job
+export const meetsSkillRequirements = (
+  skills: CharacterSkills, 
+  requirements: Partial<CharacterSkills>
+): boolean => {
+  for (const [skill, minLevel] of Object.entries(requirements)) {
+    const typedSkill = skill as keyof CharacterSkills;
+    if (skills[typedSkill] < minLevel) {
+      return false;
+    }
+  }
+  
+  return true;
+};
+
+// Calculate months needed to meet skill requirements at current improvement rate
+export const calculateMonthsToSkillRequirements = (
+  skills: CharacterSkills,
+  requirements: Partial<CharacterSkills>,
+  improvementRate: Partial<CharacterSkills>
+): number => {
+  let maxMonths = 0;
+  
+  for (const [skill, minLevel] of Object.entries(requirements)) {
+    const typedSkill = skill as keyof CharacterSkills;
+    const currentLevel = skills[typedSkill];
+    const monthlyImprovement = improvementRate[typedSkill] || 1; // Default to 1 point per month
+    
+    if (currentLevel < minLevel) {
+      const deficit = minLevel - currentLevel;
+      const monthsNeeded = Math.ceil(deficit / monthlyImprovement);
+      maxMonths = Math.max(maxMonths, monthsNeeded);
+    }
+  }
+  
+  return maxMonths;
 };
