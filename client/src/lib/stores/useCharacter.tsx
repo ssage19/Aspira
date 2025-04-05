@@ -626,6 +626,17 @@ export const useCharacter = create<CharacterState>()(
         // Cost of the property purchase
         const purchaseCost = property.purchasePrice;
         
+        // Check if the purchase would result in negative wealth
+        const currentWealth = get().wealth;
+        if (currentWealth < purchaseCost) {
+          // Not enough money to make the purchase
+          toast.error("Insufficient funds to purchase this property", {
+            duration: 3000,
+            position: 'bottom-right',
+          });
+          return false; // Indicate failure
+        }
+        
         set((state) => ({
           properties: [...state.properties, property],
           wealth: state.wealth - purchaseCost
@@ -637,6 +648,8 @@ export const useCharacter = create<CharacterState>()(
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();
+        
+        return true; // Indicate success
       },
       
       sellProperty: (propertyId) => {
@@ -1056,7 +1069,7 @@ export const useCharacter = create<CharacterState>()(
           
           // Add property income
           const dailyPropertyIncome = state.properties.reduce((total, property) => {
-            return total + (property.monthlyIncome / 30); // Daily property income
+            return total + (property.income / 30); // Daily property income (monthly income ÷ 30)
           }, 0);
           
           // Process lifestyle expenses

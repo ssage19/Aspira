@@ -67,32 +67,43 @@ export function Properties() {
   // Handle property purchase
   const handlePurchase = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
-    const downPayment = adjustedPrice * (downPaymentPercent / 100);
     
-    if (wealth < downPayment) {
+    // For a full purchase, the down payment is the full price
+    // For a mortgage, it's just the down payment percentage
+    const downPaymentAmount = downPaymentPercent === 100 
+      ? adjustedPrice 
+      : adjustedPrice * (downPaymentPercent / 100);
+    
+    if (wealth < downPaymentAmount) {
       toast.error("You don't have enough funds for the down payment");
       playHit();
       return;
     }
     
-    // Process purchase
-    addWealth(-downPayment);
+    // Don't call addWealth here, as the addProperty function already deducts the cost
+    // from wealth when adding the property
     
-    // Add property to owned properties
-    addProperty({
+    // Add property to owned properties - note the property.purchasePrice will be used
+    // to deduct from wealth in the addProperty function
+    const purchased = addProperty({
       id: selectedProperty.id,
       name: selectedProperty.name,
       type: selectedProperty.type,
-      value: adjustedPrice,
-      purchasePrice: adjustedPrice, // Adding purchasePrice which is expected in useCharacter
+      value: adjustedPrice, // Current value for display
+      purchasePrice: downPaymentAmount, // This is what will be deducted from wealth
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
-      currentValue: adjustedPrice // Adding currentValue which is used in sellProperty
+      currentValue: adjustedPrice // For future value calculations and selling
     });
     
-    playSuccess();
-    toast.success(`Purchased ${selectedProperty.name}`);
+    if (purchased) {
+      playSuccess();
+      toast.success(`Purchased ${selectedProperty.name}`);
+    } else {
+      // The purchase failed (likely due to insufficient funds check in addProperty)
+      playHit();
+    }
   };
   
   // Handle property sale
