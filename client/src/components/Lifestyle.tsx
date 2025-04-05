@@ -42,7 +42,7 @@ import {
   Users,
   Briefcase
 } from 'lucide-react';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, formatInteger } from '../lib/utils';
 import { 
   luxuryItems, 
   vehicles, 
@@ -212,7 +212,7 @@ export function Lifestyle() {
     // Only show non-zero values
     if (value === 0) return null;
     
-    const formattedValue = value > 0 ? `+${value}` : value;
+    const formattedValue = value > 0 ? `+${formatInteger(value)}` : formatInteger(value);
     
     return (
       <div className={`flex items-center ${color} text-xs`}>
@@ -288,11 +288,11 @@ export function Lifestyle() {
                 <div className="flex justify-between text-sm mt-2">
                   <span className="flex items-center">
                     <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
-                    Happiness: +{item.happiness}
+                    Happiness: +{formatInteger(item.happiness)}
                   </span>
                   <span className="flex items-center">
                     <Award className="h-4 w-4 mr-1 text-purple-500" />
-                    Prestige: +{item.prestige}
+                    Prestige: +{formatInteger(item.prestige)}
                   </span>
                 </div>
                 
@@ -458,11 +458,11 @@ export function Lifestyle() {
                           <div className="flex justify-between text-sm">
                             <span className="flex items-center">
                               <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
-                              Happiness: +{item.happiness}
+                              Happiness: +{formatInteger(item.happiness)}
                             </span>
                             <span className="flex items-center">
                               <Award className="h-4 w-4 mr-1 text-purple-500" />
-                              Prestige: +{item.prestige}
+                              Prestige: +{formatInteger(item.prestige)}
                             </span>
                           </div>
                           
@@ -475,37 +475,37 @@ export function Lifestyle() {
                                 {item.timeCommitment && (
                                   <div className="text-xs flex items-center text-orange-600">
                                     <Clock className="h-3 w-3 mr-1" />
-                                    <span>Time: -{item.timeCommitment}h</span>
+                                    <span>Time: -{formatInteger(item.timeCommitment)}h</span>
                                   </div>
                                 )}
                                 {item.healthImpact && (
                                   <div className={`text-xs flex items-center ${item.healthImpact > 0 ? 'text-green-600' : 'text-red-500'}`}>
                                     <Heart className="h-3 w-3 mr-1" />
-                                    <span>Health: {item.healthImpact > 0 ? '+' : ''}{item.healthImpact}</span>
+                                    <span>Health: {item.healthImpact > 0 ? '+' : ''}{formatInteger(item.healthImpact)}</span>
                                   </div>
                                 )}
                                 {item.stressReduction && (
                                   <div className="text-xs flex items-center text-teal-600">
                                     <Wind className="h-3 w-3 mr-1" />
-                                    <span>Stress: -{item.stressReduction}</span>
+                                    <span>Stress: -{formatInteger(item.stressReduction)}</span>
                                   </div>
                                 )}
                                 {item.socialStatus && (
                                   <div className="text-xs flex items-center text-blue-600">
                                     <Users className="h-3 w-3 mr-1" />
-                                    <span>Social: {item.socialStatus > 0 ? '+' : ''}{item.socialStatus}</span>
+                                    <span>Social: {item.socialStatus > 0 ? '+' : ''}{formatInteger(item.socialStatus)}</span>
                                   </div>
                                 )}
                                 {item.skillDevelopment && (
                                   <div className="text-xs flex items-center text-indigo-600">
                                     <BookOpen className="h-3 w-3 mr-1" />
-                                    <span>Skills: {item.skillDevelopment > 0 ? '+' : ''}{item.skillDevelopment}</span>
+                                    <span>Skills: {item.skillDevelopment > 0 ? '+' : ''}{formatInteger(item.skillDevelopment)}</span>
                                   </div>
                                 )}
                                 {item.environmentalImpact && (
                                   <div className={`text-xs flex items-center ${item.environmentalImpact > 0 ? 'text-green-600' : 'text-gray-500'}`}>
                                     <Leaf className="h-3 w-3 mr-1" />
-                                    <span>Enviro: {item.environmentalImpact > 0 ? '+' : ''}{item.environmentalImpact}</span>
+                                    <span>Enviro: {item.environmentalImpact > 0 ? '+' : ''}{formatInteger(item.environmentalImpact)}</span>
                                   </div>
                                 )}
                               </div>
@@ -529,19 +529,19 @@ export function Lifestyle() {
                               </AlertDialogDescription>
                               <div className="mt-3 mb-3 text-sm text-muted-foreground">
                                 {item.type === 'hobbies' && (
-                                  <div className="mt-2">You'll gain back {item.timeCommitment} hours of free time per week.</div>
+                                  <div className="mt-2">You'll gain back {formatInteger(item.timeCommitment)} hours of free time per week.</div>
                                 )}
                                 {item.healthImpact !== undefined && item.healthImpact !== 0 && (
-                                  <div className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {Math.abs(item.healthImpact)} points.</div>
+                                  <div className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {formatInteger(Math.abs(item.healthImpact))} points.</div>
                                 )}
                                 {item.stressReduction !== undefined && item.stressReduction !== 0 && (
-                                  <div className="mt-1">Your stress will increase by {Math.abs(item.stressReduction)} points.</div>
+                                  <div className="mt-1">Your stress will increase by {formatInteger(Math.abs(item.stressReduction))} points.</div>
                                 )}
                                 {item.socialStatus !== undefined && item.socialStatus !== 0 && (
-                                  <div className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {Math.abs(item.socialStatus)} points.</div>
+                                  <div className="mt-1">Your social connections will {item.socialStatus > 0 ? 'decrease' : 'increase'} by {formatInteger(Math.abs(item.socialStatus))} points.</div>
                                 )}
                                 {item.skillDevelopment !== undefined && item.skillDevelopment !== 0 && (
-                                  <div className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {Math.abs(item.skillDevelopment)} points.</div>
+                                  <div className="mt-1">Your skills will {item.skillDevelopment > 0 ? 'decrease' : 'increase'} by {formatInteger(Math.abs(item.skillDevelopment))} points.</div>
                                 )}
                               </div>
                             </AlertDialogHeader>

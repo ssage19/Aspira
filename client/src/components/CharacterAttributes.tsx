@@ -26,7 +26,7 @@ import {
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Progress } from './ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
-import { cn } from '../lib/utils';
+import { cn, formatInteger } from '../lib/utils';
 
 // Define attribute details
 interface AttributeDetails {
@@ -215,14 +215,14 @@ export function CharacterAttributes() {
     const config = attributeConfigs[attributeName];
     
     if (attributeName === 'timeManagement') {
-      return `${freeTime}${config.unit} free / ${timeCommitment}${config.unit} used`;
+      return `${formatInteger(freeTime)}${config.unit} free / ${formatInteger(timeCommitment)}${config.unit} used`;
     }
     
     if (attributeName === 'environmentalImpact') {
-      return value.toString(); // No % for environmental impact
+      return formatInteger(value); // No % for environmental impact
     }
     
-    return attributeName === 'prestige' ? value.toString() : `${value}%`;
+    return attributeName === 'prestige' ? formatInteger(value) : `${formatInteger(value)}%`;
   };
   
   // Render each attribute with visual indicator and description
