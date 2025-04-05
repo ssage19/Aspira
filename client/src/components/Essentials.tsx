@@ -108,7 +108,9 @@ export function Essentials() {
     }
     
     if (effects.stress) {
-      addStress(-effects.stress); // Negative because stress reduction is positive in data
+      // Apply stress effect directly - in our data:
+      // negative value = stress reduction, positive value = stress increase
+      addStress(effects.stress);
     }
     
     if (effects.socialConnections) {
@@ -308,7 +310,7 @@ export function Essentials() {
                 {renderEffectItem(item.effects.thirst, "Thirst", <Droplets className="h-3 w-3 text-blue-500" />)}
                 {renderEffectItem(item.effects.energy, "Energy", <Battery className="h-3 w-3 text-green-500" />)}
                 {renderEffectItem(item.effects.health, "Health", <Heart className="h-3 w-3 text-red-500" />)}
-                {renderEffectItem(item.effects.stress && -item.effects.stress, "Stress", <Brain className="h-3 w-3 text-teal-500" />)}
+                {renderEffectItem(item.effects.stress, "Stress", <Brain className="h-3 w-3 text-teal-500" />)}
                 {renderEffectItem(item.effects.socialConnections, "Social", <Users className="h-3 w-3 text-violet-500" />)}
               </div>
             </CardContent>
@@ -379,13 +381,16 @@ export function Essentials() {
   
   // Function to find the most cost-effective item for a specific need
   const findBestItemForNeed = (
-    needType: 'hunger' | 'thirst' | 'energy' | 'socialConnections',
+    needType: 'hunger' | 'thirst' | 'energy' | 'socialConnections' | 'stress',
     itemList: EssentialItem[]
   ): EssentialItem | null => {
     // Filter items that restore the specific need and are affordable
     const validItems = itemList.filter(item => 
       item.effects[needType] && 
-      item.effects[needType]! > 0 && 
+      // For stress, we want negative values (stress reduction)
+      (needType === 'stress' ? 
+        item.effects[needType]! < 0 : 
+        item.effects[needType]! > 0) && 
       item.price <= wealth
     );
     
@@ -393,8 +398,17 @@ export function Essentials() {
     
     // Find the most cost-effective item (highest effect per dollar)
     return validItems.reduce((best, current) => {
-      const bestEfficiency = best.effects[needType]! / Math.max(1, best.price);
-      const currentEfficiency = current.effects[needType]! / Math.max(1, current.price);
+      // For stress, we want the most negative value (more stress reduction)
+      const bestValue = needType === 'stress' ? 
+        Math.abs(best.effects[needType]!) : 
+        best.effects[needType]!;
+        
+      const currentValue = needType === 'stress' ? 
+        Math.abs(current.effects[needType]!) : 
+        current.effects[needType]!;
+      
+      const bestEfficiency = bestValue / Math.max(1, best.price);
+      const currentEfficiency = currentValue / Math.max(1, current.price);
       
       return currentEfficiency > bestEfficiency ? current : best;
     }, validItems[0]);
@@ -447,6 +461,32 @@ export function Essentials() {
       }
     }
     
+    // Check stress level - manage when it gets high (above 50%)
+    if (stress >= 50 && actionsTaken < maxActionsPerCycle) {
+      // Look for stress reduction in different activities
+      let bestStressReliever = findBestItemForNeed('stress', restActivities);
+      
+      // If no suitable rest activity found, check exercise activities
+      if (!bestStressReliever) {
+        bestStressReliever = findBestItemForNeed('stress', exerciseActivities);
+      }
+      
+      // If still no suitable activity found, check social activities
+      if (!bestStressReliever) {
+        bestStressReliever = findBestItemForNeed('stress', socialActivities);
+      }
+      
+      // As a last resort, check food items that might reduce stress
+      if (!bestStressReliever) {
+        bestStressReliever = findBestItemForNeed('stress', foodItems);
+      }
+      
+      if (bestStressReliever) {
+        handleConsumeEssential(bestStressReliever);
+        actionsTaken++;
+      }
+    }
+    
     // If any actions were taken, only log to console for debugging
     if (actionsTaken > 0) {
       // Log to console for debugging, but don't show any user notifications
@@ -475,9 +515,9 @@ export function Essentials() {
   useEffect(() => {
     if (!autoMaintain) return;
     
-    // This will run the auto-maintenance check every 3 seconds
+    // This will run the auto-maintenance check every 2 seconds
     // Shorter interval to be more responsive to needs falling below 70%
-    const intervalId = setInterval(handleAutoMaintenance, 3000);
+    const intervalId = setInterval(handleAutoMaintenance, 2000);
     
     // Cleanup function to prevent memory leaks
     return () => clearInterval(intervalId);
@@ -508,7 +548,7 @@ export function Essentials() {
           </div>
           <p className="text-xs text-blue-600 italic">
             {autoMaintain ? 
-              "Needs will be automatically maintained when they drop below 70%" : 
+              "Needs will be automatically maintained when they drop below 70%, and stress will be managed when above 50%" : 
               "You need to manually maintain your needs"}
           </p>
         </div>
