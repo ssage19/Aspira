@@ -238,7 +238,6 @@ export default function AchievementsScreen() {
     getCompletedAchievements, 
     getInProgressAchievements 
   } = useAchievements();
-  const { addCash, applyIncomeMultiplier } = useGame();
   
   const claimReward = (id: string) => {
     const achievement = achievements.find(a => a.id === id);
@@ -246,15 +245,18 @@ export default function AchievementsScreen() {
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
       console.log(`Claiming reward for achievement: ${achievement.title}`);
       
+      // Get game state methods
+      const gameState = useGame.getState();
+      
       // Apply the reward
       switch (achievement.reward.type) {
         case 'cash':
           console.log(`Adding cash reward: ${achievement.reward.value}`);
-          addCash(achievement.reward.value);
+          gameState.addCash(achievement.reward.value);
           break;
         case 'multiplier':
           console.log(`Applying income multiplier: ${achievement.reward.value}`);
-          applyIncomeMultiplier(achievement.reward.value);
+          gameState.applyIncomeMultiplier(achievement.reward.value);
           break;
         case 'unlock':
           console.log(`Unlocking feature: ${achievement.reward.description}`);
