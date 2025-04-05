@@ -1039,9 +1039,10 @@ export const useCharacter = create<CharacterState>()(
           const netDailyChange = dailyIncome + dailyPropertyIncome - dailyLifestyleExpenses;
           
           // Basic needs changes (hunger, thirst, energy decrease over time)
-          let hunger = Math.max(0, state.hunger - 15); // Lose hunger more quickly
-          let thirst = Math.max(0, state.thirst - 20); // Lose thirst most quickly
-          let energy = Math.max(0, state.energy - 10); // Lose energy more slowly
+          // Slow down the decay rate significantly to prevent death during 8-10 hour absences
+          let hunger = Math.max(0, state.hunger - 3); // Slowed down decay (was 15)
+          let thirst = Math.max(0, state.thirst - 4); // Slowed down decay (was 20)
+          let energy = Math.max(0, state.energy - 2); // Slowed down decay (was 10)
           
           // Housing type affects comfort
           let comfort = state.comfort;

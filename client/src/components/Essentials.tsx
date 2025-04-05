@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useCharacter } from "../lib/stores/useCharacter";
 import { useAudio } from "../lib/stores/useAudio";
 import { useTime } from "../lib/stores/useTime";
@@ -68,6 +68,12 @@ export function Essentials() {
   const { playSound } = useAudio();
   const { advanceTime } = useTime();
   const [activeTab, setActiveTab] = useState('food');
+  // Default to auto-maintenance being ON for better user experience
+  const [autoMaintain, setAutoMaintain] = useState<boolean>(() => {
+    const savedPreference = localStorage.getItem('auto-maintain-needs');
+    // If user has a saved preference, use that; otherwise default to true
+    return savedPreference === null ? true : savedPreference === 'true';
+  });
   
   // Function to handle consuming essential items
   const handleConsumeEssential = (item: EssentialItem) => {
@@ -374,6 +380,102 @@ export function Essentials() {
     }
   };
   
+  // Function to find the most cost-effective item for a specific need
+  const findBestItemForNeed = (
+    needType: 'hunger' | 'thirst' | 'energy' | 'socialConnections',
+    itemList: EssentialItem[]
+  ): EssentialItem | null => {
+    // Filter items that restore the specific need and are affordable
+    const validItems = itemList.filter(item => 
+      item.effects[needType] && 
+      item.effects[needType]! > 0 && 
+      item.price <= wealth
+    );
+    
+    if (validItems.length === 0) return null;
+    
+    // Find the most cost-effective item (highest effect per dollar)
+    return validItems.reduce((best, current) => {
+      const bestEfficiency = best.effects[needType]! / Math.max(1, best.price);
+      const currentEfficiency = current.effects[needType]! / Math.max(1, current.price);
+      
+      return currentEfficiency > bestEfficiency ? current : best;
+    }, validItems[0]);
+  };
+  
+  // Function to auto-consume essentials when needs get low
+  const handleAutoMaintenance = () => {
+    if (!autoMaintain) return;
+    
+    // Check hunger level
+    if (hunger <= 50) {
+      const bestFood = findBestItemForNeed('hunger', foodItems);
+      if (bestFood) {
+        handleConsumeEssential(bestFood);
+        return; // Only handle one need at a time to avoid too much activity at once
+      }
+    }
+    
+    // Check thirst level
+    if (thirst <= 50) {
+      const bestDrink = findBestItemForNeed('thirst', drinkItems);
+      if (bestDrink) {
+        handleConsumeEssential(bestDrink);
+        return;
+      }
+    }
+    
+    // Check energy level
+    if (energy <= 50) {
+      const bestRest = findBestItemForNeed('energy', restActivities);
+      if (bestRest) {
+        handleConsumeEssential(bestRest);
+        return;
+      }
+    }
+    
+    // Check social connections level
+    if (socialConnections <= 50) {
+      const bestSocial = findBestItemForNeed('socialConnections', socialActivities);
+      if (bestSocial) {
+        handleConsumeEssential(bestSocial);
+        return;
+      }
+    }
+  };
+  
+  // Toggle auto-maintenance
+  const toggleAutoMaintain = () => {
+    const newValue = !autoMaintain;
+    setAutoMaintain(newValue);
+    localStorage.setItem('auto-maintain-needs', newValue.toString());
+    toast.success(newValue ? 
+      "Auto-maintenance activated! Your character will automatically take care of basic needs when they fall below 50%" : 
+      "Auto-maintenance deactivated. You'll need to manually care for your character's needs."
+    );
+  };
+  
+  // Run auto-maintenance check once when component mounts
+  useEffect(() => {
+    // If auto-maintain is enabled, run a check immediately
+    if (autoMaintain) {
+      handleAutoMaintenance();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  
+  // Check needs periodically when auto-maintenance is enabled
+  useEffect(() => {
+    if (!autoMaintain) return;
+    
+    // This will run the auto-maintenance check every 10 seconds
+    const intervalId = setInterval(handleAutoMaintenance, 10000);
+    
+    // Cleanup function to prevent memory leaks
+    return () => clearInterval(intervalId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoMaintain]);
+  
   return (
     <div className="mb-8">
       <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -382,6 +484,26 @@ export function Essentials() {
           Taking care of your basic needs improves your character's health, energy levels, and overall well-being.
           Low levels of food, water, rest, or social interaction will negatively impact your health over time.
         </p>
+        <div className="mt-3 flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-sm text-blue-700 mr-2">Auto-maintain needs:</span>
+            <Button 
+              variant={autoMaintain ? "default" : "outline"}
+              size="sm"
+              onClick={toggleAutoMaintain}
+              className={autoMaintain ? 
+                "bg-green-500 hover:bg-green-600" : 
+                "border-gray-400 text-gray-600"}
+            >
+              {autoMaintain ? "Enabled" : "Disabled"}
+            </Button>
+          </div>
+          <p className="text-xs text-blue-600 italic">
+            {autoMaintain ? 
+              "Needs will be automatically maintained when they drop below 50%" : 
+              "You need to manually maintain your needs"}
+          </p>
+        </div>
       </div>
       
       {renderNeedsStatusBars()}
