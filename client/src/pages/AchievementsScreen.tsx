@@ -399,95 +399,32 @@ export default function AchievementsScreen() {
           <div className="flex items-center justify-between mb-4">
             <TabsList className="grid grid-cols-7 w-full md:w-auto">
               <TabsTrigger value="general" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Star className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">General</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>General Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Star className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">General</span>
               </TabsTrigger>
               <TabsTrigger value="wealth" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <DollarSign className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Wealth</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Wealth Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <DollarSign className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Wealth</span>
               </TabsTrigger>
               <TabsTrigger value="property" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Home className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Property</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Property Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Home className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Property</span>
               </TabsTrigger>
               <TabsTrigger value="investment" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <TrendingUp className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Investment</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Investment Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <TrendingUp className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Investment</span>
               </TabsTrigger>
               <TabsTrigger value="lifestyle" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <ShoppingBag className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Lifestyle</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Lifestyle Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <ShoppingBag className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Lifestyle</span>
               </TabsTrigger>
               <TabsTrigger value="challenge" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <Target className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Challenges</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Challenge Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Target className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Challenges</span>
               </TabsTrigger>
               <TabsTrigger value="strategy" className="flex items-center justify-center">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger>
-                      <LineChart className="h-5 w-5 md:mr-2" />
-                      <span className="hidden md:inline">Strategy</span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Strategy Achievements</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <LineChart className="h-5 w-5 md:mr-2" />
+                <span className="hidden md:inline">Strategy</span>
               </TabsTrigger>
             </TabsList>
             
