@@ -84,9 +84,11 @@ export function Properties() {
       name: selectedProperty.name,
       type: selectedProperty.type,
       value: adjustedPrice,
+      purchasePrice: adjustedPrice, // Adding purchasePrice which is expected in useCharacter
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
-      purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`
+      purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
+      currentValue: adjustedPrice // Adding currentValue which is used in sellProperty
     });
     
     playSuccess();
@@ -102,9 +104,18 @@ export function Properties() {
     const marketFactor = realEstateMarketHealth / 65;
     const sellingValue = Math.round(property.value * marketFactor);
     
-    // Process sale
+    // Update the property's currentValue to match what we're selling it for
+    // This ensures the useCharacter store has the correct value
+    if (property.currentValue === undefined) {
+      property.currentValue = sellingValue;
+    } else {
+      property.currentValue = sellingValue;
+    }
+    
+    // Process sale - sellProperty will use the currentValue from the property
     sellProperty(propertyId);
-    addWealth(sellingValue);
+    // Don't add wealth here, as sellProperty already updates wealth
+    // Instead of: addWealth(sellingValue);
     
     playSuccess();
     toast.success(`Sold ${property.name} for ${formatCurrency(sellingValue)}`);
