@@ -161,16 +161,33 @@ export function Properties() {
     const property = ownedProperties.find(p => p.id === propertyId);
     if (!property) return;
     
-    // Calculate current market value
+    // Log original property values for debugging
+    console.log(`Starting sale process for ${property.name}`);
+    console.log(`Original purchase price: ${property.purchasePrice}, Current value: ${property.currentValue}`);
+    console.log(`Purchase date: ${property.purchaseDate}`);
+    
+    // Calculate current market value based on market health
     const marketFactor = realEstateMarketHealth / 65;
+    
     // Use currentValue if available, or fallback to value and finally purchasePrice
     const propertyValue = property.currentValue || (property.value ?? property.purchasePrice);
     const currentMarketValue = Math.round(propertyValue * marketFactor);
     
-    // Update the property's currentValue to match current market value
+    // Update the property's currentValue to reflect current market conditions
     property.currentValue = currentMarketValue;
     
-    // Calculate selling costs (typically 6-7% of sale price)
+    // Calculate the time since purchase to check for quick-flip penalties
+    const purchaseDate = new Date(property.purchaseDate);
+    const currentDate = new Date();
+    
+    // Calculate months between dates - a proper calculation accounting for actual months
+    const monthsSincePurchase = 
+      (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+      (currentDate.getMonth() - purchaseDate.getMonth());
+    
+    console.log(`Months since purchase: ${monthsSincePurchase}`);
+    
+    // Calculate standard selling costs (typically 6-7% of sale price)
     const closingCostPercentage = 0.07; // 7%
     const closingCosts = currentMarketValue * closingCostPercentage;
     
@@ -178,23 +195,30 @@ export function Properties() {
     const outstandingLoan = property.loanAmount || 0;
     
     // Calculate early payoff penalty if applicable (2-3% if sold within first 3 years)
-    const purchaseDate = new Date(property.purchaseDate);
-    const currentDate = new Date();
-    const monthsSincePurchase = 
-      (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
-      (currentDate.getMonth() - purchaseDate.getMonth());
-      
     let earlyPayoffPenalty = 0;
     if (monthsSincePurchase < 36) { // Less than 3 years
       earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
     }
     
-    // Net proceeds calculation
+    // Net proceeds calculation (quick-flip penalty applied during actual sale)
     const netProceeds = currentMarketValue - closingCosts - outstandingLoan - earlyPayoffPenalty;
+    
+    // Show quick-flip warning if applicable
+    if (monthsSincePurchase < 1) {
+      toast.warning(
+        `Quick flip warning: Selling after less than 1 month will result in a 15% loss in value`, 
+        { duration: 5000 }
+      );
+    } else if (monthsSincePurchase < 6) {
+      toast.warning(
+        `Quick flip warning: Selling after ${monthsSincePurchase} months will result in an 8% loss in value`, 
+        { duration: 5000 }
+      );
+    }
     
     // Ensure the user understands what's happening with the sale
     if (netProceeds < 0) {
-      // The property is underwater (worth less than what is owed)
+      // The property is underwater (worth less than what's owed)
       toast.warning(`This property is underwater - selling will require you to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan`, {
         duration: 5000,
         position: 'bottom-right',
@@ -204,23 +228,46 @@ export function Properties() {
       if (!confirm(`Are you sure you want to sell ${property.name}? You'll need to pay ${formatCurrency(Math.abs(netProceeds))} to cover the remaining loan and closing costs.`)) {
         return; // User canceled the sale
       }
+    } else {
+      // For non-underwater properties, still confirm the sale
+      if (monthsSincePurchase < 6) {
+        if (!confirm(`Are you sure you want to sell ${property.name}? This is a quick flip and will result in reduced sale value.`)) {
+          return; // User canceled the sale
+        }
+      }
     }
     
-    // Process sale
-    sellProperty(propertyId);
+    // Log final values before sale for debugging
+    console.log(`Final values before sale`);
+    console.log(`Market value: ${currentMarketValue}, Outstanding loan: ${outstandingLoan}`);
+    console.log(`Closing costs: ${closingCosts}, Early payoff penalty: ${earlyPayoffPenalty}`);
+    
+    // Process sale (quick-flip penalties applied inside sellProperty)
+    const actualSaleProceeds = sellProperty(propertyId);
     
     // Display detailed sale information
-    if (netProceeds >= 0) {
+    if (actualSaleProceeds >= 0) {
       toast.success(`Sold ${property.name} for ${formatCurrency(currentMarketValue)}`, {
         duration: 3000,
         position: 'bottom-right',
       });
-      toast(`After paying off the loan (${formatCurrency(outstandingLoan)}) and closing costs (${formatCurrency(closingCosts)}), you received ${formatCurrency(netProceeds)}`, {
-        duration: 5000,
-        position: 'bottom-right',
-      });
+      
+      const costsSummary = `Loan payoff: ${formatCurrency(outstandingLoan)}, Closing costs: ${formatCurrency(closingCosts)}`;
+      
+      // If there's a discrepancy between netProceeds and actualSaleProceeds, a quick-flip fee was applied
+      if (Math.abs(netProceeds - actualSaleProceeds) > 1) {
+        toast(`${costsSummary}, Quick-flip fee applied. Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
+          duration: 5000,
+          position: 'bottom-right',
+        });
+      } else {
+        toast(`${costsSummary}, Net proceeds: ${formatCurrency(actualSaleProceeds)}`, {
+          duration: 5000,
+          position: 'bottom-right',
+        });
+      }
     } else {
-      toast(`You had to pay ${formatCurrency(Math.abs(netProceeds))} to sell this underwater property`, {
+      toast(`You had to pay ${formatCurrency(Math.abs(actualSaleProceeds))} to sell this underwater property`, {
         duration: 5000,
         position: 'bottom-right',
       });
