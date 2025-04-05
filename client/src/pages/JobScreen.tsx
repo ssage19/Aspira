@@ -5,12 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../co
 import { Button } from '../components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { Progress } from '../components/ui/progress';
-import { Briefcase, TrendingUp, Clock, Trophy, Award, AlertCircle, ChevronLeft, Lightbulb, Brain } from 'lucide-react';
+import { Briefcase, TrendingUp, Clock, Trophy, Award, AlertCircle, ChevronLeft, Lightbulb, Brain, Timer, GraduationCap } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
 import { getNextJobInCareerPath, getJobByLevelInProfession, getProfession } from '../lib/services/jobService';
 import type { Profession, CareerPath } from '../lib/data/jobs';
 import GameUI from '../components/GameUI';
+import { useTime } from '../lib/stores/useTime';
+import { useGame } from '../lib/stores/useGame';
+import { useAudio } from '../lib/stores/useAudio';
 
 // Define challenge types for skill development
 type ChallengeType = {
@@ -22,16 +25,40 @@ type ChallengeType = {
   xpReward: number;
   completionTime: number; // in days
   completed?: boolean;
+  inProgress?: boolean;
+  startDate?: Date;
+  readyForCompletion?: boolean;
 };
 
 export default function JobScreen() {
   const navigate = useNavigate();
   const { job, skills, improveSkill, promoteJob, daysSincePromotion } = useCharacter();
+  const { currentGameDate } = useTime();
+  const { unlockAchievement } = useGame();
+  const audio = useAudio();
   const [profession, setProfession] = useState<Profession | undefined>(undefined);
   const [nextJob, setNextJob] = useState<CareerPath | undefined>(undefined);
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [challenges, setChallenges] = useState<ChallengeType[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeType | null>(null);
+  
+  // Load challenges from localStorage on mount
+  useEffect(() => {
+    const savedChallenges = localStorage.getItem(`challenges-${job?.id}`);
+    if (savedChallenges) {
+      try {
+        const parsedChallenges = JSON.parse(savedChallenges);
+        // Convert string dates back to Date objects
+        const hydratedChallenges = parsedChallenges.map((c: any) => ({
+          ...c,
+          startDate: c.startDate ? new Date(c.startDate) : undefined
+        }));
+        setChallenges(hydratedChallenges);
+      } catch (e) {
+        console.error("Error loading saved challenges", e);
+      }
+    }
+  }, [job?.id]);
   
   useEffect(() => {
     if (job) {
@@ -325,15 +352,109 @@ export default function JobScreen() {
     toast.success(`Congratulations! You've been promoted to ${newJob.title}`);
   };
   
+  // Save challenges to localStorage whenever they change
+  useEffect(() => {
+    if (job && challenges.length > 0) {
+      localStorage.setItem(`challenges-${job.id}`, JSON.stringify(challenges));
+    }
+  }, [challenges, job]);
+  
+  // Check for completed challenges based on game time
+  useEffect(() => {
+    if (challenges.length > 0 && currentGameDate) {
+      const updatedChallenges = [...challenges];
+      let hasUpdates = false;
+      
+      challenges.forEach((challenge, index) => {
+        if (challenge.inProgress && challenge.startDate && !challenge.completed) {
+          // Calculate days passed since challenge started
+          const startDate = new Date(challenge.startDate);
+          const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+          
+          // If enough days have passed, mark challenge as ready for completion
+          if (daysPassed >= challenge.completionTime) {
+            // Only notify if we're transitioning from not ready to ready
+            if (!challenge.readyForCompletion) {
+              setTimeout(() => {
+                toast.success(
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    <div>
+                      <div className="font-semibold">Challenge Ready!</div>
+                      <div className="text-sm">{challenge.title} is ready to be completed</div>
+                    </div>
+                  </div>
+                );
+                audio.playSound('notification');
+              }, 500);
+            }
+            
+            updatedChallenges[index] = {
+              ...challenge,
+              // Don't mark as completed yet, but indicate it's ready
+              readyForCompletion: true
+            };
+            hasUpdates = true;
+          }
+        }
+      });
+      
+      if (hasUpdates) {
+        setChallenges(updatedChallenges);
+      }
+    }
+  }, [currentGameDate, challenges]);
+  
+  // Start working on a challenge
+  const handleStartChallenge = (challenge: ChallengeType) => {
+    if (!challenge || challenge.completed || challenge.inProgress) return;
+    
+    audio.playSound('click');
+    
+    // Update the challenge to be in progress with current date
+    const updatedChallenges = challenges.map(c => 
+      c.id === challenge.id 
+        ? {...c, inProgress: true, startDate: new Date(currentGameDate)}
+        : c
+    );
+    
+    setChallenges(updatedChallenges);
+    setSelectedChallenge(null);
+    
+    toast.success(`Started working on: ${challenge.title}. Check back in ${challenge.completionTime} days.`);
+  };
+  
+  // Complete a challenge and collect the reward
   const handleCompleteChallenge = (challenge: ChallengeType) => {
-    // In a full implementation, this would require time to pass or tasks to complete
-    // For now, we'll just give the skill increase immediately
+    if (!challenge) return;
+    
+    // Check if the challenge is ready for completion
+    if (challenge.inProgress && challenge.startDate) {
+      const startDate = new Date(challenge.startDate);
+      const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (daysPassed < challenge.completionTime) {
+        // Not enough time has passed
+        const daysRemaining = challenge.completionTime - daysPassed;
+        toast.error(`This challenge will be complete in ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''}.`);
+        return;
+      }
+    } else if (!challenge.readyForCompletion) {
+      // Challenge not started or not ready
+      toast.error("You need to start this challenge first!");
+      return;
+    }
+    
+    // Award the skill points
     const skill = challenge.skill as keyof typeof skills;
     improveSkill(skill, challenge.xpReward);
     
+    // Play sound effect
+    audio.playSound('achievement');
+    
     // Mark challenge as completed
     setChallenges(challenges.map(c => 
-      c.id === challenge.id ? {...c, completed: true} : c
+      c.id === challenge.id ? {...c, completed: true, inProgress: false} : c
     ));
     
     toast.success(`Challenge completed! ${challenge.skill} skill increased by ${challenge.xpReward}`);
@@ -666,22 +787,38 @@ export default function JobScreen() {
                   <CardContent>
                     {selectedChallenge ? (
                       <div className="space-y-4">
-                        <Card className="bg-secondary/5 border-secondary/10">
+                        <Card className={`${
+                          selectedChallenge.readyForCompletion ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10' : 
+                          selectedChallenge.inProgress ? 'border-blue-500 bg-blue-50/30 dark:bg-blue-900/10' : 
+                          'bg-secondary/5 border-secondary/10'
+                        }`}>
                           <CardHeader>
                             <div className="flex justify-between items-center">
                               <CardTitle className="text-lg flex items-center">
                                 {getSkillIcon(selectedChallenge.skill)}
                                 <span className="ml-2">{selectedChallenge.title}</span>
                               </CardTitle>
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                selectedChallenge.difficultyLevel === 'easy'
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                                  : selectedChallenge.difficultyLevel === 'medium'
-                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
-                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                              }`}>
-                                {selectedChallenge.difficultyLevel}
-                              </span>
+                              <div className="flex space-x-2">
+                                {selectedChallenge.inProgress && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+                                    In Progress
+                                  </span>
+                                )}
+                                {selectedChallenge.readyForCompletion && (
+                                  <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
+                                    Ready
+                                  </span>
+                                )}
+                                <span className={`px-2 py-1 text-xs rounded-full ${
+                                  selectedChallenge.difficultyLevel === 'easy'
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                                    : selectedChallenge.difficultyLevel === 'medium'
+                                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+                                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                }`}>
+                                  {selectedChallenge.difficultyLevel}
+                                </span>
+                              </div>
                             </div>
                             <CardDescription>{selectedChallenge.description}</CardDescription>
                           </CardHeader>
@@ -698,13 +835,58 @@ export default function JobScreen() {
                                 </div>
                               </div>
                               
+                              {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && selectedChallenge.startDate && (
+                                <div className="mt-4">
+                                  <div className="text-sm font-medium mb-1 flex justify-between">
+                                    <span>Progress</span>
+                                    <span>
+                                      {Math.min(
+                                        Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
+                                        selectedChallenge.completionTime
+                                      )} / {selectedChallenge.completionTime} days
+                                    </span>
+                                  </div>
+                                  <Progress 
+                                    value={Math.min(
+                                      100, 
+                                      (Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) / selectedChallenge.completionTime) * 100
+                                    )} 
+                                    className="h-2"
+                                  />
+                                  
+                                  {selectedChallenge.startDate && (
+                                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
+                                      <span>Started: {new Date(selectedChallenge.startDate).toLocaleDateString()}</span>
+                                      <span>
+                                        ETA: {new Date(new Date(selectedChallenge.startDate).getTime() + (selectedChallenge.completionTime * 24 * 60 * 60 * 1000)).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              
                               <div className="flex justify-between mt-6">
                                 <Button variant="outline" onClick={() => setSelectedChallenge(null)}>
                                   Go Back
                                 </Button>
-                                <Button onClick={() => handleCompleteChallenge(selectedChallenge)}>
-                                  Complete Challenge
-                                </Button>
+                                
+                                {selectedChallenge.readyForCompletion && (
+                                  <Button onClick={() => handleCompleteChallenge(selectedChallenge)}>
+                                    Complete Challenge
+                                  </Button>
+                                )}
+                                
+                                {!selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
+                                  <Button onClick={() => handleStartChallenge(selectedChallenge)}>
+                                    Start Challenge
+                                  </Button>
+                                )}
+                                
+                                {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
+                                  <Button disabled>
+                                    In Progress...
+                                  </Button>
+                                )}
                               </div>
                             </div>
                           </CardContent>
@@ -739,26 +921,91 @@ export default function JobScreen() {
                                       return difficultyOrder[a.difficultyLevel] - difficultyOrder[b.difficultyLevel];
                                     })
                                     .map(challenge => (
-                                      <Card key={challenge.id} className="hover:bg-secondary/5 cursor-pointer transition-colors" onClick={() => setSelectedChallenge(challenge)}>
+                                      <Card key={challenge.id} className={`hover:bg-secondary/5 transition-colors ${
+                                        challenge.readyForCompletion ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 
+                                        challenge.inProgress ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10' : 
+                                        'cursor-pointer'
+                                      }`} onClick={() => !challenge.inProgress && setSelectedChallenge(challenge)}>
                                         <CardHeader className="py-3">
                                           <div className="flex justify-between items-center">
                                             <h4 className="font-medium">{challenge.title}</h4>
-                                            <span className={`px-2 py-1 text-xs rounded-full ${
-                                              challenge.difficultyLevel === 'easy'
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                                                : challenge.difficultyLevel === 'medium'
-                                                  ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
-                                                  : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                                            }`}>
-                                              {challenge.difficultyLevel}
-                                            </span>
+                                            <div className="flex space-x-2">
+                                              {challenge.inProgress && (
+                                                <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
+                                                  In Progress
+                                                </span>
+                                              )}
+                                              {challenge.readyForCompletion && (
+                                                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
+                                                  Ready
+                                                </span>
+                                              )}
+                                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                                challenge.difficultyLevel === 'easy'
+                                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
+                                                  : challenge.difficultyLevel === 'medium'
+                                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
+                                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
+                                              }`}>
+                                                {challenge.difficultyLevel}
+                                              </span>
+                                            </div>
                                           </div>
                                         </CardHeader>
                                         <CardContent className="py-0">
                                           <p className="text-sm text-muted-foreground">{challenge.description}</p>
+                                          
+                                          {challenge.inProgress && !challenge.readyForCompletion && challenge.startDate && (
+                                            <div className="mt-2">
+                                              <div className="text-xs text-muted-foreground mb-1 flex justify-between">
+                                                <span>Progress</span>
+                                                <span>
+                                                  {Math.min(
+                                                    Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
+                                                    challenge.completionTime
+                                                  )} / {challenge.completionTime} days
+                                                </span>
+                                              </div>
+                                              <Progress 
+                                                value={Math.min(
+                                                  100, 
+                                                  (Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) / challenge.completionTime) * 100
+                                                )} 
+                                                className="h-1.5"
+                                              />
+                                            </div>
+                                          )}
+                                          
                                           <div className="flex justify-between mt-2 text-sm">
                                             <span>+{challenge.xpReward} skill</span>
                                             <span>{challenge.completionTime} days</span>
+                                          </div>
+                                          
+                                          <div className="mt-3 pt-2 border-t flex justify-end">
+                                            {challenge.readyForCompletion && (
+                                              <Button 
+                                                size="sm" 
+                                                onClick={(e) => { 
+                                                  e.stopPropagation(); 
+                                                  handleCompleteChallenge(challenge); 
+                                                }}
+                                              >
+                                                Complete
+                                              </Button>
+                                            )}
+                                            
+                                            {!challenge.inProgress && !challenge.readyForCompletion && (
+                                              <Button 
+                                                size="sm" 
+                                                variant="outline" 
+                                                onClick={(e) => { 
+                                                  e.stopPropagation(); 
+                                                  handleStartChallenge(challenge); 
+                                                }}
+                                              >
+                                                Start Challenge
+                                              </Button>
+                                            )}
                                           </div>
                                         </CardContent>
                                       </Card>
