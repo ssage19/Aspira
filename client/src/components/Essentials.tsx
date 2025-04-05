@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useCharacter } from "../lib/stores/useCharacter";
 import { useAudio } from "../lib/stores/useAudio";
 import { useTime } from "../lib/stores/useTime";
-import { toast } from "sonner";
 import { 
   Card, 
   CardContent, 
@@ -79,7 +78,7 @@ export function Essentials() {
   const handleConsumeEssential = (item: EssentialItem) => {
     // Check if user has enough money
     if (item.price > wealth) {
-      toast.error("Not enough funds available");
+      // Just play a sound for insufficient funds, no message
       playSound('hit');
       return;
     }
@@ -120,17 +119,15 @@ export function Essentials() {
     if (item.timeRequired && item.timeRequired > 0) {
       // Since advanceTime() advances by one day, we'll advance based on the time required
       // For example, if an activity takes 2 hours, that's 1/12 of a day, so we'll advance less often
-      // For now, just advance by one day as a placeholder, will need to refine this
       advanceTime();
       
-      toast.info(`Time passed: ${item.timeRequired} ${item.timeRequired === 1 ? 'hour' : 'hours'}`);
+      // No toast notification for time passage
     }
     
     // Play sound
     playSound('success');
     
-    // Show toast message
-    toast.success(`${item.type === 'food' || item.type === 'drink' ? 'Consumed' : 'Completed'}: ${item.name}`);
+    // No toast message for completion to avoid annoying players
   };
   
   // Render needs status bars
@@ -450,14 +447,9 @@ export function Essentials() {
       }
     }
     
-    // If any actions were taken, show notification and log to console
+    // If any actions were taken, only log to console for debugging
     if (actionsTaken > 0) {
-      // Show a subtle toast notification
-      toast.info(`Auto-maintenance addressed ${actionsTaken} need${actionsTaken > 1 ? 's' : ''}`, {
-        duration: 2000, // Show for just 2 seconds to avoid being intrusive
-      });
-      
-      // Also log to console for debugging
+      // Log to console for debugging, but don't show any user notifications
       console.log(`Auto-maintenance addressed ${actionsTaken} needs`);
     }
   };
@@ -467,10 +459,7 @@ export function Essentials() {
     const newValue = !autoMaintain;
     setAutoMaintain(newValue);
     localStorage.setItem('auto-maintain-needs', newValue.toString());
-    toast.success(newValue ? 
-      "Auto-maintenance activated! Your character will automatically take care of basic needs when they fall below 50%" : 
-      "Auto-maintenance deactivated. You'll need to manually care for your character's needs."
-    );
+    // No toast notifications to avoid annoying the player
   };
   
   // Run auto-maintenance check once when component mounts
