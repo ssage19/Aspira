@@ -234,9 +234,30 @@ export function GameUI() {
 
   // Toggle auto advance time
   const toggleAutoAdvance = () => {
-    setAutoAdvance(!autoAdvanceEnabled);
-    updateLastTickTime(Date.now());
-    setTimeProgress(0);
+    const currentTime = Date.now();
+    
+    if (autoAdvanceEnabled) {
+      // We're pausing the game - store current progress in milliseconds
+      // Convert percentage to milliseconds
+      const progressInMs = (timeProgress / 100) * DAY_DURATION_MS;
+      useTime.getState().setAccumulatedProgress(progressInMs);
+      useTime.getState().setPausedTimestamp(currentTime);
+      setAutoAdvance(false);
+    } else {
+      // We're resuming the game
+      // Get paused data from the store
+      const { pausedTimestamp, accumulatedProgress } = useTime.getState();
+      
+      // If we have accumulated progress, use it
+      if (accumulatedProgress > 0) {
+        // Calculate the adjusted progress percentage
+        const adjustedProgress = (accumulatedProgress / DAY_DURATION_MS) * 100;
+        setTimeProgress(adjustedProgress);
+      }
+      
+      updateLastTickTime(currentTime);
+      setAutoAdvance(true);
+    }
   };
   
   // Keyboard shortcuts for time control

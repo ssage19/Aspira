@@ -23,6 +23,8 @@ interface TimeState {
   autoAdvanceEnabled: boolean; // Whether time automatically advances
   timeProgress: number; // Current progress towards next day (0-100)
   lastTickTime: number; // Timestamp of last tick
+  pausedTimestamp: number; // Timestamp when time was paused
+  accumulatedProgress: number; // Progress accumulated before pause (ms) - this helps in resuming time properly
   
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
@@ -36,6 +38,8 @@ interface TimeState {
   setAutoAdvance: (enabled: boolean) => void; // Toggle auto-advance
   setTimeProgress: (progress: number) => void; // Update time progress
   updateLastTickTime: (time: number) => void; // Update last tick timestamp
+  setPausedTimestamp: (time: number) => void; // Update paused timestamp
+  setAccumulatedProgress: (progress: number) => void; // Update accumulated progress
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -97,6 +101,8 @@ export const useTime = create<TimeState>()(
       autoAdvanceEnabled: savedTime?.autoAdvanceEnabled !== undefined ? savedTime.autoAdvanceEnabled : true,
       timeProgress: savedTime?.timeProgress || 0,
       lastTickTime: savedTime?.lastTickTime || Date.now(),
+      pausedTimestamp: savedTime?.pausedTimestamp || 0,
+      accumulatedProgress: savedTime?.accumulatedProgress || 0,
       
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
@@ -187,9 +193,8 @@ export const useTime = create<TimeState>()(
           autoAdvanceEnabled: true,
           timeProgress: 0,
           lastTickTime: Date.now(),
-          setAutoAdvance: () => {},
-          setTimeProgress: () => {},
-          updateLastTickTime: () => {}
+          pausedTimestamp: 0,
+          accumulatedProgress: 0
         };
         
         // Save to local storage
@@ -262,6 +267,32 @@ export const useTime = create<TimeState>()(
         const newState = {
           ...state,
           lastTickTime: time
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Update paused timestamp
+      setPausedTimestamp: (time: number) => set((state) => {
+        const newState = {
+          ...state,
+          pausedTimestamp: time
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Update accumulated progress
+      setAccumulatedProgress: (progress: number) => set((state) => {
+        const newState = {
+          ...state,
+          accumulatedProgress: progress
         };
         
         // Save to local storage
