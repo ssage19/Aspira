@@ -6,8 +6,10 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
+import { useRandomEvents } from '../lib/stores/useRandomEvents';
 import { ThemeToggle } from '../components/ui/theme-toggle';
 import CharacterAttributes from '../components/CharacterAttributes';
+import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -278,7 +280,7 @@ export default function Dashboard() {
                   </TabsList>
                 </Tabs>
               </CardTitle>
-              <CardDescription className="text-muted-foreground flex items-center space-x-2">
+              <CardDescription className="text-muted-foreground flex items-center space-x-2 flex-wrap">
                 <Calendar className="h-4 w-4" />
                 <span>{formattedDate}</span>
                 <span className="px-2">•</span>
@@ -289,6 +291,8 @@ export default function Dashboard() {
                 }`}>
                   {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
                 </span>
+                <span className="px-2">•</span>
+                <ActiveEventsIndicator />
               </CardDescription>
             </CardHeader>
             

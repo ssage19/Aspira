@@ -1,140 +1,109 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { useTime } from "./useTime";
+import { getLocalStorage, setLocalStorage } from "../utils";
 
-export type MarketTrend = 'bull' | 'bear' | 'stable';
-export type EconomyState = 'boom' | 'recession' | 'stable';
+export type EconomyState = "boom" | "recession" | "stable";
+export type MarketTrend = "bull" | "bear" | "stable";
+export type MarketHealth = "excellent" | "good" | "average" | "poor" | "critical";
+export type VolatilityLevel = "low" | "medium" | "high" | "extreme";
 
 interface EconomyStore {
-  // Economic indicators
-  inflation: number;
-  interestRate: number;
+  // Current state of the economy
   economyState: EconomyState;
   marketTrend: MarketTrend;
-  stockMarketHealth: number; // 0-100
-  realEstateMarketHealth: number; // 0-100
   
-  // Events
-  activeEvents: EconomicEvent[];
+  // Market health indicators (0-100)
+  stockMarketHealth: number;
+  realEstateMarketHealth: number;
   
-  // Actions
+  // Economy factors
+  inflation: number;
+  interestRate: number;
+  
+  // Functions
   updateEconomy: () => void;
-  triggerEvent: (event: EconomicEvent) => void;
-  resolveEvent: (eventId: string) => void;
+  setEconomyState: (state: EconomyState) => void;
+  setMarketTrend: (trend: MarketTrend) => void;
+  setStockMarketHealth: (health: number) => void;
+  setRealEstateMarketHealth: (health: number) => void;
+  setInflation: (rate: number) => void;
+  setInterestRate: (rate: number) => void;
 }
 
-export interface EconomicEvent {
-  id: string;
-  name: string;
-  description: string;
-  impact: {
-    inflation?: number;
-    interestRate?: number;
-    stockMarket?: number;
-    realEstate?: number;
-  };
-  duration: number; // in days
-  startDay: number;
-}
+const STORAGE_KEY = 'business-empire-economy';
+
+// Load from local storage if available
+const loadEconomyData = () => {
+  const saved = getLocalStorage(STORAGE_KEY);
+  if (saved) {
+    return saved;
+  }
+  return null;
+};
 
 export const useEconomy = create<EconomyStore>()(
-  subscribeWithSelector((set, get) => ({
-    inflation: 2.5,
-    interestRate: 3.0,
-    economyState: 'stable',
-    marketTrend: 'stable',
-    stockMarketHealth: 65,
-    realEstateMarketHealth: 70,
-    activeEvents: [],
+  subscribeWithSelector((set, get) => {
+    // Try to load saved data
+    const savedData = loadEconomyData();
     
-    updateEconomy: () => {
-      const { currentDay } = useTime.getState();
+    return {
+      // Economy state
+      economyState: savedData?.economyState || "stable",
+      marketTrend: savedData?.marketTrend || "stable",
       
-      // Process active events first
-      const activeEvents = [...get().activeEvents];
-      const remainingEvents = activeEvents.filter(event => {
-        return currentDay - event.startDay < event.duration;
-      });
+      // Market health indicators
+      stockMarketHealth: savedData?.stockMarketHealth || 50,
+      realEstateMarketHealth: savedData?.realEstateMarketHealth || 50,
       
-      // Set our base values
-      let newInflation = get().inflation;
-      let newInterestRate = get().interestRate;
-      let newStockMarketHealth = get().stockMarketHealth;
-      let newRealEstateMarketHealth = get().realEstateMarketHealth;
+      // Economy factors
+      inflation: savedData?.inflation || 2.5,
+      interestRate: savedData?.interestRate || 3.0,
       
-      // Fluctuate a bit every day
-      const inflationChange = (Math.random() - 0.5) * 0.3;
-      const interestRateChange = (Math.random() - 0.5) * 0.2;
-      const stockMarketChange = (Math.random() - 0.5) * 2;
-      const realEstateChange = (Math.random() - 0.5) * 1;
+      // Update economy based on time and random factors
+      updateEconomy: () => {
+        // This would eventually implement a more complex economic model
+        // For now, it's a simple placeholder
+        console.log("Updating economy...");
+      },
       
-      newInflation += inflationChange;
-      newInterestRate += interestRateChange;
-      newStockMarketHealth += stockMarketChange;
-      newRealEstateMarketHealth += realEstateChange;
+      // Setters for each property
+      setEconomyState: (state: EconomyState) => {
+        set({ economyState: state });
+        saveState();
+      },
       
-      // Add event impacts
-      remainingEvents.forEach(event => {
-        if (event.impact.inflation) newInflation += event.impact.inflation / event.duration;
-        if (event.impact.interestRate) newInterestRate += event.impact.interestRate / event.duration;
-        if (event.impact.stockMarket) newStockMarketHealth += event.impact.stockMarket / event.duration;
-        if (event.impact.realEstate) newRealEstateMarketHealth += event.impact.realEstate / event.duration;
-      });
+      setMarketTrend: (trend: MarketTrend) => {
+        set({ marketTrend: trend });
+        saveState();
+      },
       
-      // Ensure values stay within reasonable ranges
-      newInflation = Math.max(0, Math.min(15, newInflation));
-      newInterestRate = Math.max(0, Math.min(20, newInterestRate));
-      newStockMarketHealth = Math.max(10, Math.min(100, newStockMarketHealth));
-      newRealEstateMarketHealth = Math.max(10, Math.min(100, newRealEstateMarketHealth));
+      setStockMarketHealth: (health: number) => {
+        set({ stockMarketHealth: Math.max(0, Math.min(100, health)) });
+        saveState();
+      },
       
-      // Determine economy state
-      let newEconomyState: EconomyState = 'stable';
-      if (newInflation > 7 || newInterestRate > 10) {
-        newEconomyState = 'recession';
-      } else if (newInflation < 2 && newStockMarketHealth > 80) {
-        newEconomyState = 'boom';
+      setRealEstateMarketHealth: (health: number) => {
+        set({ realEstateMarketHealth: Math.max(0, Math.min(100, health)) });
+        saveState();
+      },
+      
+      setInflation: (rate: number) => {
+        set({ inflation: Math.max(0, rate) });
+        saveState();
+      },
+      
+      setInterestRate: (rate: number) => {
+        set({ interestRate: Math.max(0, rate) });
+        saveState();
       }
-      
-      // Determine market trend
-      let newMarketTrend: MarketTrend = 'stable';
-      if (newStockMarketHealth > 75) {
-        newMarketTrend = 'bull';
-      } else if (newStockMarketHealth < 40) {
-        newMarketTrend = 'bear';
-      }
-      
-      set({
-        inflation: parseFloat(newInflation.toFixed(1)),
-        interestRate: parseFloat(newInterestRate.toFixed(1)),
-        economyState: newEconomyState,
-        marketTrend: newMarketTrend,
-        stockMarketHealth: Math.round(newStockMarketHealth),
-        realEstateMarketHealth: Math.round(newRealEstateMarketHealth),
-        activeEvents: remainingEvents
-      });
-    },
-    
-    triggerEvent: (event) => {
-      const { currentDay } = useTime.getState();
-      const newEvent = { ...event, startDay: currentDay };
-      
-      set((state) => ({
-        activeEvents: [...state.activeEvents, newEvent]
-      }));
-    },
-    
-    resolveEvent: (eventId) => {
-      set((state) => ({
-        activeEvents: state.activeEvents.filter(e => e.id !== eventId)
-      }));
-    }
-  }))
+    };
+  })
 );
 
-// Set up a subscription to update the economy on day change
-useTime.subscribe(
-  state => state.currentDay,
-  () => {
-    useEconomy.getState().updateEconomy();
-  }
-);
+// Helper function to save the current state to localStorage
+function saveState() {
+  const state = useEconomy.getState();
+  setLocalStorage(STORAGE_KEY, state);
+}
+
+export default useEconomy;

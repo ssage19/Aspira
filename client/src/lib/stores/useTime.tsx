@@ -13,6 +13,9 @@ interface TimeState {
   startMonth: number;
   startYear: number;
   
+  // Convenience getter for current date as JavaScript Date object
+  currentGameDate: Date;
+  
   // Actions
   advanceTime: () => void;
   setDate: (day: number, month: number, year: number) => void;
@@ -49,11 +52,22 @@ export const useTime = create<TimeState>()(
     // Get current real-world date
     const realDate = getCurrentDeviceDate();
     
+    // Set initial values for day, month, year
+    const initialDay = savedTime?.currentDay || realDate.day;
+    const initialMonth = savedTime?.currentMonth || realDate.month;
+    const initialYear = savedTime?.currentYear || realDate.year;
+    
+    // Create the initial Date object
+    const initialGameDate = new Date(initialYear, initialMonth - 1, initialDay);
+    
     return {
       // Default state uses real device time if no saved data exists
-      currentDay: savedTime?.currentDay || realDate.day,
-      currentMonth: savedTime?.currentMonth || realDate.month,
-      currentYear: savedTime?.currentYear || realDate.year,
+      currentDay: initialDay,
+      currentMonth: initialMonth,
+      currentYear: initialYear,
+      
+      // Current game date as a JavaScript Date object
+      currentGameDate: initialGameDate,
       
       // Start date - when game began
       startDay: savedTime?.startDay || realDate.day,
@@ -80,11 +94,15 @@ export const useTime = create<TimeState>()(
           }
         }
         
+        // Create a new Date object for the updated date
+        const newGameDate = new Date(newYear, newMonth - 1, newDay);
+        
         const newState = {
           ...state, // Keep other values like start date
           currentDay: newDay,
           currentMonth: newMonth,
-          currentYear: newYear
+          currentYear: newYear,
+          currentGameDate: newGameDate
         };
         
         // Save to local storage
@@ -94,11 +112,15 @@ export const useTime = create<TimeState>()(
       }),
       
       setDate: (day, month, year) => set((state) => {
+        // Create a new Date object for the updated date
+        const newGameDate = new Date(year, month - 1, day);
+        
         const newState = {
           ...state, // Keep other values like start date
           currentDay: day,
           currentMonth: month,
-          currentYear: year
+          currentYear: year,
+          currentGameDate: newGameDate
         };
         
         // Save to local storage
@@ -125,13 +147,17 @@ export const useTime = create<TimeState>()(
         // Get current real-world date
         const realDate = getCurrentDeviceDate();
         
+        // Create a new Date object for the reset time
+        const newGameDate = new Date(realDate.year, realDate.month - 1, realDate.day);
+        
         const newState = {
           currentDay: realDate.day,
           currentMonth: realDate.month,
           currentYear: realDate.year,
           startDay: realDate.day,
           startMonth: realDate.month,
-          startYear: realDate.year
+          startYear: realDate.year,
+          currentGameDate: newGameDate
         };
         
         // Save to local storage

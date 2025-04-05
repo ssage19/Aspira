@@ -1,83 +1,155 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { useTime } from "./useTime";
 
-export type CharacterStartingWealth = 'bootstrapped' | 'middle-class' | 'wealthy';
+export interface CharacterSkills {
+  intelligence: number;
+  creativity: number;
+  charisma: number;
+  technical: number;
+  leadership: number;
+}
 
 export interface Asset {
   id: string;
   name: string;
-  type: 'stock' | 'crypto' | 'bond' | 'startup';
-  quantity: number;
+  type: "stock" | "bond" | "crypto" | "other";
   purchasePrice: number;
+  currentPrice: number;
+  quantity: number;
   purchaseDate: string;
 }
 
 export interface Property {
   id: string;
   name: string;
-  type: 'residential' | 'commercial' | 'industrial' | 'mansion';
-  value: number;
-  income: number;
-  expenses: number;
+  type: "residential" | "commercial" | "industrial" | "mansion";
+  location: string;
+  purchasePrice: number;
+  currentValue: number;
+  monthlyIncome: number;
   purchaseDate: string;
+  imageUrl?: string;
 }
 
 export interface LifestyleItem {
   id: string;
   name: string;
-  type: string;
-  purchasePrice: number;
-  maintenanceCost: number;
+  type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury";
+  monthlyCost: number;
   happiness: number;
   prestige: number;
-  
-  // Extended attributes that may be present
-  timeCommitment?: number;
-  healthImpact?: number;
-  stressReduction?: number;
-  socialStatus?: number;
-  skillDevelopment?: number;
-  environmentalImpact?: number;
+  purchasePrice?: number;
+  purchaseDate?: string;
+  imageUrl?: string;
+}
+
+export interface Job {
+  id: string;
+  title: string;
+  company: string;
+  salary: number;
+  stress: number;
+  happinessImpact: number;
+  prestigeImpact: number;
+  skillGains: Partial<CharacterSkills>;
+  skillRequirements?: Partial<CharacterSkills>;
+  careerTrack: string;
+  level: number;
 }
 
 interface CharacterState {
+  // Basic info
   name: string;
   wealth: number;
   netWorth: number;
+  
+  // Character attributes (0-100)
   happiness: number;
   prestige: number;
+  stress: number;
+  health: number;
   
-  // New character attributes
-  stress: number; // 0-100 scale (0 = no stress, 100 = burnout)
-  skills: number; // 0-100 scale (measure of developed skills)
-  health: number; // 0-100 scale (100 = perfect health)
-  socialConnections: number; // 0-100 scale (measure of social network)
-  freeTime: number; // Hours per week available (max 168 total hours in a week)
-  timeCommitment: number; // Hours committed per week
-  environmentalImpact: number; // Negative to positive scale (-100 to 100)
+  // Skills (0-100)
+  skills: CharacterSkills;
   
-  // Assets and possessions
+  // Character possessions
   assets: Asset[];
   properties: Property[];
   lifestyleItems: LifestyleItem[];
   
-  // Actions
+  // Career
+  job: Job | null;
+  jobHistory: Job[];
+  daysSincePromotion: number;
+  income: number;
+  expenses: number;
+  
+  // Demographic info (for achievements/events)
+  age: number;
+  education: string;
+  
+  // Functions
   setName: (name: string) => void;
-  createNewCharacter: (name: string, startingWealth: CharacterStartingWealth) => void;
+  
+  // Character creation
+  createNewCharacter: (name: string, initialWealth: number, job: Job | null) => void;
+  
+  // Economy functions
   addWealth: (amount: number) => void;
-  addAsset: (asset: Omit<Asset, 'quantity'> & { quantity?: number }) => void;
-  removeAsset: (id: string, type: string) => void;
+  addIncome: (amount: number) => void;
+  addExpense: (amount: number) => void;
+  
+  // Attributes
+  addHappiness: (amount: number) => void;
+  addStress: (amount: number) => void;
+  addHealth: (amount: number) => void;
+  addPrestige: (amount: number) => void;
+  
+  // Assets management
+  addAsset: (asset: Asset) => void;
+  sellAsset: (assetId: string, quantity: number) => number;
+  updateAssetValue: (assetId: string, newPrice: number) => void;
+  updateAllAssetValues: (multiplier: number) => void;
+  updateAssetValuesByType: (type: Asset['type'], multiplier: number, idFilter?: string[]) => void;
+  
+  // Properties management
   addProperty: (property: Property) => void;
-  sellProperty: (id: string) => void;
+  sellProperty: (propertyId: string) => number;
+  updatePropertyValue: (propertyId: string, newValue: number) => void;
+  updatePropertyIncome: (propertyId: string, newIncome: number) => void;
+  updateAllPropertyValues: (multiplier: number) => void;
+  updateAllPropertyIncome: (multiplier: number) => void;
+  updatePropertyValuesByType: (type: Property['type'], multiplier: number, idFilter?: string[]) => void;
+  updatePropertyIncomeByType: (type: Property['type'], multiplier: number, idFilter?: string[]) => void;
+  
+  // Lifestyle
   addLifestyleItem: (item: LifestyleItem) => void;
-  removeLifestyleItem: (id: string) => void; // Add remove function for items
-  updateAttributes: (attributes: Partial<Omit<CharacterState, 'assets' | 'properties' | 'lifestyleItems'>>) => void;
+  removeLifestyleItem: (itemId: string) => void;
+  
+  // Career
+  setJob: (job: Job) => void;
+  promoteJob: (newJob: Job) => void;
+  quitJob: () => void;
+  
+  // Skills
+  improveSkill: (skill: keyof CharacterSkills, amount: number) => void;
+  
+  // Net worth calculation
   calculateNetWorth: () => number;
-  resetProgress: () => void;
+  
+  // Daily/weekly updates
+  processDailyUpdate: () => void;
+  weeklyUpdate: () => void;
+  monthlyUpdate: () => void;
+  
+  // Save state
+  saveState: () => void;
+  resetCharacter: () => void;
 }
 
-const STORAGE_KEY = 'luxury_lifestyle_character';
+const STORAGE_KEY = 'business-empire-character';
 
 // Load from local storage if available
 const loadSavedCharacter = () => {
@@ -88,460 +160,681 @@ const loadSavedCharacter = () => {
   return null;
 };
 
+// Default state for a new character
+const getDefaultCharacter = () => ({
+  name: "",
+  wealth: 10000,
+  netWorth: 10000,
+  
+  happiness: 70,
+  prestige: 10,
+  stress: 30,
+  health: 80,
+  
+  skills: {
+    intelligence: 50,
+    creativity: 50,
+    charisma: 50,
+    technical: 50,
+    leadership: 50
+  },
+  
+  assets: [],
+  properties: [],
+  lifestyleItems: [],
+  
+  job: null,
+  jobHistory: [],
+  daysSincePromotion: 0,
+  income: 0,
+  expenses: 0,
+  
+  age: 25,
+  education: "Bachelor's Degree"
+});
+
 export const useCharacter = create<CharacterState>()(
   subscribeWithSelector((set, get) => {
     // Try to load saved character
     const savedCharacter = loadSavedCharacter();
     
+    // Initialize with saved data or defaults
+    const initialState = savedCharacter || getDefaultCharacter();
+    
     return {
-      // Default state - will be overwritten if saved data exists
-      name: savedCharacter?.name || "",
-      wealth: savedCharacter?.wealth || 0,
-      netWorth: savedCharacter?.netWorth || 0,
-      happiness: savedCharacter?.happiness || 50,
-      prestige: savedCharacter?.prestige || 0,
+      ...initialState,
       
-      // New attributes with default values
-      stress: savedCharacter?.stress || 20,
-      skills: savedCharacter?.skills || 10,
-      health: savedCharacter?.health || 70,
-      socialConnections: savedCharacter?.socialConnections || 30,
-      freeTime: savedCharacter?.freeTime || 80,
-      timeCommitment: savedCharacter?.timeCommitment || 40, 
-      environmentalImpact: savedCharacter?.environmentalImpact || 0,
+      // Set character name
+      setName: (name) => {
+        set({ name });
+        saveState();
+      },
       
-      // Collections
-      assets: savedCharacter?.assets || [],
-      properties: savedCharacter?.properties || [],
-      lifestyleItems: savedCharacter?.lifestyleItems || [],
-      
-      setName: (name) => set({ name }),
-      
-      createNewCharacter: (name, startingWealth) => {
-        let initialWealth = 10000; // Bootstrapped
+      // Create a new character
+      createNewCharacter: (name, initialWealth, job) => {
+        const defaultCharacter = getDefaultCharacter();
         
-        if (startingWealth === 'middle-class') {
-          initialWealth = 100000;
-        } else if (startingWealth === 'wealthy') {
-          initialWealth = 1000000;
-        }
-        
-        const initialState = {
+        const newCharacter = {
+          ...defaultCharacter,
           name,
           wealth: initialWealth,
           netWorth: initialWealth,
-          happiness: 50,
-          prestige: startingWealth === 'wealthy' ? 20 : startingWealth === 'middle-class' ? 10 : 0,
-          
-          // Initial attributes based on starting wealth
-          stress: startingWealth === 'wealthy' ? 10 : 20, // Rich people start less stressed
-          skills: 10,
-          health: 70,
-          socialConnections: startingWealth === 'wealthy' ? 40 : 30,
-          freeTime: 80,
-          timeCommitment: 40,
-          environmentalImpact: 0,
-          
-          // Collections
-          assets: [],
-          properties: [],
-          lifestyleItems: []
+          job,
+          income: job ? job.salary : 0
         };
         
-        set(initialState);
-        
-        // Save to local storage
-        setLocalStorage(STORAGE_KEY, initialState);
+        set(newCharacter as CharacterState);
+        saveState();
       },
       
+      // Economy functions
       addWealth: (amount) => {
-        set((state) => {
-          const newWealth = state.wealth + amount;
-          const newState = { 
-            wealth: newWealth, 
-            netWorth: get().calculateNetWorth() 
-          };
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
-        });
+        set((state) => ({ 
+          wealth: state.wealth + amount,
+          netWorth: state.netWorth + amount
+        }));
+        saveState();
       },
       
-      addAsset: (assetInfo) => {
+      addIncome: (amount) => {
+        set((state) => ({ income: state.income + amount }));
+        saveState();
+      },
+      
+      addExpense: (amount) => {
+        set((state) => ({ expenses: state.expenses + amount }));
+        saveState();
+      },
+      
+      // Attributes
+      addHappiness: (amount) => {
         set((state) => {
-          const { id, type } = assetInfo;
-          const existingAssetIndex = state.assets.findIndex(
-            asset => asset.id === id && asset.type === type
-          );
+          const newHappiness = Math.max(0, Math.min(100, state.happiness + amount));
+          return { happiness: newHappiness };
+        });
+        saveState();
+      },
+      
+      addStress: (amount) => {
+        set((state) => {
+          const newStress = Math.max(0, Math.min(100, state.stress + amount));
+          return { stress: newStress };
+        });
+        saveState();
+      },
+      
+      addHealth: (amount) => {
+        set((state) => {
+          const newHealth = Math.max(0, Math.min(100, state.health + amount));
+          return { health: newHealth };
+        });
+        saveState();
+      },
+      
+      addPrestige: (amount) => {
+        set((state) => {
+          const newPrestige = Math.max(0, Math.min(100, state.prestige + amount));
+          return { prestige: newPrestige };
+        });
+        saveState();
+      },
+      
+      // Assets management
+      addAsset: (asset) => {
+        set((state) => {
+          // Check if we already own this asset
+          const existingIndex = state.assets.findIndex(a => a.id === asset.id);
           
-          let updatedAssets;
-          
-          if (existingAssetIndex >= 0) {
-            // Update existing asset quantity
-            updatedAssets = [...state.assets];
-            const existingAsset = updatedAssets[existingAssetIndex];
-            const quantity = assetInfo.quantity || 1;
+          if (existingIndex >= 0) {
+            // Update existing asset
+            const existingAsset = state.assets[existingIndex];
+            const totalValue = (existingAsset.quantity * existingAsset.currentPrice) + 
+                              (asset.quantity * asset.currentPrice);
+            const totalQuantity = existingAsset.quantity + asset.quantity;
+            const averagePrice = totalValue / totalQuantity;
             
-            updatedAssets[existingAssetIndex] = {
+            const updatedAssets = [...state.assets];
+            updatedAssets[existingIndex] = {
               ...existingAsset,
-              quantity: existingAsset.quantity + quantity
+              quantity: totalQuantity,
+              currentPrice: asset.currentPrice,
+              purchasePrice: averagePrice
+            };
+            
+            return { 
+              assets: updatedAssets,
+              wealth: state.wealth - (asset.quantity * asset.currentPrice)
             };
           } else {
             // Add new asset
-            const newAsset: Asset = {
-              ...assetInfo as Asset,
-              quantity: assetInfo.quantity || 1
+            return { 
+              assets: [...state.assets, asset],
+              wealth: state.wealth - (asset.quantity * asset.currentPrice)
             };
-            updatedAssets = [...state.assets, newAsset];
+          }
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      sellAsset: (assetId, quantity) => {
+        let saleValue = 0;
+        
+        set((state) => {
+          const assetIndex = state.assets.findIndex(a => a.id === assetId);
+          
+          if (assetIndex === -1) {
+            return state; // Asset not found
           }
           
-          const newState = { 
-            assets: updatedAssets,
-            netWorth: get().calculateNetWorth()
-          };
+          const asset = state.assets[assetIndex];
           
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
-        });
-      },
-      
-      removeAsset: (id, type) => {
-        set((state) => {
-          const updatedAssets = state.assets.filter(
-            asset => !(asset.id === id && asset.type === type)
-          );
-          
-          const newState = { 
-            assets: updatedAssets,
-            netWorth: get().calculateNetWorth()
-          };
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
-        });
-      },
-      
-      addProperty: (property) => {
-        set((state) => {
-          const updatedProperties = [...state.properties, property];
-          
-          const newState = { 
-            properties: updatedProperties,
-            netWorth: get().calculateNetWorth()
-          };
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
-        });
-      },
-      
-      sellProperty: (id) => {
-        set((state) => {
-          const updatedProperties = state.properties.filter(
-            property => property.id !== id
-          );
-          
-          const newState = { 
-            properties: updatedProperties,
-            netWorth: get().calculateNetWorth()
-          };
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
-        });
-      },
-      
-      addLifestyleItem: (item) => {
-        set((state) => {
-          // Get the existing item if any
-          const existingItem = state.lifestyleItems.find(i => i.id === item.id);
-          const isReplacing = !!existingItem;
-          
-          const updatedItems = [...state.lifestyleItems];
-          
-          // Check if we should replace an existing item of the same type
-          if (item.type === 'vehicles' || item.type === 'housing') {
-            // For these types, keep only the latest/highest prestige item
-            const existingIndex = updatedItems.findIndex(existing => 
-              existing.id === item.id || (existing.type === item.type && existing.prestige < item.prestige)
-            );
+          // Check if we're selling all or part
+          if (quantity >= asset.quantity) {
+            // Selling all
+            saleValue = asset.quantity * asset.currentPrice;
             
-            if (existingIndex >= 0) {
-              updatedItems[existingIndex] = item;
-            } else {
-              updatedItems.push(item);
-            }
+            return {
+              assets: state.assets.filter(a => a.id !== assetId),
+              wealth: state.wealth + saleValue
+            };
           } else {
-            // For other types, just add if not already owned
-            if (!updatedItems.some(existing => existing.id === item.id)) {
-              updatedItems.push(item);
-            }
+            // Selling part
+            saleValue = quantity * asset.currentPrice;
+            
+            const updatedAssets = [...state.assets];
+            updatedAssets[assetIndex] = {
+              ...asset,
+              quantity: asset.quantity - quantity
+            };
+            
+            return {
+              assets: updatedAssets,
+              wealth: state.wealth + saleValue
+            };
           }
-          
-          // Update happiness and prestige
-          const newHappiness = Math.min(100, 
-            state.happiness + item.happiness - (isReplacing ? existingItem.happiness : 0)
-          );
-          
-          const newPrestige = state.prestige + item.prestige - 
-            (isReplacing ? existingItem.prestige : 0);
-          
-          // Begin with basic state updates
-          const newState: Partial<CharacterState> = { 
-            lifestyleItems: updatedItems,
-            happiness: newHappiness,
-            prestige: newPrestige,
-            netWorth: get().calculateNetWorth()
-          };
-          
-          // Process the effects of lifestyle attributes if they exist
-          // (We'll need to lookup the original item data to get its attributes)
-          
-          // For hobbies, there are time commitments to manage
-          if (item.type === 'hobbies') {
-            // Lookup item from original data (we'll need to do this from outside this function)
-            // Simulating by managing just the time commitment for now
-            newState.timeCommitment = state.timeCommitment + 
-              (item.timeCommitment || 0) - (isReplacing ? (existingItem.timeCommitment || 0) : 0);
-              
-            newState.freeTime = Math.max(0, state.freeTime - 
-              (item.timeCommitment || 0) + (isReplacing ? (existingItem.timeCommitment || 0) : 0));
-          }
-          
-          // For all lifestyle items with health impacts
-          if (item.healthImpact !== undefined) {
-            newState.health = Math.min(100, Math.max(0, 
-              state.health + (item.healthImpact || 0) - (isReplacing ? (existingItem.healthImpact || 0) : 0)
-            ));
-          }
-          
-          // For stress reduction
-          if (item.stressReduction !== undefined) {
-            newState.stress = Math.min(100, Math.max(0,
-              state.stress - (item.stressReduction || 0) + (isReplacing ? (existingItem.stressReduction || 0) : 0)
-            ));
-          }
-          
-          // For social connections
-          if (item.socialStatus !== undefined) {
-            newState.socialConnections = Math.min(100, Math.max(0,
-              state.socialConnections + (item.socialStatus || 0) - (isReplacing ? (existingItem.socialStatus || 0) : 0)
-            ));
-          }
-          
-          // For skill development
-          if (item.skillDevelopment !== undefined) {
-            newState.skills = Math.min(100, Math.max(0,
-              state.skills + (item.skillDevelopment || 0) - (isReplacing ? (existingItem.skillDevelopment || 0) : 0)
-            ));
-          }
-          
-          // For environmental impact
-          if (item.environmentalImpact !== undefined) {
-            newState.environmentalImpact = Math.min(100, Math.max(-100,
-              state.environmentalImpact + (item.environmentalImpact || 0) - 
-              (isReplacing ? (existingItem.environmentalImpact || 0) : 0)
-            ));
-          }
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
         });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+        
+        return saleValue;
       },
       
+      updateAssetValue: (assetId, newPrice) => {
+        set((state) => {
+          const assetIndex = state.assets.findIndex(a => a.id === assetId);
+          
+          if (assetIndex === -1) {
+            return state; // Asset not found
+          }
+          
+          const updatedAssets = [...state.assets];
+          updatedAssets[assetIndex] = {
+            ...updatedAssets[assetIndex],
+            currentPrice: newPrice
+          };
+          
+          return { assets: updatedAssets };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      updateAllAssetValues: (multiplier) => {
+        set((state) => {
+          const updatedAssets = state.assets.map(asset => ({
+            ...asset,
+            currentPrice: asset.currentPrice * multiplier
+          }));
+          
+          return { assets: updatedAssets };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      updateAssetValuesByType: (type, multiplier, idFilter) => {
+        set((state) => {
+          const updatedAssets = state.assets.map(asset => {
+            // Check if this asset matches our criteria
+            if (asset.type === type) {
+              if (idFilter && idFilter.length > 0) {
+                // If we have an ID filter, only update matching assets
+                if (idFilter.includes(asset.id)) {
+                  return {
+                    ...asset,
+                    currentPrice: asset.currentPrice * multiplier
+                  };
+                }
+              } else {
+                // No ID filter, update all assets of this type
+                return {
+                  ...asset,
+                  currentPrice: asset.currentPrice * multiplier
+                };
+              }
+            }
+            
+            return asset; // Return unchanged if no match
+          });
+          
+          return { assets: updatedAssets };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      // Properties management
+      addProperty: (property) => {
+        set((state) => ({
+          properties: [...state.properties, property],
+          wealth: state.wealth - property.purchasePrice
+        }));
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      sellProperty: (propertyId) => {
+        let saleValue = 0;
+        
+        set((state) => {
+          const propertyIndex = state.properties.findIndex(p => p.id === propertyId);
+          
+          if (propertyIndex === -1) {
+            return state; // Property not found
+          }
+          
+          const property = state.properties[propertyIndex];
+          saleValue = property.currentValue;
+          
+          return {
+            properties: state.properties.filter(p => p.id !== propertyId),
+            wealth: state.wealth + saleValue
+          };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+        
+        return saleValue;
+      },
+      
+      updatePropertyValue: (propertyId, newValue) => {
+        set((state) => {
+          const propertyIndex = state.properties.findIndex(p => p.id === propertyId);
+          
+          if (propertyIndex === -1) {
+            return state; // Property not found
+          }
+          
+          const updatedProperties = [...state.properties];
+          updatedProperties[propertyIndex] = {
+            ...updatedProperties[propertyIndex],
+            currentValue: newValue
+          };
+          
+          return { properties: updatedProperties };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      updatePropertyIncome: (propertyId, newIncome) => {
+        set((state) => {
+          const propertyIndex = state.properties.findIndex(p => p.id === propertyId);
+          
+          if (propertyIndex === -1) {
+            return state; // Property not found
+          }
+          
+          const updatedProperties = [...state.properties];
+          updatedProperties[propertyIndex] = {
+            ...updatedProperties[propertyIndex],
+            monthlyIncome: newIncome
+          };
+          
+          return { properties: updatedProperties };
+        });
+        
+        saveState();
+      },
+      
+      updateAllPropertyValues: (multiplier) => {
+        set((state) => {
+          const updatedProperties = state.properties.map(property => ({
+            ...property,
+            currentValue: property.currentValue * multiplier
+          }));
+          
+          return { properties: updatedProperties };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      updateAllPropertyIncome: (multiplier) => {
+        set((state) => {
+          const updatedProperties = state.properties.map(property => ({
+            ...property,
+            monthlyIncome: property.monthlyIncome * multiplier
+          }));
+          
+          return { properties: updatedProperties };
+        });
+        
+        saveState();
+      },
+      
+      updatePropertyValuesByType: (type, multiplier, idFilter) => {
+        set((state) => {
+          const updatedProperties = state.properties.map(property => {
+            // Check if this property matches our criteria
+            if (property.type === type) {
+              if (idFilter && idFilter.length > 0) {
+                // If we have an ID filter, only update matching properties
+                if (idFilter.includes(property.id)) {
+                  return {
+                    ...property,
+                    currentValue: property.currentValue * multiplier
+                  };
+                }
+              } else {
+                // No ID filter, update all properties of this type
+                return {
+                  ...property,
+                  currentValue: property.currentValue * multiplier
+                };
+              }
+            }
+            
+            return property; // Return unchanged if no match
+          });
+          
+          return { properties: updatedProperties };
+        });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      updatePropertyIncomeByType: (type, multiplier, idFilter) => {
+        set((state) => {
+          const updatedProperties = state.properties.map(property => {
+            // Check if this property matches our criteria
+            if (property.type === type) {
+              if (idFilter && idFilter.length > 0) {
+                // If we have an ID filter, only update matching properties
+                if (idFilter.includes(property.id)) {
+                  return {
+                    ...property,
+                    monthlyIncome: property.monthlyIncome * multiplier
+                  };
+                }
+              } else {
+                // No ID filter, update all properties of this type
+                return {
+                  ...property,
+                  monthlyIncome: property.monthlyIncome * multiplier
+                };
+              }
+            }
+            
+            return property; // Return unchanged if no match
+          });
+          
+          return { properties: updatedProperties };
+        });
+        
+        saveState();
+      },
+      
+      // Lifestyle
+      addLifestyleItem: (item) => {
+        // If it has a purchase price, deduct from wealth
+        let wealthAdjustment = 0;
+        if (item.purchasePrice) {
+          wealthAdjustment = -item.purchasePrice;
+        }
+        
+        set((state) => ({
+          lifestyleItems: [...state.lifestyleItems, item],
+          expenses: state.expenses + item.monthlyCost,
+          wealth: state.wealth + wealthAdjustment,
+          happiness: Math.min(100, state.happiness + item.happiness),
+          prestige: Math.min(100, state.prestige + item.prestige)
+        }));
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
+      },
+      
+      removeLifestyleItem: (itemId) => {
+        set((state) => {
+          const item = state.lifestyleItems.find(i => i.id === itemId);
+          
+          if (!item) {
+            return state; // Item not found
+          }
+          
+          return {
+            lifestyleItems: state.lifestyleItems.filter(i => i.id !== itemId),
+            expenses: state.expenses - item.monthlyCost,
+            happiness: Math.max(0, state.happiness - item.happiness / 2), // Reduce some happiness, but not all
+            prestige: Math.max(0, state.prestige - item.prestige / 2) // Reduce some prestige, but not all
+          };
+        });
+        
+        saveState();
+      },
+      
+      // Career
+      setJob: (job) => {
+        set((state) => ({
+          job,
+          income: job.salary,
+          daysSincePromotion: 0
+        }));
+        
+        saveState();
+      },
+      
+      promoteJob: (newJob) => {
+        set((state) => {
+          const oldJob = state.job;
+          
+          return {
+            job: newJob,
+            jobHistory: oldJob ? [...state.jobHistory, oldJob] : state.jobHistory,
+            income: newJob.salary,
+            daysSincePromotion: 0,
+            prestige: Math.min(100, state.prestige + newJob.prestigeImpact),
+            happiness: Math.min(100, state.happiness + newJob.happinessImpact),
+            stress: Math.min(100, state.stress + newJob.stress)
+          };
+        });
+        
+        saveState();
+      },
+      
+      quitJob: () => {
+        set((state) => {
+          const oldJob = state.job;
+          
+          return {
+            job: null,
+            jobHistory: oldJob ? [...state.jobHistory, oldJob] : state.jobHistory,
+            income: 0,
+            stress: Math.max(0, state.stress - 20), // Reduce stress
+            happiness: Math.max(0, state.happiness - 10) // Temporary happiness loss
+          };
+        });
+        
+        saveState();
+      },
+      
+      // Skills
+      improveSkill: (skill, amount) => {
+        set((state) => {
+          const updatedSkills = { ...state.skills };
+          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + amount);
+          
+          return { skills: updatedSkills };
+        });
+        
+        saveState();
+      },
+      
+      // Calculate net worth
       calculateNetWorth: () => {
         const state = get();
         
-        // Add liquid wealth
+        // Add cash
         let netWorth = state.wealth;
         
+        // Add asset values
+        netWorth += state.assets.reduce((total, asset) => {
+          return total + (asset.currentPrice * asset.quantity);
+        }, 0);
+        
         // Add property values
-        netWorth += state.properties.reduce((total, property) => total + property.value, 0);
-        
-        // Add asset values (simplified - in a real app, we'd use current market prices)
-        // For now, we'll just use purchase price * quantity
-        netWorth += state.assets.reduce((total, asset) => total + (asset.purchasePrice * asset.quantity), 0);
-        
-        // Add lifestyle item values (depreciated)
-        // Luxury items lose value, so we calculate at 50% of purchase price
-        netWorth += state.lifestyleItems.reduce((total, item) => 
-          total + (item.purchasePrice * 0.5), 0
-        );
+        netWorth += state.properties.reduce((total, property) => {
+          return total + property.currentValue;
+        }, 0);
         
         return netWorth;
       },
       
-      // Remove lifestyle item and apply the reverse effects
-      removeLifestyleItem: (id) => {
+      // Daily/weekly/monthly updates
+      processDailyUpdate: () => {
         set((state) => {
-          const itemToRemove = state.lifestyleItems.find(item => item.id === id);
-          if (!itemToRemove) return state; // If item not found, do nothing
+          // Update days since promotion if employed
+          let daysSincePromotion = state.daysSincePromotion;
+          if (state.job) {
+            daysSincePromotion += 1;
+          }
           
-          const updatedItems = state.lifestyleItems.filter(item => item.id !== id);
+          return { daysSincePromotion };
+        });
+      },
+      
+      weeklyUpdate: () => {
+        set((state) => {
+          // Apply job effects weekly
+          let happiness = state.happiness;
+          let stress = state.stress;
+          let updatedSkills = { ...state.skills };
           
-          // Basic attributes to update (reverse the effects)
-          let newState: Partial<CharacterState> = { 
-            lifestyleItems: updatedItems,
-            happiness: Math.max(0, state.happiness - (itemToRemove.happiness || 0)),
-            prestige: Math.max(0, state.prestige - (itemToRemove.prestige || 0)),
-            netWorth: get().calculateNetWorth()
+          if (state.job) {
+            // Apply happiness impact
+            happiness = Math.max(0, Math.min(100, happiness + state.job.happinessImpact / 4));
+            
+            // Apply stress impact
+            stress = Math.max(0, Math.min(100, stress + state.job.stress / 4));
+            
+            // Apply skill gains
+            for (const [skill, gain] of Object.entries(state.job.skillGains)) {
+              const skillKey = skill as keyof CharacterSkills;
+              if (skillKey in updatedSkills) {
+                updatedSkills[skillKey] = Math.min(100, updatedSkills[skillKey] + (gain / 4));
+              }
+            }
+          }
+          
+          return {
+            happiness,
+            stress,
+            skills: updatedSkills
           };
-          
-          // Reverse the extended attribute effects
-          
-          // For time commitment
-          if (itemToRemove.timeCommitment) {
-            newState.timeCommitment = Math.max(0, state.timeCommitment - itemToRemove.timeCommitment);
-            newState.freeTime = Math.min(168, state.freeTime + itemToRemove.timeCommitment);
-          }
-          
-          // For health impacts
-          if (itemToRemove.healthImpact !== undefined) {
-            newState.health = Math.min(100, Math.max(0, state.health - itemToRemove.healthImpact));
-          }
-          
-          // For stress reduction (reverse means adding back stress)
-          if (itemToRemove.stressReduction !== undefined) {
-            newState.stress = Math.min(100, Math.max(0, state.stress + itemToRemove.stressReduction));
-          }
-          
-          // For social connections
-          if (itemToRemove.socialStatus !== undefined) {
-            newState.socialConnections = Math.min(100, Math.max(0, 
-              state.socialConnections - itemToRemove.socialStatus));
-          }
-          
-          // For skill development
-          if (itemToRemove.skillDevelopment !== undefined) {
-            newState.skills = Math.min(100, Math.max(0,
-              state.skills - itemToRemove.skillDevelopment));
-          }
-          
-          // For environmental impact
-          if (itemToRemove.environmentalImpact !== undefined) {
-            newState.environmentalImpact = Math.min(100, Math.max(-100,
-              state.environmentalImpact - itemToRemove.environmentalImpact));
-          }
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...newState });
-          
-          return newState;
         });
+        
+        saveState();
       },
       
-      // Update character attributes (for applying lifestyle effects)
-      updateAttributes: (attributes) => {
+      monthlyUpdate: () => {
         set((state) => {
-          // Apply updates with constraints to keep values in valid ranges
-          const updatedAttributes: Partial<CharacterState> = {};
+          // Add income
+          const updatedWealth = state.wealth + state.income - state.expenses;
           
-          // Process each attribute with its specific constraints
-          if (attributes.stress !== undefined) {
-            updatedAttributes.stress = Math.min(100, Math.max(0, attributes.stress));
-          }
+          // Property income
+          const propertyIncome = state.properties.reduce((total, property) => {
+            return total + property.monthlyIncome;
+          }, 0);
           
-          if (attributes.skills !== undefined) {
-            updatedAttributes.skills = Math.min(100, Math.max(0, attributes.skills));
-          }
+          // Calculate health effects based on stress and happiness
+          const stressEffect = (state.stress > 70) ? -5 : (state.stress < 30) ? 2 : 0;
+          const happinessEffect = (state.happiness > 70) ? 3 : (state.happiness < 30) ? -3 : 0;
           
-          if (attributes.health !== undefined) {
-            updatedAttributes.health = Math.min(100, Math.max(0, attributes.health));
-          }
+          const updatedHealth = Math.max(0, Math.min(100, state.health + stressEffect + happinessEffect));
           
-          if (attributes.socialConnections !== undefined) {
-            updatedAttributes.socialConnections = Math.min(100, Math.max(0, attributes.socialConnections));
-          }
-          
-          if (attributes.happiness !== undefined) {
-            updatedAttributes.happiness = Math.min(100, Math.max(0, attributes.happiness));
-          }
-          
-          if (attributes.prestige !== undefined) {
-            updatedAttributes.prestige = Math.max(0, attributes.prestige); // No upper limit on prestige
-          }
-          
-          if (attributes.freeTime !== undefined) {
-            updatedAttributes.freeTime = Math.max(0, attributes.freeTime);
-          }
-          
-          if (attributes.timeCommitment !== undefined) {
-            updatedAttributes.timeCommitment = Math.max(0, attributes.timeCommitment);
-          }
-          
-          if (attributes.environmentalImpact !== undefined) {
-            // Environmental impact can be negative (harmful) or positive (beneficial)
-            updatedAttributes.environmentalImpact = Math.min(100, Math.max(-100, attributes.environmentalImpact));
-          }
-          
-          // Save to local storage
-          setLocalStorage(STORAGE_KEY, { ...state, ...updatedAttributes });
-          
-          return updatedAttributes;
+          return {
+            wealth: updatedWealth + propertyIncome,
+            health: updatedHealth
+          };
         });
+        
+        // Calculate new net worth
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
+        saveState();
       },
       
-      resetProgress: () => {
-        // Reset the state to default values
-        const defaultState = {
-          name: "",
-          wealth: 5000, // Starting cash
-          netWorth: 5000,
-          happiness: 50,
-          prestige: 0,
-          
-          // Reset all new attributes too
-          stress: 20,
-          skills: 10,
-          health: 70,
-          socialConnections: 30,
-          freeTime: 80,
-          timeCommitment: 40,
-          environmentalImpact: 0,
-          
-          // Collections
-          assets: [],
-          properties: [],
-          lifestyleItems: []
-        };
-        
-        set(defaultState);
-        
-        // Clear from local storage
-        setLocalStorage(STORAGE_KEY, defaultState);
-        
-        // Reset achievements (by clearing localStorage for achievements)
-        localStorage.removeItem('business-empire-achievements');
-        
-        // Also clear the claimed rewards to allow players to claim rewards for achievements they unlock again
-        localStorage.removeItem('business-empire-claimed-rewards');
-        
-        // Just clear the time store data instead
-        localStorage.removeItem('luxury_lifestyle_time');
-        
-        // Reset other stores if necessary
-        // This approach ensures a clean slate when starting a new game
+      saveState: () => {
+        const state = get();
+        setLocalStorage(STORAGE_KEY, state);
+      },
+      
+      resetCharacter: () => {
+        const defaultCharacter = getDefaultCharacter();
+        set(defaultCharacter as CharacterState);
+        saveState();
       }
     };
   })
 );
 
-// Set up a subscription to save character data when it changes
-useCharacter.subscribe(
-  (state) => state,
-  (state) => {
-    setLocalStorage(STORAGE_KEY, state);
+// Load character
+if (typeof window !== 'undefined') {
+  // Initial load
+  const savedCharacter = loadSavedCharacter();
+  if (savedCharacter) {
+    useCharacter.setState(savedCharacter);
   }
-);
+}
+
+// Helper function to save the current state to localStorage
+function saveState() {
+  const state = useCharacter.getState();
+  setLocalStorage(STORAGE_KEY, state);
+}
+
+export default useCharacter;

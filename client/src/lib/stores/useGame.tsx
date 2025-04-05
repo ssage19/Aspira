@@ -1,125 +1,166 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { persist } from "zustand/middleware";
-import { useAchievements } from "./useAchievements";
-import { useTime } from "./useTime";
+import { getLocalStorage, setLocalStorage } from "../utils";
 
-export type GamePhase = "ready" | "playing" | "ended";
+export type GamePhase = "ready" | "creating" | "playing" | "paused" | "finished";
 
 interface GameState {
+  // Game state
   phase: GamePhase;
-  cash: number;
-  incomeMultiplier: number;
   
-  // Game state actions
+  // Game settings
+  difficulty: "easy" | "normal" | "hard";
+  gameSpeed: "slow" | "normal" | "fast";
+  
+  // Game time tracking
+  startedAt: number | null;
+  lastUpdatedAt: number | null;
+  
+  // Achievement tracking
+  achievementsUnlocked: string[];
+  recentlyUnlockedAchievements: string[];
+  
+  // Functions
   start: () => void;
+  pause: () => void;
+  resume: () => void;
+  reset: () => void;
   restart: () => void;
-  end: () => void;
-  
-  // Money management
-  addCash: (amount: number) => void;
-  removeCash: (amount: number) => boolean; // returns false if not enough cash
-  getCash: () => number;
-  
-  // Multipliers and bonuses
-  applyIncomeMultiplier: (multiplier: number) => void;
-  resetIncomeMultiplier: () => void;
-  getIncomeMultiplier: () => number;
+  finish: () => void;
+  unlockAchievement: (id: string) => void;
+  clearRecentAchievements: () => void;
+  setDifficulty: (difficulty: "easy" | "normal" | "hard") => void;
+  setGameSpeed: (speed: "slow" | "normal" | "fast") => void;
+  isAchievementUnlocked: (id: string) => boolean;
 }
 
+const STORAGE_KEY = 'business-empire-game';
+
+// Load from local storage if available
+const loadSavedGame = () => {
+  const saved = getLocalStorage(STORAGE_KEY);
+  if (saved) {
+    return saved;
+  }
+  return null;
+};
+
 export const useGame = create<GameState>()(
-  persist(
-    subscribeWithSelector((set, get) => ({
-      phase: "ready",
-      cash: 5000, // Starting cash
-      incomeMultiplier: 1.0, // Default multiplier (no effect)
-      
+  subscribeWithSelector((set, get) => {
+    // Try to load saved game
+    const savedGame = loadSavedGame();
+    
+    return {
       // Game state
+      phase: savedGame?.phase || "ready",
+      
+      // Game settings
+      difficulty: savedGame?.difficulty || "normal",
+      gameSpeed: savedGame?.gameSpeed || "normal",
+      
+      // Game time tracking
+      startedAt: savedGame?.startedAt || null,
+      lastUpdatedAt: savedGame?.lastUpdatedAt || null,
+      
+      // Achievement tracking
+      achievementsUnlocked: savedGame?.achievementsUnlocked || [],
+      recentlyUnlockedAchievements: savedGame?.recentlyUnlockedAchievements || [],
+      
+      // Start the game
       start: () => {
-        set((state) => {
-          // Only transition from ready to playing
-          if (state.phase === "ready") {
-            return { phase: "playing" };
-          }
-          return {};
+        const now = Date.now();
+        set({
+          phase: "playing",
+          startedAt: now,
+          lastUpdatedAt: now
         });
+        saveState();
       },
       
-      restart: () => {
-        set(() => ({ 
+      // Pause the game
+      pause: () => {
+        set({ phase: "paused" });
+        saveState();
+      },
+      
+      // Resume the game
+      resume: () => {
+        set({ 
+          phase: "playing",
+          lastUpdatedAt: Date.now()
+        });
+        saveState();
+      },
+      
+      // Reset the game
+      reset: () => {
+        set({
           phase: "ready",
-          cash: 5000,
-          incomeMultiplier: 1.0
-        }));
-        
-        // Reset achievements and time when game is restarted
-        // Using setTimeout to prevent circular dependency issues
-        setTimeout(() => {
-          // Reset achievements
-          const { resetAchievements } = useAchievements.getState();
-          if (resetAchievements) {
-            resetAchievements();
-          }
-          
-          // Reset time to current device date/time
-          const { resetTime } = useTime.getState();
-          if (resetTime) {
-            resetTime();
-          }
-        }, 0);
-      },
-      
-      end: () => {
-        set((state) => {
-          // Only transition from playing to ended
-          if (state.phase === "playing") {
-            return { phase: "ended" };
-          }
-          return {};
+          startedAt: null,
+          lastUpdatedAt: null,
+          achievementsUnlocked: [],
+          recentlyUnlockedAchievements: []
         });
+        saveState();
       },
       
-      // Money management
-      addCash: (amount) => {
-        // Apply income multiplier if it's income
-        const actualAmount = amount > 0 
-          ? amount * get().incomeMultiplier 
-          : amount;
+      // Restart the game (reset and start)
+      restart: () => {
+        const state = get();
+        state.reset();
+        state.start();
+      },
+      
+      // Finish the game
+      finish: () => {
+        set({ phase: "finished" });
+        saveState();
+      },
+      
+      // Unlock an achievement
+      unlockAchievement: (id) => {
+        const { achievementsUnlocked, recentlyUnlockedAchievements } = get();
         
-        set((state) => ({
-          cash: state.cash + actualAmount
-        }));
-      },
-      
-      removeCash: (amount) => {
-        if (get().cash >= amount) {
-          set((state) => ({
-            cash: state.cash - amount
-          }));
-          return true;
+        // Only add if not already unlocked
+        if (!achievementsUnlocked.includes(id)) {
+          set({
+            achievementsUnlocked: [...achievementsUnlocked, id],
+            recentlyUnlockedAchievements: [...recentlyUnlockedAchievements, id]
+          });
+          saveState();
         }
-        return false;
       },
       
-      getCash: () => get().cash,
-      
-      // Multipliers and bonuses
-      applyIncomeMultiplier: (multiplier) => {
-        set((state) => ({
-          incomeMultiplier: state.incomeMultiplier * multiplier
-        }));
+      // Clear recently unlocked achievements
+      clearRecentAchievements: () => {
+        set({ recentlyUnlockedAchievements: [] });
+        saveState();
       },
       
-      resetIncomeMultiplier: () => {
-        set(() => ({
-          incomeMultiplier: 1.0
-        }));
+      // Set difficulty
+      setDifficulty: (difficulty) => {
+        set({ difficulty });
+        saveState();
       },
       
-      getIncomeMultiplier: () => get().incomeMultiplier
-    })),
-    {
-      name: 'business-empire-game'
-    }
-  )
+      // Set game speed
+      setGameSpeed: (gameSpeed) => {
+        set({ gameSpeed });
+        saveState();
+      },
+      
+      // Check if an achievement is unlocked
+      isAchievementUnlocked: (id) => {
+        return get().achievementsUnlocked.includes(id);
+      }
+    };
+  })
 );
+
+// Helper function to save the current state to localStorage
+function saveState() {
+  const state = useGame.getState();
+  setLocalStorage(STORAGE_KEY, state);
+}
+
+export default useGame;
