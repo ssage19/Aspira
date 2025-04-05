@@ -84,7 +84,14 @@ export default function JobScreen() {
         setProgress(progressData);
       }
       
-      // Generate job-specific skill challenges
+      // Check if we have saved challenges first
+      const savedChallenges = localStorage.getItem(`challenges-${job.id}`);
+      if (savedChallenges) {
+        // We already loaded the challenges in the first useEffect, so don't overwrite them
+        return;
+      }
+      
+      // If no saved challenges, generate job-specific skill challenges
       const jobChallenges: ChallengeType[] = generateChallenges(job);
       setChallenges(jobChallenges);
     }
@@ -409,6 +416,14 @@ export default function JobScreen() {
   const handleStartChallenge = (challenge: ChallengeType) => {
     if (!challenge || challenge.completed || challenge.inProgress) return;
     
+    // Check if any other challenge is already in progress
+    const hasActiveChallenge = challenges.some(c => c.inProgress === true && !c.completed);
+    
+    if (hasActiveChallenge) {
+      toast.error("You can only work on one challenge at a time. Complete or abandon your current challenge first.");
+      return;
+    }
+    
     audio.playSound('click');
     
     // Update the challenge to be in progress with current date
@@ -425,6 +440,25 @@ export default function JobScreen() {
   };
   
   // Complete a challenge and collect the reward
+  // Allow user to abandon a challenge in progress
+  const handleAbandonChallenge = (challenge: ChallengeType) => {
+    if (!challenge || !challenge.inProgress) return;
+    
+    audio.playSound('click');
+    
+    // Reset the challenge back to its initial state
+    const updatedChallenges = challenges.map(c => 
+      c.id === challenge.id 
+        ? {...c, inProgress: false, startDate: undefined, readyForCompletion: false} 
+        : c
+    );
+    
+    setChallenges(updatedChallenges);
+    setSelectedChallenge(null);
+    
+    toast.info(`You abandoned the "${challenge.title}" challenge. You can start it again later.`);
+  };
+  
   const handleCompleteChallenge = (challenge: ChallengeType) => {
     if (!challenge) return;
     
@@ -866,27 +900,37 @@ export default function JobScreen() {
                               )}
                               
                               <div className="flex justify-between mt-6">
-                                <Button variant="outline" onClick={() => setSelectedChallenge(null)}>
-                                  Go Back
-                                </Button>
-                                
-                                {selectedChallenge.readyForCompletion && (
-                                  <Button onClick={() => handleCompleteChallenge(selectedChallenge)}>
-                                    Complete Challenge
+                                <div>
+                                  <Button variant="outline" onClick={() => setSelectedChallenge(null)}>
+                                    Go Back
                                   </Button>
-                                )}
+                                </div>
                                 
-                                {!selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
-                                  <Button onClick={() => handleStartChallenge(selectedChallenge)}>
-                                    Start Challenge
-                                  </Button>
-                                )}
-                                
-                                {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
-                                  <Button disabled>
-                                    In Progress...
-                                  </Button>
-                                )}
+                                <div className="space-x-2">
+                                  {selectedChallenge.readyForCompletion && (
+                                    <Button onClick={() => handleCompleteChallenge(selectedChallenge)}>
+                                      Complete Challenge
+                                    </Button>
+                                  )}
+                                  
+                                  {!selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
+                                    <Button onClick={() => handleStartChallenge(selectedChallenge)}>
+                                      Start Challenge
+                                    </Button>
+                                  )}
+                                  
+                                  {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
+                                    <>
+                                      <Button disabled>
+                                        In Progress...
+                                      </Button>
+                                      
+                                      <Button variant="destructive" onClick={() => handleAbandonChallenge(selectedChallenge)}>
+                                        Abandon
+                                      </Button>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </CardContent>
@@ -981,7 +1025,7 @@ export default function JobScreen() {
                                             <span>{challenge.completionTime} days</span>
                                           </div>
                                           
-                                          <div className="mt-3 pt-2 border-t flex justify-end">
+                                          <div className="mt-3 pt-2 border-t flex justify-end space-x-2">
                                             {challenge.readyForCompletion && (
                                               <Button 
                                                 size="sm" 
@@ -1004,6 +1048,19 @@ export default function JobScreen() {
                                                 }}
                                               >
                                                 Start Challenge
+                                              </Button>
+                                            )}
+                                            
+                                            {challenge.inProgress && !challenge.readyForCompletion && (
+                                              <Button 
+                                                size="sm" 
+                                                variant="destructive" 
+                                                onClick={(e) => { 
+                                                  e.stopPropagation(); 
+                                                  handleAbandonChallenge(challenge); 
+                                                }}
+                                              >
+                                                Abandon
                                               </Button>
                                             )}
                                           </div>
