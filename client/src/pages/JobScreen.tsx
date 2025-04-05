@@ -23,7 +23,7 @@ type ChallengeType = {
   skill: string;
   difficultyLevel: 'easy' | 'medium' | 'hard';
   xpReward: number;
-  completionTime: number; // in days
+  completionTime: number; // in months
   completed?: boolean;
   inProgress?: boolean;
   startDate?: Date;
@@ -112,7 +112,7 @@ export default function JobScreen() {
           skill,
           difficultyLevel: 'easy',
           xpReward: 1,
-          completionTime: 2,
+          completionTime: 2, // Months
           completed: false
         });
         
@@ -436,7 +436,7 @@ export default function JobScreen() {
     setChallenges(updatedChallenges);
     setSelectedChallenge(null);
     
-    toast.success(`Started working on: ${challenge.title}. Check back in ${challenge.completionTime} days.`);
+    toast.success(`Started working on: ${challenge.title}. Check back in ${challenge.completionTime} months.`);
   };
   
   // Complete a challenge and collect the reward
@@ -462,6 +462,12 @@ export default function JobScreen() {
   const handleCompleteChallenge = (challenge: ChallengeType) => {
     if (!challenge) return;
     
+    // Check if the challenge is already completed
+    if (challenge.completed) {
+      toast.error("This challenge has already been completed!");
+      return;
+    }
+    
     // Check if the challenge is ready for completion
     if (challenge.inProgress && challenge.startDate) {
       const startDate = new Date(challenge.startDate);
@@ -469,8 +475,8 @@ export default function JobScreen() {
       
       if (daysPassed < challenge.completionTime) {
         // Not enough time has passed
-        const daysRemaining = challenge.completionTime - daysPassed;
-        toast.error(`This challenge will be complete in ${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''}.`);
+        const monthsRemaining = challenge.completionTime - daysPassed;
+        toast.error(`This challenge will be complete in ${monthsRemaining} more month${monthsRemaining !== 1 ? 's' : ''}.`);
         return;
       }
     } else if (!challenge.readyForCompletion) {
@@ -486,9 +492,15 @@ export default function JobScreen() {
     // Play sound effect
     audio.playSound('achievement');
     
-    // Mark challenge as completed
+    // Mark challenge as completed and reset other flags
     setChallenges(challenges.map(c => 
-      c.id === challenge.id ? {...c, completed: true, inProgress: false} : c
+      c.id === challenge.id ? {
+        ...c, 
+        completed: true, 
+        inProgress: false,
+        readyForCompletion: false,
+        startDate: undefined
+      } : c
     ));
     
     toast.success(`Challenge completed! ${challenge.skill} skill increased by ${challenge.xpReward}`);
@@ -819,7 +831,7 @@ export default function JobScreen() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    {selectedChallenge ? (
+                    {selectedChallenge && !selectedChallenge.completed ? (
                       <div className="space-y-4">
                         <Card className={`${
                           selectedChallenge.readyForCompletion ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10' : 
@@ -865,7 +877,7 @@ export default function JobScreen() {
                                 </div>
                                 <div className="bg-secondary/10 p-3 rounded-md">
                                   <div className="text-sm font-medium">Time Required</div>
-                                  <div className="text-lg font-bold">{selectedChallenge.completionTime} days</div>
+                                  <div className="text-lg font-bold">{selectedChallenge.completionTime} months</div>
                                 </div>
                               </div>
                               
@@ -877,7 +889,7 @@ export default function JobScreen() {
                                       {Math.min(
                                         Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
                                         selectedChallenge.completionTime
-                                      )} / {selectedChallenge.completionTime} days
+                                      )} / {selectedChallenge.completionTime} months
                                     </span>
                                   </div>
                                   <Progress 
@@ -943,6 +955,7 @@ export default function JobScreen() {
                           <div className="space-y-4">
                             {Object.entries(
                               challenges.reduce<Record<string, ChallengeType[]>>((acc, challenge) => {
+                                // Only show incomplete challenges
                                 if (!challenge.completed) {
                                   if (!acc[challenge.skill]) {
                                     acc[challenge.skill] = [];
@@ -1007,7 +1020,7 @@ export default function JobScreen() {
                                                   {Math.min(
                                                     Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)), 
                                                     challenge.completionTime
-                                                  )} / {challenge.completionTime} days
+                                                  )} / {challenge.completionTime} months
                                                 </span>
                                               </div>
                                               <Progress 
@@ -1022,7 +1035,7 @@ export default function JobScreen() {
                                           
                                           <div className="flex justify-between mt-2 text-sm">
                                             <span>+{challenge.xpReward} skill</span>
-                                            <span>{challenge.completionTime} days</span>
+                                            <span>{challenge.completionTime} months</span>
                                           </div>
                                           
                                           <div className="mt-3 pt-2 border-t flex justify-end space-x-2">
