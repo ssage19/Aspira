@@ -6,56 +6,6 @@
   </head>
   <body>
     <div id="root"></div>
-    
-    <!-- Fix page that shows if the app isn't rendering -->
-    <div id="game-fix-page">
-      <h1 style="font-size: 2rem; margin-bottom: 1rem;">Business Empire Game</h1>
-      <p style="margin-bottom: 2rem;">We're having trouble loading the game. This could be due to cached data or browser issues.</p>
-      
-      <div style="display: flex; flex-direction: column; gap: 1rem; max-width: 400px;">
-        <button 
-          onclick="window.location.href = '/?simplified=true'" 
-          style="padding: 1rem; background-color: #45A29E; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold;"
-        >
-          Open Simplified App
-        </button>
-        
-        <button 
-          onclick="try { localStorage.clear(); console.log('All data cleared'); } catch(e) { console.error(e); } finally { window.location.reload(); }" 
-          style="padding: 1rem; background-color: #ff4a4a; color: white; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1rem; font-weight: bold;"
-        >
-          Reset ALL Game Data
-        </button>
-        
-        <button 
-          onclick="window.location.reload()" 
-          style="padding: 1rem; background-color: #1F2833; color: white; border: 1px solid #66FCF1; border-radius: 0.5rem; cursor: pointer; font-size: 1rem;"
-        >
-          Try Reloading Only
-        </button>
-      </div>
-      
-      <p style="margin-top: 2rem; font-size: 0.8rem; opacity: 0.7;">
-        If problems persist, try clearing your browser cache or using a different browser.
-      </p>
-    </div>
-    
-    <script>
-      // Show the fix page after 5 seconds if the app hasn't rendered properly
-      setTimeout(() => {
-        // Check if there's any visible content in the root element
-        const root = document.getElementById('root');
-        if (root && (!root.children.length || window.getComputedStyle(root).height === '0px')) {
-          // Make the fix page visible
-          const fixPage = document.getElementById('game-fix-page');
-          if (fixPage) {
-            fixPage.classList.add('visible');
-            console.log('Game appears to be stuck, showing fix page');
-          }
-        }
-      }, 5000);
-    </script>
-    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

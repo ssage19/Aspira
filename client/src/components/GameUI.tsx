@@ -18,12 +18,10 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  GraduationCap,
-  Shield,
-  AlertTriangle
+  GraduationCap
 } from 'lucide-react';
 import { Button } from './ui/button';
-import { formatCurrency, isEmergencyMode, setEmergencyMode } from '../lib/utils';
+import { formatCurrency } from '../lib/utils';
 import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
@@ -52,27 +50,6 @@ export function GameUI() {
   } = useTime();
   const { isMuted, setMuted, playSuccess } = useAudio();
   const [showTooltip, setShowTooltip] = useState('');
-  const [emergencyModeEnabled, setEmergencyModeEnabled] = useState(isEmergencyMode());
-  
-  // Update emergency mode state when it changes
-  useEffect(() => {
-    const checkEmergencyMode = () => {
-      setEmergencyModeEnabled(isEmergencyMode());
-    };
-    
-    // Check on mount
-    checkEmergencyMode();
-    
-    // Set up a storage event listener to detect changes
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'emergency-mode') {
-        checkEmergencyMode();
-      }
-    };
-    
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
   
   // Update passive income every 5 seconds
   useEffect(() => {
@@ -432,31 +409,27 @@ export function GameUI() {
         </div>
         
         {/* Date - placed center */}
-        <div className="absolute left-1/2 -translate-x-1/2" aria-label="Current date">
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
           <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
             <Calendar className="h-4 w-4 text-primary dark:text-primary" />
-            <div className="flex flex-col items-center">
-              {/* Format the date to show full month name, day, and year */}
-              <p className="text-sm font-medium">
-                {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
-                  weekday: 'long',
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </p>
-              
-              {/* Show time flow indication without progress bar */}
-              <p className="text-xs text-muted-foreground">
-                {autoAdvanceEnabled ? 
-                  timeSpeed === 'superfast' ? 
-                    'Time flowing at 6x speed' : 
-                  timeSpeed === 'fast' ? 
-                    'Time flowing at 3x speed' : 
-                    'Time flowing at normal speed' 
-                  : "Time is paused"}
-              </p>
+            <div>
+              <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
             </div>
+          </div>
+          
+          {/* Day progress bar */}
+          <div className="w-64 flex items-center gap-2">
+            <Progress value={timeProgress} className="h-2" 
+              aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
+            <span className="text-xs font-medium">
+              {autoAdvanceEnabled ? 
+                timeSpeed === 'superfast' ? 
+                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 6))}s left (6x)` : 
+                timeSpeed === 'fast' ? 
+                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 3))}s left (3x)` : 
+                  `${Math.max(0, Math.floor(21.43 - (timeProgress * 21.43 / 100)))}s left` 
+                : "Paused"}
+            </span>
           </div>
         </div>
         
@@ -690,45 +663,6 @@ export function GameUI() {
           {showTooltip === 'sound' && (
             <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
               {isMuted ? "Unmute Sound" : "Mute Sound"}
-            </span>
-          )}
-        </Button>
-        
-        {/* Emergency Mode toggle */}
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => {
-            const newMode = !emergencyModeEnabled;
-            setEmergencyMode(newMode);
-            setEmergencyModeEnabled(newMode);
-            toast.success(
-              newMode 
-                ? "Emergency Mode enabled. Please reload the page for changes to take effect." 
-                : "Emergency Mode disabled. Please reload the page for changes to take effect.",
-              { duration: 5000 }
-            );
-          }}
-          onMouseEnter={() => setShowTooltip('emergency')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative glass-effect h-14 w-14 rounded-full p-0"
-          aria-label="Toggle Emergency Mode"
-        >
-          <div className={`p-3 rounded-full ${emergencyModeEnabled ? 'bg-amber-500/20' : 'bg-emerald-500/10'}`}>
-            {emergencyModeEnabled 
-              ? <AlertTriangle className="h-5 w-5 text-amber-500" /> 
-              : <Shield className="h-5 w-5 text-emerald-500" />
-            }
-          </div>
-          {showTooltip === 'emergency' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
-              {emergencyModeEnabled ? "Disable Emergency Mode" : "Enable Emergency Mode"}
-              <div className="text-xs mt-1 max-w-[200px]">
-                {emergencyModeEnabled 
-                  ? "Currently using simplified version to prevent crashes" 
-                  : "Use a simplified version that works better on older devices"
-                }
-              </div>
             </span>
           )}
         </Button>

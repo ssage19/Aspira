@@ -32,9 +32,6 @@ interface TimeState {
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
   
-  // Running state
-  isRunning: boolean;
-  
   // Actions
   advanceTime: () => void;
   setDate: (day: number, month: number, year: number) => void;
@@ -46,9 +43,6 @@ interface TimeState {
   updateLastTickTime: (time: number) => void; // Update last tick timestamp
   setPausedTimestamp: (time: number) => void; // Update paused timestamp
   setAccumulatedProgress: (progress: number) => void; // Update accumulated progress
-  toggleTimeRunning: () => void; // Toggle whether time is running
-  startTime: () => void; // Start the game time
-  pauseTime: () => void; // Pause the game time
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -73,7 +67,7 @@ const getCurrentDeviceDate = () => {
 };
 
 export const useTime = create<TimeState>()(
-  subscribeWithSelector((set, get) => {
+  subscribeWithSelector((set) => {
     // Try to load saved time
     const savedTime = loadSavedTime();
     
@@ -112,9 +106,6 @@ export const useTime = create<TimeState>()(
       lastTickTime: savedTime?.lastTickTime || Date.now(),
       pausedTimestamp: savedTime?.pausedTimestamp || 0,
       accumulatedProgress: savedTime?.accumulatedProgress || 0,
-      
-      // Game is not running by default
-      isRunning: savedTime?.isRunning !== undefined ? savedTime.isRunning : false,
       
       // Day counter for weekly/biweekly updates
       dayCounter: savedTime?.dayCounter || 0,
@@ -215,8 +206,7 @@ export const useTime = create<TimeState>()(
           lastTickTime: Date.now(),
           pausedTimestamp: 0,
           accumulatedProgress: 0,
-          dayCounter: 0,
-          isRunning: true
+          dayCounter: 0
         };
         
         // Save to local storage
@@ -315,53 +305,6 @@ export const useTime = create<TimeState>()(
         const newState = {
           ...state,
           accumulatedProgress: progress
-        };
-        
-        // Save to local storage
-        setLocalStorage(STORAGE_KEY, newState);
-        
-        return newState;
-      }),
-      
-      // Toggle time running state
-      toggleTimeRunning: () => set((state) => {
-        const newIsRunning = !state.isRunning;
-        
-        const newState = {
-          ...state,
-          isRunning: newIsRunning,
-          autoAdvanceEnabled: newIsRunning,
-          lastTickTime: Date.now() // Reset the tick time when toggling
-        };
-        
-        // Save to local storage
-        setLocalStorage(STORAGE_KEY, newState);
-        
-        return newState;
-      }),
-      
-      // Start game time
-      startTime: () => set((state) => {
-        const newState = {
-          ...state,
-          isRunning: true,
-          autoAdvanceEnabled: true,
-          lastTickTime: Date.now()
-        };
-        
-        // Save to local storage
-        setLocalStorage(STORAGE_KEY, newState);
-        
-        return newState;
-      }),
-      
-      // Pause game time
-      pauseTime: () => set((state) => {
-        const newState = {
-          ...state,
-          isRunning: false,
-          autoAdvanceEnabled: false,
-          pausedTimestamp: Date.now()
         };
         
         // Save to local storage

@@ -2,14 +2,14 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 interface AudioState {
-  // Sound settings (kept for compatibility with existing code)
+  // Sound settings
   isMuted: boolean;
   volume: number;
   
-  // Music and sound effects (kept for compatibility)
-  backgroundMusic: null;
+  // Music and sound effects
+  backgroundMusic: HTMLAudioElement | null;
   
-  // Function stubs (all functions do nothing)
+  // Functions
   playMusic: (music: string) => void;
   stopMusic: () => void;
   playSound: (sound: string) => void;
@@ -21,52 +21,125 @@ interface AudioState {
 
 export const useAudio = create<AudioState>()(
   subscribeWithSelector((set, get) => {
+    // Audio elements
+    let musicElement: HTMLAudioElement | null = null;
+    
+    if (typeof window !== 'undefined') {
+      musicElement = new Audio();
+      musicElement.loop = true;
+    }
+    
     return {
-      // Sound settings (all disabled)
-      isMuted: true,
-      volume: 0,
+      // Sound settings
+      isMuted: false,
+      volume: 0.5,
       
-      // No music element
+      // Music and sounds
       backgroundMusic: null,
       
-      // Empty function - does nothing
+      // Play background music
       playMusic: (music: string) => {
-        // Sound feature disabled
-        return;
+        if (!musicElement || get().isMuted) return;
+        
+        // Set music source and play
+        musicElement.src = music;
+        musicElement.volume = get().volume;
+        
+        try {
+          musicElement.play().catch(err => console.error("Error playing music:", err));
+          set({ backgroundMusic: musicElement });
+        } catch (error) {
+          console.error("Error playing music:", error);
+        }
       },
       
-      // Empty function - does nothing
+      // Stop background music
       stopMusic: () => {
-        // Sound feature disabled
-        return;
+        if (!musicElement) return;
+        
+        musicElement.pause();
+        musicElement.currentTime = 0;
+        set({ backgroundMusic: null });
       },
       
-      // Empty function - does nothing
+      // Play a sound effect
       playSound: (sound: string) => {
-        // Sound feature disabled
-        return;
+        if (get().isMuted) return;
+        
+        try {
+          // Check if the sound file exists or is valid
+          const soundElement = new Audio();
+          
+          // Add an error handler to avoid uncaught exceptions
+          soundElement.onerror = () => {
+            console.warn(`Sound file not found or cannot be played: ${sound}`);
+          };
+          
+          // Set volume and source
+          soundElement.volume = get().volume;
+          soundElement.src = sound;
+          
+          // Try to play the sound, but don't crash if it fails
+          soundElement.play().catch(err => {
+            console.warn(`Error playing sound ${sound}:`, err);
+          });
+        } catch (error) {
+          console.warn("Error setting up sound:", error);
+        }
       },
       
-      // Empty function - does nothing
+      // Play success sound for achievements
       playSuccess: () => {
-        // Sound feature disabled
-        return;
+        // Try to play the achievement sound, but silently fail if it doesn't exist
+        try {
+          // We're using a default success sound
+          const successSound = '/sounds/achievement.mp3';
+          get().playSound(successSound);
+          console.log("Playing achievement sound");
+        } catch (error) {
+          // Silently ignore errors - this is not critical functionality
+          console.log("Could not play achievement sound, continuing silently");
+        }
       },
       
-      // Empty function - does nothing
+      // Play hit/error sound for notifications
       playHit: () => {
-        // Sound feature disabled
-        return;
+        // Try to play the hit sound, but silently fail if it doesn't exist
+        try {
+          // We're using a default hit sound
+          const hitSound = '/sounds/error.mp3';
+          get().playSound(hitSound);
+          console.log("Playing hit sound");
+        } catch (error) {
+          // Silently ignore errors - this is not critical functionality
+          console.log("Could not play hit sound, continuing silently");
+        }
       },
       
-      // Empty function - does nothing but updates state for compatibility
+      // Set muted state
       setMuted: (muted: boolean) => {
-        set({ isMuted: true }); // Always muted
+        set({ isMuted: muted });
+        
+        const currentMusic = get().backgroundMusic;
+        if (musicElement && currentMusic) {
+          if (muted) {
+            currentMusic.pause();
+          } else {
+            currentMusic.play().catch(err => console.error("Error resuming music:", err));
+          }
+        }
       },
       
-      // Empty function - does nothing but updates state for compatibility
+      // Set volume level
       setVolume: (volume: number) => {
-        set({ volume: 0 }); // Always volume 0
+        // Ensure volume is between 0 and 1
+        const normalizedVolume = Math.max(0, Math.min(1, volume));
+        
+        set({ volume: normalizedVolume });
+        
+        if (musicElement && !get().isMuted) {
+          musicElement.volume = normalizedVolume;
+        }
       }
     };
   })
