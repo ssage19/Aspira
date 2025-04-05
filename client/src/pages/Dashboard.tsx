@@ -234,6 +234,9 @@ export default function Dashboard() {
       resetTime();
     }
     
+    // Clear claimed rewards in localStorage
+    localStorage.removeItem('business-empire-claimed-rewards');
+    
     // Navigate to character creation
     navigate('/create');
   };
