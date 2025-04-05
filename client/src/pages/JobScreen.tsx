@@ -395,7 +395,7 @@ export default function JobScreen() {
                     </div>
                   </div>
                 );
-                audio.playSound('notification');
+                // Audio removed
               }, 500);
             }
             
@@ -427,7 +427,7 @@ export default function JobScreen() {
       return;
     }
     
-    audio.playSound('click');
+    // Audio removed
     
     // Update the challenge to be in progress with current date
     const updatedChallenges = challenges.map(c => 
@@ -447,7 +447,7 @@ export default function JobScreen() {
   const handleAbandonChallenge = (challenge: ChallengeType) => {
     if (!challenge || !challenge.inProgress) return;
     
-    audio.playSound('click');
+    // Audio removed
     
     // Reset the challenge back to its initial state
     const updatedChallenges = challenges.map(c => 
@@ -496,8 +496,7 @@ export default function JobScreen() {
     const skill = challenge.skill as keyof typeof skills;
     improveSkill(skill, challenge.xpReward);
     
-    // Play sound effect
-    audio.playSound('achievement');
+    // Audio removed
     
     // Mark challenge as completed and reset other flags
     setChallenges(challenges.map(c => 
