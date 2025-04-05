@@ -198,7 +198,13 @@ const AchievementsWidget = () => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { name, wealth, netWorth, happiness, prestige, assets, properties, lifestyleItems, resetCharacter } = useCharacter();
+  const { 
+    name, wealth, netWorth, happiness, prestige, 
+    assets, properties, lifestyleItems, 
+    job, income, expenses,
+    housingType, vehicleType,
+    resetCharacter 
+  } = useCharacter();
   const { currentDay, currentMonth, currentYear } = useTime();
   const { 
     marketTrend, 
@@ -458,6 +464,221 @@ export default function Dashboard() {
                           <div className="mt-2 text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full inline-block">
                             {((lifestyleValue / netWorth) * 100).toFixed(1)}% of total
                           </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Monthly Financial Report */}
+                  <Card className="mb-8 glass-effect border-accent shadow-md">
+                    <CardHeader className="py-3">
+                      <CardTitle className="text-lg flex items-center">
+                        <div className="mr-3 p-2 rounded-full bg-quaternary/10">
+                          <DollarSign className="h-5 w-5 text-quaternary" />
+                        </div>
+                        <span className="text-primary font-medium">Monthly Financial Report</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Income Section */}
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                            <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                            Monthly Income
+                          </h3>
+                          
+                          {/* Salary */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <Briefcase className="h-3.5 w-3.5 mr-1 text-blue-400" />
+                                Salary {job ? `(${job.company})` : ''}
+                              </span>
+                              <span className="text-sm font-medium text-green-500">
+                                {job ? formatCurrency(job.salary / 12) : formatCurrency(0)}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Property Income */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <Building className="h-3.5 w-3.5 mr-1 text-purple-400" />
+                                Property Income ({properties.length} properties)
+                              </span>
+                              <span className="text-sm font-medium text-green-500">
+                                {formatCurrency(properties.reduce((sum, p) => sum + p.monthlyIncome, 0))}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Investment Income (placeholder for future) */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <ChartBar className="h-3.5 w-3.5 mr-1 text-blue-400" />
+                                Investment Dividends
+                              </span>
+                              <span className="text-sm font-medium text-green-500">
+                                {formatCurrency(0)}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Total Income */}
+                          <div className="mt-4 pt-3 border-t border-secondary/30">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Total Monthly Income</span>
+                              <span className="font-bold text-green-500">
+                                {formatCurrency((job ? job.salary / 12 : 0) + 
+                                  properties.reduce((sum, p) => sum + p.monthlyIncome, 0))}/mo
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Expenses Section */}
+                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                          <h3 className="text-lg font-semibold mb-3 flex items-center">
+                            <TrendingUp className="h-4 w-4 mr-2 text-red-500 transform rotate-180" />
+                            Monthly Expenses
+                          </h3>
+                          
+                          {/* Housing */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <Home className="h-3.5 w-3.5 mr-1 text-purple-400" />
+                                Housing ({housingType})
+                              </span>
+                              <span className="text-sm font-medium text-red-500">
+                                {formatCurrency(
+                                  housingType === 'homeless' ? 0 :
+                                  housingType === 'shared' ? 800 :
+                                  housingType === 'rental' ? 1800 :
+                                  housingType === 'owned' ? 2500 :
+                                  housingType === 'luxury' ? 8000 : 0
+                                )}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Transportation */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <RefreshCw className="h-3.5 w-3.5 mr-1 text-blue-400" />
+                                Transportation ({vehicleType})
+                              </span>
+                              <span className="text-sm font-medium text-red-500">
+                                {formatCurrency(
+                                  vehicleType === 'none' ? 100 :
+                                  vehicleType === 'bicycle' ? 20 :
+                                  vehicleType === 'economy' ? 300 :
+                                  vehicleType === 'standard' ? 500 :
+                                  vehicleType === 'luxury' ? 1200 :
+                                  vehicleType === 'premium' ? 2000 : 0
+                                )}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Food & Groceries (estimated) */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <ShoppingCart className="h-3.5 w-3.5 mr-1 text-green-400" />
+                                Food & Groceries
+                              </span>
+                              <span className="text-sm font-medium text-red-500">
+                                {formatCurrency(600)}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Lifestyle Items */}
+                          <div className="mb-3">
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="text-sm text-muted-foreground flex items-center">
+                                <ShoppingBag className="h-3.5 w-3.5 mr-1 text-amber-400" />
+                                Lifestyle Items ({lifestyleItems.length} items)
+                              </span>
+                              <span className="text-sm font-medium text-red-500">
+                                {formatCurrency(lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0))}/mo
+                              </span>
+                            </div>
+                          </div>
+                          
+                          {/* Total Expenses */}
+                          <div className="mt-4 pt-3 border-t border-secondary/30">
+                            <div className="flex justify-between items-center">
+                              <span className="font-medium">Total Monthly Expenses</span>
+                              <span className="font-bold text-red-500">
+                                {formatCurrency(
+                                  // Housing costs
+                                  (housingType === 'homeless' ? 0 :
+                                   housingType === 'shared' ? 800 :
+                                   housingType === 'rental' ? 1800 :
+                                   housingType === 'owned' ? 2500 :
+                                   housingType === 'luxury' ? 8000 : 0) +
+                                  // Vehicle costs
+                                  (vehicleType === 'none' ? 100 :
+                                   vehicleType === 'bicycle' ? 20 :
+                                   vehicleType === 'economy' ? 300 :
+                                   vehicleType === 'standard' ? 500 :
+                                   vehicleType === 'luxury' ? 1200 :
+                                   vehicleType === 'premium' ? 2000 : 0) +
+                                  // Food costs
+                                  600 +
+                                  // Lifestyle costs
+                                  lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0)
+                                )}/mo
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Monthly Balance */}
+                      <div className="mt-6 p-4 rounded-lg glass-effect border border-secondary/10 bg-primary/5">
+                        <div className="flex justify-between items-center">
+                          <span className="font-semibold text-lg">Monthly Cash Flow</span>
+                          
+                          {/* Calculate monthly income */}
+                          {(() => {
+                            const monthlyIncome = (job ? job.salary / 12 : 0) + 
+                              properties.reduce((sum, p) => sum + p.monthlyIncome, 0);
+                            
+                            // Calculate monthly expenses
+                            const monthlyExpenses = 
+                              // Housing costs
+                              (housingType === 'homeless' ? 0 :
+                               housingType === 'shared' ? 800 :
+                               housingType === 'rental' ? 1800 :
+                               housingType === 'owned' ? 2500 :
+                               housingType === 'luxury' ? 8000 : 0) +
+                              // Vehicle costs
+                              (vehicleType === 'none' ? 100 :
+                               vehicleType === 'bicycle' ? 20 :
+                               vehicleType === 'economy' ? 300 :
+                               vehicleType === 'standard' ? 500 :
+                               vehicleType === 'luxury' ? 1200 :
+                               vehicleType === 'premium' ? 2000 : 0) +
+                              // Food costs
+                              600 +
+                              // Lifestyle costs
+                              lifestyleItems.reduce((sum, item) => sum + item.monthlyCost, 0);
+                            
+                            const monthlyBalance = monthlyIncome - monthlyExpenses;
+                            
+                            return (
+                              <span className={`font-bold text-lg ${monthlyBalance >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                                {formatCurrency(monthlyBalance)}/mo
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                     </CardContent>
