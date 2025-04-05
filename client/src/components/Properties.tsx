@@ -87,14 +87,31 @@ export function Properties() {
     // Store property count before adding
     const propertiesCountBefore = ownedProperties.length;
     
-    // Add property to owned properties - note the property.purchasePrice will be used
-    // to deduct from wealth in the addProperty function
+    // Calculate loan details based on down payment percentage
+    // We already calculated downPaymentAmount above, so just use it
+    const loanAmount = adjustedPrice - downPaymentAmount;
+    
+    // Calculate the monthly payment using the formula: P = L[i(1 + i)^n]/[(1 + i)^n - 1]
+    const interestRateDecimal = interestRate / 100;
+    const monthlyInterestRate = interestRateDecimal / 12;
+    const loanTermMonths = 30 * 12; // 30-year fixed mortgage
+    
+    const numerator = monthlyInterestRate * Math.pow(1 + monthlyInterestRate, loanTermMonths);
+    const denominator = Math.pow(1 + monthlyInterestRate, loanTermMonths) - 1;
+    const monthlyPayment = loanAmount * (numerator / denominator);
+    
+    // Add property to owned properties with mortgage details
     addProperty({
       id: selectedProperty.id,
       name: selectedProperty.name,
       type: selectedProperty.type as "residential" | "commercial" | "industrial" | "mansion", // Cast to valid type
       value: adjustedPrice, // Current value for display
-      purchasePrice: downPaymentAmount, // This is what will be deducted from wealth
+      purchasePrice: adjustedPrice, // Full purchase price
+      downPayment: downPaymentAmount, // Amount paid upfront
+      loanAmount: loanAmount, // Remaining loan balance
+      loanTerm: 30, // 30-year fixed
+      interestRate: interestRate, // Current mortgage rate
+      monthlyPayment: monthlyPayment, // Monthly mortgage payment
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
@@ -373,6 +390,25 @@ export function Properties() {
                         <span>Current Value:</span>
                         <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
                       </div>
+                      
+                      {/* Mortgage Information */}
+                      {property.loanAmount > 0 && (
+                        <>
+                          <div className="flex justify-between">
+                            <span>Mortgage Balance:</span>
+                            <span className="font-semibold text-red-600">{formatCurrency(property.loanAmount)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Equity:</span>
+                            <span className="font-semibold">{formatCurrency(property.currentValue - property.loanAmount)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Monthly Payment:</span>
+                            <span className="font-semibold text-red-600">-{formatCurrency(property.monthlyPayment)}</span>
+                          </div>
+                        </>
+                      )}
+                      
                       <div className="flex justify-between">
                         <span>Monthly Income:</span>
                         <span className="font-semibold text-green-600">+{formatCurrency(property.income)}</span>
@@ -384,9 +420,11 @@ export function Properties() {
                       <div className="flex justify-between">
                         <span>Net Monthly:</span>
                         <span className={`font-semibold ${
-                          property.income - property.expenses > 0 ? 'text-green-600' : 'text-red-600'
+                          property.income - property.expenses - (property.monthlyPayment || 0) > 0 
+                            ? 'text-green-600' 
+                            : 'text-red-600'
                         }`}>
-                          {formatCurrency(property.income - property.expenses)}
+                          {formatCurrency(property.income - property.expenses - (property.monthlyPayment || 0))}
                         </span>
                       </div>
                     </div>

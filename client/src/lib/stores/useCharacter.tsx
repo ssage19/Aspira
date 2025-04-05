@@ -27,10 +27,15 @@ export interface Property {
   name: string;
   type: "residential" | "commercial" | "industrial" | "mansion";
   location: string;
-  purchasePrice: number;
-  currentValue: number;
+  purchasePrice: number;    // Full purchase price of the property
+  downPayment: number;      // Amount paid upfront
+  currentValue: number;     // Current market value
+  loanAmount: number;       // Remaining loan balance
+  loanTerm: number;         // Loan term in years
+  interestRate: number;     // Annual interest rate
+  monthlyPayment: number;   // Monthly loan payment
   income: number;           // Monthly income
-  expenses: number;         // Monthly expenses
+  expenses: number;         // Monthly expenses (excluding mortgage)
   monthlyIncome?: number;   // Legacy field, replaced by income
   appreciationRate: number; // Annual appreciation rate
   purchaseDate: string;
@@ -633,14 +638,35 @@ export const useCharacter = create<CharacterState>()(
       
       // Properties management
       addProperty: (property) => {
-        // Cost of the property purchase
-        const purchaseCost = property.purchasePrice;
+        // In the realistic mortgage model, purchasePrice is the down payment only
+        const downPayment = property.downPayment;
+        
+        // If not provided, default required mortgage fields
+        if (!property.loanAmount) {
+          property.loanAmount = property.currentValue - downPayment;
+        }
+        if (!property.loanTerm) {
+          property.loanTerm = 30; // 30 years default
+        }
+        if (!property.interestRate) {
+          property.interestRate = 5.5; // 5.5% default
+        }
+        if (!property.monthlyPayment) {
+          // Calculate monthly payment for the mortgage based on loanAmount
+          // Using simplified formula: P = L[i(1 + i)^n]/[(1 + i)^n - 1]
+          // Where P = payment, L = loan amount, i = monthly interest rate, n = number of payments
+          const monthlyRate = property.interestRate / 100 / 12;
+          const numberOfPayments = property.loanTerm * 12;
+          const factor = (monthlyRate * Math.pow(1 + monthlyRate, numberOfPayments)) / 
+                        (Math.pow(1 + monthlyRate, numberOfPayments) - 1);
+          property.monthlyPayment = property.loanAmount * factor;
+        }
         
         // Check if the purchase would result in negative wealth
         const currentWealth = get().wealth;
-        if (currentWealth < purchaseCost) {
+        if (currentWealth < downPayment) {
           // Not enough money to make the purchase
-          toast.error("Insufficient funds to purchase this property", {
+          toast.error("Insufficient funds for the down payment", {
             duration: 3000,
             position: 'bottom-right',
           });
@@ -649,12 +675,13 @@ export const useCharacter = create<CharacterState>()(
         
         set((state) => ({
           properties: [...state.properties, property],
-          wealth: state.wealth - purchaseCost
+          wealth: state.wealth - downPayment,
+          // Also add the monthly payment to ongoing expenses
+          expenses: state.expenses + property.monthlyPayment
         }));
         
         // Calculate new net worth after purchase
-        // Net worth should remain similar because we're just converting cash to a property
-        // of similar value, but recalculate to ensure all values are in sync
+        // Net worth = assets (property value) - liabilities (loan amount)
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();
@@ -664,6 +691,7 @@ export const useCharacter = create<CharacterState>()(
       
       sellProperty: (propertyId) => {
         let saleValue = 0;
+        let propertyExpenseReduction = 0;
         
         set((state) => {
           const propertyIndex = state.properties.findIndex(p => p.id === propertyId);
@@ -673,11 +701,49 @@ export const useCharacter = create<CharacterState>()(
           }
           
           const property = state.properties[propertyIndex];
-          saleValue = property.currentValue;
+          
+          // Calculate closing costs and realtor fees (typically 6-7% of sale price)
+          const closingCostPercentage = 0.07; // 7%
+          const closingCosts = property.currentValue * closingCostPercentage;
+          
+          // Calculate outstanding loan balance
+          const outstandingLoan = property.loanAmount || 0;
+          
+          // Calculate early payoff penalty if applicable (usually 2-3% if within first few years)
+          // Calculate months since purchase
+          const purchaseDate = new Date(property.purchaseDate);
+          const currentDate = new Date();
+          const monthsSincePurchase = 
+            (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+            (currentDate.getMonth() - purchaseDate.getMonth());
+            
+          let earlyPayoffPenalty = 0;
+          if (monthsSincePurchase < 36) { // Less than 3 years
+            earlyPayoffPenalty = outstandingLoan * 0.02; // 2% of remaining loan
+          }
+          
+          // Calculate net proceeds from sale
+          const grossSalePrice = property.currentValue;
+          saleValue = grossSalePrice - closingCosts - outstandingLoan - earlyPayoffPenalty;
+          
+          // If the property is underwater (worth less than the remaining loan),
+          // the player still needs to pay the difference
+          if (saleValue < 0) {
+            // Display a message to the user
+            toast.warning(`You had to pay ${formatCurrency(Math.abs(saleValue))} to sell this underwater property`, {
+              duration: 5000,
+              position: 'bottom-right',
+            });
+            saleValue = 0; // Don't give negative money, just set to 0
+          }
+          
+          // Track the monthly payment we're removing from expenses
+          propertyExpenseReduction = property.monthlyPayment || 0;
           
           return {
             properties: state.properties.filter(p => p.id !== propertyId),
-            wealth: state.wealth + saleValue
+            wealth: state.wealth + saleValue,
+            expenses: state.expenses - propertyExpenseReduction
           };
         });
         
@@ -1035,9 +1101,13 @@ export const useCharacter = create<CharacterState>()(
           return total + (asset.currentPrice * asset.quantity);
         }, 0);
         
-        // Add property values
+        // Add property equity (value minus outstanding loan)
         netWorth += state.properties.reduce((total, property) => {
-          return total + property.currentValue;
+          // If there's a loan amount, subtract it from the property value
+          const loanToSubtract = property.loanAmount || 0;
+          // Property equity is the current value minus outstanding loan
+          const equity = property.currentValue - loanToSubtract;
+          return total + equity;
         }, 0);
         
         return netWorth;
