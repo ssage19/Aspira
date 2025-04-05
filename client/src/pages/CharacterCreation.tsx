@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCharacter, type CharacterStartingWealth } from '../lib/stores/useCharacter';
+import { useCharacter } from '../lib/stores/useCharacter';
 import { useGame } from '../lib/stores/useGame';
 import { useAudio } from '../lib/stores/useAudio';
 import { Button } from '../components/ui/button';
@@ -11,6 +11,8 @@ import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
 import { DollarSign, Briefcase, TrendingUp, Crown } from 'lucide-react';
 
+type WealthOption = 'bootstrapped' | 'middle-class' | 'wealthy';
+
 export default function CharacterCreation() {
   const navigate = useNavigate();
   const { createNewCharacter } = useCharacter();
@@ -18,7 +20,7 @@ export default function CharacterCreation() {
   const { playSuccess } = useAudio();
   
   const [name, setName] = useState('');
-  const [selectedWealth, setSelectedWealth] = useState<CharacterStartingWealth>('bootstrapped');
+  const [selectedWealth, setSelectedWealth] = useState<WealthOption>('bootstrapped');
   
   const handleStartGame = () => {
     if (!name.trim()) {
@@ -26,8 +28,15 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Create new character
-    createNewCharacter(name, selectedWealth);
+    // Find the selected wealth option
+    const selectedOption = wealthOptions.find(option => option.id === selectedWealth);
+    if (!selectedOption) {
+      toast.error("Please select a valid starting wealth option");
+      return;
+    }
+    
+    // Create new character with the numerical amount
+    createNewCharacter(name, selectedOption.startingAmount, null);
     playSuccess();
     
     // Change game phase to playing
@@ -95,7 +104,7 @@ export default function CharacterCreation() {
             <h3 className="text-sm font-medium mb-3">Choose Your Starting Wealth</h3>
             <Tabs 
               defaultValue="bootstrapped" 
-              onValueChange={(value) => setSelectedWealth(value as CharacterStartingWealth)}
+              onValueChange={(value) => setSelectedWealth(value as WealthOption)}
               className="w-full"
             >
               <TabsList className="grid grid-cols-3 mb-2">

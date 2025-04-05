@@ -904,7 +904,7 @@ export const useCharacter = create<CharacterState>()(
         
         // Also clear localStorage
         if (typeof window !== 'undefined') {
-          localStorage.removeItem('character');
+          localStorage.removeItem(STORAGE_KEY);
         }
       }
     };
