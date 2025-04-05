@@ -245,18 +245,20 @@ export default function AchievementsScreen() {
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
       console.log(`Claiming reward for achievement: ${achievement.title}`);
       
-      // Get game state methods
-      const gameState = useGame.getState();
+      // Get the game store directly (not through hooks)
+      const gameStore = useGame.getState();
       
       // Apply the reward
       switch (achievement.reward.type) {
         case 'cash':
           console.log(`Adding cash reward: ${achievement.reward.value}`);
-          gameState.addCash(achievement.reward.value);
+          // Call method directly on the store instance
+          gameStore.addCash(achievement.reward.value);
+          console.log(`Current cash after reward: ${gameStore.getCash()}`);
           break;
         case 'multiplier':
           console.log(`Applying income multiplier: ${achievement.reward.value}`);
-          gameState.applyIncomeMultiplier(achievement.reward.value);
+          gameStore.applyIncomeMultiplier(achievement.reward.value);
           break;
         case 'unlock':
           console.log(`Unlocking feature: ${achievement.reward.description}`);

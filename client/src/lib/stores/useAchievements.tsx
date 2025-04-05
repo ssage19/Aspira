@@ -39,6 +39,7 @@ interface AchievementsState {
   updateProgress: (id: string, progress: number) => number; // returns current progress
   dismissNotification: () => void;
   claimReward: (id: string) => AchievementReward | null;
+  hasClaimedReward: (id: string) => boolean;
   resetAchievements: () => void;
   getAchievement: (id: string) => Achievement | undefined;
   getCategoryAchievements: (category: AchievementCategory) => Achievement[];
@@ -869,6 +870,13 @@ export const useAchievements = create<AchievementsState>()(
         }
         
         return null;
+      },
+      
+      hasClaimedReward: (id) => {
+        // This function is just a stub to satisfy the interface
+        // The actual claimed state is managed in the localStorage
+        // from the AchievementsScreen component
+        return false;
       },
       
       getAchievement: (id) => {
