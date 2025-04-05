@@ -181,9 +181,12 @@ export function Properties() {
     const currentDate = new Date();
     
     // Calculate months between dates - a proper calculation accounting for actual months
-    const monthsSincePurchase = 
+    let monthsSincePurchase = 
       (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
       (currentDate.getMonth() - purchaseDate.getMonth());
+    
+    // Ensure months is never negative (can happen if system clock is off)
+    monthsSincePurchase = Math.max(0, monthsSincePurchase);
     
     console.log(`Months since purchase: ${monthsSincePurchase}`);
     
@@ -210,8 +213,10 @@ export function Properties() {
         { duration: 5000 }
       );
     } else if (monthsSincePurchase < 6) {
+      // We already ensured that monthsSincePurchase is not negative, but as an extra precaution
+      const displayMonths = Math.max(0, monthsSincePurchase);
       toast.warning(
-        `Quick flip warning: Selling after ${monthsSincePurchase} months will result in an 8% loss in value`, 
+        `Quick flip warning: Selling after ${displayMonths} months will result in an 8% loss in value`, 
         { duration: 5000 }
       );
     }

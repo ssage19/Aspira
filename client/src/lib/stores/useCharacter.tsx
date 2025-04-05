@@ -755,9 +755,13 @@ export const useCharacter = create<CharacterState>()(
           // Calculate months since purchase
           const purchaseDate = new Date(property.purchaseDate);
           const currentDate = new Date();
-          const monthsSincePurchase = 
+          // Ensure we get a positive value (handle cases where system clock might be wrong)
+          let monthsSincePurchase = 
             (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
             (currentDate.getMonth() - purchaseDate.getMonth());
+          
+          // Ensure we never have negative months (could happen with system clock issues)
+          monthsSincePurchase = Math.max(0, monthsSincePurchase);
             
           let earlyPayoffPenalty = 0;
           if (monthsSincePurchase < 36) { // Less than 3 years
@@ -786,17 +790,20 @@ export const useCharacter = create<CharacterState>()(
             console.log(`Original purchase price: ${property.purchasePrice}, Current market value before reduction: ${property.currentValue}`);
           }
           
-          // Apply the quick flip adjustment directly to the property's current value
-          // This ensures that the discount is applied before any other calculations
-          property.currentValue = Math.round(property.currentValue * quickFlipAdjustment);
+          // Store the original property value before any adjustments
+          const originalPropertyValue = property.currentValue;
           
-          // Calculate the dollar value of the quick flip fee for notification purposes
+          // Calculate the quick flip fee 
           if (quickFlipAdjustment < 1.0) {
-            // The quick-flip fee is the difference between original market value and reduced value
-            const originalValue = property.currentValue / quickFlipAdjustment;
-            quickFlipFee = originalValue - property.currentValue;
+            // The quick-flip fee is the difference between original value and adjusted value
+            quickFlipFee = originalPropertyValue * (1 - quickFlipAdjustment);
+            console.log(`Original property value: ${originalPropertyValue}`);
+            console.log(`Quick flip adjustment: ${quickFlipAdjustment}`);
             console.log(`Quick flip fee calculated: ${quickFlipFee}`);
           }
+          
+          // Apply the quick flip adjustment to the property's current value
+          property.currentValue = Math.round(originalPropertyValue * quickFlipAdjustment);
           
           // Calculate net proceeds from sale
           const grossSalePrice = property.currentValue;
@@ -832,12 +839,20 @@ export const useCharacter = create<CharacterState>()(
             
             // For quick flips, show breakdown of the transaction costs
             if (quickFlipFee > 0) {
-              toast.info(`Quick flip fee: ${formatCurrency(quickFlipFee)} due to selling after only ${monthsSincePurchase} months`, {
+              // Make sure we don't show negative months (can happen if the system clock is off)
+              const displayMonths = Math.max(0, monthsSincePurchase);
+              toast.info(`Quick flip fee: ${formatCurrency(quickFlipFee)} due to selling after only ${displayMonths} months`, {
                 duration: 5000,
                 position: 'bottom-right',
               });
             }
             
+            // Ensure the quick flip fee is properly subtracted from the player's proceeds
+            console.log(`Sale proceeds before deducting quick flip fee: ${saleValue}`);
+            
+            // Now properly deduct the quick flip fee
+            // Note: saleValue already includes the reduction in property.currentValue
+            // so we don't need to subtract quickFlipFee again
             return {
               properties: state.properties.filter(p => p.id !== propertyId),
               wealth: state.wealth + saleValue,
