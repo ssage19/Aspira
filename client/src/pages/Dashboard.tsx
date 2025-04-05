@@ -619,8 +619,8 @@ export default function Dashboard() {
                               <AlertDialogDescription className="text-muted-foreground">
                                 This will permanently delete all your character data, assets, properties, and lifestyle items.
                                 You'll be returned to the character creation screen to start fresh.
-                                <p className="mt-2 font-medium">This action cannot be undone.</p>
                               </AlertDialogDescription>
+                              <div className="mt-2 font-medium text-red-500">This action cannot be undone.</div>
                             </AlertDialogHeader>
                             <AlertDialogFooter>
                               <AlertDialogCancel className="border border-secondary/50">Cancel</AlertDialogCancel>

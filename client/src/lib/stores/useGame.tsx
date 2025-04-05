@@ -32,6 +32,10 @@ interface GameState {
   setDifficulty: (difficulty: "easy" | "normal" | "hard") => void;
   setGameSpeed: (speed: "slow" | "normal" | "fast") => void;
   isAchievementUnlocked: (id: string) => boolean;
+  
+  // Achievement reward functions
+  addCash: (amount: number) => void;
+  applyIncomeMultiplier: (multiplier: number) => void;
 }
 
 const STORAGE_KEY = 'business-empire-game';
@@ -152,6 +156,22 @@ export const useGame = create<GameState>()(
       // Check if an achievement is unlocked
       isAchievementUnlocked: (id) => {
         return get().achievementsUnlocked.includes(id);
+      },
+      
+      // Add cash (stub implementation - will be connected in AchievementOverlay.tsx)
+      addCash: (amount) => {
+        console.log(`Adding cash reward: ${amount}`);
+        // This is just a stub - the actual functionality is implemented
+        // in the AchievementOverlay and AchievementsScreen components
+        // where they have direct access to both stores
+      },
+      
+      // Apply income multiplier (stub implementation - will be connected in AchievementOverlay.tsx)
+      applyIncomeMultiplier: (multiplier) => {
+        console.log(`Applied income multiplier: ${multiplier}x`);
+        // This is just a stub - the actual functionality is implemented
+        // in the AchievementOverlay and AchievementsScreen components
+        // where they have direct access to both stores
       }
     };
   })

@@ -1,0 +1,67 @@
+Warning: validateDOMNesting(...): %s cannot appear as a descendant of <%s>.%s <p> p 
+    at p
+    at p
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1351:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=8bd1c9d2:126:11
+    at _c9 (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/alert-dialog.tsx:148:12)
+    at div
+    at AlertDialogHeader (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/alert-dialog.tsx:82:3)
+    at Slottable (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=8bd1c9d2:64:20)
+    at div
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7SLD2QQP.js?v=8bd1c9d2:59:7
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=8bd1c9d2:52:11
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=8bd1c9d2:33:11
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:45:5
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1303:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1226:58
+    at Presence (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2ADRZH4P.js?v=8bd1c9d2:36:11)
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1217:64
+    at Provider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRBFGAOP.js?v=8bd1c9d2:48:15)
+    at Provider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRBFGAOP.js?v=8bd1c9d2:27:13)
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=8bd1c9d2:79:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=8bd1c9d2:52:11
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-TQG5UYZM.js?v=8bd1c9d2:33:11
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-7SLD2QQP.js?v=8bd1c9d2:256:22
+    at Presence (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2ADRZH4P.js?v=8bd1c9d2:36:11)
+    at Provider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRBFGAOP.js?v=8bd1c9d2:48:15)
+    at DialogPortal (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1180:11)
+    at AlertDialogPortal (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=8bd1c9d2:61:11)
+    at _c3 (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/alert-dialog.tsx:48:12)
+    at Provider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRBFGAOP.js?v=8bd1c9d2:48:15)
+    at Dialog (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-CWWYTOKH.js?v=8bd1c9d2:1121:5)
+    at AlertDialog (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-alert-dialog.js?v=8bd1c9d2:45:11)
+    at div
+    at div
+    at _c9 (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/card.tsx:103:12)
+    at div
+    at _c (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at Presence (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-2ADRZH4P.js?v=8bd1c9d2:36:11)
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=8bd1c9d2:442:13
+    at _c5 (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/tabs.tsx:68:12)
+    at div
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-GPVWVTJC.js?v=8bd1c9d2:41:13
+    at Provider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-NRBFGAOP.js?v=8bd1c9d2:48:15)
+    at https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=8bd1c9d2:320:7
+    at div
+    at _c9 (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/card.tsx:103:12)
+    at div
+    at _c (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at div
+    at Dashboard (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/pages/Dashboard.tsx:262:20)
+    at RenderedRoute (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=8bd1c9d2:4089:5)
+    at Routes (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=8bd1c9d2:4559:5)
+    at Suspense
+    at Router (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=8bd1c9d2:4502:15)
+    at BrowserRouter (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/react-router-dom.js?v=8bd1c9d2:5248:5)
+    at QueryClientProvider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=8bd1c9d2:2805:3)
+    at ThemeProvider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/lib/ThemeProvider.tsx:25:3)
+    at App (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/App.tsx?v=rCGCy4q_PaEqaiV7vFs3r:42:25)
+    at ThemeProvider (https://908f1644-8e96-4188-9aa6-243193e5157c-00-1r2e8u68rllp.riker.replit.dev/src/lib/ThemeProvider.tsx?v=rCGCy4q_PaEqaiV7vFs3r:25:3)
