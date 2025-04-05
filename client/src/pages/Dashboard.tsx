@@ -250,23 +250,15 @@ export default function Dashboard() {
     navigate('/create');
   };
   
-  // Start background music when dashboard loads
+  // Background music functionality
   useEffect(() => {
-    if (backgroundMusic && !isMuted) {
-      // Check if backgroundMusic has play method before calling it
-      if (typeof backgroundMusic.play === 'function') {
-        backgroundMusic.play().catch((err: Error) => {
-          console.log("Audio autoplay was prevented:", err);
-        });
-      }
-    }
+    // This is just a placeholder effect since background music is disabled
+    // The useAudio store is configured with backgroundMusic set to null
     
     return () => {
-      if (backgroundMusic && typeof backgroundMusic.pause === 'function') {
-        backgroundMusic.pause();
-      }
+      // Cleanup function (empty since we're not playing any music)
     };
-  }, [backgroundMusic, isMuted]);
+  }, [isMuted]);
   
   // Calculate portfolio stats
   const stocksValue = assets

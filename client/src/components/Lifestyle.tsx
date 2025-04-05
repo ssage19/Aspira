@@ -103,9 +103,13 @@ export function Lifestyle() {
         name: item.name,
         type: 'hobbies', // Use exact type not activeTab
         purchasePrice: item.attributes.initialInvestment,
+        // Set both maintenanceCost and monthlyCost for compatibility
         maintenanceCost: item.attributes.costPerMonth,
+        monthlyCost: item.attributes.costPerMonth,
         happiness: item.happiness || 10,
         prestige: item.prestige || 5,
+        // Add purchase date
+        purchaseDate: new Date().toISOString(),
         
         // Add attributes from the hobby
         timeCommitment: item.attributes.timeCommitment,
@@ -113,17 +117,25 @@ export function Lifestyle() {
         stressReduction: item.attributes.stressReduction,
         socialStatus: item.attributes.socialStatus,
         skillDevelopment: item.attributes.skillDevelopment,
-        environmentalImpact: item.attributes.environmentalImpact
+        environmentalImpact: item.attributes.environmentalImpact,
+        specialBenefits: item.attributes.specialBenefits || []
       };
     } else {
+      // Convert daily maintenance to monthly cost (30 days per month)
+      const monthlyMaintenance = (item.maintenanceCost || 0) * 30;
+      
       lifestyleItem = {
         id: item.id,
         name: item.name,
         type: item.type, // Use exact type from the item, not activeTab
         purchasePrice: item.price,
+        // Set both maintenanceCost and monthlyCost for compatibility
         maintenanceCost: item.maintenanceCost || 0,
+        monthlyCost: monthlyMaintenance,
         happiness: item.happiness || 10,
         prestige: item.prestige || 5,
+        // Add purchase date
+        purchaseDate: new Date().toISOString(),
         
         // Add attributes from the item if they exist
         ...(item.attributes && {
@@ -132,7 +144,8 @@ export function Lifestyle() {
           stressReduction: item.attributes.stressReduction,
           socialStatus: item.attributes.socialStatus,
           skillDevelopment: item.attributes.skillDevelopment,
-          environmentalImpact: item.attributes.environmentalImpact
+          environmentalImpact: item.attributes.environmentalImpact,
+          specialBenefits: item.attributes.specialBenefits || []
         })
       };
     }
@@ -444,8 +457,10 @@ export function Lifestyle() {
                           </span>
                         </CardTitle>
                         <CardDescription>
-                          Value: {formatCurrency(item.purchasePrice * 0.5)}
-                          {item.maintenanceCost > 0 && (
+                          {/* Handle potentially undefined purchase price */}
+                          Value: {formatCurrency((item.purchasePrice || 0) * 0.5)}
+                          {/* Only show maintenance if it exists and is greater than zero */}
+                          {item.maintenanceCost && item.maintenanceCost > 0 && (
                             <span className="ml-2 text-amber-600">
                               +{formatCurrency(item.maintenanceCost)}/
                               {item.type === 'hobbies' ? 'month' : 'day'}
@@ -458,11 +473,11 @@ export function Lifestyle() {
                           <div className="flex justify-between text-sm">
                             <span className="flex items-center">
                               <HeartPulse className="h-4 w-4 mr-1 text-pink-500" />
-                              Happiness: +{formatInteger(item.happiness)}
+                              Happiness: +{formatInteger(item.happiness || 0)}
                             </span>
                             <span className="flex items-center">
                               <Award className="h-4 w-4 mr-1 text-purple-500" />
-                              Prestige: +{formatInteger(item.prestige)}
+                              Prestige: +{formatInteger(item.prestige || 0)}
                             </span>
                           </div>
                           
@@ -528,8 +543,8 @@ export function Lifestyle() {
                                 Removing this item will reverse its effects on your character attributes.
                               </AlertDialogDescription>
                               <div className="mt-3 mb-3 text-sm text-muted-foreground">
-                                {item.type === 'hobbies' && (
-                                  <div className="mt-2">You'll gain back {formatInteger(item.timeCommitment)} hours of free time per week.</div>
+                                {item.type === 'hobbies' && item.timeCommitment !== undefined && (
+                                  <div className="mt-2">You'll gain back {formatInteger(item.timeCommitment || 0)} hours of free time per week.</div>
                                 )}
                                 {item.healthImpact !== undefined && item.healthImpact !== 0 && (
                                   <div className="mt-1">Your health will {item.healthImpact > 0 ? 'decrease' : 'increase'} by {formatInteger(Math.abs(item.healthImpact))} points.</div>

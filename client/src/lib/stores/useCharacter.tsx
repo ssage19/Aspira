@@ -52,13 +52,23 @@ export interface Property {
 export interface LifestyleItem {
   id: string;
   name: string;
-  type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury";
-  monthlyCost: number;
-  happiness: number;
-  prestige: number;
+  type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury" | "vehicles" | "vacations" | "experiences";
+  monthlyCost?: number;
+  maintenanceCost?: number; // Some items use maintenanceCost instead of monthlyCost
+  happiness?: number;
+  prestige?: number;
   purchasePrice?: number;
   purchaseDate?: string;
   imageUrl?: string;
+  
+  // Additional attributes
+  socialStatus?: number;
+  healthImpact?: number;
+  timeCommitment?: number;
+  environmentalImpact?: number;
+  stressReduction?: number;
+  skillDevelopment?: number;
+  specialBenefits?: string[];
 }
 
 export interface Job {
@@ -1086,12 +1096,20 @@ export const useCharacter = create<CharacterState>()(
           purchaseCost = item.purchasePrice;
         }
         
+        // Use maintenanceCost for monthly expenses, defaulting to 0 if not provided
+        const monthlyCost = item.maintenanceCost || 0;
+        
         set((state) => ({
-          lifestyleItems: [...state.lifestyleItems, item],
-          expenses: state.expenses + item.monthlyCost,
+          lifestyleItems: [...state.lifestyleItems, {
+            ...item,
+            // Ensure we have a monthlyCost property for expense calculations
+            monthlyCost: monthlyCost
+          }],
+          // Add to expenses using the correct monthly cost
+          expenses: state.expenses + monthlyCost,
           wealth: state.wealth - purchaseCost,
-          happiness: Math.min(100, state.happiness + item.happiness),
-          prestige: Math.min(100, state.prestige + item.prestige)
+          happiness: Math.min(100, state.happiness + (item.happiness || 0)),
+          prestige: Math.min(100, state.prestige + (item.prestige || 0))
         }));
         
         // Calculate new net worth after purchase
@@ -1109,13 +1127,20 @@ export const useCharacter = create<CharacterState>()(
             return state; // Item not found
           }
           
+          // Use monthlyCost if available, otherwise use maintenanceCost
+          const monthlyCost = item.monthlyCost || item.maintenanceCost || 0;
+          
           return {
             lifestyleItems: state.lifestyleItems.filter(i => i.id !== itemId),
-            expenses: state.expenses - item.monthlyCost,
-            happiness: Math.max(0, state.happiness - item.happiness / 2), // Reduce some happiness, but not all
-            prestige: Math.max(0, state.prestige - item.prestige / 2) // Reduce some prestige, but not all
+            expenses: state.expenses - monthlyCost,
+            happiness: Math.max(0, state.happiness - (item.happiness || 0) / 2), // Reduce some happiness, but not all
+            prestige: Math.max(0, state.prestige - (item.prestige || 0) / 2) // Reduce some prestige, but not all
           };
         });
+        
+        // Recalculate net worth after removing the item
+        const character = get();
+        set({ netWorth: character.calculateNetWorth() });
         
         saveState();
       },
@@ -1349,9 +1374,10 @@ export const useCharacter = create<CharacterState>()(
             const depreciation = Math.min(0.75, monthsSincePurchase * 0.05); // Max 75% depreciation
             itemValue = purchasePrice * (1 - depreciation);
           } else {
-            // If no purchase price, estimate value based on monthly cost
+            // If no purchase price, estimate value based on monthly cost or maintenanceCost
             // This is for subscriptions and other recurring items
-            itemValue = item.monthlyCost * 3; // Value as 3 months of payments
+            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+            itemValue = monthlyCost * 3; // Value as 3 months of payments
           }
           
           breakdown.lifestyleItems += itemValue;
@@ -1447,7 +1473,9 @@ export const useCharacter = create<CharacterState>()(
           
           // Process lifestyle expenses
           const dailyLifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
-            return total + (item.monthlyCost / 30); // Daily expense
+            // Use monthlyCost if available, otherwise calculate from maintenanceCost
+            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+            return total + (monthlyCost / 30); // Daily expense
           }, 0);
           
           // Apply income and expenses
