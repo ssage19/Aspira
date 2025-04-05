@@ -30,123 +30,53 @@ export const trackWealthAchievements = (currentWealth: number) => {
   });
 };
 
-// Track character development achievements
-export const trackCharacterAchievements = () => {
-  const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
-  const { playSuccess } = useAudio.getState();
-  const characterState = useCharacter.getState();
-  
-  // Health Enthusiast (90+ health)
-  const healthAchievement = getAchievement('character-1');
-  if (healthAchievement && !healthAchievement.isUnlocked) {
-    const progress = updateProgress('character-1', characterState.health);
-    if (progress >= 100) {
-      unlockAchievement('character-1');
-      playSuccess();
-    }
-  }
-  
-  // Stress Management (below 10 stress)
-  const stressAchievement = getAchievement('character-2');
-  if (stressAchievement && !stressAchievement.isUnlocked) {
-    // For stress, we need reverse logic - lower is better
-    // 10 or below stress is 100% progress
-    const stressProgress = characterState.stress <= 10 ? 100 : 
-      Math.max(0, 100 - ((characterState.stress - 10) * (100 / 90)));
-    
-    const progress = updateProgress('character-2', stressProgress);
-    if (progress >= 100) {
-      unlockAchievement('character-2');
-      playSuccess();
-    }
-  }
-  
-  // Social Butterfly (80+ social connections)
-  const socialAchievement = getAchievement('character-3');
-  if (socialAchievement && !socialAchievement.isUnlocked) {
-    const progress = updateProgress('character-3', characterState.socialConnections);
-    if (progress >= 100) {
-      unlockAchievement('character-3');
-      playSuccess();
-    }
-  }
-  
-  // Master of Skills (85+ skills)
-  const skillsAchievement = getAchievement('character-4');
-  if (skillsAchievement && !skillsAchievement.isUnlocked) {
-    const progress = updateProgress('character-4', characterState.skills);
-    if (progress >= 100) {
-      unlockAchievement('character-4');
-      playSuccess();
-    }
-  }
-  
-  // Work-Life Balance (50+ free time and 70+ happiness)
-  const workLifeAchievement = getAchievement('character-5');
-  if (workLifeAchievement && !workLifeAchievement.isUnlocked) {
-    // Only 100% if both conditions are met
-    const hasEnoughFreeTime = characterState.freeTime >= 50;
-    const hasEnoughHappiness = characterState.happiness >= 70;
-    
-    const progress = hasEnoughFreeTime && hasEnoughHappiness ? 100 : 
-      ((characterState.freeTime >= 50 ? 50 : characterState.freeTime) + 
-       (characterState.happiness >= 70 ? 50 : characterState.happiness * 0.7)) / 2;
-    
-    updateProgress('character-5', progress);
-    if (progress >= 100) {
-      unlockAchievement('character-5');
-      playSuccess();
-    }
-  }
-  
-  // Environmental Champion (60+ environmental impact)
-  const envAchievement = getAchievement('character-6');
-  if (envAchievement && !envAchievement.isUnlocked) {
-    // Environmental impact can be negative, so adjust the scale
-    // from -100 to 100 to 0 to 100 for progress tracking
-    const adjustedImpact = (characterState.environmentalImpact + 100) / 2;
-    const progress = updateProgress('character-6', adjustedImpact);
-    if (progress >= 100) {
-      unlockAchievement('character-6');
-      playSuccess();
-    }
-  }
-  
-  // Balanced Life (70+ in health, social, and skills)
-  const balancedAchievement = getAchievement('character-7');
-  if (balancedAchievement && !balancedAchievement.isUnlocked) {
-    const hasBalancedHealth = characterState.health >= 70;
-    const hasBalancedSocial = characterState.socialConnections >= 70;
-    const hasBalancedSkills = characterState.skills >= 70;
-    
-    // Only 100% if all conditions are met
-    const progress = hasBalancedHealth && hasBalancedSocial && hasBalancedSkills ? 100 :
-      (((characterState.health >= 70 ? 33.33 : characterState.health * 0.47)) +
-       ((characterState.socialConnections >= 70 ? 33.33 : characterState.socialConnections * 0.47)) +
-       ((characterState.skills >= 70 ? 33.33 : characterState.skills * 0.47)));
-    
-    updateProgress('character-7', progress);
-    if (progress >= 100) {
-      unlockAchievement('character-7');
-      playSuccess();
-    }
-  }
-};
-
-// Track property achievements
-export const trackPropertyAchievements = () => {
-  const { properties } = useCharacter.getState();
+// Track net worth achievements
+export const trackNetWorthAchievements = (currentNetWorth: number) => {
   const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
   const { playSuccess } = useAudio.getState();
   
-  // Property count achievement
-  const propertyCount = properties.length;
-  const propertyIds = ['property-1', 'property-2'];
+  // Track net worth milestones
+  const netWorthIds = ['networth-1', 'networth-2', 'networth-3', 'networth-4', 'networth-5'];
   
-  propertyIds.forEach(id => {
+  netWorthIds.forEach(id => {
     const achievement = getAchievement(id);
     if (achievement && !achievement.isUnlocked) {
-      const progress = updateProgress(id, propertyCount);
+      const progress = updateProgress(id, currentNetWorth);
+      if (progress >= 100 && !achievement.isUnlocked) {
+        unlockAchievement(id);
+        playSuccess();
+      }
+    }
+  });
+};
+
+// Track properties achievements
+export const trackPropertyAchievements = (properties: any[]) => {
+  const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
+  const { playSuccess } = useAudio.getState();
+  
+  // Count properties by type
+  const propertyTypes: Record<string, number> = {
+    residential: 0,
+    commercial: 0,
+    industrial: 0,
+    mansion: 0
+  };
+  
+  properties.forEach(property => {
+    if (property.type in propertyTypes) {
+      propertyTypes[property.type]++;
+    }
+  });
+  
+  // Track total properties achievement
+  const totalProperties = properties.length;
+  const propertyAchievements = ['property-1', 'property-2', 'property-3'];
+  
+  propertyAchievements.forEach(id => {
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      const progress = updateProgress(id, totalProperties);
       if (progress >= 100) {
         unlockAchievement(id);
         playSuccess();
@@ -154,101 +84,149 @@ export const trackPropertyAchievements = () => {
     }
   });
   
-  // Property combined value achievement (property-3)
-  const propertiesValue = properties.reduce((sum, property) => sum + property.value, 0);
-  const propertyCountAndValue = properties.length >= 10 ? propertiesValue : 0;
+  // Track specific property type achievements
+  if (propertyTypes.residential >= 5) {
+    const id = 'property-type-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
   
-  const achievement = getAchievement('property-3');
-  if (achievement && !achievement.isUnlocked) {
-    const progress = updateProgress('property-3', propertyCountAndValue);
-    if (progress >= 100) {
-      unlockAchievement('property-3');
+  if (propertyTypes.commercial >= 3) {
+    const id = 'property-type-2';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (propertyTypes.industrial >= 2) {
+    const id = 'property-type-3';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (propertyTypes.mansion >= 1) {
+    const id = 'property-type-4';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
       playSuccess();
     }
   }
 };
 
-// Track investment achievements
-export const trackInvestmentAchievements = () => {
-  const { assets } = useCharacter.getState();
+// Track asset achievements
+export const trackAssetAchievements = (assets: any[]) => {
   const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
   const { playSuccess } = useAudio.getState();
   
-  // First investment achievement
-  const hasInvestments = assets.length > 0;
-  if (hasInvestments) {
-    const achievement = getAchievement('investment-1');
+  // Count assets by type
+  const assetTypes: Record<string, number> = {
+    stock: 0,
+    bond: 0,
+    crypto: 0,
+    other: 0
+  };
+  
+  let totalValue = 0;
+  
+  assets.forEach(asset => {
+    if (asset.type in assetTypes) {
+      assetTypes[asset.type]++;
+    }
+    
+    totalValue += asset.currentPrice * asset.quantity;
+  });
+  
+  // Track total assets achievement
+  const totalAssets = assets.length;
+  const assetAchievements = ['asset-1', 'asset-2', 'asset-3'];
+  
+  assetAchievements.forEach(id => {
+    const achievement = getAchievement(id);
     if (achievement && !achievement.isUnlocked) {
-      updateProgress('investment-1', 1);
-      unlockAchievement('investment-1');
-      playSuccess();
+      const progress = updateProgress(id, totalAssets);
+      if (progress >= 100) {
+        unlockAchievement(id);
+        playSuccess();
+      }
     }
-  }
+  });
   
-  // Multiple assets achievement
-  const uniqueAssetTypes = new Set(assets.map(asset => asset.id));
-  const diversityCount = uniqueAssetTypes.size;
+  // Track asset portfolio value
+  const portfolioValueAchievements = ['asset-value-1', 'asset-value-2', 'asset-value-3'];
   
-  const diversityAchievement = getAchievement('investment-2');
-  if (diversityAchievement && !diversityAchievement.isUnlocked) {
-    const progress = updateProgress('investment-2', diversityCount);
-    if (progress >= 100) {
-      unlockAchievement('investment-2');
-      playSuccess();
+  portfolioValueAchievements.forEach(id => {
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      const progress = updateProgress(id, totalValue);
+      if (progress >= 100) {
+        unlockAchievement(id);
+        playSuccess();
+      }
     }
-  }
-  
-  // Investment value achievement
-  const investmentValue = assets.reduce((sum, asset) => sum + (asset.purchasePrice * asset.quantity), 0);
-  
-  const valueAchievement = getAchievement('investment-3');
-  if (valueAchievement && !valueAchievement.isUnlocked) {
-    const progress = updateProgress('investment-3', investmentValue);
-    if (progress >= 100) {
-      unlockAchievement('investment-3');
-      playSuccess();
-    }
-  }
+  });
 };
 
-// Track lifestyle achievements
-export const trackLifestyleAchievements = () => {
-  const { lifestyleItems } = useCharacter.getState();
+// Track income achievements
+export const trackIncomeAchievements = (currentIncome: number) => {
   const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
   const { playSuccess } = useAudio.getState();
   
-  // First lifestyle item achievement
-  const hasLifestyleItems = lifestyleItems.length > 0;
-  if (hasLifestyleItems) {
-    const achievement = getAchievement('lifestyle-1');
+  // Track income milestones
+  const incomeIds = ['income-1', 'income-2', 'income-3', 'income-4'];
+  
+  incomeIds.forEach(id => {
+    const achievement = getAchievement(id);
     if (achievement && !achievement.isUnlocked) {
-      updateProgress('lifestyle-1', 1);
-      unlockAchievement('lifestyle-1');
+      const progress = updateProgress(id, currentIncome);
+      if (progress >= 100) {
+        unlockAchievement(id);
+        playSuccess();
+      }
+    }
+  });
+};
+
+// Track career achievements
+export const trackCareerAchievements = (job: any, jobHistory: any[]) => {
+  const { getAchievement, unlockAchievement } = useAchievements.getState();
+  const { playSuccess } = useAudio.getState();
+  
+  if (!job) return;
+  
+  // Track career level achievements
+  if (job.level >= 3) {
+    const id = 'career-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
       playSuccess();
     }
   }
   
-  // Multiple lifestyle items achievement
-  const itemCount = lifestyleItems.length;
-  
-  const countAchievement = getAchievement('lifestyle-2');
-  if (countAchievement && !countAchievement.isUnlocked) {
-    const progress = updateProgress('lifestyle-2', itemCount);
-    if (progress >= 100) {
-      unlockAchievement('lifestyle-2');
+  if (job.level >= 5) {
+    const id = 'career-2';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
       playSuccess();
     }
   }
   
-  // Luxury items value achievement
-  const luxuryItemsValue = lifestyleItems.reduce((sum, item) => sum + item.purchasePrice, 0);
-  const luxuryCountAndValue = lifestyleItems.length >= 10 ? luxuryItemsValue : 0;
-  
-  const valueAchievement = getAchievement('lifestyle-3');
-  if (valueAchievement && !valueAchievement.isUnlocked) {
-    const progress = updateProgress('lifestyle-3', luxuryCountAndValue);
-    if (progress >= 100) {
-      unlockAchievement('lifestyle-3');
+  // Track career changes
+  if (jobHistory.length >= 3) {
+    const id = 'career-3';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
       playSuccess();
     }
   }
@@ -290,6 +268,7 @@ export const trackTimeAchievements = () => {
   
   // Only unlock Getting Started achievement (general-1) after explicitly advancing time
   const startAchievement = getAchievement('general-1');
+  
   // Checking for a progress of at least 1 day indicates user interaction with the time system
   if (startAchievement && !startAchievement.isUnlocked && daysPassed >= 1) {
     updateProgress('general-1', 1);
@@ -298,43 +277,196 @@ export const trackTimeAchievements = () => {
   }
 };
 
-// Track magnate achievement (maxed out stats)
-export const trackMagnateAchievement = () => {
-  const { wealth, happiness, prestige } = useCharacter.getState();
+// Track lifestyle achievements
+export const trackLifestyleAchievements = (lifestyleItems: any[]) => {
   const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
   const { playSuccess } = useAudio.getState();
   
-  // Check for high wealth, happiness, and prestige
-  const isWealthyEnough = wealth >= 10000000; // $10M+
-  const isHappyEnough = happiness >= 90;
-  const hasHighPrestige = prestige >= 75;
+  // Count lifestyle items by type
+  const itemTypes: Record<string, number> = {
+    housing: 0,
+    transportation: 0,
+    hobbies: 0,
+    subscriptions: 0,
+    luxury: 0
+  };
   
-  const overallProgress = isWealthyEnough && isHappyEnough && hasHighPrestige ? 100 : 
-    Math.floor((
-      (Math.min(wealth, 10000000) / 10000000 * 100) +
-      (Math.min(happiness, 90) / 90 * 100) +
-      (Math.min(prestige, 75) / 75 * 100)
-    ) / 3);
+  lifestyleItems.forEach(item => {
+    if (item.type in itemTypes) {
+      itemTypes[item.type]++;
+    }
+  });
   
-  const achievement = getAchievement('general-4');
-  if (achievement && !achievement.isUnlocked) {
-    const progress = updateProgress('general-4', overallProgress);
-    if (progress >= 100) {
-      unlockAchievement('general-4');
+  // Track total lifestyle items
+  const totalItems = lifestyleItems.length;
+  const lifestyleAchievements = ['lifestyle-1', 'lifestyle-2', 'lifestyle-3'];
+  
+  lifestyleAchievements.forEach(id => {
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      const progress = updateProgress(id, totalItems);
+      if (progress >= 100) {
+        unlockAchievement(id);
+        playSuccess();
+      }
+    }
+  });
+  
+  // Track specific lifestyle type achievements
+  if (itemTypes.luxury >= 3) {
+    const id = 'lifestyle-type-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (itemTypes.hobbies >= 2) {
+    const id = 'lifestyle-type-2';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
       playSuccess();
     }
   }
 };
 
-// Main function to check all achievements
-export const checkAllAchievements = () => {
-  const { wealth } = useCharacter.getState();
+// Track character attribute achievements
+export const trackAttributeAchievements = (attributes: any) => {
+  const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
+  const { playSuccess } = useAudio.getState();
   
-  trackWealthAchievements(wealth);
-  trackCharacterAchievements(); // Added character development achievements
-  trackPropertyAchievements();
-  trackInvestmentAchievements();
-  trackLifestyleAchievements();
+  // Happiness achievements
+  if (attributes.happiness >= 80) {
+    const id = 'character-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  // Health achievements
+  if (attributes.health >= 90) {
+    const id = 'character-2';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  // Prestige achievements
+  if (attributes.prestige >= 75) {
+    const id = 'character-3';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  // Social connections achievements
+  if (attributes.socialConnections >= 85) {
+    const id = 'character-4';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  // Environmental impact achievements
+  if (attributes.environmentalImpact >= 50) {
+    const id = 'character-5';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+};
+
+// Track skill achievements
+export const trackSkillAchievements = (skills: any) => {
+  const { updateProgress, getAchievement, unlockAchievement } = useAchievements.getState();
+  const { playSuccess } = useAudio.getState();
+  
+  // Calculate average skill level
+  const totalSkill = skills.intelligence + skills.creativity + skills.charisma + 
+                    skills.technical + skills.leadership;
+  const avgSkill = totalSkill / 5;
+  
+  // Overall skill achievements
+  if (avgSkill >= 70) {
+    const id = 'skill-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (avgSkill >= 90) {
+    const id = 'skill-2';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  // Individual skill achievements
+  if (skills.intelligence >= 80) {
+    const id = 'skill-intel-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (skills.creativity >= 80) {
+    const id = 'skill-creative-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+  
+  if (skills.leadership >= 80) {
+    const id = 'skill-leader-1';
+    const achievement = getAchievement(id);
+    if (achievement && !achievement.isUnlocked) {
+      unlockAchievement(id);
+      playSuccess();
+    }
+  }
+};
+
+// Check all achievements
+export const checkAllAchievements = () => {
+  const characterState = useCharacter.getState();
+  
+  trackWealthAchievements(characterState.wealth);
+  trackNetWorthAchievements(characterState.netWorth);
+  trackPropertyAchievements(characterState.properties);
+  trackAssetAchievements(characterState.assets);
+  trackIncomeAchievements(characterState.income);
+  trackCareerAchievements(characterState.job, characterState.jobHistory);
   trackTimeAchievements();
-  trackMagnateAchievement();
+  trackLifestyleAchievements(characterState.lifestyleItems);
+  
+  // Track character attribute achievements
+  trackAttributeAchievements({
+    happiness: characterState.happiness,
+    health: characterState.health,
+    prestige: characterState.prestige,
+    socialConnections: characterState.socialConnections,
+    environmentalImpact: characterState.environmentalImpact
+  });
+  
+  trackSkillAchievements(characterState.skills);
 };

@@ -7,12 +7,13 @@ interface AudioState {
   volume: number;
   
   // Music and sound effects
-  backgroundMusic: string | null;
+  backgroundMusic: HTMLAudioElement | null;
   
   // Functions
   playMusic: (music: string) => void;
   stopMusic: () => void;
   playSound: (sound: string) => void;
+  playSuccess: () => void;
   setMuted: (muted: boolean) => void;
   setVolume: (volume: number) => void;
 }
@@ -45,7 +46,7 @@ export const useAudio = create<AudioState>()(
         
         try {
           musicElement.play().catch(err => console.error("Error playing music:", err));
-          set({ backgroundMusic: music });
+          set({ backgroundMusic: musicElement });
         } catch (error) {
           console.error("Error playing music:", error);
         }
@@ -65,11 +66,38 @@ export const useAudio = create<AudioState>()(
         if (get().isMuted) return;
         
         try {
-          const soundElement = new Audio(sound);
+          // Check if the sound file exists or is valid
+          const soundElement = new Audio();
+          
+          // Add an error handler to avoid uncaught exceptions
+          soundElement.onerror = () => {
+            console.warn(`Sound file not found or cannot be played: ${sound}`);
+          };
+          
+          // Set volume and source
           soundElement.volume = get().volume;
-          soundElement.play().catch(err => console.error("Error playing sound:", err));
+          soundElement.src = sound;
+          
+          // Try to play the sound, but don't crash if it fails
+          soundElement.play().catch(err => {
+            console.warn(`Error playing sound ${sound}:`, err);
+          });
         } catch (error) {
-          console.error("Error playing sound:", error);
+          console.warn("Error setting up sound:", error);
+        }
+      },
+      
+      // Play success sound for achievements
+      playSuccess: () => {
+        // Try to play the achievement sound, but silently fail if it doesn't exist
+        try {
+          // We're using a default success sound
+          const successSound = '/sounds/achievement.mp3';
+          get().playSound(successSound);
+          console.log("Playing achievement sound");
+        } catch (error) {
+          // Silently ignore errors - this is not critical functionality
+          console.log("Could not play achievement sound, continuing silently");
         }
       },
       
@@ -77,11 +105,12 @@ export const useAudio = create<AudioState>()(
       setMuted: (muted: boolean) => {
         set({ isMuted: muted });
         
-        if (musicElement) {
+        const currentMusic = get().backgroundMusic;
+        if (musicElement && currentMusic) {
           if (muted) {
-            musicElement.pause();
-          } else if (get().backgroundMusic) {
-            musicElement.play().catch(err => console.error("Error resuming music:", err));
+            currentMusic.pause();
+          } else {
+            currentMusic.play().catch(err => console.error("Error resuming music:", err));
           }
         }
       },

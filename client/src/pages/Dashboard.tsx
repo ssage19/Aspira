@@ -198,7 +198,7 @@ const AchievementsWidget = () => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { name, wealth, netWorth, happiness, prestige, assets, properties, lifestyleItems, resetProgress } = useCharacter();
+  const { name, wealth, netWorth, happiness, prestige, assets, properties, lifestyleItems, resetCharacter } = useCharacter();
   const { currentDay, currentMonth, currentYear } = useTime();
   const { 
     marketTrend, 
@@ -216,7 +216,7 @@ export default function Dashboard() {
   
   // Handle reset confirmation
   const handleResetProgress = () => {
-    resetProgress();
+    resetCharacter();
     restart();
     navigate('/create');
   };
@@ -241,9 +241,9 @@ export default function Dashboard() {
     .filter(asset => asset.type === 'stock')
     .reduce((sum, asset) => sum + (asset.purchasePrice * asset.quantity), 0);
   
-  const propertiesValue = properties.reduce((sum, property) => sum + property.value, 0);
+  const propertiesValue = properties.reduce((sum, property) => sum + property.currentValue, 0);
   
-  const lifestyleValue = lifestyleItems.reduce((sum, item) => sum + item.purchasePrice * 0.5, 0);
+  const lifestyleValue = lifestyleItems.reduce((sum, item) => sum + (item.purchasePrice || 0) * 0.5, 0);
   
   // Format the date
   const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)

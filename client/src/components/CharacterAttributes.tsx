@@ -39,7 +39,7 @@ interface AttributeDetails {
 export function CharacterAttributes() {
   const { 
     health, 
-    skills, 
+    skills: { intelligence, creativity, charisma, technical, leadership },
     stress, 
     socialConnections,
     freeTime,
@@ -48,6 +48,9 @@ export function CharacterAttributes() {
     happiness,
     prestige
   } = useCharacter();
+  
+  // Calculate an average skill level for display
+  const skills = Math.round((intelligence + creativity + charisma + technical + leadership) / 5);
   
   // Define attribute configuration with human-readable scales
   const attributeConfigs: Record<string, AttributeDetails> = {

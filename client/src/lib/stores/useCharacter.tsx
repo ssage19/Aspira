@@ -70,6 +70,12 @@ interface CharacterState {
   prestige: number;
   stress: number;
   health: number;
+  socialConnections: number;
+  environmentalImpact: number;
+  
+  // Time management
+  freeTime: number;
+  timeCommitment: number;
   
   // Skills (0-100)
   skills: CharacterSkills;
@@ -170,6 +176,11 @@ const getDefaultCharacter = () => ({
   prestige: 10,
   stress: 30,
   health: 80,
+  socialConnections: 60,
+  environmentalImpact: 0,
+  
+  freeTime: 40,
+  timeCommitment: 40,
   
   skills: {
     intelligence: 50,
@@ -214,16 +225,51 @@ export const useCharacter = create<CharacterState>()(
       createNewCharacter: (name, initialWealth, job) => {
         const defaultCharacter = getDefaultCharacter();
         
-        const newCharacter = {
+        // Create a new character with the default values plus our overrides
+        set((state) => ({
           ...defaultCharacter,
           name,
           wealth: initialWealth,
           netWorth: initialWealth,
           job,
-          income: job ? job.salary : 0
-        };
+          income: job ? job.salary : 0,
+          // Keep the functions from the current state
+          setName: state.setName,
+          createNewCharacter: state.createNewCharacter,
+          addWealth: state.addWealth,
+          addIncome: state.addIncome,
+          addExpense: state.addExpense,
+          addHappiness: state.addHappiness,
+          addStress: state.addStress,
+          addHealth: state.addHealth,
+          addPrestige: state.addPrestige,
+          addAsset: state.addAsset,
+          sellAsset: state.sellAsset,
+          updateAssetValue: state.updateAssetValue,
+          updateAllAssetValues: state.updateAllAssetValues,
+          updateAssetValuesByType: state.updateAssetValuesByType,
+          addProperty: state.addProperty,
+          sellProperty: state.sellProperty,
+          updatePropertyValue: state.updatePropertyValue,
+          updatePropertyIncome: state.updatePropertyIncome,
+          updateAllPropertyValues: state.updateAllPropertyValues,
+          updateAllPropertyIncome: state.updateAllPropertyIncome,
+          updatePropertyValuesByType: state.updatePropertyValuesByType,
+          updatePropertyIncomeByType: state.updatePropertyIncomeByType,
+          addLifestyleItem: state.addLifestyleItem,
+          removeLifestyleItem: state.removeLifestyleItem,
+          setJob: state.setJob,
+          promoteJob: state.promoteJob,
+          quitJob: state.quitJob,
+          improveSkill: state.improveSkill,
+          calculateNetWorth: state.calculateNetWorth,
+          processDailyUpdate: state.processDailyUpdate,
+          weeklyUpdate: state.weeklyUpdate,
+          monthlyUpdate: state.monthlyUpdate,
+          saveState: state.saveState,
+          resetCharacter: state.resetCharacter
+        }));
         
-        set(newCharacter as CharacterState);
         saveState();
       },
       
@@ -815,8 +861,51 @@ export const useCharacter = create<CharacterState>()(
       
       resetCharacter: () => {
         const defaultCharacter = getDefaultCharacter();
-        set(defaultCharacter as CharacterState);
-        saveState();
+        
+        // Apply the default character but preserve all the functions
+        set((state) => ({
+          ...defaultCharacter,
+          // Keep the functions from the current state
+          setName: state.setName,
+          createNewCharacter: state.createNewCharacter,
+          addWealth: state.addWealth,
+          addIncome: state.addIncome,
+          addExpense: state.addExpense,
+          addHappiness: state.addHappiness,
+          addStress: state.addStress,
+          addHealth: state.addHealth,
+          addPrestige: state.addPrestige,
+          addAsset: state.addAsset,
+          sellAsset: state.sellAsset,
+          updateAssetValue: state.updateAssetValue,
+          updateAllAssetValues: state.updateAllAssetValues,
+          updateAssetValuesByType: state.updateAssetValuesByType,
+          addProperty: state.addProperty,
+          sellProperty: state.sellProperty,
+          updatePropertyValue: state.updatePropertyValue,
+          updatePropertyIncome: state.updatePropertyIncome,
+          updateAllPropertyValues: state.updateAllPropertyValues,
+          updateAllPropertyIncome: state.updateAllPropertyIncome,
+          updatePropertyValuesByType: state.updatePropertyValuesByType,
+          updatePropertyIncomeByType: state.updatePropertyIncomeByType,
+          addLifestyleItem: state.addLifestyleItem,
+          removeLifestyleItem: state.removeLifestyleItem,
+          setJob: state.setJob,
+          promoteJob: state.promoteJob,
+          quitJob: state.quitJob,
+          improveSkill: state.improveSkill,
+          calculateNetWorth: state.calculateNetWorth,
+          processDailyUpdate: state.processDailyUpdate,
+          weeklyUpdate: state.weeklyUpdate,
+          monthlyUpdate: state.monthlyUpdate,
+          saveState: state.saveState,
+          resetCharacter: state.resetCharacter
+        }));
+        
+        // Also clear localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('character');
+        }
       }
     };
   })
