@@ -174,7 +174,7 @@ export function GameUI() {
       // Show financial summary toast
       toast(
         <div className="flex flex-col gap-2">
-          <h3 className="text-lg font-bold">Daily Financial Update</h3>
+          <h3 className="text-lg font-bold">Financial Update</h3>
           
           {propertyIncome > 0 && (
             <div className="flex items-center text-emerald-500 gap-2">

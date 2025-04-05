@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
-import { getLocalStorage, setLocalStorage } from "../utils";
+import { getLocalStorage, setLocalStorage, formatCurrency } from "../utils";
 import { toast } from "sonner";
 import { useTime } from "./useTime";
 
@@ -1019,18 +1019,39 @@ export const useCharacter = create<CharacterState>()(
           let daysSincePromotion = state.daysSincePromotion;
           let dailyIncome = 0;
           
+          // Get the dayCounter from useTime
+          const { dayCounter } = useTime.getState();
+          
           if (state.job) {
             // Increment days since promotion
             daysSincePromotion += 1;
             
-            // Calculate daily income based on monthly salary (salary is stored as annual amount)
-            // Most jobs pay monthly, so we'll divide by 12 to get monthly, then by 30 for daily
-            const monthlyIncome = state.job.salary / 12;
-            dailyIncome = monthlyIncome / 30;
-            
-            // Add a small random variation to make payments more interesting (±5%)
-            const variation = 1 + ((Math.random() * 0.1) - 0.05);
-            dailyIncome = dailyIncome * variation;
+            // Check if it's payday (every 14 days - bi-weekly paycheck)
+            if (dayCounter % 14 === 0) {
+              // Calculate bi-weekly income based on annual salary
+              // Annual salary / 26 pay periods (annual to bi-weekly)
+              const biWeeklyIncome = state.job.salary / 26;
+              
+              // Add a small random variation to make payments more interesting (±5%)
+              const variation = 1 + ((Math.random() * 0.1) - 0.05);
+              const adjustedBiWeeklyIncome = biWeeklyIncome * variation;
+              
+              // Assign to dailyIncome which will be added to wealth
+              dailyIncome = adjustedBiWeeklyIncome;
+              
+              // Calculate formatted currency string directly using toLocaleString
+              const formattedAmount = adjustedBiWeeklyIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+              });
+              
+              // Notify about paycheck
+              toast(`Paycheck received: ${formattedAmount}`, {
+                duration: 5000,
+                position: 'bottom-right',
+                icon: '💰'
+              });
+            }
           }
           
           // Add property income
@@ -1117,28 +1138,16 @@ export const useCharacter = create<CharacterState>()(
           
           // Debug log to see health calculation (commented out in production)
           // console.log(`Health calc: needs=${basicNeedsScore.toFixed(1)}, stress=${stressScore.toFixed(1)}, target=${targetHealth.toFixed(1)}, actual=${health.toFixed(1)}`);
-         
-          
-          // Format currency for notifications
-          const formatCurrency = (amount: number) => {
-            return new Intl.NumberFormat('en-US', {
-              style: 'currency',
-              currency: 'USD'
-            }).format(amount);
-          };
-          
-          // Show a salary notification if there's a job
-          if (state.job && dailyIncome > 0) {
-            toast(`Daily salary payment received: ${formatCurrency(dailyIncome)}`, {
-              duration: 3000,
-              position: 'bottom-right',
-              icon: '💰'
-            });
-          }
           
           // Show property income notification if there's any
           if (dailyPropertyIncome > 0) {
-            toast(`Property income received: ${formatCurrency(dailyPropertyIncome)}`, {
+            // Format the currency string directly
+            const formattedPropertyIncome = dailyPropertyIncome.toLocaleString('en-US', {
+              style: 'currency',
+              currency: 'USD'
+            });
+            
+            toast(`Property income received: ${formattedPropertyIncome}`, {
               duration: 3000,
               position: 'bottom-right',
               icon: '🏢'
