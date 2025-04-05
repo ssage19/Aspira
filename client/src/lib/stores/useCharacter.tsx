@@ -428,6 +428,9 @@ export const useCharacter = create<CharacterState>()(
       
       // Assets management
       addAsset: (asset) => {
+        // Cost of the asset purchase
+        const purchaseCost = asset.quantity * asset.currentPrice;
+        
         set((state) => {
           // Check if we already own this asset
           const existingIndex = state.assets.findIndex(a => a.id === asset.id);
@@ -450,18 +453,20 @@ export const useCharacter = create<CharacterState>()(
             
             return { 
               assets: updatedAssets,
-              wealth: state.wealth - (asset.quantity * asset.currentPrice)
+              wealth: state.wealth - purchaseCost
             };
           } else {
             // Add new asset
             return { 
               assets: [...state.assets, asset],
-              wealth: state.wealth - (asset.quantity * asset.currentPrice)
+              wealth: state.wealth - purchaseCost
             };
           }
         });
         
-        // Calculate new net worth
+        // Calculate new net worth after purchase
+        // Net worth should remain the same because we're just converting cash to an asset
+        // of equal value, but recalculate to ensure all values are in sync
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();
@@ -588,12 +593,17 @@ export const useCharacter = create<CharacterState>()(
       
       // Properties management
       addProperty: (property) => {
+        // Cost of the property purchase
+        const purchaseCost = property.purchasePrice;
+        
         set((state) => ({
           properties: [...state.properties, property],
-          wealth: state.wealth - property.purchasePrice
+          wealth: state.wealth - purchaseCost
         }));
         
-        // Calculate new net worth
+        // Calculate new net worth after purchase
+        // Net worth should remain similar because we're just converting cash to a property
+        // of similar value, but recalculate to ensure all values are in sync
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();
@@ -765,21 +775,22 @@ export const useCharacter = create<CharacterState>()(
       
       // Lifestyle
       addLifestyleItem: (item) => {
-        // If it has a purchase price, deduct from wealth
-        let wealthAdjustment = 0;
+        // Calculate purchase cost (if applicable)
+        let purchaseCost = 0;
         if (item.purchasePrice) {
-          wealthAdjustment = -item.purchasePrice;
+          purchaseCost = item.purchasePrice;
         }
         
         set((state) => ({
           lifestyleItems: [...state.lifestyleItems, item],
           expenses: state.expenses + item.monthlyCost,
-          wealth: state.wealth + wealthAdjustment,
+          wealth: state.wealth - purchaseCost,
           happiness: Math.min(100, state.happiness + item.happiness),
           prestige: Math.min(100, state.prestige + item.prestige)
         }));
         
-        // Calculate new net worth
+        // Calculate new net worth after purchase
+        // Net worth should account for lifestyle item value
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();

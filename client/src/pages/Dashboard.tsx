@@ -265,7 +265,7 @@ export default function Dashboard() {
   // Calculate portfolio stats
   const stocksValue = assets
     .filter(asset => asset.type === 'stock')
-    .reduce((sum, asset) => sum + (asset.purchasePrice * asset.quantity), 0);
+    .reduce((sum, asset) => sum + (asset.currentPrice * asset.quantity), 0);
   
   const propertiesValue = properties.reduce((sum, property) => sum + property.currentValue, 0);
   
@@ -514,15 +514,23 @@ export default function Dashboard() {
                             </div>
                           </div>
                           
-                          {/* Investment Income (placeholder for future) */}
+                          {/* Investment Income/Dividends */}
                           <div className="mb-3">
                             <div className="flex justify-between items-center mb-1">
                               <span className="text-sm text-muted-foreground flex items-center">
                                 <ChartBar className="h-3.5 w-3.5 mr-1 text-blue-400" />
-                                Investment Dividends
+                                Investment Dividends ({assets.filter(a => a.type === 'stock').length} stocks)
                               </span>
                               <span className="text-sm font-medium text-green-500">
-                                {formatCurrency(0)}/mo
+                                {formatCurrency(
+                                  assets
+                                    .filter(asset => asset.type === 'stock')
+                                    .reduce((sum, asset) => {
+                                      // Calculate a monthly dividend based on stock value (avg 2% annual yield = 0.167% monthly)
+                                      const monthlyYield = 0.00167; // 2% annual divided by 12 months
+                                      return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                                    }, 0)
+                                )}/mo
                               </span>
                             </div>
                           </div>
@@ -532,8 +540,19 @@ export default function Dashboard() {
                             <div className="flex justify-between items-center">
                               <span className="font-medium">Total Monthly Income</span>
                               <span className="font-bold text-green-500">
-                                {formatCurrency((job ? job.salary / 12 : 0) + 
-                                  properties.reduce((sum, p) => sum + p.monthlyIncome, 0))}/mo
+                                {formatCurrency(
+                                  // Salary
+                                  (job ? job.salary / 12 : 0) + 
+                                  // Property income
+                                  properties.reduce((sum, p) => sum + p.monthlyIncome, 0) +
+                                  // Stock dividends (avg 2% annual yield = 0.167% monthly)
+                                  assets
+                                    .filter(asset => asset.type === 'stock')
+                                    .reduce((sum, asset) => {
+                                      const monthlyYield = 0.00167; // 2% annual divided by 12 months
+                                      return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                                    }, 0)
+                                )}/mo
                               </span>
                             </div>
                           </div>
@@ -648,8 +667,21 @@ export default function Dashboard() {
                           
                           {/* Calculate monthly income */}
                           {(() => {
-                            const monthlyIncome = (job ? job.salary / 12 : 0) + 
-                              properties.reduce((sum, p) => sum + p.monthlyIncome, 0);
+                            // Calculate stock dividends (avg 2% annual yield = 0.167% monthly)
+                            const stockDividends = assets
+                              .filter(asset => asset.type === 'stock')
+                              .reduce((sum, asset) => {
+                                const monthlyYield = 0.00167; // 2% annual divided by 12 months
+                                return sum + (asset.currentPrice * asset.quantity * monthlyYield);
+                              }, 0);
+                              
+                            const monthlyIncome = 
+                              // Salary
+                              (job ? job.salary / 12 : 0) + 
+                              // Property income
+                              properties.reduce((sum, p) => sum + p.monthlyIncome, 0) +
+                              // Stock dividends
+                              stockDividends;
                             
                             // Calculate monthly expenses
                             const monthlyExpenses = 
