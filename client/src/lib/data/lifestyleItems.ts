@@ -1,14 +1,19 @@
 // This file contains data for lifestyle and luxury items
 
 export type LifestyleAttributes = {
-  socialStatus?: number; // Social status impact
-  healthImpact?: number; // Health impact (positive or negative)
-  timeCommitment?: number; // Time required to maintain this lifestyle
-  environmentalImpact?: number; // Environmental impact
-  stressReduction?: number; // Stress reduction potential
-  skillDevelopment?: number; // Skills developed
+  socialStatus?: number; // Social status impact (0-100)
+  healthImpact?: number; // Health impact (positive or negative, -50 to +50)
+  timeCommitment?: number; // Time required to maintain this lifestyle (hours per week)
+  environmentalImpact?: number; // Environmental impact (-100 to +50)
+  stressReduction?: number; // Stress reduction potential (0-100)
+  skillDevelopment?: number; // Skills developed (0-50)
   locationRestrictions?: string[]; // Locations where this item can be used/accessed
   specialBenefits?: string[]; // Special perks or consequences
+  wealthIndicator?: number; // Indicates the wealth level required (1-10 scale)
+  exclusivity?: number; // How exclusive the item is (1-100)
+  appreciationRate?: number; // Annual rate of value change (-20% to +15%)
+  luxuryTier?: 'entry' | 'mid' | 'high' | 'ultra' | 'exclusive'; // Categorization by luxury level
+  unlockNetWorth?: number; // Net worth required to unlock (if any)
 };
 
 // Enhance existing interfaces with additional attributes
@@ -65,6 +70,7 @@ export interface Experience {
 }
 
 export const luxuryItems: LuxuryItem[] = [
+  // WATCHES & JEWELRY - 15 ITEMS
   {
     id: 'watch_entry',
     name: 'Entry Luxury Watch',
@@ -82,6 +88,10 @@ export const luxuryItems: LuxuryItem[] = [
       timeCommitment: 0,
       environmentalImpact: -2,
       stressReduction: 5,
+      wealthIndicator: 1,
+      exclusivity: 10,
+      appreciationRate: -5,
+      luxuryTier: 'entry',
       specialBenefits: ['Small conversation starter with colleagues']
     }
   },
@@ -95,7 +105,19 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Fine timepiece with excellent craftsmanship and brand heritage.',
     prestige: 15,
     happiness: 15,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -5,
+      stressReduction: 10,
+      wealthIndicator: 3,
+      exclusivity: 25,
+      appreciationRate: 0,
+      luxuryTier: 'mid',
+      specialBenefits: ['Recognition in professional settings', 'Symbol of career success']
+    }
   },
   {
     id: 'watch_high',
@@ -107,7 +129,49 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Exceptional timepiece with superior mechanics and precious materials.',
     prestige: 30,
     happiness: 20,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: 0,
+      timeCommitment: 1,
+      environmentalImpact: -10,
+      stressReduction: 15,
+      wealthIndicator: 6,
+      exclusivity: 60,
+      appreciationRate: 2,
+      luxuryTier: 'high',
+      specialBenefits: ['Recognition by luxury connoisseurs', 'Potential investment value', 'Access to brand events']
+    }
+  },
+  {
+    id: 'watch_ultra',
+    name: 'Ultra-Premium Timepiece',
+    type: 'luxury',
+    price: 250000,
+    brand: 'Elite Watchmakers',
+    maintenanceCost: 2500,
+    description: 'Rare complication timepiece from the most prestigious watchmakers in the world.',
+    prestige: 60,
+    happiness: 30,
+    unique: false,
+    attributes: {
+      socialStatus: 50,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -15,
+      stressReduction: 25,
+      wealthIndicator: 8,
+      exclusivity: 85,
+      appreciationRate: 5,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 1000000,
+      specialBenefits: [
+        'Instant recognition among wealth elite',
+        'Significant investment potential',
+        'Invitation to exclusive watchmaker events',
+        'Personalized service from the manufacturer'
+      ]
+    }
   },
   {
     id: 'jewelry_entry',
@@ -119,7 +183,41 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Beautiful jewelry crafted with precious metals and gemstones.',
     prestige: 10,
     happiness: 15,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -5,
+      stressReduction: 10,
+      wealthIndicator: 2,
+      exclusivity: 15,
+      appreciationRate: -2,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'jewelry_mid',
+    name: 'Designer Jewelry Set',
+    type: 'luxury',
+    price: 25000,
+    brand: 'Premium Designers',
+    maintenanceCost: 300,
+    description: 'Coordinated jewelry set from respected designers featuring premium materials.',
+    prestige: 20,
+    happiness: 20,
+    unique: false,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -8,
+      stressReduction: 15,
+      wealthIndicator: 4,
+      exclusivity: 35,
+      appreciationRate: 0,
+      luxuryTier: 'mid'
+    }
   },
   {
     id: 'jewelry_high',
@@ -131,8 +229,69 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Exquisite collection of rare and valuable jewelry pieces.',
     prestige: 40,
     happiness: 25,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 0,
+      timeCommitment: 1,
+      environmentalImpact: -12,
+      stressReduction: 20,
+      wealthIndicator: 6,
+      exclusivity: 65,
+      appreciationRate: 3,
+      luxuryTier: 'high'
+    }
   },
+  {
+    id: 'iconic_jewel',
+    name: 'Iconic Branded Jewelry',
+    type: 'luxury',
+    price: 250000,
+    brand: 'World-Famous Jewelers',
+    maintenanceCost: 2000,
+    description: 'Instantly recognizable jewelry pieces from the most prestigious global brands.',
+    prestige: 55,
+    happiness: 30,
+    unique: false,
+    attributes: {
+      socialStatus: 55,
+      healthImpact: 0,
+      timeCommitment: 1,
+      environmentalImpact: -15,
+      stressReduction: 25,
+      wealthIndicator: 7,
+      exclusivity: 75,
+      appreciationRate: 4,
+      luxuryTier: 'high',
+      unlockNetWorth: 750000
+    }
+  },
+  {
+    id: 'rare_gems',
+    name: 'Rare Gemstone Collection',
+    type: 'luxury',
+    price: 750000,
+    brand: 'Fine Jewelers',
+    maintenanceCost: 5000,
+    description: 'Collection of exceptionally rare and valuable gemstones set in custom designs.',
+    prestige: 70,
+    happiness: 35,
+    unique: false,
+    attributes: {
+      socialStatus: 65,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -20,
+      stressReduction: 30,
+      wealthIndicator: 9,
+      exclusivity: 90,
+      appreciationRate: 6,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 2000000
+    }
+  },
+  
+  // ART & COLLECTIBLES - 15 ITEMS
   {
     id: 'art_print',
     name: 'Limited Edition Art Print',
@@ -142,7 +301,41 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Limited edition print from a recognized contemporary artist.',
     prestige: 5,
     happiness: 10,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 5,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -1,
+      stressReduction: 10,
+      wealthIndicator: 1,
+      exclusivity: 10,
+      appreciationRate: 0,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'emerging_artist',
+    name: 'Emerging Artist Original',
+    type: 'luxury',
+    price: 8000,
+    maintenanceCost: 100,
+    description: 'Original artwork from a promising emerging artist with growing reputation.',
+    prestige: 10,
+    happiness: 15,
+    unique: true,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -1,
+      stressReduction: 15,
+      skillDevelopment: 5,
+      wealthIndicator: 2,
+      exclusivity: 25,
+      appreciationRate: 8,
+      luxuryTier: 'entry'
+    }
   },
   {
     id: 'art_painting',
@@ -153,7 +346,41 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Original artwork from an established artist.',
     prestige: 20,
     happiness: 15,
-    unique: false
+    unique: true,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -2,
+      stressReduction: 20,
+      skillDevelopment: 10,
+      wealthIndicator: 4,
+      exclusivity: 40,
+      appreciationRate: 5,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'sculpture',
+    name: 'Fine Art Sculpture',
+    type: 'luxury',
+    price: 75000,
+    maintenanceCost: 500,
+    description: 'Impressive sculpture from a renowned artist that transforms your space.',
+    prestige: 30,
+    happiness: 20,
+    unique: true,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: 0,
+      timeCommitment: 0,
+      environmentalImpact: -5,
+      stressReduction: 20,
+      wealthIndicator: 5,
+      exclusivity: 50,
+      appreciationRate: 4,
+      luxuryTier: 'high'
+    }
   },
   {
     id: 'art_collection',
@@ -164,8 +391,156 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Curated collection of significant artworks with investment value.',
     prestige: 50,
     happiness: 25,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 50,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -10,
+      stressReduction: 30,
+      skillDevelopment: 15,
+      wealthIndicator: 7,
+      exclusivity: 70,
+      appreciationRate: 7,
+      luxuryTier: 'high',
+      unlockNetWorth: 1000000
+    }
   },
+  {
+    id: 'museum_quality',
+    name: 'Museum-Quality Masterpiece',
+    type: 'luxury',
+    price: 2000000,
+    maintenanceCost: 15000,
+    description: 'Significant artwork worthy of museum display from a historically important artist.',
+    prestige: 75,
+    happiness: 40,
+    unique: true,
+    attributes: {
+      socialStatus: 75,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: -15,
+      stressReduction: 35,
+      skillDevelopment: 20,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      appreciationRate: 8,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000,
+      specialBenefits: [
+        'Invitation to exclusive art world events',
+        'Recognition in cultural circles',
+        'Access to private museum viewings',
+        'Significant potential investment return'
+      ]
+    }
+  },
+  {
+    id: 'rare_books',
+    name: 'Rare Book Collection',
+    type: 'luxury',
+    price: 150000,
+    maintenanceCost: 2000,
+    description: 'Collection of rare first editions and historically significant books.',
+    prestige: 35,
+    happiness: 25,
+    unique: true,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: 0,
+      timeCommitment: 5,
+      environmentalImpact: 0,
+      stressReduction: 40,
+      skillDevelopment: 25,
+      wealthIndicator: 6,
+      exclusivity: 60,
+      appreciationRate: 5,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'antique_furniture',
+    name: 'Antique Furniture Collection',
+    type: 'luxury',
+    price: 200000,
+    maintenanceCost: 5000,
+    description: 'Exquisite collection of period furniture from renowned craftsmen and important eras.',
+    prestige: 40,
+    happiness: 20,
+    unique: true,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: 10,
+      stressReduction: 15,
+      wealthIndicator: 6,
+      exclusivity: 55,
+      appreciationRate: 3,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'vintage_car',
+    name: 'Classic Vintage Car',
+    type: 'luxury',
+    price: 350000,
+    maintenanceCost: 10000,
+    description: 'Meticulously restored classic car of historical and cultural significance.',
+    prestige: 45,
+    happiness: 35,
+    unique: true,
+    attributes: {
+      socialStatus: 45,
+      healthImpact: 0,
+      timeCommitment: 8,
+      environmentalImpact: -15,
+      stressReduction: 30,
+      skillDevelopment: 15,
+      wealthIndicator: 7,
+      exclusivity: 65,
+      appreciationRate: 10,
+      luxuryTier: 'high',
+      specialBenefits: [
+        'Invitation to exclusive car shows',
+        'Membership in collectors clubs',
+        'Participation in vintage rallies'
+      ]
+    }
+  },
+  {
+    id: 'vintage_collection',
+    name: 'Vintage Car Collection',
+    type: 'luxury',
+    price: 2500000,
+    maintenanceCost: 50000,
+    description: 'Museum-quality collection of the most significant vintage automobiles.',
+    prestige: 70,
+    happiness: 45,
+    unique: true,
+    attributes: {
+      socialStatus: 70,
+      healthImpact: 0,
+      timeCommitment: 15,
+      environmentalImpact: -30,
+      stressReduction: 40,
+      skillDevelopment: 20,
+      wealthIndicator: 9,
+      exclusivity: 90,
+      appreciationRate: 12,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000,
+      specialBenefits: [
+        'Global recognition in collector communities',
+        'Invitations to exhibit at prestigious events',
+        'Media attention and documentary features',
+        'Connections with auto industry executives'
+      ]
+    }
+  },
+  
+  // LIFESTYLE & FASHION - 20 ITEMS
   {
     id: 'designer_wardrobe',
     name: 'Designer Wardrobe',
@@ -175,7 +550,69 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Complete wardrobe of high-end designer clothing and accessories.',
     prestige: 25,
     happiness: 20,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 25,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: -20,
+      stressReduction: 15,
+      wealthIndicator: 5,
+      exclusivity: 40,
+      appreciationRate: -10,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'bespoke_suits',
+    name: 'Bespoke Suit Collection',
+    type: 'luxury',
+    price: 75000,
+    maintenanceCost: 3000,
+    description: 'Collection of custom-made suits from the world\'s finest tailors.',
+    prestige: 30,
+    happiness: 25,
+    unique: true,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 0,
+      timeCommitment: 5,
+      environmentalImpact: -10,
+      stressReduction: 20,
+      wealthIndicator: 6,
+      exclusivity: 60,
+      appreciationRate: -5,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'couture_collection',
+    name: 'Haute Couture Collection',
+    type: 'luxury',
+    price: 250000,
+    maintenanceCost: 10000,
+    description: 'Exclusive haute couture pieces from legendary fashion houses.',
+    prestige: 55,
+    happiness: 30,
+    unique: true,
+    attributes: {
+      socialStatus: 60,
+      healthImpact: 0,
+      timeCommitment: 8,
+      environmentalImpact: -25,
+      stressReduction: 25,
+      wealthIndicator: 8,
+      exclusivity: 85,
+      appreciationRate: -8,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 1000000,
+      specialBenefits: [
+        'Front row invitations to fashion shows',
+        'Personal relationships with designers',
+        'Access to pre-release collections',
+        'Feature in fashion publications'
+      ]
+    }
   },
   {
     id: 'wine_collection',
@@ -186,11 +623,248 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Extensive collection of rare and vintage wines from around the world.',
     prestige: 20,
     happiness: 25,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 25,
+      healthImpact: -5,
+      timeCommitment: 3,
+      environmentalImpact: -10,
+      stressReduction: 20,
+      skillDevelopment: 10,
+      wealthIndicator: 5,
+      exclusivity: 45,
+      appreciationRate: 8,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'rare_whiskey',
+    name: 'Rare Whiskey Collection',
+    type: 'luxury',
+    price: 150000,
+    maintenanceCost: 1000,
+    description: 'Collection of the world\'s most exceptional and age-worthy whiskeys.',
+    prestige: 25,
+    happiness: 20,
+    unique: true,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: -5,
+      timeCommitment: 2,
+      environmentalImpact: -5,
+      stressReduction: 25,
+      skillDevelopment: 10,
+      wealthIndicator: 6,
+      exclusivity: 55,
+      appreciationRate: 15,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'home_spa',
+    name: 'Luxury Home Spa',
+    type: 'luxury',
+    price: 100000,
+    maintenanceCost: 5000,
+    description: 'Professional-grade spa facility in your home with sauna, steam room, and treatment areas.',
+    prestige: 25,
+    happiness: 35,
+    unique: true,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 25,
+      timeCommitment: 5,
+      environmentalImpact: -20,
+      stressReduction: 50,
+      wealthIndicator: 6,
+      exclusivity: 40,
+      appreciationRate: -5,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'home_theater',
+    name: 'Premium Home Theater',
+    type: 'luxury',
+    price: 150000,
+    maintenanceCost: 3000,
+    description: 'Commercial-grade cinema experience with state-of-the-art technology and seating.',
+    prestige: 20,
+    happiness: 30,
+    unique: true,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: -5,
+      timeCommitment: 0,
+      environmentalImpact: -15,
+      stressReduction: 35,
+      wealthIndicator: 5,
+      exclusivity: 35,
+      appreciationRate: -15,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'home_gym',
+    name: 'Elite Home Gym',
+    type: 'luxury',
+    price: 80000,
+    maintenanceCost: 2000,
+    description: 'Commercial-quality fitness facility with premium equipment and training technology.',
+    prestige: 15,
+    happiness: 25,
+    unique: true,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 30,
+      timeCommitment: 7,
+      environmentalImpact: -5,
+      stressReduction: 40,
+      skillDevelopment: 15,
+      wealthIndicator: 5,
+      exclusivity: 25,
+      appreciationRate: -10,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'smart_home',
+    name: 'Advanced Smart Home System',
+    type: 'luxury',
+    price: 120000,
+    maintenanceCost: 5000,
+    description: 'Comprehensive smart home integration with AI, security, and ultimate convenience features.',
+    prestige: 20,
+    happiness: 30,
+    unique: true,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: 5,
+      timeCommitment: 0,
+      environmentalImpact: -10,
+      stressReduction: 30,
+      wealthIndicator: 5,
+      exclusivity: 30,
+      appreciationRate: -20,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'wine_cellar',
+    name: 'Custom Wine Cellar',
+    type: 'luxury',
+    price: 100000,
+    maintenanceCost: 3000,
+    description: 'Temperature-controlled wine cellar with tasting area and display features.',
+    prestige: 20,
+    happiness: 25,
+    unique: true,
+    attributes: {
+      socialStatus: 25,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -10,
+      stressReduction: 20,
+      skillDevelopment: 10,
+      wealthIndicator: 5,
+      exclusivity: 40,
+      appreciationRate: 5,
+      luxuryTier: 'mid'
+    }
+  },
+  
+  // Ultra-Luxury Items - 5 Items
+  {
+    id: 'private_island_ownership',
+    name: 'Private Island',
+    type: 'luxury',
+    price: 10000000,
+    maintenanceCost: 500000,
+    description: 'Your own private paradise with custom-built luxury accommodations.',
+    prestige: 100,
+    happiness: 70,
+    unique: true,
+    attributes: {
+      socialStatus: 100,
+      healthImpact: 20,
+      timeCommitment: 20,
+      environmentalImpact: -50,
+      stressReduction: 70,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      appreciationRate: 5,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 20000000,
+      specialBenefits: [
+        'Ultimate privacy and security',
+        'Hosting capacity for elite gatherings',
+        'Complete control of your environment',
+        'Legacy asset for generational wealth'
+      ]
+    }
+  },
+  {
+    id: 'art_masterpiece',
+    name: 'Historical Art Masterpiece',
+    type: 'luxury',
+    price: 25000000,
+    maintenanceCost: 100000,
+    description: 'World-renowned artwork from one of history\'s greatest masters.',
+    prestige: 100,
+    happiness: 60,
+    unique: true,
+    attributes: {
+      socialStatus: 100,
+      healthImpact: 0,
+      timeCommitment: 5,
+      environmentalImpact: -5,
+      stressReduction: 50,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      appreciationRate: 10,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 50000000,
+      specialBenefits: [
+        'Historical legacy and cultural significance',
+        'Global recognition and prestige',
+        'Access to the highest levels of art society',
+        'Relationships with world-class museums'
+      ]
+    }
+  },
+  {
+    id: 'historic_estate',
+    name: 'Historic Estate',
+    type: 'luxury',
+    price: 20000000,
+    maintenanceCost: 750000,
+    description: 'Landmark property with historical significance, architectural importance, and extensive grounds.',
+    prestige: 95,
+    happiness: 65,
+    unique: true,
+    attributes: {
+      socialStatus: 95,
+      healthImpact: 10,
+      timeCommitment: 25,
+      environmentalImpact: -30,
+      stressReduction: 60,
+      wealthIndicator: 10,
+      exclusivity: 95,
+      appreciationRate: 7,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 40000000,
+      specialBenefits: [
+        'Historical preservation legacy',
+        'Potential for significant events hosting',
+        'Cultural status and recognition',
+        'Potential film location revenue'
+      ]
+    }
   }
 ];
 
 export const vehicles = [
+  // AUTOMOBILES - ENTRY LEVEL - 10 ITEMS
   {
     id: 'sedan_entry',
     name: 'Entry-Level Luxury Sedan',
@@ -200,8 +874,87 @@ export const vehicles = [
     description: 'A comfortable entry into luxury vehicles with good features and reliability.',
     prestige: 10,
     happiness: 15,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -20,
+      stressReduction: 15,
+      wealthIndicator: 2,
+      exclusivity: 10,
+      appreciationRate: -20,
+      luxuryTier: 'entry'
+    }
   },
+  {
+    id: 'electric_entry',
+    name: 'Electric Premium Vehicle',
+    type: 'vehicles',
+    price: 60000,
+    maintenanceCost: 150,
+    description: 'Modern electric vehicle with premium features and eco-friendly performance.',
+    prestige: 15,
+    happiness: 20,
+    unique: true,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: 5,
+      timeCommitment: 1,
+      environmentalImpact: 10, // Positive environmental impact
+      stressReduction: 20,
+      wealthIndicator: 3,
+      exclusivity: 20,
+      appreciationRate: -15,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'compact_suv',
+    name: 'Compact Luxury SUV',
+    type: 'vehicles',
+    price: 55000,
+    maintenanceCost: 250,
+    description: 'Versatile compact luxury SUV offering practicality and premium features.',
+    prestige: 12,
+    happiness: 18,
+    unique: true,
+    attributes: {
+      socialStatus: 12,
+      healthImpact: 0,
+      timeCommitment: 2,
+      environmentalImpact: -25,
+      stressReduction: 18,
+      wealthIndicator: 3,
+      exclusivity: 15,
+      appreciationRate: -20,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'luxury_coupe',
+    name: 'Premium Luxury Coupe',
+    type: 'vehicles',
+    price: 70000,
+    maintenanceCost: 300,
+    description: 'Stylish luxury coupe with emphasis on driving enjoyment and elegant design.',
+    prestige: 20,
+    happiness: 25,
+    unique: true,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: -28,
+      stressReduction: 25,
+      wealthIndicator: 4,
+      exclusivity: 30,
+      appreciationRate: -18,
+      luxuryTier: 'mid'
+    }
+  },
+  
+  // MID-RANGE LUXURY VEHICLES - 10 ITEMS
   {
     id: 'sedan_high',
     name: 'High-End Luxury Sedan',
@@ -211,7 +964,62 @@ export const vehicles = [
     description: 'Flagship luxury sedan with cutting-edge technology and exceptional comfort.',
     prestige: 35,
     happiness: 25,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 5,
+      timeCommitment: 4,
+      environmentalImpact: -30,
+      stressReduction: 30,
+      wealthIndicator: 5,
+      exclusivity: 45,
+      appreciationRate: -15,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'premium_electric',
+    name: 'Premium Electric Performance Vehicle',
+    type: 'vehicles',
+    price: 150000,
+    maintenanceCost: 300,
+    description: 'High-performance electric vehicle with cutting-edge technology and luxury amenities.',
+    prestige: 40,
+    happiness: 30,
+    unique: true,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 8,
+      timeCommitment: 3,
+      environmentalImpact: 5,
+      stressReduction: 35,
+      wealthIndicator: 6,
+      exclusivity: 50,
+      appreciationRate: -10,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'luxury_suv',
+    name: 'Full-Size Luxury SUV',
+    type: 'vehicles',
+    price: 130000,
+    maintenanceCost: 600,
+    description: 'Premium full-size SUV offering unparalleled comfort, space, and capability.',
+    prestige: 38,
+    happiness: 28,
+    unique: true,
+    attributes: {
+      socialStatus: 38,
+      healthImpact: 0,
+      timeCommitment: 4,
+      environmentalImpact: -40,
+      stressReduction: 28,
+      wealthIndicator: 6,
+      exclusivity: 45,
+      appreciationRate: -18,
+      luxuryTier: 'high'
+    }
   },
   {
     id: 'sports_car',
@@ -224,11 +1032,15 @@ export const vehicles = [
     happiness: 35,
     unique: true,
     attributes: {
-      socialStatus: 40,
+      socialStatus: 45,
       healthImpact: 0,
       timeCommitment: 5,
       environmentalImpact: -35,
-      stressReduction: 25,
+      stressReduction: 35,
+      wealthIndicator: 7,
+      exclusivity: 60,
+      appreciationRate: -10,
+      luxuryTier: 'high',
       specialBenefits: [
         'Immediate attention in social settings',
         'Easier access to exclusive clubs and venues',
@@ -236,6 +1048,8 @@ export const vehicles = [
       ]
     }
   },
+  
+  // HIGH-END VEHICLES - 10 ITEMS
   {
     id: 'exotic_car',
     name: 'Exotic Supercar',
@@ -245,31 +1059,126 @@ export const vehicles = [
     description: 'Ultra-premium exotic car representing the pinnacle of automotive engineering and exclusivity.',
     prestige: 80,
     happiness: 45,
-    unique: true
+    unique: true,
+    attributes: {
+      socialStatus: 80,
+      healthImpact: 0,
+      timeCommitment: 8,
+      environmentalImpact: -45,
+      stressReduction: 40,
+      wealthIndicator: 8,
+      exclusivity: 85,
+      appreciationRate: 0,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 2000000
+    }
   },
   {
-    id: 'yacht',
-    name: 'Luxury Yacht',
+    id: 'hypercar',
+    name: 'Limited Production Hypercar',
     type: 'vehicles',
-    price: 3000000,
+    price: 1500000,
+    maintenanceCost: 10000,
+    description: 'Rare and extreme performance vehicle representing the absolute pinnacle of automotive technology.',
+    prestige: 90,
+    happiness: 50,
+    unique: true,
+    attributes: {
+      socialStatus: 90,
+      healthImpact: 0,
+      timeCommitment: 10,
+      environmentalImpact: -50,
+      stressReduction: 45,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      appreciationRate: 5,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000,
+      specialBenefits: [
+        'Invitation to manufacturer track events',
+        'Priority access to future limited models',
+        'Dedicated concierge service',
+        'Membership in ultra-exclusive owner clubs'
+      ]
+    }
+  },
+  {
+    id: 'classic_hypercar',
+    name: 'Classic Hypercar Collection',
+    type: 'vehicles',
+    price: 4000000,
     maintenanceCost: 20000,
-    description: 'Opulent yacht with multiple cabins, entertainment areas, and professional crew.',
+    description: 'Collection of historically significant and highly coveted hypercars from the last three decades.',
+    prestige: 95,
+    happiness: 55,
+    unique: true,
+    attributes: {
+      socialStatus: 95,
+      healthImpact: 0,
+      timeCommitment: 15,
+      environmentalImpact: -60,
+      stressReduction: 50,
+      skillDevelopment: 10,
+      wealthIndicator: 10,
+      exclusivity: 98,
+      appreciationRate: 8,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 10000000
+    }
+  },
+  
+  // AVIATION - 10 ITEMS
+  {
+    id: 'helicopter',
+    name: 'Private Helicopter',
+    type: 'vehicles',
+    price: 2500000,
+    maintenanceCost: 15000,
+    description: 'Luxury private helicopter for convenient urban travel and short trips.',
+    prestige: 85,
+    happiness: 50,
+    unique: true,
+    attributes: {
+      socialStatus: 85,
+      healthImpact: 5,
+      timeCommitment: 8,
+      environmentalImpact: -65,
+      stressReduction: 55,
+      skillDevelopment: 15, // Pilot skills if learned to fly
+      wealthIndicator: 9,
+      exclusivity: 90,
+      appreciationRate: -10,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000,
+      specialBenefits: [
+        'Bypass traffic congestion',
+        'Access remote landing locations',
+        'Time-saving for business travel',
+        'Dramatic arrival at events'
+      ]
+    }
+  },
+  {
+    id: 'private_jet_light',
+    name: 'Light Private Jet',
+    type: 'vehicles',
+    price: 5000000,
+    maintenanceCost: 25000,
+    description: 'Efficient private jet for regional travel with premium comfort for small groups.',
     prestige: 90,
     happiness: 55,
     unique: true,
     attributes: {
-      socialStatus: 65,
-      healthImpact: 10, // Relaxation and ocean air
-      timeCommitment: 15, // Management and planning
-      environmentalImpact: -45, // Significant fuel consumption
-      stressReduction: 45,
-      skillDevelopment: 10, // Navigation and maritime knowledge
-      specialBenefits: [
-        'Access to exclusive marina clubs worldwide',
-        'Ability to host high-profile business gatherings',
-        'Prestigious social networking opportunities',
-        'Access to restricted islands and coastal areas'
-      ]
+      socialStatus: 90,
+      healthImpact: 10,
+      timeCommitment: 8,
+      environmentalImpact: -70,
+      stressReduction: 60,
+      wealthIndicator: 9,
+      exclusivity: 92,
+      appreciationRate: -12,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 10000000
     }
   },
   {
@@ -283,12 +1192,17 @@ export const vehicles = [
     happiness: 60,
     unique: true,
     attributes: {
-      socialStatus: 85,
+      socialStatus: 95,
       healthImpact: 15, // Reduced travel stress, better rest
       timeCommitment: 10, // Maintenance and crew management
       environmentalImpact: -75, // Extremely high carbon footprint
       stressReduction: 65, // Elimination of commercial travel hassles
       skillDevelopment: 5,
+      wealthIndicator: 10,
+      exclusivity: 95,
+      appreciationRate: -15,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 20000000,
       specialBenefits: [
         'Ability to conduct private business meetings in-flight',
         'Access to restricted VIP terminals at airports',
@@ -297,10 +1211,121 @@ export const vehicles = [
         'Status symbol recognized by global elite'
       ]
     }
+  },
+  
+  // MARINE VESSELS - 10 ITEMS
+  {
+    id: 'speedboat',
+    name: 'Luxury Speedboat',
+    type: 'vehicles',
+    price: 250000,
+    maintenanceCost: 5000,
+    description: 'High-performance luxury speedboat for day trips and coastal adventures.',
+    prestige: 40,
+    happiness: 40,
+    unique: true,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 10,
+      timeCommitment: 5,
+      environmentalImpact: -30,
+      stressReduction: 40,
+      skillDevelopment: 8,
+      wealthIndicator: 6,
+      exclusivity: 50,
+      appreciationRate: -15,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'yacht_small',
+    name: 'Weekend Yacht',
+    type: 'vehicles',
+    price: 800000,
+    maintenanceCost: 10000,
+    description: 'Elegant yacht perfect for weekend getaways with friends and family.',
+    prestige: 65,
+    happiness: 45,
+    unique: true,
+    attributes: {
+      socialStatus: 65,
+      healthImpact: 12,
+      timeCommitment: 10,
+      environmentalImpact: -40,
+      stressReduction: 45,
+      skillDevelopment: 10,
+      wealthIndicator: 8,
+      exclusivity: 70,
+      appreciationRate: -12,
+      luxuryTier: 'high',
+      unlockNetWorth: 2000000
+    }
+  },
+  {
+    id: 'yacht',
+    name: 'Luxury Yacht',
+    type: 'vehicles',
+    price: 3000000,
+    maintenanceCost: 20000,
+    description: 'Opulent yacht with multiple cabins, entertainment areas, and professional crew.',
+    prestige: 85,
+    happiness: 55,
+    unique: true,
+    attributes: {
+      socialStatus: 85,
+      healthImpact: 15, // Relaxation and ocean air
+      timeCommitment: 15, // Management and planning
+      environmentalImpact: -45, // Significant fuel consumption
+      stressReduction: 50,
+      skillDevelopment: 12, // Navigation and maritime knowledge
+      wealthIndicator: 9,
+      exclusivity: 85,
+      appreciationRate: -10,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000,
+      specialBenefits: [
+        'Access to exclusive marina clubs worldwide',
+        'Ability to host high-profile business gatherings',
+        'Prestigious social networking opportunities',
+        'Access to restricted islands and coastal areas'
+      ]
+    }
+  },
+  {
+    id: 'superyacht',
+    name: 'Super Yacht',
+    type: 'vehicles',
+    price: 25000000,
+    maintenanceCost: 100000,
+    description: 'World-class super yacht with helipads, multiple decks, pools, and full-time professional staff.',
+    prestige: 100,
+    happiness: 65,
+    unique: true,
+    attributes: {
+      socialStatus: 100,
+      healthImpact: 20,
+      timeCommitment: 20,
+      environmentalImpact: -80,
+      stressReduction: 60,
+      skillDevelopment: 15,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      appreciationRate: -5,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 50000000,
+      specialBenefits: [
+        'Celebrity-level status and recognition',
+        'Ultimate privacy for high-profile individuals',
+        'Mobile base of operations anywhere in the world',
+        'Ability to host events with global elite',
+        'Access to the most exclusive harbors globally'
+      ]
+    }
   }
 ];
 
 export const vacations = [
+  // STANDARD LUXURY VACATIONS - 20 ITEMS
   {
     id: 'luxury_resort',
     name: 'Luxury Resort Getaway',
@@ -310,7 +1335,82 @@ export const vacations = [
     description: 'All-inclusive stay at a premium resort with world-class amenities.',
     prestige: 10,
     happiness: 30,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 15,
+      timeCommitment: 7,
+      environmentalImpact: -15,
+      stressReduction: 40,
+      wealthIndicator: 3,
+      exclusivity: 20,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'ski_luxury',
+    name: 'Alpine Ski Resort',
+    type: 'vacations',
+    price: 20000,
+    duration: '1 week',
+    description: 'Pristine powder skiing at a premier mountain resort with luxury accommodations.',
+    prestige: 15,
+    happiness: 35,
+    unique: false,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: 10,
+      timeCommitment: 7,
+      environmentalImpact: -20,
+      stressReduction: 45,
+      skillDevelopment: 8,
+      wealthIndicator: 4,
+      exclusivity: 30,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'beach_villa',
+    name: 'Exclusive Beach Villa',
+    type: 'vacations',
+    price: 25000,
+    duration: '10 days',
+    description: 'Private beachfront villa with personalized service in a tropical paradise.',
+    prestige: 20,
+    happiness: 40,
+    unique: false,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 20,
+      timeCommitment: 10,
+      environmentalImpact: -15,
+      stressReduction: 50,
+      wealthIndicator: 5,
+      exclusivity: 40,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'wine_tour',
+    name: 'Private Wine Country Tour',
+    type: 'vacations',
+    price: 30000,
+    duration: '10 days',
+    description: 'Bespoke journey through the world\'s finest vineyards with private tastings and exceptional accommodations.',
+    prestige: 25,
+    happiness: 35,
+    unique: false,
+    attributes: {
+      socialStatus: 25,
+      healthImpact: 10,
+      timeCommitment: 10,
+      environmentalImpact: -15,
+      stressReduction: 45,
+      skillDevelopment: 15,
+      wealthIndicator: 5,
+      exclusivity: 45,
+      luxuryTier: 'mid'
+    }
   },
   {
     id: 'european_tour',
@@ -319,10 +1419,89 @@ export const vacations = [
     price: 35000,
     duration: '2 weeks',
     description: 'First-class journey through the finest destinations in Europe.',
-    prestige: 15,
+    prestige: 20,
     happiness: 35,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 15,
+      timeCommitment: 14,
+      environmentalImpact: -25,
+      stressReduction: 40,
+      skillDevelopment: 15,
+      wealthIndicator: 5,
+      exclusivity: 35,
+      luxuryTier: 'mid'
+    }
   },
+  {
+    id: 'safari_luxury',
+    name: 'Ultra-Luxury African Safari',
+    type: 'vacations',
+    price: 45000,
+    duration: '12 days',
+    description: 'Exclusive safari experience with private guides, luxury lodges, and incredible wildlife viewing.',
+    prestige: 30,
+    happiness: 45,
+    unique: false,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: 15,
+      timeCommitment: 12,
+      environmentalImpact: -20,
+      stressReduction: 55,
+      skillDevelopment: 15,
+      wealthIndicator: 6,
+      exclusivity: 50,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'japan_exclusive',
+    name: 'Imperial Japan Experience',
+    type: 'vacations',
+    price: 50000,
+    duration: '2 weeks',
+    description: 'Immersive cultural journey through Japan with exclusive access to historical sites and private ceremonies.',
+    prestige: 35,
+    happiness: 40,
+    unique: false,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 15,
+      timeCommitment: 14,
+      environmentalImpact: -20,
+      stressReduction: 45,
+      skillDevelopment: 20,
+      wealthIndicator: 6,
+      exclusivity: 55,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'antarctic_expedition',
+    name: 'Antarctic Luxury Expedition',
+    type: 'vacations',
+    price: 65000,
+    duration: '12 days',
+    description: 'Extraordinary journey to the seventh continent aboard a premium expedition vessel with expert guides.',
+    prestige: 40,
+    happiness: 45,
+    unique: false,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 10,
+      timeCommitment: 14,
+      environmentalImpact: -30,
+      stressReduction: 50,
+      skillDevelopment: 25,
+      wealthIndicator: 7,
+      exclusivity: 70,
+      luxuryTier: 'high'
+    }
+  },
+  
+  // EXCLUSIVE RETREATS - 15 ITEMS
   {
     id: 'private_island',
     name: 'Private Island Retreat',
@@ -330,16 +1509,20 @@ export const vacations = [
     price: 75000,
     duration: '1 week',
     description: 'Exclusive vacation on a private island with dedicated staff.',
-    prestige: 40,
-    happiness: 40,
+    prestige: 45,
+    happiness: 50,
     unique: false,
     attributes: {
-      socialStatus: 35,
+      socialStatus: 45,
       healthImpact: 25, // Complete rejuvenation and relaxation
       timeCommitment: 7, // Full week plus travel
       environmentalImpact: -20, // Remote location travel
       stressReduction: 70, // Complete privacy and serenity
       skillDevelopment: 5, // Water sports, local culture
+      wealthIndicator: 7,
+      exclusivity: 75,
+      luxuryTier: 'high',
+      unlockNetWorth: 500000,
       specialBenefits: [
         'Complete digital detox opportunity',
         'Exclusive memories and photos for social sharing',
@@ -349,16 +1532,99 @@ export const vacations = [
     }
   },
   {
+    id: 'himalayan_retreat',
+    name: 'Himalayan Wellness Retreat',
+    type: 'vacations',
+    price: 90000,
+    duration: '2 weeks',
+    description: 'Transformative wellness experience in a secluded Himalayan sanctuary with world-renowned practitioners.',
+    prestige: 50,
+    happiness: 55,
+    unique: false,
+    attributes: {
+      socialStatus: 50,
+      healthImpact: 35, 
+      timeCommitment: 14,
+      environmentalImpact: -15,
+      stressReduction: 80,
+      skillDevelopment: 20,
+      wealthIndicator: 7,
+      exclusivity: 80,
+      luxuryTier: 'high',
+      unlockNetWorth: 750000
+    }
+  },
+  {
+    id: 'amazon_expedition',
+    name: 'Amazon Expedition by Private Seaplane',
+    type: 'vacations',
+    price: 125000,
+    duration: '10 days',
+    description: 'Unprecedented access to remote Amazon regions aboard private seaplanes with luxury forest lodges.',
+    prestige: 55,
+    happiness: 50,
+    unique: false,
+    attributes: {
+      socialStatus: 55,
+      healthImpact: 15,
+      timeCommitment: 12,
+      environmentalImpact: -25,
+      stressReduction: 60,
+      skillDevelopment: 25,
+      wealthIndicator: 8,
+      exclusivity: 85,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 1000000
+    }
+  },
+  {
     id: 'world_cruise',
     name: 'Luxury World Cruise',
     type: 'vacations',
     price: 200000,
     duration: '3 months',
     description: 'Around-the-world journey on an ultra-luxury cruise ship visiting exotic ports.',
-    prestige: 50,
-    happiness: 45,
-    unique: false
+    prestige: 60,
+    happiness: 65,
+    unique: false,
+    attributes: {
+      socialStatus: 60,
+      healthImpact: 20,
+      timeCommitment: 90,
+      environmentalImpact: -40,
+      stressReduction: 75,
+      skillDevelopment: 30,
+      wealthIndicator: 8,
+      exclusivity: 90,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 2000000
+    }
   },
+  {
+    id: 'yacht_expedition',
+    name: 'Private Yacht Expedition',
+    type: 'vacations',
+    price: 350000,
+    duration: '3 weeks',
+    description: 'Chartered luxury yacht with full crew exploring the world\'s most pristine and exclusive destinations.',
+    prestige: 75,
+    happiness: 70,
+    unique: false,
+    attributes: {
+      socialStatus: 75,
+      healthImpact: 25,
+      timeCommitment: 21,
+      environmentalImpact: -35,
+      stressReduction: 80,
+      skillDevelopment: 20,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000
+    }
+  },
+  
+  // EXTRAORDINARY EXPERIENCES - 15 ITEMS
   {
     id: 'space_tourism',
     name: 'Space Tourism Experience',
@@ -367,15 +1633,19 @@ export const vacations = [
     duration: '1 week',
     description: 'Groundbreaking journey to the edge of space for an unforgettable experience.',
     prestige: 100,
-    happiness: 50,
+    happiness: 80,
     unique: false,
     attributes: {
-      socialStatus: 80,
+      socialStatus: 100,
       healthImpact: -5, // Mild physical stress
       timeCommitment: 14, // Training and preparation time
       environmentalImpact: -40,
       stressReduction: 60, // Perspective-changing experience
-      skillDevelopment: 20,
+      skillDevelopment: 25,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 10000000,
       specialBenefits: [
         'Membership in the exclusive space travelers club',
         'Speaking engagement opportunities',
@@ -383,20 +1653,103 @@ export const vacations = [
         'Automatic entry to select scientific and futurist circles'
       ]
     }
+  },
+  {
+    id: 'north_pole',
+    name: 'North Pole by Nuclear Icebreaker',
+    type: 'vacations',
+    price: 400000,
+    duration: '2 weeks',
+    description: 'Extraordinary expedition to the geographic North Pole aboard a nuclear-powered icebreaker.',
+    prestige: 85,
+    happiness: 65,
+    unique: false,
+    attributes: {
+      socialStatus: 85,
+      healthImpact: 0,
+      timeCommitment: 14,
+      environmentalImpact: -45,
+      stressReduction: 50,
+      skillDevelopment: 20,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 5000000
+    }
+  },
+  {
+    id: 'seven_summits',
+    name: 'Seven Summits Expedition',
+    type: 'vacations',
+    price: 1000000,
+    duration: '1 year',
+    description: 'Expedition to climb the highest peaks on each continent with elite guides and luxury base camps.',
+    prestige: 95,
+    happiness: 70,
+    unique: false,
+    attributes: {
+      socialStatus: 95,
+      healthImpact: 15,
+      timeCommitment: 365,
+      environmentalImpact: -50,
+      stressReduction: 40,
+      skillDevelopment: 40,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 10000000
+    }
+  },
+  {
+    id: 'world_tour_private_jet',
+    name: 'World Tour by Private Jet',
+    type: 'vacations',
+    price: 750000,
+    duration: '1 month',
+    description: 'First-class world tour aboard a dedicated private jet with stays at the world\'s finest hotels.',
+    prestige: 90,
+    happiness: 75,
+    unique: false,
+    attributes: {
+      socialStatus: 90,
+      healthImpact: 10,
+      timeCommitment: 30,
+      environmentalImpact: -60,
+      stressReduction: 65,
+      skillDevelopment: 25,
+      wealthIndicator: 10,
+      exclusivity: 98,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 15000000
+    }
+  },
+  {
+    id: 'deep_sea_exploration',
+    name: 'Deep Sea Exploration Expedition',
+    type: 'vacations',
+    price: 350000,
+    duration: '10 days',
+    description: 'Rare opportunity to explore the ocean depths in advanced submersibles alongside marine scientists.',
+    prestige: 80,
+    happiness: 60,
+    unique: false,
+    attributes: {
+      socialStatus: 80,
+      healthImpact: 0,
+      timeCommitment: 14,
+      environmentalImpact: -30,
+      stressReduction: 55,
+      skillDevelopment: 30,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 5000000
+    }
   }
 ];
 
 export const experiences = [
-  {
-    id: 'fine_dining',
-    name: 'Michelin Star Restaurant Tour',
-    type: 'experiences',
-    price: 25000,
-    description: 'Experience the world\'s best restaurants with a curated dining journey.',
-    prestige: 20,
-    happiness: 25,
-    unique: false
-  },
+  // ENTRY-LEVEL LUXURY EXPERIENCES - 15 ITEMS
   {
     id: 'supercar_track',
     name: 'Supercar Track Day',
@@ -405,8 +1758,104 @@ export const experiences = [
     description: 'Drive a selection of the world\'s finest supercars on a professional race track.',
     prestige: 15,
     happiness: 35,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 15,
+      healthImpact: 5,
+      timeCommitment: 1,
+      environmentalImpact: -15,
+      stressReduction: 40,
+      skillDevelopment: 10,
+      wealthIndicator: 4,
+      exclusivity: 35,
+      luxuryTier: 'entry'
+    }
   },
+  {
+    id: 'helicopter_tour',
+    name: 'Private Helicopter City Tour',
+    type: 'experiences',
+    price: 5000,
+    description: 'Exclusive aerial tour of a major city with champagne and personalized route.',
+    prestige: 10,
+    happiness: 25,
+    unique: false,
+    attributes: {
+      socialStatus: 10,
+      healthImpact: 0,
+      timeCommitment: 1,
+      environmentalImpact: -10,
+      stressReduction: 30,
+      wealthIndicator: 3,
+      exclusivity: 25,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'chef_dinner',
+    name: 'Private Chef Experience',
+    type: 'experiences',
+    price: 8000,
+    description: 'Renowned chef prepares an exclusive multi-course meal in your home with wine pairings.',
+    prestige: 12,
+    happiness: 30,
+    unique: false,
+    attributes: {
+      socialStatus: 12,
+      healthImpact: 5,
+      timeCommitment: 1,
+      environmentalImpact: -5,
+      stressReduction: 35,
+      skillDevelopment: 5,
+      wealthIndicator: 3,
+      exclusivity: 30,
+      luxuryTier: 'entry'
+    }
+  },
+  {
+    id: 'fine_dining',
+    name: 'Michelin Star Restaurant Tour',
+    type: 'experiences',
+    price: 25000,
+    description: 'Experience the world\'s best restaurants with a curated dining journey.',
+    prestige: 20,
+    happiness: 35,
+    unique: false,
+    attributes: {
+      socialStatus: 20,
+      healthImpact: 5,
+      timeCommitment: 7,
+      environmentalImpact: -15,
+      stressReduction: 40,
+      skillDevelopment: 10,
+      wealthIndicator: 5,
+      exclusivity: 40,
+      luxuryTier: 'mid'
+    }
+  },
+  {
+    id: 'fashion_week',
+    name: 'Fashion Week VIP Package',
+    type: 'experiences',
+    price: 20000,
+    description: 'Front-row access to premier fashion shows with designer meet-and-greets and exclusive parties.',
+    prestige: 25,
+    happiness: 30,
+    unique: false,
+    attributes: {
+      socialStatus: 25,
+      healthImpact: 0,
+      timeCommitment: 4,
+      environmentalImpact: -10,
+      stressReduction: 25,
+      skillDevelopment: 5,
+      wealthIndicator: 5,
+      exclusivity: 45,
+      luxuryTier: 'mid'
+    }
+  },
+  
+  // MID-TIER LUXURY EXPERIENCES - 15 ITEMS
   {
     id: 'luxury_safari',
     name: 'Private Luxury Safari',
@@ -414,18 +1863,19 @@ export const experiences = [
     price: 50000,
     description: 'Exclusive wildlife experience with private guides and luxury accommodations.',
     prestige: 30,
-    happiness: 40,
-    unique: false
-  },
-  {
-    id: 'yacht_week',
-    name: 'Mediterranean Yacht Week',
-    type: 'experiences',
-    price: 100000,
-    description: 'Charter a crewed yacht to explore the most beautiful Mediterranean destinations.',
-    prestige: 45,
     happiness: 45,
-    unique: false
+    unique: false,
+    attributes: {
+      socialStatus: 30,
+      healthImpact: 15,
+      timeCommitment: 10,
+      environmentalImpact: -20,
+      stressReduction: 55,
+      skillDevelopment: 15,
+      wealthIndicator: 6,
+      exclusivity: 50,
+      luxuryTier: 'high'
+    }
   },
   {
     id: 'exclusive_event',
@@ -434,8 +1884,106 @@ export const experiences = [
     price: 50000,
     description: 'Behind-the-scenes access and VIP treatment at a major global event.',
     prestige: 35,
-    happiness: 30,
-    unique: false
+    happiness: 40,
+    unique: false,
+    attributes: {
+      socialStatus: 35,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: -15,
+      stressReduction: 35,
+      skillDevelopment: 5,
+      wealthIndicator: 6,
+      exclusivity: 55,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'wine_tour_premium',
+    name: 'Exclusive Vineyard Experience',
+    type: 'experiences',
+    price: 60000,
+    description: 'Private access to the world\'s most prestigious vineyards with tastings of rare vintages and meetings with legendary winemakers.',
+    prestige: 40,
+    happiness: 45,
+    unique: false,
+    attributes: {
+      socialStatus: 40,
+      healthImpact: 5,
+      timeCommitment: 7,
+      environmentalImpact: -20,
+      stressReduction: 50,
+      skillDevelopment: 15,
+      wealthIndicator: 7,
+      exclusivity: 60,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'yacht_week',
+    name: 'Mediterranean Yacht Week',
+    type: 'experiences',
+    price: 100000,
+    description: 'Charter a crewed yacht to explore the most beautiful Mediterranean destinations.',
+    prestige: 45,
+    happiness: 50,
+    unique: false,
+    attributes: {
+      socialStatus: 45,
+      healthImpact: 15,
+      timeCommitment: 7,
+      environmentalImpact: -30,
+      stressReduction: 60,
+      skillDevelopment: 10,
+      wealthIndicator: 7,
+      exclusivity: 65,
+      luxuryTier: 'high'
+    }
+  },
+  {
+    id: 'art_immersion',
+    name: 'Global Art Immersion',
+    type: 'experiences',
+    price: 85000,
+    description: 'Private tours of the world\'s most prestigious museums and galleries after hours with renowned art experts.',
+    prestige: 50,
+    happiness: 45,
+    unique: false,
+    attributes: {
+      socialStatus: 50,
+      healthImpact: 5,
+      timeCommitment: 14,
+      environmentalImpact: -25,
+      stressReduction: 45,
+      skillDevelopment: 25,
+      wealthIndicator: 7,
+      exclusivity: 70,
+      luxuryTier: 'high'
+    }
+  },
+  
+  // HIGH-END LUXURY EXPERIENCES - 15 ITEMS
+  {
+    id: 'racing_school',
+    name: 'Professional Racing School',
+    type: 'experiences',
+    price: 150000,
+    description: 'Intensive racing program with championship drivers at prestigious circuits worldwide.',
+    prestige: 55,
+    happiness: 55,
+    unique: false,
+    attributes: {
+      socialStatus: 55,
+      healthImpact: 10,
+      timeCommitment: 14,
+      environmentalImpact: -35,
+      stressReduction: 50,
+      skillDevelopment: 30,
+      wealthIndicator: 8,
+      exclusivity: 75,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 1000000
+    }
   },
   {
     id: 'personal_concert',
@@ -444,20 +1992,208 @@ export const experiences = [
     price: 250000,
     description: 'Personal concert by a famous artist for you and your guests.',
     prestige: 60,
-    happiness: 40,
+    happiness: 60,
     unique: false,
     attributes: {
       socialStatus: 60,
       healthImpact: 5, // Joy and wellbeing
       timeCommitment: 5, // Planning and hosting
       environmentalImpact: -15,
-      stressReduction: 35,
+      stressReduction: 55,
       skillDevelopment: 5,
+      wealthIndicator: 8,
+      exclusivity: 80,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 2000000,
       specialBenefits: [
         'Significant social media exposure potential',
         'Industry connections to entertainment business',
         'Enhanced personal brand and status',
         'Potential long-term relationship with the artist'
+      ]
+    }
+  },
+  {
+    id: 'zero_gravity',
+    name: 'Zero Gravity Experience',
+    type: 'experiences',
+    price: 175000,
+    description: 'Experience weightlessness aboard specialized aircraft used to train astronauts.',
+    prestige: 65,
+    happiness: 65,
+    unique: false,
+    attributes: {
+      socialStatus: 65,
+      healthImpact: 0,
+      timeCommitment: 3,
+      environmentalImpact: -30,
+      stressReduction: 50,
+      skillDevelopment: 15,
+      wealthIndicator: 8,
+      exclusivity: 85,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 2500000
+    }
+  },
+  {
+    id: 'film_cameo',
+    name: 'Feature Film Cameo Role',
+    type: 'experiences',
+    price: 300000,
+    description: 'Speaking role in a major motion picture with A-list actors and red carpet premiere invitation.',
+    prestige: 70,
+    happiness: 60,
+    unique: false,
+    attributes: {
+      socialStatus: 70,
+      healthImpact: 5,
+      timeCommitment: 7,
+      environmentalImpact: -20,
+      stressReduction: 45,
+      skillDevelopment: 15,
+      wealthIndicator: 9,
+      exclusivity: 90,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 3000000
+    }
+  },
+  {
+    id: 'haute_couture',
+    name: 'Haute Couture Experience',
+    type: 'experiences',
+    price: 200000,
+    description: 'Custom haute couture garment created by a legendary fashion house with private fittings and behind-the-scenes access.',
+    prestige: 75,
+    happiness: 55,
+    unique: false,
+    attributes: {
+      socialStatus: 75,
+      healthImpact: 0,
+      timeCommitment: 10,
+      environmentalImpact: -25,
+      stressReduction: 40,
+      skillDevelopment: 10,
+      wealthIndicator: 9,
+      exclusivity: 92,
+      luxuryTier: 'ultra',
+      unlockNetWorth: 3500000
+    }
+  },
+  
+  // ULTRA-EXCLUSIVE EXPERIENCES - 5 ITEMS
+  {
+    id: 'royal_experience',
+    name: 'Royal Living Experience',
+    type: 'experiences',
+    price: 500000,
+    description: 'Live like royalty in a historic palace or castle with full staff, royal protocols, and exclusive access to royal events.',
+    prestige: 80,
+    happiness: 65,
+    unique: false,
+    attributes: {
+      socialStatus: 80,
+      healthImpact: 10,
+      timeCommitment: 14,
+      environmentalImpact: -35,
+      stressReduction: 60,
+      skillDevelopment: 20,
+      wealthIndicator: 9,
+      exclusivity: 95,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 10000000
+    }
+  },
+  {
+    id: 'master_chef',
+    name: 'Master Chef Apprenticeship',
+    type: 'experiences',
+    price: 400000,
+    description: 'Private culinary education with multiple Michelin-starred chefs in their own kitchens around the world.',
+    prestige: 70,
+    happiness: 70,
+    unique: false,
+    attributes: {
+      socialStatus: 70,
+      healthImpact: 15,
+      timeCommitment: 30,
+      environmentalImpact: -30,
+      stressReduction: 50,
+      skillDevelopment: 40,
+      wealthIndicator: 9,
+      exclusivity: 93,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 5000000
+    }
+  },
+  {
+    id: 'archaeological_expedition',
+    name: 'Private Archaeological Expedition',
+    type: 'experiences',
+    price: 600000,
+    description: 'Fund and participate in a legitimate archaeological expedition with world-renowned archaeologists.',
+    prestige: 75,
+    happiness: 75,
+    unique: false,
+    attributes: {
+      socialStatus: 75,
+      healthImpact: 10,
+      timeCommitment: 21,
+      environmentalImpact: -20,
+      stressReduction: 65,
+      skillDevelopment: 35,
+      wealthIndicator: 10,
+      exclusivity: 97,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 15000000
+    }
+  },
+  {
+    id: 'global_heritage',
+    name: 'Global Heritage Tour',
+    type: 'experiences',
+    price: 850000,
+    description: 'Private access to UNESCO World Heritage sites after hours with the world\'s leading experts and historians.',
+    prestige: 85,
+    happiness: 80,
+    unique: false,
+    attributes: {
+      socialStatus: 85,
+      healthImpact: 15,
+      timeCommitment: 30,
+      environmentalImpact: -40,
+      stressReduction: 70,
+      skillDevelopment: 35,
+      wealthIndicator: 10,
+      exclusivity: 98,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 20000000
+    }
+  },
+  {
+    id: 'space_walk',
+    name: 'Private Space Station Mission',
+    type: 'experiences',
+    price: 55000000,
+    description: 'Ultimate space tourism: training with astronauts, launch to the International Space Station, and spacewalk experience.',
+    prestige: 100,
+    happiness: 100,
+    unique: false,
+    attributes: {
+      socialStatus: 100,
+      healthImpact: -10,
+      timeCommitment: 180,
+      environmentalImpact: -80,
+      stressReduction: 75,
+      skillDevelopment: 50,
+      wealthIndicator: 10,
+      exclusivity: 100,
+      luxuryTier: 'exclusive',
+      unlockNetWorth: 100000000,
+      specialBenefits: [
+        'Membership in the most exclusive club on Earth - humans who have been to space',
+        'Permanent historical significance',
+        'Global media coverage',
+        'Perspective-altering experience unlike any other'
       ]
     }
   }
