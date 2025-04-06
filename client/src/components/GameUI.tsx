@@ -649,14 +649,15 @@ export function GameUI() {
                   )}
                 </div>
               </div>
-              <span className="text-xs font-medium whitespace-nowrap">
-                {autoAdvanceEnabled ? 
-                  timeSpeed === 'superfast' ? 
-                    `${Math.max(0, Math.floor((24 - (timeProgress * 24 / 100)) / 6))}s (6x)` : 
-                  timeSpeed === 'fast' ? 
-                    `${Math.max(0, Math.floor((24 - (timeProgress * 24 / 100)) / 3))}s (3x)` : 
-                    `${Math.max(0, Math.floor(24 - (timeProgress * 24 / 100)))}s` 
-                  : "Paused"}
+              <span className="text-xs font-medium whitespace-nowrap flex items-center">
+                <Clock className="h-3 w-3 mr-1 opacity-70" />
+                {autoAdvanceEnabled ? (
+                  <span>
+                    {/* Convert progress percentage to hours and minutes */}
+                    {`${String(Math.floor((timeProgress / 100) * 24)).padStart(2, '0')}:${String(Math.floor(((timeProgress / 100) * 24 % 1) * 60)).padStart(2, '0')}`}
+                    {timeSpeed === 'superfast' ? ' (6x)' : timeSpeed === 'fast' ? ' (3x)' : ''}
+                  </span>
+                ) : "Paused"}
               </span>
             </div>
           </div>
