@@ -332,9 +332,12 @@ export const performCompleteGameReset = () => {
   
   console.log("All steps completed, reloading page to complete reset process...");
   
-  // 8. Force a page reload to complete the reset and clear any in-memory state
-  // The App.tsx useEffect will handle the redirect to character creation afterward
-  window.location.reload();
+  // 8. Set a flag to indicate we're about to navigate to character creation
+  // This prevents flashing screens during the navigation
+  sessionStorage.setItem('smooth_navigation', 'true');
+
+  // Navigate to the character creation screen
+  window.location.href = '/create';
 };
 
 /**

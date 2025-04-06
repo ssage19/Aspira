@@ -43,9 +43,32 @@ export function NetWorthBreakdown() {
 
   // Function to refresh the breakdown data
   const refreshBreakdown = useCallback(() => {
-    // IMPORTANT: Force calculation of the net worth to ensure fresh data
-    // This is crucial after a game reset to rebuild with current data
-    calculateNetWorth();
+    console.log('NetWorthBreakdown: Refreshing breakdown data');
+    
+    // Safety check - if we're in the middle of a reset, use default values
+    // This prevents using stale data during reset transitions
+    const resetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
+    if (resetInProgress) {
+      console.log('NetWorthBreakdown: Reset in progress, using default values');
+      const safeBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+      setBreakdown(safeBreakdown);
+      setNetWorth(wealth || 0);
+      return;
+    }
+    
+    // Create a safety wrapper around the calculation to catch any errors
+    const safeCalculate = () => {
+      try {
+        // IMPORTANT: Force calculation of the net worth to ensure fresh data
+        return calculateNetWorth();
+      } catch (err) {
+        console.error('Error safely calculating net worth:', err);
+        return null;
+      }
+    };
+    
+    // First attempt a safe calculation
+    safeCalculate();
     
     try {
       // Get the breakdown from the store
@@ -53,31 +76,43 @@ export function NetWorthBreakdown() {
       
       // Sanity check - ensure the breakdown makes sense relative to current wealth
       // If breakdown.cash doesn't match current wealth, it's stale data
-      if (storeBreakdown && typeof storeBreakdown === 'object' && 
-          'total' in storeBreakdown && storeBreakdown.total && 
-          'cash' in storeBreakdown && Math.abs(storeBreakdown.cash - wealth) < 0.01) {
+      const isValidBreakdown = storeBreakdown && 
+                               typeof storeBreakdown === 'object' && 
+                               'total' in storeBreakdown && 
+                               storeBreakdown.total > 0 && 
+                               'cash' in storeBreakdown && 
+                               Math.abs(storeBreakdown.cash - wealth) < 0.01;
+      
+      if (isValidBreakdown) {
         // Data is fresh and valid
+        console.log('NetWorthBreakdown: Using fresh breakdown data');
         setBreakdown(storeBreakdown as NetWorthBreakdown);
         setNetWorth(storeBreakdown.total);
       } else {
         // Data might be stale or invalid, force a recalculation
         console.log('NetWorthBreakdown: Detected possibly stale data, forcing recalculation');
         try {
-          const freshBreakdown = calculateNetWorth() as unknown as NetWorthBreakdown;
+          // Second calculation attempt
+          const freshBreakdown = safeCalculate() as unknown as NetWorthBreakdown;
+          
           // Ensure freshBreakdown is an object with the expected properties
-          if (freshBreakdown && typeof freshBreakdown === 'object' && 
-              'total' in freshBreakdown && 'cash' in freshBreakdown) {
+          if (freshBreakdown && 
+              typeof freshBreakdown === 'object' && 
+              'total' in freshBreakdown && 
+              freshBreakdown.total > 0 && 
+              'cash' in freshBreakdown) {
+            console.log('NetWorthBreakdown: Using recalculated breakdown data');
             setBreakdown(freshBreakdown);
             setNetWorth(freshBreakdown.total);
           } else {
             // If calculation return value is invalid, set defaults
-            console.warn('NetWorthBreakdown: Invalid calculation result, using defaults');
+            console.warn('NetWorthBreakdown: Invalid calculation result, using safe defaults');
             const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
             setBreakdown(basicBreakdown);
             setNetWorth(wealth || 0);
           }
         } catch (err) {
-          console.error('Error during net worth calculation:', err);
+          console.error('Error during net worth recalculation:', err);
           const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
           setBreakdown(basicBreakdown);
           setNetWorth(wealth || 0);
@@ -86,7 +121,8 @@ export function NetWorthBreakdown() {
     } catch (e) {
       console.error('Error getting net worth breakdown:', e);
       // In case of error, set to default empty breakdown
-      setBreakdown(defaultBreakdown);
+      const safeBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+      setBreakdown(safeBreakdown);
       setNetWorth(wealth || 0); // At minimum, show current cash as net worth
     }
   }, [wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth]);
@@ -100,12 +136,26 @@ export function NetWorthBreakdown() {
   useEffect(() => {
     // Check if we need to clear any session storage flags after a reset
     const resetCompleted = sessionStorage.getItem('game_reset_completed');
-    if (resetCompleted === 'true') {
-      console.log('NetWorthBreakdown: Detected recent game reset, ensuring fresh data');
-      // Force an immediate refresh
+    const smoothNavigation = sessionStorage.getItem('smooth_navigation');
+    
+    if (resetCompleted === 'true' || smoothNavigation === 'true') {
+      console.log('NetWorthBreakdown: Detected recent game reset or navigation, ensuring fresh data');
+      
+      // Force multiple refreshes to ensure data is completely updated
+      // This helps with race conditions during resets
       refreshBreakdown();
-      // Clear the flag to avoid repeated refreshes
+      
+      // Schedule additional refreshes with small delays to catch any late updates
+      const timer1 = setTimeout(() => refreshBreakdown(), 500);
+      const timer2 = setTimeout(() => refreshBreakdown(), 1500);
+      
+      // Clear the flags to avoid repeated refreshes
       sessionStorage.removeItem('game_reset_completed');
+      
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+      };
     }
   }, [refreshBreakdown]);
 

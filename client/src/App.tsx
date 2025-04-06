@@ -42,6 +42,21 @@ function App() {
     // Check if we need to redirect after a game reset
     const redirectUrl = sessionStorage.getItem('redirect_after_reset');
     const resetInProgress = sessionStorage.getItem('game_reset_in_progress');
+    const smoothNavigation = sessionStorage.getItem('smooth_navigation') === 'true';
+    
+    // Handle smooth navigation to character creation
+    if (smoothNavigation) {
+      console.log("Smooth navigation in progress, skipping other checks");
+      sessionStorage.removeItem('smooth_navigation');
+      
+      // If we're not already on the character creation page, go there
+      if (window.location.pathname !== '/create') {
+        console.log('Redirecting to character creation via smooth navigation');
+        window.location.href = '/create';
+        return;
+      }
+      return;
+    }
     
     // Check for time consistency on app start - if localStorage time data is from future, reset
     try {
@@ -60,10 +75,10 @@ function App() {
         
         console.log(`Date difference in days: ${diffDays}`);
         
-        // If the stored date is different from the real date at all, force reset
-        // This ensures we're always on a consistent date
-        if (diffDays > 0) {
-          console.warn(`Date difference of ${diffDays} days detected - forcing reset to real-world date`);
+        // Only automatically sync time if the date is way off (more than 30 days)
+        // Otherwise, we respect user's game time and only reset on explicit user action
+        if (diffDays > 30) {
+          console.warn(`Major date difference of ${diffDays} days detected - syncing to real-world date`);
           
           try {
             // Create a new time state with the real-world date

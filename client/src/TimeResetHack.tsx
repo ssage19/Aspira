@@ -85,10 +85,12 @@ const TimeResetHack: React.FC = () => {
           const diffTime = Math.abs(savedDate.getTime() - realDate.getTime());
           const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
           
-          if (diffDays > 3) {
-            console.error(`⚠️ TimeResetHack: Date difference of ${diffDays} days detected even after reset!`);
+          // Only consider it a problem if the difference is greater than 30 days
+          // This ensures we respect the game's internal timeline
+          if (diffDays > 30) {
+            console.error(`⚠️ TimeResetHack: Major date difference of ${diffDays} days detected even after reset!`);
           } else {
-            console.log(`⚠️ TimeResetHack: Date reset successful - difference is only ${diffDays} days`);
+            console.log(`⚠️ TimeResetHack: Date verification complete - difference is ${diffDays} days (acceptable)`);
           }
         } catch (e) {
           console.error('⚠️ TimeResetHack: Error checking date difference:', e);
