@@ -497,10 +497,23 @@ export function Essentials() {
       }
     }
     
-    // If any actions were taken, only log to console for debugging
+    // If any actions were taken, update the state and broadcast changes
     if (actionsTaken > 0) {
       // Log to console for debugging, but don't show any user notifications
       console.log(`Auto-maintenance addressed ${actionsTaken} needs`);
+      
+      // Update the lastUpdated timestamp to force synchronized updates
+      const currentTimestamp = Date.now();
+      useCharacter.setState({ lastUpdated: currentTimestamp });
+      
+      // Explicitly save state to force update across all components
+      const { saveState } = useCharacter.getState();
+      if (saveState) {
+        saveState();
+      }
+    
+      // Force an immediate state update for this component 
+      forceUpdate({});
     }
   };
   
@@ -544,6 +557,20 @@ export function Essentials() {
             currentState.energy <= 70 || currentState.socialConnections <= 70 || 
             currentState.stress >= 50) {
           handleAutoMaintenance();
+          
+          // Update the lastUpdated timestamp to force synchronized updates
+          const currentTimestamp = Date.now();
+          useCharacter.setState({ lastUpdated: currentTimestamp });
+          
+          // After performing auto-maintenance, manually trigger state update
+          // This ensures all UI components are notified of the change
+          const { saveState } = useCharacter.getState();
+          if (saveState) {
+            saveState();
+          }
+          
+          // Force this component to update
+          forceUpdate({});
         }
       }, 1000);
     }
@@ -558,12 +585,30 @@ export function Essentials() {
       forceUpdate({});
     }, 100); // Even more frequent updates (100ms instead of 250ms) for smoother UI
     
-    // Subscribe to state changes directly
+    // Subscribe to basic needs state changes with explicit lastUpdated tracking
     const unsubscribe = useCharacter.subscribe(
-      // Include the lastUpdated field in the subscription
-      (state) => [state.hunger, state.thirst, state.energy, state.comfort, state.lastUpdated],
+      // Specifically include the lastUpdated field in the subscription selector
+      (state) => [
+        state.hunger, 
+        state.thirst, 
+        state.energy, 
+        state.comfort, 
+        state.socialConnections,
+        state.stress,
+        state.lastUpdated
+      ],
       () => {
-        // Force an immediate update whenever any basic need changes
+        // Force an immediate update whenever any basic need or lastUpdated changes
+        forceUpdate({});
+      }
+    );
+    
+    // Add an additional subscription specifically for wealth changes
+    // This ensures we catch changes that might affect what items can be purchased
+    const unsubscribeAutoMaintain = useCharacter.subscribe(
+      (state) => [state.wealth, state.lastUpdated],
+      () => {
+        // Force update when wealth or timestamp changes
         forceUpdate({});
       }
     );
@@ -573,6 +618,7 @@ export function Essentials() {
       if (autoMaintainInterval) clearInterval(autoMaintainInterval);
       clearInterval(stateRefreshInterval);
       unsubscribe();
+      unsubscribeAutoMaintain();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoMaintain]);

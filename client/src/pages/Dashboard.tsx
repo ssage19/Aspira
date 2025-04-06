@@ -294,7 +294,7 @@ export default function Dashboard() {
       forceUpdate({});
     }, 100); // Even more frequent updates (100ms instead of 250ms)
     
-    // 2. Subscribe to ALL basic needs and character state changes
+    // 2. Subscribe to ALL basic needs and character state changes with lastUpdated timestamp
     // This is a more comprehensive subscription that captures all possible state changes
     const unsubscribe = useCharacter.subscribe(
       (state) => [
@@ -305,7 +305,9 @@ export default function Dashboard() {
         state.health,
         state.stress,
         state.happiness,
-        state.socialConnections
+        state.socialConnections,
+        state.wealth,
+        state.lastUpdated  // Explicitly track the timestamp field
       ],
       () => {
         // Force an immediate update whenever any relevant state changes
@@ -313,12 +315,18 @@ export default function Dashboard() {
       }
     );
     
-    // 3. Add an additional subscription specifically for auto-maintenance effects
-    // This ensures we catch changes from the auto-maintenance system
+    // 3. Add a more focused subscription for financial values
+    // This ensures financial data stays in sync with other tabs
     const unsubscribeAutoMaintain = useCharacter.subscribe(
-      () => true, // Subscribe to any state change
+      (state) => [
+        state.wealth, 
+        state.income, 
+        state.expenses, 
+        state.netWorth,
+        state.lastUpdated  // Explicitly track the timestamp field
+      ],
       () => {
-        // Force update on any state change
+        // Force update on financial changes
         forceUpdate({});
       }
     );

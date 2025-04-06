@@ -1850,15 +1850,16 @@ function saveState() {
   // Get the current state
   const state = useCharacter.getState();
   
-  // Update the lastUpdated timestamp if needed
+  // Always update the lastUpdated timestamp to ensure synchronization
   const currentTimestamp = Date.now();
-  if (!state.lastUpdated || (currentTimestamp - state.lastUpdated) > 500) {
-    // Only update timestamp if it's null or older than 500ms to reduce unnecessary updates
-    useCharacter.setState({ lastUpdated: currentTimestamp });
-  }
   
-  // Save the updated state
+  // Set the lastUpdated timestamp directly
+  useCharacter.setState({ lastUpdated: currentTimestamp });
+  
+  // Get the updated state with the new timestamp
   const updatedState = useCharacter.getState();
+  
+  // Save to localStorage
   setLocalStorage(STORAGE_KEY, updatedState);
 }
 
