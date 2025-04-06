@@ -1754,30 +1754,67 @@ export const useCharacter = create<CharacterState>()(
       monthlyUpdate: () => {
         const state = get();
         
-        // Calculate monthly expenses from lifestyle items
+        // Calculate all monthly expenses
+        // 1. Lifestyle items expenses
         const lifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
           const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
           return total + monthlyCost;
         }, 0);
         
+        // 2. Basic living expenses based on housing type
+        let housingExpense = 0;
+        if (state.housingType === 'rental') {
+          housingExpense = 1800; // $1,800/mo for rental
+        } else if (state.housingType === 'shared') {
+          housingExpense = 900;  // $900/mo for shared housing
+        }
+        // No housing expense for 'owned' as that's handled via property mortgage
+        
+        // 3. Transportation expenses based on vehicle type
+        let transportationExpense = 0;
+        if (state.vehicleType === 'economy') {
+          transportationExpense = 300;  // $300/mo for economy vehicle
+        } else if (state.vehicleType === 'standard') {
+          transportationExpense = 450;  // $450/mo for standard vehicle
+        } else if (state.vehicleType === 'luxury') {
+          transportationExpense = 1000; // $1,000/mo for luxury vehicle
+        } else if (state.vehicleType === 'premium') {
+          transportationExpense = 1500; // $1,500/mo for premium vehicle
+        } else if (state.vehicleType === 'bicycle') {
+          transportationExpense = 50;   // $50/mo for bicycle maintenance and public transport
+        }
+        
+        // 4. Food & groceries (basic necessity)
+        const foodExpense = 600; // $600/mo standard food expense
+        
+        // Calculate total monthly expenses
+        const totalMonthlyExpenses = lifestyleExpenses + housingExpense + transportationExpense + foodExpense;
+        
         // Apply the monthly expenses if we have any
-        if (lifestyleExpenses > 0) {
+        if (totalMonthlyExpenses > 0) {
           const oldWealth = state.wealth;
           
           // Deduct expenses using our method to ensure proper state updates
-          get().deductWealth(lifestyleExpenses);
+          get().deductWealth(totalMonthlyExpenses);
           
           // Log the expense transaction with clear indication
-          console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(lifestyleExpenses)} has been deducted from your wealth.`);
-          console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(state.wealth - lifestyleExpenses)}`);
+          console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.`);
+          console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(state.wealth - totalMonthlyExpenses)}`);
+          console.log(`Breakdown - Housing: ${formatCurrency(housingExpense)}, Transportation: ${formatCurrency(transportationExpense)}, Food: ${formatCurrency(foodExpense)}, Lifestyle: ${formatCurrency(lifestyleExpenses)}`);
           
           // Show a toast to make it more visible to the player
           toast.warning(
             <div className="flex flex-col space-y-2">
-              <div className="font-semibold">Monthly Lifestyle Expenses Deducted</div>
-              <div>-{formatCurrency(lifestyleExpenses)} has been deducted from your wealth.</div>
+              <div className="font-semibold">Monthly Expenses Deducted</div>
+              <div>-{formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.</div>
+              <div className="text-xs text-muted-foreground">
+                Housing: -{formatCurrency(housingExpense)}<br/>
+                Transportation: -{formatCurrency(transportationExpense)}<br/>
+                Food & Groceries: -{formatCurrency(foodExpense)}<br/>
+                Lifestyle: -{formatCurrency(lifestyleExpenses)}
+              </div>
             </div>,
-            { duration: 5000 }
+            { duration: 8000 }
           );
         }
         
