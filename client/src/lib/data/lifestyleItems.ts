@@ -28,6 +28,7 @@ export interface LuxuryItem {
   prestige: number;
   happiness: number;
   unique: boolean;
+  durationInDays?: number; // Duration in days before the item expires; if undefined it's considered permanent
   attributes?: LifestyleAttributes;
 }
 
@@ -54,6 +55,7 @@ export interface Vacation {
   prestige: number;
   happiness: number;
   unique: boolean;
+  durationInDays: number; // Duration in days before the item expires
   attributes?: LifestyleAttributes;
 }
 
@@ -66,6 +68,7 @@ export interface Experience {
   prestige: number;
   happiness: number;
   unique: boolean;
+  durationInDays: number; // Duration in days before the item expires
   attributes?: LifestyleAttributes;
 }
 
@@ -82,6 +85,7 @@ export const luxuryItems: LuxuryItem[] = [
     prestige: 5,
     happiness: 10,
     unique: false,
+    durationInDays: 365, // 1 year
     attributes: {
       socialStatus: 5,
       healthImpact: 0,
@@ -98,6 +102,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'watch_mid',
     name: 'Mid-Range Luxury Watch',
+    durationInDays: 730, // 2 years
     type: 'luxury',
     price: 10000,
     brand: 'Various',
@@ -122,6 +127,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'watch_high',
     name: 'High-End Luxury Watch',
+    durationInDays: 1095, // 3 years
     type: 'luxury',
     price: 50000,
     brand: 'Various',
@@ -146,6 +152,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'watch_ultra',
     name: 'Ultra-Premium Timepiece',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 250000,
     brand: 'Elite Watchmakers',
@@ -176,6 +183,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'jewelry_entry',
     name: 'Fine Jewelry Piece',
+    durationInDays: 730, // 2 years
     type: 'luxury',
     price: 5000,
     brand: 'Various',
@@ -199,6 +207,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'jewelry_mid',
     name: 'Designer Jewelry Set',
+    durationInDays: 1095, // 3 years
     type: 'luxury',
     price: 25000,
     brand: 'Premium Designers',
@@ -222,6 +231,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'jewelry_high',
     name: 'Signature Jewelry Collection',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 100000,
     brand: 'Various',
@@ -245,6 +255,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'iconic_jewel',
     name: 'Iconic Branded Jewelry',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 250000,
     brand: 'World-Famous Jewelers',
@@ -269,6 +280,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'rare_gems',
     name: 'Rare Gemstone Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 750000,
     brand: 'Fine Jewelers',
@@ -295,6 +307,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'art_print',
     name: 'Limited Edition Art Print',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 3000,
     maintenanceCost: 50,
@@ -317,6 +330,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'emerging_artist',
     name: 'Emerging Artist Original',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 8000,
     maintenanceCost: 100,
@@ -340,6 +354,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'art_painting',
     name: 'Original Painting',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 25000,
     maintenanceCost: 200,
@@ -363,6 +378,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'sculpture',
     name: 'Fine Art Sculpture',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 75000,
     maintenanceCost: 500,
@@ -385,6 +401,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'art_collection',
     name: 'Fine Art Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 500000,
     maintenanceCost: 5000,
@@ -409,6 +426,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'museum_quality',
     name: 'Museum-Quality Masterpiece',
+    durationInDays: 7300, // 20 years
     type: 'luxury',
     price: 2000000,
     maintenanceCost: 15000,
@@ -439,6 +457,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'rare_books',
     name: 'Rare Book Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 150000,
     maintenanceCost: 2000,
@@ -462,6 +481,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'antique_furniture',
     name: 'Antique Furniture Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 200000,
     maintenanceCost: 5000,
@@ -484,6 +504,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'vintage_car',
     name: 'Classic Vintage Car',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 350000,
     maintenanceCost: 10000,
@@ -512,6 +533,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'vintage_collection',
     name: 'Vintage Car Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 2500000,
     maintenanceCost: 50000,
@@ -544,6 +566,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'designer_wardrobe',
     name: 'Designer Wardrobe',
+    durationInDays: 365, // 1 year
     type: 'luxury',
     price: 50000,
     maintenanceCost: 5000,
@@ -566,6 +589,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'bespoke_suits',
     name: 'Bespoke Suit Collection',
+    durationInDays: 730, // 2 years
     type: 'luxury',
     price: 75000,
     maintenanceCost: 3000,
@@ -588,6 +612,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'couture_collection',
     name: 'Haute Couture Collection',
+    durationInDays: 730, // 2 years
     type: 'luxury',
     price: 250000,
     maintenanceCost: 10000,
@@ -617,6 +642,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'wine_collection',
     name: 'Fine Wine Collection',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 75000,
     maintenanceCost: 2000,
@@ -640,6 +666,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'rare_whiskey',
     name: 'Rare Whiskey Collection',
+    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 150000,
     maintenanceCost: 1000,
@@ -663,6 +690,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'home_spa',
     name: 'Luxury Home Spa',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 100000,
     maintenanceCost: 5000,
@@ -685,6 +713,7 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'home_theater',
     name: 'Premium Home Theater',
+    durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 150000,
     maintenanceCost: 3000,
