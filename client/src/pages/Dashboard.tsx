@@ -8,7 +8,7 @@ import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import { useRandomEvents } from '../lib/stores/useRandomEvents';
 import { ThemeToggle } from '../components/ui/theme-toggle';
-import CharacterAttributes from '../components/CharacterAttributes';
+import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 import { 
   DollarSign, 
