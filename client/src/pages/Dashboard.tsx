@@ -260,7 +260,7 @@ export default function Dashboard() {
     };
   }, [isMuted]);
   
-  // Force refresh of character state every second to match Essentials component
+  // Force refresh of character state to match Essentials component
   // This ensures consistent values between Dashboard and Lifestyle tabs
   const [_, forceUpdate] = useState({});
   
@@ -273,9 +273,21 @@ export default function Dashboard() {
       // Force component to rerender by updating state
       // This ensures the dashboard updates when values increase as well as decrease
       forceUpdate({});
-    }, 1000);
+    }, 250); // More frequent updates (250ms instead of 1000ms)
     
-    return () => clearInterval(refreshInterval);
+    // Subscribe to state changes directly
+    const unsubscribe = useCharacter.subscribe(
+      (state) => [state.hunger, state.thirst, state.energy, state.comfort],
+      () => {
+        // Force an immediate update whenever any basic need changes
+        forceUpdate({});
+      }
+    );
+    
+    return () => {
+      clearInterval(refreshInterval);
+      unsubscribe();
+    };
   }, []);
   
   // Calculate portfolio stats

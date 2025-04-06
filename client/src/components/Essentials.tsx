@@ -514,7 +514,7 @@ export function Essentials() {
   // Force component to update regularly to reflect state changes
   const [_, forceUpdate] = useState({});
   
-  // Always refresh the component state every second
+  // Always refresh the component state every 250ms
   useEffect(() => {
     // Set up two different intervals:
     // 1. For auto-maintenance (only runs when enabled)
@@ -534,12 +534,22 @@ export function Essentials() {
       // Force component to rerender by updating state
       // This is needed to ensure the component updates when values increase
       forceUpdate({});
-    }, 1000);
+    }, 250); // More frequent updates (250ms instead of 1000ms)
+    
+    // Subscribe to state changes directly
+    const unsubscribe = useCharacter.subscribe(
+      (state) => [state.hunger, state.thirst, state.energy, state.comfort],
+      () => {
+        // Force an immediate update whenever any basic need changes
+        forceUpdate({});
+      }
+    );
     
     // Cleanup function to prevent memory leaks
     return () => {
       if (autoMaintainInterval) clearInterval(autoMaintainInterval);
       clearInterval(stateRefreshInterval);
+      unsubscribe();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoMaintain]);

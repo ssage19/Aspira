@@ -76,10 +76,22 @@ export function CharacterAttributes() {
       // Force component to rerender by updating state
       // This is needed to ensure the component updates when values increase
       forceUpdate({});
-    }, 1000);
+    }, 250); // More frequent updates (250ms instead of 1000ms)
+    
+    // Subscribe to state changes directly
+    const unsubscribe = useCharacter.subscribe(
+      (state) => [state.hunger, state.thirst, state.energy, state.comfort],
+      () => {
+        // Force an immediate update whenever any basic need changes
+        forceUpdate({});
+      }
+    );
     
     // Cleanup function to prevent memory leaks
-    return () => clearInterval(stateRefreshInterval);
+    return () => {
+      clearInterval(stateRefreshInterval);
+      unsubscribe();
+    };
   }, []);
   
   // Calculate an average skill level for display
