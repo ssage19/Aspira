@@ -68,7 +68,9 @@ export function CharacterAttributes() {
   const [_, forceUpdate] = useState({});
   
   useEffect(() => {
-    // State refresh interval - always active to ensure UI stays updated
+    // More aggressive state update approach to ensure all UI components stay in sync
+    
+    // 1. State refresh interval - always active to ensure UI stays updated
     const stateRefreshInterval = setInterval(() => {
       // Get the current state
       const currentState = useCharacter.getState();
@@ -76,13 +78,33 @@ export function CharacterAttributes() {
       // Force component to rerender by updating state
       // This is needed to ensure the component updates when values increase
       forceUpdate({});
-    }, 250); // More frequent updates (250ms instead of 1000ms)
+    }, 100); // Even more frequent updates (100ms instead of 250ms)
     
-    // Subscribe to state changes directly
+    // 2. Subscribe to ALL basic needs and character state changes
+    // This is a more comprehensive subscription that captures all possible state changes
     const unsubscribe = useCharacter.subscribe(
-      (state) => [state.hunger, state.thirst, state.energy, state.comfort],
+      (state) => [
+        state.hunger, 
+        state.thirst, 
+        state.energy, 
+        state.comfort,
+        state.health,
+        state.stress,
+        state.happiness,
+        state.socialConnections
+      ],
       () => {
-        // Force an immediate update whenever any basic need changes
+        // Force an immediate update whenever any relevant state changes
+        forceUpdate({});
+      }
+    );
+    
+    // 3. Add an additional subscription specifically for auto-maintenance effects
+    // This ensures we catch changes from the auto-maintenance system
+    const unsubscribeAutoMaintain = useCharacter.subscribe(
+      () => true, // Subscribe to any state change 
+      () => {
+        // Force update on any state change
         forceUpdate({});
       }
     );
@@ -91,6 +113,7 @@ export function CharacterAttributes() {
     return () => {
       clearInterval(stateRefreshInterval);
       unsubscribe();
+      unsubscribeAutoMaintain();
     };
   }, []);
   
