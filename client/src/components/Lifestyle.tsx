@@ -124,14 +124,6 @@ export function Lifestyle() {
       // Convert daily maintenance to monthly cost (30 days per month)
       const monthlyMaintenance = (item.maintenanceCost || 0) * 30;
       
-      // Calculate end date for vacations and experiences with durationInDays
-      let endDate;
-      if ((item.type === 'vacations' || item.type === 'experiences') && item.durationInDays) {
-        const now = new Date();
-        endDate = new Date(now);
-        endDate.setDate(now.getDate() + item.durationInDays);
-      }
-      
       lifestyleItem = {
         id: item.id,
         name: item.name,
@@ -144,8 +136,9 @@ export function Lifestyle() {
         prestige: item.prestige || 5,
         // Add purchase date
         purchaseDate: new Date().toISOString(),
-        // Add end date for time-limited items
-        ...(endDate && { endDate: endDate.toISOString() }),
+        // For duration-based items, pass the durationInDays to the store
+        // The store's addLifestyleItem function will calculate the endDate
+        ...(item.durationInDays && { durationInDays: item.durationInDays }),
         
         // Add attributes from the item if they exist
         ...(item.attributes && {
