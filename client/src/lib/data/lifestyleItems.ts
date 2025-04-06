@@ -72,6 +72,60 @@ export interface Experience {
   attributes?: LifestyleAttributes;
 }
 
+export interface TechProduct {
+  id: string;
+  name: string;
+  type: 'tech';
+  price: number;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  durationInDays?: number; // Some tech products might have a useful life duration (optional)
+  attributes?: LifestyleAttributes;
+}
+
+export interface Fashion {
+  id: string;
+  name: string;
+  type: 'fashion';
+  price: number;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  durationInDays?: number; // Fashion items may have a style lifetime (optional)
+  attributes?: LifestyleAttributes;
+}
+
+export interface Tattoo {
+  id: string;
+  name: string;
+  type: 'tattoos';
+  price: number;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
+export interface Hobby {
+  id: string;
+  name: string;
+  type: 'hobbies';
+  price: number;
+  maintenanceCost: number;
+  description: string;
+  prestige: number;
+  happiness: number;
+  unique: boolean;
+  attributes?: LifestyleAttributes;
+}
+
 export const luxuryItems: LuxuryItem[] = [
   // WATCHES & JEWELRY - 15 ITEMS
   {

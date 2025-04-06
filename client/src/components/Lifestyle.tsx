@@ -41,7 +41,12 @@ import {
   Sparkles,
   BookOpen,
   Users,
-  Briefcase
+  Briefcase,
+  Smartphone,
+  Shirt,
+  Palette,
+  Camera,
+  Gamepad
 } from 'lucide-react';
 import { formatCurrency, formatInteger } from '../lib/utils';
 import { 
@@ -50,6 +55,11 @@ import {
   vacations,
   experiences 
 } from '../lib/data/lifestyleItems';
+import { 
+  techProducts,
+  fashionItems,
+  tattoos
+} from '../lib/data/additionalLifestyleItems';
 import { hobbies } from '../lib/data/hobbies';
 
 export function Lifestyle() {
@@ -441,6 +451,18 @@ export function Lifestyle() {
             <Sparkles className="h-4 w-4 mr-2" />
             Experiences
           </TabsTrigger>
+          <TabsTrigger value="tech">
+            <Smartphone className="h-4 w-4 mr-2" />
+            Tech
+          </TabsTrigger>
+          <TabsTrigger value="fashion">
+            <Shirt className="h-4 w-4 mr-2" />
+            Fashion
+          </TabsTrigger>
+          <TabsTrigger value="tattoos">
+            <Palette className="h-4 w-4 mr-2" />
+            Tattoos
+          </TabsTrigger>
           <TabsTrigger value="hobbies">
             <Briefcase className="h-4 w-4 mr-2" />
             Hobbies
@@ -659,6 +681,39 @@ export function Lifestyle() {
           {renderItems(experiences)}
         </TabsContent>
         
+        <TabsContent value="tech">
+          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
+            <h3 className="font-medium text-blue-800 mb-1">About Tech Products</h3>
+            <p className="text-blue-700">
+              Premium technology enhances productivity, entertainment, and quality of life. 
+              These items may become outdated over time, so choose based on your needs and budget.
+            </p>
+          </div>
+          {renderItems(techProducts)}
+        </TabsContent>
+        
+        <TabsContent value="fashion">
+          <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-md text-sm">
+            <h3 className="font-medium text-pink-800 mb-1">About Fashion Items</h3>
+            <p className="text-pink-700">
+              Fashion items boost social status and prestige while expressing your personal style.
+              Trendy items may go out of style over time while luxury pieces maintain value longer.
+            </p>
+          </div>
+          {renderItems(fashionItems)}
+        </TabsContent>
+        
+        <TabsContent value="tattoos">
+          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-md text-sm">
+            <h3 className="font-medium text-purple-800 mb-1">About Tattoos</h3>
+            <p className="text-purple-700">
+              Tattoos are permanent body art that can represent personal meaning, style, and status.
+              Consider carefully as these permanent modifications reflect your character's identity.
+            </p>
+          </div>
+          {renderItems(tattoos)}
+        </TabsContent>
+        
         <TabsContent value="hobbies">
           <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
             <h3 className="font-medium text-blue-800 mb-1">About Hobbies</h3>
@@ -669,36 +724,8 @@ export function Lifestyle() {
             </p>
           </div>
           
-          {/* Hobbies Sub-tabs by Category */}
-          <Tabs defaultValue="physical">
-            <TabsList className="mb-4">
-              <TabsTrigger value="physical">Physical</TabsTrigger>
-              <TabsTrigger value="creative">Creative</TabsTrigger>
-              <TabsTrigger value="intellectual">Intellectual</TabsTrigger>
-              <TabsTrigger value="social">Social</TabsTrigger>
-              <TabsTrigger value="leisure">Leisure</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="physical">
-              {renderItems(hobbies.filter(h => h.category === 'physical'))}
-            </TabsContent>
-            
-            <TabsContent value="creative">
-              {renderItems(hobbies.filter(h => h.category === 'creative'))}
-            </TabsContent>
-            
-            <TabsContent value="intellectual">
-              {renderItems(hobbies.filter(h => h.category === 'intellectual'))}
-            </TabsContent>
-            
-            <TabsContent value="social">
-              {renderItems(hobbies.filter(h => h.category === 'social'))}
-            </TabsContent>
-            
-            <TabsContent value="leisure">
-              {renderItems(hobbies.filter(h => h.category === 'leisure'))}
-            </TabsContent>
-          </Tabs>
+          {/* Render all hobbies without categories */}
+          {renderItems(hobbies)}
         </TabsContent>
       </Tabs>
     </div>
