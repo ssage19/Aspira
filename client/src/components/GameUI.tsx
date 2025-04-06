@@ -292,7 +292,21 @@ export function GameUI() {
           }, 0);
           const job = characterState.job;
           const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-          const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+          // Calculate financial data for the monthly report
+          const housingExp = characterState.housingType === 'rental' ? 1800 : 
+                            characterState.housingType === 'shared' ? 900 : 0;
+          
+          const transportExp = characterState.vehicleType === 'economy' ? 300 :
+                             characterState.vehicleType === 'standard' ? 450 :
+                             characterState.vehicleType === 'luxury' ? 1000 :
+                             characterState.vehicleType === 'premium' ? 1500 :
+                             characterState.vehicleType === 'bicycle' ? 50 : 0;
+          
+          const foodExp = 600; // Standard food expense
+          
+          const totalExp = lifestyleExpenses + housingExp + transportExp + foodExp;
+          const totalInc = propertyIncome + monthlySalary;
+          const netChange = totalInc - totalExp;
           
           // Check if we've already processed expenses for this month
           if (lastExpenseMonth !== monthId) {
@@ -346,7 +360,7 @@ export function GameUI() {
                     </div>
                     <div className="border-t border-green-500/20 mt-1 pt-1 flex justify-between">
                       <span className="font-medium">Total Income:</span>
-                      <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary + propertyIncome)}</span>
+                      <span className="font-semibold text-green-500">+{formatCurrency(totalInc)}</span>
                     </div>
                   </div>
                   
@@ -378,8 +392,8 @@ export function GameUI() {
                   {/* Final summary section */}
                   <div className="border-t border-border pt-2 mt-1 flex justify-between">
                     <span className="font-medium">Monthly Net Change:</span>
-                    <span className={`font-semibold ${monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {monthlyNet >= 0 ? '+' : ''}{formatCurrency(monthlyNet)}
+                    <span className={`font-semibold ${netChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {netChange >= 0 ? '+' : ''}{formatCurrency(netChange)}
                     </span>
                   </div>
                 </div>
@@ -467,7 +481,6 @@ export function GameUI() {
       }, 0);
       const job = characterState.job;
       const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-      const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
       
       // Check if we've already processed expenses for this month
       if (lastExpenseMonth !== monthId) {
@@ -482,7 +495,7 @@ export function GameUI() {
         console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
       }
       
-      // Calculate total monthly expenses
+      // Calculate monthly expenses and income for the report
       const housingExpense = characterState.housingType === 'rental' ? 1800 : 
                           characterState.housingType === 'shared' ? 900 : 0;
       
@@ -495,7 +508,9 @@ export function GameUI() {
       const foodExpense = 600; // Standard food expense
       
       const totalExpenses = lifestyleExpenses + housingExpense + transportationExpense + foodExpense;
-
+      const totalIncome = propertyIncome + monthlySalary;
+      const monthlyNet = totalIncome - totalExpenses;
+      
       // Show the end-of-month summary toast with a more comprehensive breakdown
       toast(
         <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
@@ -521,7 +536,7 @@ export function GameUI() {
                 </div>
                 <div className="border-t border-green-500/20 mt-1 pt-1 flex justify-between">
                   <span className="font-medium">Total Income:</span>
-                  <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary + propertyIncome)}</span>
+                  <span className="font-semibold text-green-500">+{formatCurrency(totalIncome)}</span>
                 </div>
               </div>
               
@@ -553,8 +568,8 @@ export function GameUI() {
               {/* Final summary section */}
               <div className="border-t border-border pt-2 mt-1 flex justify-between">
                 <span className="font-medium">Monthly Net Change:</span>
-                <span className={`font-semibold ${monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {monthlyNet >= 0 ? '+' : ''}{formatCurrency(monthlyNet)}
+                <span className={`font-semibold ${totalIncome - totalExpenses >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {totalIncome - totalExpenses >= 0 ? '+' : ''}{formatCurrency(totalIncome - totalExpenses)}
                 </span>
               </div>
             </div>

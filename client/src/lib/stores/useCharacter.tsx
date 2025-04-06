@@ -1797,25 +1797,12 @@ export const useCharacter = create<CharacterState>()(
           // Deduct expenses using our method to ensure proper state updates
           get().deductWealth(totalMonthlyExpenses);
           
-          // Log the expense transaction with clear indication
+          // Log the expense transaction with clear indication (but no toast)
           console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.`);
           console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(state.wealth - totalMonthlyExpenses)}`);
           console.log(`Breakdown - Housing: ${formatCurrency(housingExpense)}, Transportation: ${formatCurrency(transportationExpense)}, Food: ${formatCurrency(foodExpense)}, Lifestyle: ${formatCurrency(lifestyleExpenses)}`);
           
-          // Show a toast to make it more visible to the player
-          toast.warning(
-            <div className="flex flex-col space-y-2">
-              <div className="font-semibold">Monthly Expenses Deducted</div>
-              <div>-{formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.</div>
-              <div className="text-xs text-muted-foreground">
-                Housing: -{formatCurrency(housingExpense)}<br/>
-                Transportation: -{formatCurrency(transportationExpense)}<br/>
-                Food & Groceries: -{formatCurrency(foodExpense)}<br/>
-                Lifestyle: -{formatCurrency(lifestyleExpenses)}
-              </div>
-            </div>,
-            { duration: 8000 }
-          );
+          // Removed toast notification as it's now shown in the combined monthly summary
         }
         
         set((state) => {
