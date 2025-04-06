@@ -1200,12 +1200,6 @@ export const useCharacter = create<CharacterState>()(
       
       // Lifestyle
       addLifestyleItem: (item) => {
-        // Calculate purchase cost (if applicable)
-        let purchaseCost = 0;
-        if (item.purchasePrice) {
-          purchaseCost = item.purchasePrice;
-        }
-        
         // Use maintenanceCost for monthly expenses, defaulting to 0 if not provided
         const monthlyCost = item.maintenanceCost || 0;
         
@@ -1217,7 +1211,7 @@ export const useCharacter = create<CharacterState>()(
           }],
           // Add to expenses using the correct monthly cost
           expenses: state.expenses + monthlyCost,
-          wealth: state.wealth - purchaseCost,
+          // No longer deducting wealth here since it's already handled in Lifestyle.tsx
           happiness: Math.min(100, state.happiness + (item.happiness || 0)),
           prestige: Math.min(100, state.prestige + (item.prestige || 0))
         }));
