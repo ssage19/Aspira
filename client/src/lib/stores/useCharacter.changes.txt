@@ -1,0 +1,7 @@
+I need to update this section:
+
+          getHousingExpense: state.getHousingExpense,
+          getTransportationExpense: state.getTransportationExpense,
+          getFoodExpense: state.getFoodExpense,
+          getLifestyleExpense: state.getLifestyleExpense,
+          getTotalMonthlyExpense: state.getTotalMonthlyExpense,

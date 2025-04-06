@@ -4,6 +4,25 @@ import { getLocalStorage, setLocalStorage, formatCurrency } from "../utils";
 import { toast } from "sonner";
 import { useTime } from "./useTime";
 
+// Expense rate constants
+const EXPENSE_RATES = {
+  HOUSING: {
+    RENTAL: 1800,    // $1,800/mo for rental
+    SHARED: 900,     // $900/mo for shared housing
+    OWNED: 0,        // No expense for owned (handled via property mortgage)
+    HOMELESS: 0      // No housing expense
+  },
+  TRANSPORTATION: {
+    ECONOMY: 300,    // $300/mo for economy vehicle
+    STANDARD: 450,   // $450/mo for standard vehicle
+    LUXURY: 1000,    // $1,000/mo for luxury vehicle
+    PREMIUM: 1500,   // $1,500/mo for premium vehicle
+    BICYCLE: 50,     // $50/mo for bicycle maintenance and public transport
+    NONE: 0          // No transportation expense
+  },
+  FOOD: 600          // $600/mo standard food expense
+};
+
 export interface CharacterSkills {
   intelligence: number;
   creativity: number;
@@ -166,6 +185,13 @@ interface CharacterState {
   deductWealth: (amount: number) => void;
   addIncome: (amount: number) => void;
   addExpense: (amount: number) => void;
+  
+  // Expense calculations
+  getHousingExpense: () => number;
+  getTransportationExpense: () => number;
+  getFoodExpense: () => number;
+  getLifestyleExpense: () => number;
+  getTotalMonthlyExpense: () => number;
   
   // Attributes
   addHappiness: (amount: number) => void;
@@ -335,6 +361,11 @@ export const useCharacter = create<CharacterState>()(
           setName: state.setName,
           createNewCharacter: state.createNewCharacter,
           addWealth: state.addWealth,
+          getHousingExpense: state.getHousingExpense,
+          getTransportationExpense: state.getTransportationExpense,
+          getFoodExpense: state.getFoodExpense,
+          getLifestyleExpense: state.getLifestyleExpense,
+          getTotalMonthlyExpense: state.getTotalMonthlyExpense,
           addIncome: state.addIncome,
           addExpense: state.addExpense,
           addHappiness: state.addHappiness,
@@ -438,6 +469,59 @@ export const useCharacter = create<CharacterState>()(
       addExpense: (amount) => {
         set((state) => ({ expenses: state.expenses + amount }));
         saveState();
+      },
+
+      // Expense calculations
+      getHousingExpense: () => {
+        const state = get();
+        if (state.housingType === 'rental') {
+          return EXPENSE_RATES.HOUSING.RENTAL;
+        } else if (state.housingType === 'shared') {
+          return EXPENSE_RATES.HOUSING.SHARED;
+        } else if (state.housingType === 'owned') {
+          return EXPENSE_RATES.HOUSING.OWNED;
+        } else {
+          return EXPENSE_RATES.HOUSING.HOMELESS;
+        }
+      },
+      
+      getTransportationExpense: () => {
+        const state = get();
+        if (state.vehicleType === 'economy') {
+          return EXPENSE_RATES.TRANSPORTATION.ECONOMY;
+        } else if (state.vehicleType === 'standard') {
+          return EXPENSE_RATES.TRANSPORTATION.STANDARD;
+        } else if (state.vehicleType === 'luxury') {
+          return EXPENSE_RATES.TRANSPORTATION.LUXURY;
+        } else if (state.vehicleType === 'premium') {
+          return EXPENSE_RATES.TRANSPORTATION.PREMIUM;
+        } else if (state.vehicleType === 'bicycle') {
+          return EXPENSE_RATES.TRANSPORTATION.BICYCLE;
+        } else {
+          return EXPENSE_RATES.TRANSPORTATION.NONE;
+        }
+      },
+      
+      getFoodExpense: () => {
+        return EXPENSE_RATES.FOOD;
+      },
+      
+      getLifestyleExpense: () => {
+        const state = get();
+        return state.lifestyleItems.reduce((total, item) => {
+          const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+          return total + monthlyCost;
+        }, 0);
+      },
+      
+      getTotalMonthlyExpense: () => {
+        const state = get();
+        const housingExpense = state.getHousingExpense();
+        const transportationExpense = state.getTransportationExpense();
+        const foodExpense = state.getFoodExpense();
+        const lifestyleExpense = state.getLifestyleExpense();
+        
+        return housingExpense + transportationExpense + foodExpense + lifestyleExpense;
       },
       
       // Attributes
@@ -1754,41 +1838,14 @@ export const useCharacter = create<CharacterState>()(
       monthlyUpdate: () => {
         const state = get();
         
-        // Calculate all monthly expenses
-        // 1. Lifestyle items expenses
-        const lifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
-          const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-          return total + monthlyCost;
-        }, 0);
-        
-        // 2. Basic living expenses based on housing type
-        let housingExpense = 0;
-        if (state.housingType === 'rental') {
-          housingExpense = 1800; // $1,800/mo for rental
-        } else if (state.housingType === 'shared') {
-          housingExpense = 900;  // $900/mo for shared housing
-        }
-        // No housing expense for 'owned' as that's handled via property mortgage
-        
-        // 3. Transportation expenses based on vehicle type
-        let transportationExpense = 0;
-        if (state.vehicleType === 'economy') {
-          transportationExpense = 300;  // $300/mo for economy vehicle
-        } else if (state.vehicleType === 'standard') {
-          transportationExpense = 450;  // $450/mo for standard vehicle
-        } else if (state.vehicleType === 'luxury') {
-          transportationExpense = 1000; // $1,000/mo for luxury vehicle
-        } else if (state.vehicleType === 'premium') {
-          transportationExpense = 1500; // $1,500/mo for premium vehicle
-        } else if (state.vehicleType === 'bicycle') {
-          transportationExpense = 50;   // $50/mo for bicycle maintenance and public transport
-        }
-        
-        // 4. Food & groceries (basic necessity)
-        const foodExpense = 600; // $600/mo standard food expense
+        // Use our centralized expense calculation methods
+        const housingExpense = state.getHousingExpense();
+        const transportationExpense = state.getTransportationExpense();
+        const foodExpense = state.getFoodExpense();
+        const lifestyleExpenses = state.getLifestyleExpense();
         
         // Calculate total monthly expenses
-        const totalMonthlyExpenses = lifestyleExpenses + housingExpense + transportationExpense + foodExpense;
+        const totalMonthlyExpenses = state.getTotalMonthlyExpense();
         
         // Apply the monthly expenses if we have any
         if (totalMonthlyExpenses > 0) {
@@ -1867,6 +1924,11 @@ export const useCharacter = create<CharacterState>()(
           createNewCharacter: state.createNewCharacter,
           addWealth: state.addWealth,
           addIncome: state.addIncome,
+          getHousingExpense: state.getHousingExpense,
+          getTransportationExpense: state.getTransportationExpense,
+          getFoodExpense: state.getFoodExpense,
+          getLifestyleExpense: state.getLifestyleExpense,
+          getTotalMonthlyExpense: state.getTotalMonthlyExpense,
           addExpense: state.addExpense,
           addHappiness: state.addHappiness,
           addStress: state.addStress,
