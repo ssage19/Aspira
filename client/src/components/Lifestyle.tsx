@@ -292,6 +292,14 @@ export function Lifestyle() {
                   </>
                 )}
               </CardDescription>
+              
+              {/* Show duration for vacation and experience items */}
+              {(item.type === 'vacations' || item.type === 'experiences') && item.durationInDays && (
+                <div className="mt-1 text-xs flex items-center text-orange-600">
+                  <Clock className="h-3 w-3 mr-1 text-orange-500" />
+                  <span>Duration: {item.durationInDays} {item.durationInDays === 1 ? 'day' : 'days'}</span>
+                </div>
+              )}
             </CardHeader>
             <CardContent className="pb-2">
               <div className={`${hasAttributes(item) ? 'min-h-[160px]' : 'h-20'} flex flex-col justify-between`}>
@@ -464,6 +472,30 @@ export function Lifestyle() {
                             <span className="ml-2 text-amber-600">
                               +{formatCurrency(item.maintenanceCost)}/month
                             </span>
+                          )}
+                          
+                          {/* Display duration information for time-limited items */}
+                          {(item.type === 'vacations' || item.type === 'experiences') && item.endDate && (
+                            <div className="mt-1 flex items-center text-xs">
+                              <Clock className="h-3 w-3 mr-1 text-orange-500" />
+                              {(() => {
+                                const endDate = new Date(item.endDate);
+                                const currentDate = new Date();
+                                const daysRemaining = Math.ceil(
+                                  (endDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24)
+                                );
+                                
+                                if (daysRemaining > 0) {
+                                  return (
+                                    <span className="text-orange-600">
+                                      {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining
+                                    </span>
+                                  );
+                                } else {
+                                  return <span className="text-red-600">Expires soon</span>;
+                                }
+                              })()}
+                            </div>
                           )}
                         </CardDescription>
                       </CardHeader>
