@@ -3,10 +3,9 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useGame } from '../lib/stores/useGame';
-import { ThemeToggle } from './ui/theme-toggle';
 
 export function DebugPanel() {
-  const { name, wealth, netWorth, assets, properties, lifestyleItems, resetProgress } = useCharacter();
+  const { name, wealth, netWorth, assets, properties, lifestyleItems, resetCharacter } = useCharacter();
   const { currentDay, currentMonth, currentYear } = useTime();
   const { marketTrend, economyState } = useEconomy();
   const { phase } = useGame();
@@ -14,7 +13,7 @@ export function DebugPanel() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   const handleReset = () => {
-    resetProgress();
+    resetCharacter();
     setShowResetConfirm(false);
   };
   
@@ -22,7 +21,6 @@ export function DebugPanel() {
     <div className="fixed bottom-20 right-0 bg-card dark:bg-card border dark:border-zinc-700 p-4 rounded-l shadow-lg z-50 max-w-xs overflow-auto max-h-80">
       <div className="flex justify-between items-center mb-2">
         <h3 className="font-bold text-sm">Debug Info</h3>
-        <ThemeToggle />
       </div>
       <div className="text-xs space-y-1 text-foreground">
         <p><span className="font-semibold">Game Phase:</span> {phase}</p>
