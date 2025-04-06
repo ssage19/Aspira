@@ -20,6 +20,7 @@ interface NetWorthBreakdown {
   propertyDebt: number;
   lifestyleItems: number;
   total: number;
+  version?: number; // Add version field to track freshness of data
 }
 
 // Default empty breakdown object
@@ -33,7 +34,8 @@ const defaultBreakdown: NetWorthBreakdown = {
   propertyValue: 0,
   propertyDebt: 0,
   lifestyleItems: 0,
-  total: 0
+  total: 0,
+  version: Date.now() // Add current timestamp as version
 };
 
 // Constants for localStorage storage
@@ -81,12 +83,26 @@ export function NetWorthBreakdown() {
       }
       
       // Set to the most basic safe values - just cash equals total
-      const safeBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+      const safeBreakdown = { 
+        ...defaultBreakdown, 
+        cash: wealth || 0, 
+        total: wealth || 0,
+        version: Date.now() // Fresh timestamp to ensure reset detection works
+      };
+      
+      // Also explicitly store this safe breakdown to localStorage
+      try {
+        localStorage.setItem(BREAKDOWN_STORAGE_KEY, JSON.stringify(safeBreakdown));
+        console.log('NetWorthBreakdown: Explicitly stored safe breakdown to localStorage');
+      } catch (e) {
+        console.error('Error storing safe breakdown to localStorage:', e);
+      }
+      
       setBreakdown(safeBreakdown);
       setNetWorth(wealth || 0);
       
       // Log details about what we're doing
-      console.log(`NetWorthBreakdown: Using safe default values - cash: ${wealth}, total: ${wealth}`);
+      console.log(`NetWorthBreakdown: Using safe default values - cash: ${wealth}, total: ${wealth}, version: ${safeBreakdown.version}`);
       return;
     }
     
@@ -141,13 +157,41 @@ export function NetWorthBreakdown() {
           } else {
             // If calculation return value is invalid, set defaults
             console.warn('NetWorthBreakdown: Invalid calculation result, using safe defaults');
-            const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+            const basicBreakdown = { 
+              ...defaultBreakdown, 
+              cash: wealth || 0, 
+              total: wealth || 0,
+              version: Date.now() // Add version to track freshness
+            };
+            
+            // Also store to localStorage
+            try {
+              localStorage.setItem(BREAKDOWN_STORAGE_KEY, JSON.stringify(basicBreakdown));
+              console.log('NetWorthBreakdown: Stored basic breakdown to localStorage during calculation recovery');
+            } catch (e) {
+              console.error('Error storing basic breakdown to localStorage:', e);
+            }
+            
             setBreakdown(basicBreakdown);
             setNetWorth(wealth || 0);
           }
         } catch (err) {
           console.error('Error during net worth recalculation:', err);
-          const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+          const basicBreakdown = { 
+            ...defaultBreakdown, 
+            cash: wealth || 0, 
+            total: wealth || 0,
+            version: Date.now() // Add version to track freshness
+          };
+          
+          // Also store to localStorage
+          try {
+            localStorage.setItem(BREAKDOWN_STORAGE_KEY, JSON.stringify(basicBreakdown));
+            console.log('NetWorthBreakdown: Stored basic breakdown to localStorage during error recovery');
+          } catch (e) {
+            console.error('Error storing basic breakdown to localStorage:', e);
+          }
+          
           setBreakdown(basicBreakdown);
           setNetWorth(wealth || 0);
         }
@@ -155,7 +199,21 @@ export function NetWorthBreakdown() {
     } catch (e) {
       console.error('Error getting net worth breakdown:', e);
       // In case of error, set to default empty breakdown
-      const safeBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+      const safeBreakdown = { 
+        ...defaultBreakdown, 
+        cash: wealth || 0, 
+        total: wealth || 0,
+        version: Date.now() // Add version to track freshness
+      };
+      
+      // Also store to localStorage
+      try {
+        localStorage.setItem(BREAKDOWN_STORAGE_KEY, JSON.stringify(safeBreakdown));
+        console.log('NetWorthBreakdown: Stored safe breakdown to localStorage during get error recovery');
+      } catch (err) {
+        console.error('Error storing safe breakdown to localStorage:', err);
+      }
+      
       setBreakdown(safeBreakdown);
       setNetWorth(wealth || 0); // At minimum, show current cash as net worth
     }
@@ -180,8 +238,23 @@ export function NetWorthBreakdown() {
       console.log('NetWorthBreakdown: Detected reset condition, performing thorough refresh');
       
       // First, force an immediate recalculation with default values
-      setBreakdown({...defaultBreakdown, cash: wealth, total: wealth});
-      setNetWorth(wealth);
+      const initBreakdown = {
+        ...defaultBreakdown, 
+        cash: wealth || 0, 
+        total: wealth || 0,
+        version: Date.now() // Add version to track freshness
+      };
+      
+      // Also explicitly store this to localStorage to ensure consistency
+      try {
+        localStorage.setItem(BREAKDOWN_STORAGE_KEY, JSON.stringify(initBreakdown));
+        console.log('NetWorthBreakdown: Stored initial breakdown to localStorage during reset condition');
+      } catch (e) {
+        console.error('Error storing initial breakdown to localStorage:', e);
+      }
+      
+      setBreakdown(initBreakdown);
+      setNetWorth(wealth || 0);
       
       // Then schedule multiple refreshes at different intervals
       // This ensures we catch any delayed state updates
