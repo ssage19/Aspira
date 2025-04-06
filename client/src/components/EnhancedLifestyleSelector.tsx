@@ -149,7 +149,7 @@ export function EnhancedLifestyleSelector() {
     const lifestyleItem = {
       id: item.id,
       name: item.name,
-      type: item.type,
+      type: item.type as any, // Force type casting to handle new lifestyle types
       purchasePrice: item.price,
       maintenanceCost: item.maintenanceCost,
       happiness: item.happiness || 0,
@@ -235,9 +235,9 @@ export function EnhancedLifestyleSelector() {
   const getTierBadgeVariant = (tier: string) => {
     switch (tier) {
       case 'basic': return 'secondary';
-      case 'premium': return 'blue';
-      case 'luxury': return 'emerald';
-      case 'elite': return 'purple';
+      case 'premium': return 'default';
+      case 'luxury': return 'outline';
+      case 'elite': return 'secondary';
       default: return 'secondary';
     }
   };
@@ -353,8 +353,7 @@ export function EnhancedLifestyleSelector() {
                   <div className="flex items-center">
                     <CircleDollarSign className="h-3.5 w-3.5 mr-1 text-emerald-500" />
                     <span>
-                      {item.maintenanceCost > 0 && `${formatCurrency(item.maintenanceCost)}/month`}
-                      {item.maintenanceCost === 0 && 'No monthly cost'}
+                      {item.maintenanceCost && item.maintenanceCost > 0 ? `${formatCurrency(item.maintenanceCost)}/month` : 'No monthly cost'}
                     </span>
                   </div>
                 </CardDescription>
@@ -450,7 +449,7 @@ export function EnhancedLifestyleSelector() {
                   <Wallet className="h-3.5 w-3.5 mr-1 text-emerald-500" />
                   <span>Cost: {formatCurrency(item.price)}</span>
                 </div>
-                {item.maintenanceCost > 0 && (
+                {item.maintenanceCost && item.maintenanceCost > 0 && (
                   <div className="flex items-center mt-1">
                     <CircleDollarSign className="h-3.5 w-3.5 mr-1 text-amber-500" />
                     <span>{formatCurrency(item.maintenanceCost)}/month</span>

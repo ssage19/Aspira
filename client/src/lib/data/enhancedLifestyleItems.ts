@@ -993,9 +993,20 @@ export const educationLifestyleItems: EnhancedLifestyleItem[] = [
 ];
 
 // Export all enhanced lifestyle item collections
+import { 
+  additionalWellnessItems, 
+  additionalSocialItems, 
+  additionalLifestyleHabits, 
+  additionalEducationItems 
+} from './additionalEnhancedLifestyleItems';
+
 export const allEnhancedLifestyleItems = [
   ...wellnessItems,
   ...socialLifestyleItems,
   ...lifestyleHabits,
-  ...educationLifestyleItems
+  ...educationLifestyleItems,
+  ...additionalWellnessItems,
+  ...additionalSocialItems,
+  ...additionalLifestyleHabits,
+  ...additionalEducationItems
 ];

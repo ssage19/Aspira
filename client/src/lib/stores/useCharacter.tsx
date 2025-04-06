@@ -71,7 +71,7 @@ export interface Property {
 export interface LifestyleItem {
   id: string;
   name: string;
-  type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury" | "vehicles" | "vacations" | "experiences";
+  type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury" | "vehicles" | "vacations" | "experiences" | "wellness" | "social" | "habit" | "education";
   monthlyCost?: number;
   maintenanceCost?: number; // Some items use maintenanceCost instead of monthlyCost
   happiness?: number;
