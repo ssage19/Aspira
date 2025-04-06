@@ -1,44 +1,183 @@
 /* Theme Contrast Fixes
  * This file improves text contrast throughout the application
- * by replacing hard-coded color classes with theme-aware alternatives
+ * by converting hard-coded color classes to use our new theme tokens
  */
 
-/* Replace bg-gray-50 with theme-aware background */
-.bg-gray-50 {
-  @apply bg-muted border border-border;
-}
+@layer components {
+  /* ===== Card Component Fixes ===== */
+  .card {
+    background-color: var(--surface-card);
+    border: var(--border-width-thin) solid var(--border-subtle);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-card);
+    color: var(--text-primary);
+    padding: var(--card-padding);
+  }
 
-/* Fix text-gray-500 contrast issues */
-.text-gray-500 {
-  @apply text-foreground opacity-80;
-}
+  .card-title {
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: var(--spacing-2);
+  }
 
-/* Fix text-gray-600 contrast issues */
-.text-gray-600 {
-  @apply text-foreground opacity-90;
-}
+  .card-subtitle {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-bottom: var(--spacing-3);
+  }
 
-/* Fix text-gray-700 contrast issues */
-.text-gray-700 {
-  @apply text-foreground;
-}
+  .card-content {
+    color: var(--text-primary);
+  }
 
-/* Fix bg-white with theme-aware background */
-.bg-white {
-  @apply bg-card;
-}
+  /* ===== Text Color Fixes ===== */
+  .text-primary {
+    color: var(--text-primary) !important;
+  }
 
-/* Add additional contrast to card elements */
-.card-content {
-  @apply bg-card p-2 rounded border border-border shadow-sm;
-}
+  .text-secondary {
+    color: var(--text-secondary) !important;
+  }
 
-/* Ensure text on cards is visible */
-.card-content p, .card-content span {
-  @apply text-foreground;
-}
+  .text-tertiary {
+    color: var(--text-tertiary) !important;
+  }
 
-/* Add proper contrast to descriptions */
-.description-text {
-  @apply text-foreground opacity-90;
+  /* Override common Tailwind text colors with our semantic ones */
+  .text-gray-500, .text-gray-600, .text-gray-700 {
+    color: var(--text-secondary) !important;
+  }
+
+  .text-gray-800, .text-gray-900 {
+    color: var(--text-primary) !important;
+  }
+
+  /* ===== Background Color Fixes ===== */
+  .bg-primary {
+    background-color: var(--color-primary-500) !important;
+    color: var(--text-on-primary) !important;
+  }
+
+  .bg-secondary {
+    background-color: var(--color-secondary-500) !important;
+    color: var(--text-on-secondary) !important;
+  }
+
+  .bg-accent {
+    background-color: var(--color-accent-500) !important;
+    color: var(--text-on-accent) !important;
+  }
+
+  .bg-card, .bg-paper {
+    background-color: var(--surface-card) !important;
+  }
+
+  /* Fix common background overrides */
+  .bg-white, .bg-gray-50, .bg-gray-100 {
+    background-color: var(--surface-paper) !important;
+  }
+
+  .bg-gray-900, .bg-black {
+    background-color: var(--surface-background) !important;
+  }
+
+  /* ===== Border Color Fixes ===== */
+  .border-subtle {
+    border-color: var(--border-subtle) !important;
+  }
+
+  .border-moderate {
+    border-color: var(--border-moderate) !important;
+  }
+
+  .border-strong {
+    border-color: var(--border-strong) !important;
+  }
+
+  /* ===== Status Colors ===== */
+  .success {
+    color: var(--color-success-500) !important;
+  }
+
+  .warning {
+    color: var(--color-warning-500) !important;
+  }
+
+  .error {
+    color: var(--color-error-500) !important;
+  }
+
+  .info {
+    color: var(--color-info-500) !important;
+  }
+
+  /* ===== Specific Components Fixes ===== */
+  
+  /* Investment Cards */
+  .stock-card {
+    background-color: var(--surface-card);
+    border: var(--border-width-thin) solid var(--border-subtle);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-3);
+    transition: var(--transition-normal);
+  }
+
+  .stock-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-primary-400);
+  }
+
+  .stock-card.selected {
+    border-color: var(--color-primary-500);
+    box-shadow: var(--glow-primary-sm);
+  }
+
+  /* Property Cards */
+  .property-card {
+    background-color: var(--surface-card);
+    border: var(--border-width-thin) solid var(--border-subtle);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-3);
+    transition: var(--transition-normal);
+  }
+
+  .property-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-secondary-400);
+  }
+
+  /* Lifestyle Cards */
+  .lifestyle-card {
+    background-color: var(--surface-card);
+    border: var(--border-width-thin) solid var(--border-subtle);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-3);
+    transition: var(--transition-normal);
+  }
+
+  .lifestyle-card:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-accent-400);
+  }
+
+  /* Dashboard Stat Cards */
+  .stat-card {
+    background-color: var(--surface-card);
+    border-left: var(--border-width-medium) solid var(--color-primary-500);
+    border-radius: var(--border-radius-md);
+    padding: var(--spacing-3);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-card .stat-value {
+    color: var(--text-primary);
+    font-size: var(--font-size-xl);
+    font-weight: var(--font-weight-bold);
+  }
+
+  .stat-card .stat-label {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+  }
 }

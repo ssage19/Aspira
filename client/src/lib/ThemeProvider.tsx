@@ -65,56 +65,79 @@ export function ThemeProvider({
     // Remove all theme classes
     root.classList.remove('light', 'dark');
     
+    // Determine the active theme (considering system preference if needed)
+    let activeTheme = theme;
     if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
+      activeTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
         ? 'dark'
         : 'light';
-      
-      root.classList.add(systemTheme);
-      
-      // Apply theme-specific CSS variables
-      applyThemeVariables(systemTheme);
-      
-      return;
     }
     
-    // Add the selected theme class
-    root.classList.add(theme);
+    // Add the active theme class
+    root.classList.add(activeTheme);
+    
+    // Set data-theme attribute for CSS selector support
+    root.setAttribute('data-theme', activeTheme);
+    
+    // Set color-scheme for browser UI elements
+    root.style.colorScheme = activeTheme;
     
     // Apply theme-specific CSS variables
-    applyThemeVariables(theme);
+    applyThemeVariables(activeTheme);
     
+    // Setup listener for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    const handleSystemThemeChange = () => {
+      if (theme === 'system') {
+        const newSystemTheme = mediaQuery.matches ? 'dark' : 'light';
+        root.classList.remove('light', 'dark');
+        root.classList.add(newSystemTheme);
+        root.setAttribute('data-theme', newSystemTheme);
+        root.style.colorScheme = newSystemTheme;
+        applyThemeVariables(newSystemTheme);
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, [theme]);
   
   // Function to apply theme-specific CSS variables
   const applyThemeVariables = (currentTheme: Theme) => {
-    // Reset all theme-specific variables first
-    document.documentElement.style.removeProperty('--primary-glow');
-    document.documentElement.style.removeProperty('--secondary-glow');
-    document.documentElement.style.removeProperty('--border-glow-color');
-    document.documentElement.style.removeProperty('--text-glow-color');
-    document.documentElement.style.removeProperty('--glow-color');
-    document.documentElement.style.removeProperty('--background-image');
+    // Set CSS variable for checking theme in JavaScript
+    document.documentElement.style.setProperty('--is-dark-theme', 
+      currentTheme === 'dark' ? '1' : '0');
     
-    // Apply theme-specific variables
+    // Apply theme-specific variables for backward compatibility
     switch (currentTheme) {
       case 'dark':
-        // Colors from the image: #254E58 (teal), #112D32 (dark green), #4F4A41 (brown)
-        document.documentElement.style.setProperty('--primary-glow', '0 0 8px rgba(37, 78, 88, 0.5)');
-        document.documentElement.style.setProperty('--border-glow-color', '37, 78, 88');
-        document.documentElement.style.setProperty('--text-glow-color', '37, 78, 88');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(37, 78, 88, 0.4)');
-        document.documentElement.style.setProperty('--background-image', 'linear-gradient(to bottom, #254E58, #112D32)');
+        // Colors from our design system
+        document.documentElement.style.setProperty('--primary-color', 'var(--color-primary-500)');
+        document.documentElement.style.setProperty('--secondary-color', 'var(--color-secondary-600)');
+        document.documentElement.style.setProperty('--accent-color', 'var(--color-accent-400)');
+        document.documentElement.style.setProperty('--background-color', 'var(--color-dark-background)');
+        document.documentElement.style.setProperty('--text-color', 'var(--color-dark-text-primary)');
+        
+        // Glow effects
+        document.documentElement.style.setProperty('--glow-color', 'var(--color-primary-600)');
+        document.documentElement.style.setProperty('--primary-glow', 'var(--glow-primary-md)');
+        document.documentElement.style.setProperty('--border-glow-color', '46, 158, 155');
+        document.documentElement.style.setProperty('--text-glow-color', '46, 158, 155');
         break;
         
       case 'light':
-        // Colors from the image: #88BDBC (mint), #6E8659 (sage)
-        document.documentElement.style.setProperty('--primary-glow', '0 0 6px rgba(136, 189, 188, 0.3)');
-        document.documentElement.style.setProperty('--border-glow-color', '136, 189, 188');
-        document.documentElement.style.setProperty('--text-glow-color', '136, 189, 188');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(136, 189, 188, 0.3)');
-        document.documentElement.style.setProperty('--background-image', 'linear-gradient(to bottom, #88BDBC, #6E8659)');
+        // Colors from our design system
+        document.documentElement.style.setProperty('--primary-color', 'var(--color-primary-600)');
+        document.documentElement.style.setProperty('--secondary-color', 'var(--color-secondary-500)');
+        document.documentElement.style.setProperty('--accent-color', 'var(--color-accent-500)');
+        document.documentElement.style.setProperty('--background-color', 'var(--color-light-background)');
+        document.documentElement.style.setProperty('--text-color', 'var(--color-light-text-primary)');
+        
+        // Glow effects
+        document.documentElement.style.setProperty('--glow-color', 'var(--color-primary-400)');
+        document.documentElement.style.setProperty('--primary-glow', 'var(--glow-primary-sm)');
+        document.documentElement.style.setProperty('--border-glow-color', '46, 158, 155');
+        document.documentElement.style.setProperty('--text-glow-color', '46, 158, 155');
         break;
         
       default:
