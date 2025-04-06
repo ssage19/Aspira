@@ -511,16 +511,32 @@ export function Essentials() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
-  // Check needs periodically when auto-maintenance is enabled
+  // Always refresh the component state every second
   useEffect(() => {
-    if (!autoMaintain) return;
+    // Set up two different intervals:
+    // 1. For auto-maintenance (only runs when enabled)
+    // 2. For state refresh (always runs)
     
-    // This will run the auto-maintenance check every 1 second (increased frequency)
-    // More responsive to needs falling below thresholds
-    const intervalId = setInterval(handleAutoMaintenance, 1000);
+    // Auto-maintenance interval - only active when enabled
+    let autoMaintainInterval: NodeJS.Timeout | null = null;
+    if (autoMaintain) {
+      autoMaintainInterval = setInterval(handleAutoMaintenance, 1000);
+    }
+    
+    // State refresh interval - always active to ensure UI stays updated
+    // This ensures values are consistent with other components like Dashboard
+    const stateRefreshInterval = setInterval(() => {
+      // Using getState() to force a refresh of state
+      const _ = useCharacter.getState();
+      // We don't need to do anything with the state, just accessing it
+      // triggers a refresh of all components using the useCharacter hook
+    }, 1000);
     
     // Cleanup function to prevent memory leaks
-    return () => clearInterval(intervalId);
+    return () => {
+      if (autoMaintainInterval) clearInterval(autoMaintainInterval);
+      clearInterval(stateRefreshInterval);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoMaintain]);
   

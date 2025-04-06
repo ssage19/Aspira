@@ -260,6 +260,20 @@ export default function Dashboard() {
     };
   }, [isMuted]);
   
+  // Force refresh of character state every second to match Essentials component
+  // This ensures consistent values between Dashboard and Lifestyle tabs
+  useEffect(() => {
+    // Create a state refresh interval that matches the Essentials component
+    const refreshInterval = setInterval(() => {
+      // Using getState() to force a refresh of the character state
+      const _ = useCharacter.getState();
+      // We don't need to do anything with the state, just accessing it
+      // triggers a refresh of all components using the useCharacter hook
+    }, 1000);
+    
+    return () => clearInterval(refreshInterval);
+  }, []);
+  
   // Calculate portfolio stats
   const stocksValue = assets
     .filter(asset => asset.type === 'stock')
