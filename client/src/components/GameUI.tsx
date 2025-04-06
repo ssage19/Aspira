@@ -18,7 +18,8 @@ import {
   TrendingUp,
   TrendingDown,
   ArrowRight,
-  GraduationCap
+  GraduationCap,
+  XCircle
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
@@ -261,6 +262,72 @@ export function GameUI() {
         if (dayCounter % 30 === 0) {
           useEconomy.getState().processMonthlyUpdate();
           console.log("Monthly update processed on day counter:", dayCounter);
+          
+          // Calculate and show monthly summary notification
+          const characterState = useCharacter.getState();
+          
+          // Calculate monthly income from properties
+          const propertyIncome = characterState.properties.reduce((total, property) => 
+            total + property.income, 0);
+          
+          // Calculate monthly expenses from lifestyle items
+          const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
+            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+            return total + monthlyCost;
+          }, 0);
+          
+          // Calculate salary (bi-weekly * 2.17 to get monthly equivalent)
+          const job = characterState.job;
+          const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+          
+          // Total monthly net change
+          const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+          
+          // Show the end-of-month summary toast
+          toast(
+            <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
+              <div className="p-4">
+                <div className="flex flex-col space-y-2 text-xs">
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center">
+                      <Calendar className="h-5 w-5 text-primary mr-2" />
+                      <span className="font-medium">End of Month Financial Summary</span>
+                    </div>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground/70">Salary:</span>
+                    <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground/70">Property Income:</span>
+                    <span className="font-semibold text-green-500">+{formatCurrency(propertyIncome)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-foreground/70">Lifestyle Expenses:</span>
+                    <span className="font-semibold text-red-500">-{formatCurrency(lifestyleExpenses)}</span>
+                  </div>
+                  <div className="border-t border-border pt-2 mt-1 flex justify-between">
+                    <span className="font-medium">Monthly Net Change:</span>
+                    <span className={`font-semibold ${monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                      {monthlyNet >= 0 ? '+' : ''}{formatCurrency(monthlyNet)}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>,
+            { 
+              duration: 10000, // Show for 10 seconds
+              position: 'bottom-right',
+              icon: null,
+              style: {
+                backgroundColor: 'transparent',
+                boxShadow: 'none',
+                padding: 0,
+                width: 'auto',
+                border: 'none',
+              }
+            }
+          );
         }
         
         // Check for unlockable achievements
@@ -308,6 +375,72 @@ export function GameUI() {
     if (dayCounter % 30 === 0) {
       useEconomy.getState().processMonthlyUpdate();
       console.log("Monthly update processed on day counter:", dayCounter);
+      
+      // Calculate and show monthly summary notification
+      const characterState = useCharacter.getState();
+      
+      // Calculate monthly income from properties
+      const propertyIncome = characterState.properties.reduce((total, property) => 
+        total + property.income, 0);
+      
+      // Calculate monthly expenses from lifestyle items
+      const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
+        const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+        return total + monthlyCost;
+      }, 0);
+      
+      // Calculate salary (bi-weekly * 2.17 to get monthly equivalent)
+      const job = characterState.job;
+      const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+      
+      // Total monthly net change
+      const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+      
+      // Show the end-of-month summary toast
+      toast(
+        <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
+          <div className="p-4">
+            <div className="flex flex-col space-y-2 text-xs">
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex items-center">
+                  <Calendar className="h-5 w-5 text-primary mr-2" />
+                  <span className="font-medium">End of Month Financial Summary</span>
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-foreground/70">Salary:</span>
+                <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-foreground/70">Property Income:</span>
+                <span className="font-semibold text-green-500">+{formatCurrency(propertyIncome)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-foreground/70">Lifestyle Expenses:</span>
+                <span className="font-semibold text-red-500">-{formatCurrency(lifestyleExpenses)}</span>
+              </div>
+              <div className="border-t border-border pt-2 mt-1 flex justify-between">
+                <span className="font-medium">Monthly Net Change:</span>
+                <span className={`font-semibold ${monthlyNet >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {monthlyNet >= 0 ? '+' : ''}{formatCurrency(monthlyNet)}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>,
+        { 
+          duration: 10000, // Show for 10 seconds
+          position: 'bottom-right',
+          icon: null,
+          style: {
+            backgroundColor: 'transparent',
+            boxShadow: 'none',
+            padding: 0,
+            width: 'auto',
+            border: 'none',
+          }
+        }
+      );
     }
     
     // Check for unlockable achievements
