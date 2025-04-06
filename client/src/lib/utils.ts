@@ -281,25 +281,35 @@ export const performCompleteGameReset = () => {
     
     // FIRST - EXPLICITLY reset net worth breakdown to ensure no stale data
     try {
-      // First check if there's a dedicated net worth breakdown store
-      const netWorthStore = require('./stores/useNetWorthBreakdown').useNetWorthBreakdown;
-      if (netWorthStore && netWorthStore.getState()) {
-        console.log("Found dedicated netWorthBreakdown store, resetting it first");
-        if (netWorthStore.getState().reset) {
-          netWorthStore.getState().reset();
-        } else {
-          // If no reset function, nullify the state directly
-          Object.keys(netWorthStore.getState()).forEach(key => {
-            if (typeof netWorthStore.getState()[key] !== 'function') {
-              netWorthStore.getState()[key] = null;
-            }
-          });
+      console.log("STEP 3.1: Explicitly removing localStorage entry for netWorthBreakdown");
+      localStorage.removeItem('business-empire-networth-breakdown');
+      
+      // Set a flag to indicate breakdown data has been reset
+      sessionStorage.setItem('networth_breakdown_reset', 'true');
+      sessionStorage.setItem('networth_breakdown_reset_timestamp', Date.now().toString());
+            
+      // Check if there's a dedicated net worth breakdown store
+      try {
+        const netWorthStore = require('./stores/useNetWorthBreakdown').useNetWorthBreakdown;
+        if (netWorthStore && netWorthStore.getState()) {
+          console.log("Found dedicated netWorthBreakdown store, resetting it first");
+          if (netWorthStore.getState().reset) {
+            netWorthStore.getState().reset();
+          } else {
+            // If no reset function, nullify the state directly
+            Object.keys(netWorthStore.getState()).forEach(key => {
+              if (typeof netWorthStore.getState()[key] !== 'function') {
+                netWorthStore.getState()[key] = null;
+              }
+            });
+          }
         }
+      } catch (storeErr) {
+        // No dedicated store exists, which is expected
+        console.log("No dedicated netWorthBreakdown store found (expected)");
       }
     } catch (e) {
-      // No dedicated store exists, try looking for localStorage version
-      console.log("No dedicated netWorthBreakdown store found, clearing any localStorage entry");
-      localStorage.removeItem('business-empire-networth-breakdown');
+      console.error("Error during explicit netWorthBreakdown reset:", e);
     }
     
     // SECOND - Reset time store

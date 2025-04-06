@@ -2311,6 +2311,10 @@ export const useCharacter = create<CharacterState>()(
           if (typeof window !== 'undefined') {
             localStorage.removeItem(BREAKDOWN_STORAGE_KEY);
             console.log(`Removed breakdown storage at key: ${BREAKDOWN_STORAGE_KEY}`);
+            
+            // Also set a flag in sessionStorage to indicate character reset is in progress
+            sessionStorage.setItem('character_reset_completed', 'true');
+            console.log("Set character_reset_completed flag in sessionStorage");
           }
           
           // 2. Clear any in-memory breakdown data
@@ -2318,6 +2322,19 @@ export const useCharacter = create<CharacterState>()(
           if ((state as any).netWorthBreakdown) {
             console.log("Nullifying existing netWorthBreakdown in memory");
             (state as any).netWorthBreakdown = null;
+          }
+          
+          // 3. Explicitly clear investment arrays
+          if (state.assets && state.assets.length > 0) {
+            console.log(`Resetting ${state.assets.length} assets to empty array`);
+          }
+          
+          if (state.properties && state.properties.length > 0) {
+            console.log(`Resetting ${state.properties.length} properties to empty array`);
+          }
+          
+          if (state.lifestyleItems && state.lifestyleItems.length > 0) {
+            console.log(`Resetting ${state.lifestyleItems.length} lifestyle items to empty array`);
           }
         } catch (e) {
           console.error("Error during pre-reset cleanup:", e);

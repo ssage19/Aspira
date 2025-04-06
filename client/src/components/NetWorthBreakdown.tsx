@@ -69,9 +69,11 @@ export function NetWorthBreakdown() {
     const resetCompleted = sessionStorage.getItem('game_reset_completed') === 'true';
     const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
     const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    const netWorthReset = sessionStorage.getItem('networth_breakdown_reset') === 'true';
+    const characterReset = sessionStorage.getItem('character_reset_completed') === 'true';
     
     // If ANY of these conditions are true, we should use default values
-    if (resetInProgress || resetCompleted || forceCurrentDate || blockTimeLoads) {
+    if (resetInProgress || resetCompleted || forceCurrentDate || blockTimeLoads || netWorthReset || characterReset) {
       console.log('NetWorthBreakdown: Reset condition detected, using default values');
       
       // Explicitly remove any stored data from localStorage
@@ -232,9 +234,11 @@ export function NetWorthBreakdown() {
     const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
     const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
     const gameResetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
+    const netWorthReset = sessionStorage.getItem('networth_breakdown_reset') === 'true';
+    const characterReset = sessionStorage.getItem('character_reset_completed') === 'true';
     
     // Any of these conditions indicate we need a refresh
-    if (resetCompleted || smoothNavigation || forceCurrentDate || blockTimeLoads || gameResetInProgress) {
+    if (resetCompleted || smoothNavigation || forceCurrentDate || blockTimeLoads || gameResetInProgress || netWorthReset || characterReset) {
       console.log('NetWorthBreakdown: Detected reset condition, performing thorough refresh');
       
       // First, force an immediate recalculation with default values
@@ -280,8 +284,10 @@ export function NetWorthBreakdown() {
         }, 2500)
       ];
       
-      // Clear the flags to avoid repeated refreshes
+      // Clear all the flags to avoid repeated refreshes
       sessionStorage.removeItem('game_reset_completed');
+      sessionStorage.removeItem('networth_breakdown_reset');
+      sessionStorage.removeItem('character_reset_completed');
       
       return () => {
         // Clean up all timers
