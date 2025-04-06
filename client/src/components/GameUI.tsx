@@ -238,18 +238,36 @@ export function GameUI() {
       updateLastTickTime(Date.now());
     }
     
+    // For accurate hour tracking (1 second real time = 1 hour game time)
+    // We'll update once per 100ms to keep the animation smooth
     const intervalId = setInterval(() => {
       const currentTime = Date.now();
-      const elapsed = currentTime - lastTickTime;
       
-      // Apply time multiplier to the elapsed time
-      const adjustedElapsed = elapsed * timeMultiplier;
-      const progress = (adjustedElapsed / DAY_DURATION_MS) * 100;
+      // Calculate elapsed time since last tick in milliseconds
+      const elapsedMs = currentTime - lastTickTime;
       
-      setTimeProgress(Math.min(progress, 100));
+      // Apply time multiplier
+      const adjustedElapsedMs = elapsedMs * timeMultiplier;
       
-      // If a full day has passed, advance the day
-      if (adjustedElapsed >= DAY_DURATION_MS) {
+      // Each second (1000ms) equals 1 hour (1/24 of a day)
+      // So we convert to a fraction of a day
+      const hoursElapsed = adjustedElapsedMs / 1000;
+      const fractionOfDay = hoursElapsed / 24;
+      
+      // Calculate progress percentage (0-100)
+      const newProgress = (timeProgress + (fractionOfDay * 100)) % 100;
+      
+      // Count how many full days have passed
+      const fullDaysPassed = Math.floor((timeProgress + (fractionOfDay * 100)) / 100);
+      
+      // Update the time progress
+      setTimeProgress(newProgress);
+      
+      // Update the last tick time for next calculation
+      updateLastTickTime(currentTime);
+      
+      // If any full days have passed, process them
+      if (fullDaysPassed > 0) {
         // Process daily finances
         processDailyFinances();
         
@@ -422,7 +440,7 @@ export function GameUI() {
         updateLastTickTime(currentTime);
         setTimeProgress(0);
       }
-    }, 1000); // Update progress every second
+    }, 100); // Update progress every 100ms for smoother animation
     
     return () => clearInterval(intervalId);
   }, [
@@ -653,8 +671,27 @@ export function GameUI() {
                 <Clock className="h-3 w-3 mr-1 opacity-70" />
                 {autoAdvanceEnabled ? (
                   <span>
-                    {/* Convert progress percentage to hours and minutes */}
-                    {`${String(Math.floor((timeProgress / 100) * 24)).padStart(2, '0')}:${String(Math.floor(((timeProgress / 100) * 24 % 1) * 60)).padStart(2, '0')}`}
+                    {/* Convert progress percentage to hours and minutes in 12-hour format with AM/PM */}
+                    {(() => {
+                      // Calculate hours (0-23) as a floating point for precision
+                      const hoursFraction = (timeProgress / 100) * 24;
+                      
+                      // Get the integer hour (0-23)
+                      const totalHours = Math.floor(hoursFraction);
+                      
+                      // Convert to 12-hour format
+                      const hours12 = totalHours % 12 === 0 ? 12 : totalHours % 12;
+                      
+                      // Calculate minutes with precision (0-59)
+                      // We get the fractional part of hours and multiply by 60
+                      const minutes = Math.floor((hoursFraction - totalHours) * 60);
+                      
+                      // Determine AM/PM
+                      const period = totalHours < 12 ? 'AM' : 'PM';
+                      
+                      // Format the time string
+                      return `${String(hours12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
+                    })()}
                     {timeSpeed === 'superfast' ? ' (6x)' : timeSpeed === 'fast' ? ' (3x)' : ''}
                   </span>
                 ) : "Paused"}
