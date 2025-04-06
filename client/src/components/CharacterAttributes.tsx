@@ -468,7 +468,7 @@ export function CharacterAttributes() {
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-gray-400 p-2 rounded-lg bg-blue-950/20 border border-blue-500/20 backdrop-blur-sm">
+          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-blue-950/20 border border-blue-500/20 backdrop-blur-sm">
             <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
             <p className="mt-1">
               <strong className="text-blue-400">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
@@ -511,7 +511,7 @@ export function CharacterAttributes() {
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-gray-400 p-2 rounded-lg bg-red-950/20 border border-red-500/20 backdrop-blur-sm">
+          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-red-950/20 border border-red-500/20 backdrop-blur-sm">
             <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
             <p className="mt-1">
               <strong className="text-red-400">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
