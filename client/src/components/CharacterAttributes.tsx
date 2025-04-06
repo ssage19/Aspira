@@ -129,7 +129,7 @@ export function CharacterAttributes() {
       description: 'Physical and mental wellbeing',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Critical', 'Poor', 'Average', 'Good', 'Excellent'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
     },
     happiness: {
       name: 'Happiness',
@@ -137,7 +137,7 @@ export function CharacterAttributes() {
       description: 'Overall life satisfaction',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Miserable', 'Unhappy', 'Content', 'Happy', 'Blissful'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-400', 'text-primary-300']
     },
     socialConnections: {
       name: 'Social Network',
@@ -145,7 +145,7 @@ export function CharacterAttributes() {
       description: 'Quality and quantity of relationships',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Isolated', 'Limited', 'Moderate', 'Strong', 'Thriving'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-accent-500', 'text-accent-400']
     },
     skills: {
       name: 'Skills',
@@ -153,7 +153,7 @@ export function CharacterAttributes() {
       description: 'Developed abilities and knowledge',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Novice', 'Beginner', 'Intermediate', 'Advanced', 'Expert'],
-      colors: ['text-gray-500', 'text-blue-400', 'text-blue-500', 'text-purple-500', 'text-purple-600']
+      colors: ['text-gray-500', 'text-primary-300', 'text-primary-400', 'text-primary-500', 'text-primary-600']
     },
     stress: {
       name: 'Stress',
@@ -161,7 +161,7 @@ export function CharacterAttributes() {
       description: 'Mental pressure and tension',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Minimal', 'Low', 'Moderate', 'High', 'Extreme'],
-      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      colors: ['text-primary-400', 'text-primary-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
       isInverted: true
     },
     timeManagement: {
@@ -170,7 +170,7 @@ export function CharacterAttributes() {
       description: 'Balance of free time vs commitments',
       scale: ['High Ratio', 'Good Ratio', 'Balanced', 'Low Ratio', 'Very Low'],
       levels: ['Relaxed', 'Balanced', 'Busy', 'Hectic', 'Overwhelmed'],
-      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      colors: ['text-primary-400', 'text-primary-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
       isSpecialScale: true,
       unit: 'hrs'
     },
@@ -180,7 +180,7 @@ export function CharacterAttributes() {
       description: 'Effect on the environment',
       scale: ['< -60', '-60 to -30', '-30 to 0', '0 to 50', '> 50'],
       levels: ['Harmful', 'Concerning', 'Neutral', 'Positive', 'Sustainable'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-secondary-500', 'text-secondary-400'],
       isSpecialScale: true
     },
     prestige: {
@@ -189,7 +189,7 @@ export function CharacterAttributes() {
       description: 'Social status and recognition',
       scale: ['0-20', '21-40', '41-60', '61-80', '81+'],
       levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
-      colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500']
+      colors: ['text-gray-500', 'text-accent-500', 'text-primary-500', 'text-primary-400', 'text-yellow-500']
     },
     
     // Basic needs
@@ -199,7 +199,7 @@ export function CharacterAttributes() {
       description: 'Satiety and nutritional status',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Starving', 'Hungry', 'Satisfied', 'Full', 'Very Full'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
     },
     thirst: {
       name: 'Hydration',
@@ -207,7 +207,7 @@ export function CharacterAttributes() {
       description: 'Fluid balance and hydration',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Dehydrated', 'Thirsty', 'Hydrated', 'Well-Hydrated', 'Perfectly Hydrated'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-accent-500', 'text-accent-400']
     },
     energy: {
       name: 'Energy',
@@ -215,7 +215,7 @@ export function CharacterAttributes() {
       description: 'Physical and mental energy levels',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Exhausted', 'Tired', 'Rested', 'Energetic', 'Fully Charged'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
     },
     comfort: {
       name: 'Comfort',
@@ -223,7 +223,7 @@ export function CharacterAttributes() {
       description: 'Housing and general comfort',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Miserable', 'Uncomfortable', 'Adequate', 'Comfortable', 'Luxurious'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-secondary-500', 'text-secondary-400']
     }
   };
   
@@ -382,15 +382,15 @@ export function CharacterAttributes() {
         break;
       case 'rental':
         housingLabel = 'Rental Housing';
-        colorClass = 'text-green-500';
+        colorClass = 'text-secondary-500';
         break;
       case 'owned':
         housingLabel = 'Home Owner';
-        colorClass = 'text-blue-500';
+        colorClass = 'text-primary-500';
         break;
       case 'luxury':
         housingLabel = 'Luxury Housing';
-        colorClass = 'text-purple-500';
+        colorClass = 'text-accent-500';
         break;
     }
     
@@ -412,7 +412,7 @@ export function CharacterAttributes() {
       switch(vehicleType) {
         case 'bicycle':
           vehicleLabel = 'Bicycle';
-          colorClass = 'text-green-500';
+          colorClass = 'text-secondary-500';
           break;
         case 'economy':
           vehicleLabel = 'Economy Car';
@@ -420,15 +420,15 @@ export function CharacterAttributes() {
           break;
         case 'standard':
           vehicleLabel = 'Standard Car';
-          colorClass = 'text-blue-500';
+          colorClass = 'text-primary-500';
           break;
         case 'luxury':
           vehicleLabel = 'Luxury Car';
-          colorClass = 'text-purple-500';
+          colorClass = 'text-accent-500';
           break;
         case 'premium':
           vehicleLabel = 'Premium Car';
-          colorClass = 'text-yellow-500';
+          colorClass = 'text-accent-400';
           break;
       }
     }
@@ -443,12 +443,12 @@ export function CharacterAttributes() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-blue-500/30">
-        <div className="absolute -top-20 -right-20 h-40 w-40 bg-blue-500/10 blur-xl rounded-full"></div>
-        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-teal-500/10 blur-xl rounded-full"></div>
+      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-primary-500/30">
+        <div className="absolute -top-20 -right-20 h-40 w-40 bg-primary-500/10 blur-xl rounded-full"></div>
+        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-accent-500/10 blur-xl rounded-full"></div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center text-blue-400">
-            <User className="mr-2 h-5 w-5 text-blue-500" />
+          <CardTitle className="text-lg flex items-center text-primary-400">
+            <User className="mr-2 h-5 w-5 text-primary-500" />
             Personal Attributes
           </CardTitle>
         </CardHeader>
@@ -468,22 +468,22 @@ export function CharacterAttributes() {
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-blue-950/20 border border-blue-500/20 backdrop-blur-sm">
+          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-primary-900/20 border border-primary-500/20 backdrop-blur-sm">
             <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
             <p className="mt-1">
-              <strong className="text-blue-400">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
+              <strong className="text-primary-400">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
               Keep all basic needs above 50% for optimal health.
             </p>
           </div>
         </CardContent>
       </Card>
       
-      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-red-500/30">
-        <div className="absolute -top-20 -right-20 h-40 w-40 bg-red-500/10 blur-xl rounded-full"></div>
-        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-amber-500/10 blur-xl rounded-full"></div>
+      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-secondary-500/30">
+        <div className="absolute -top-20 -right-20 h-40 w-40 bg-secondary-500/10 blur-xl rounded-full"></div>
+        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-accent-500/10 blur-xl rounded-full"></div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center text-red-400">
-            <Heart className="mr-2 h-5 w-5 text-red-500" />
+          <CardTitle className="text-lg flex items-center text-secondary-400">
+            <Heart className="mr-2 h-5 w-5 text-secondary-500" />
             Basic Needs
           </CardTitle>
         </CardHeader>
@@ -500,21 +500,21 @@ export function CharacterAttributes() {
           </div>
           
           <div className="mt-4">
-            <div className="text-sm font-medium mb-3 text-amber-400">Living Situation</div>
+            <div className="text-sm font-medium mb-3 text-accent-400">Living Situation</div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-2 rounded-lg bg-amber-950/20 border border-amber-500/20 backdrop-blur-sm">
+              <div className="p-2 rounded-lg bg-accent-900/10 border border-accent-500/20 backdrop-blur-sm">
                 {renderHousingStatus()}
               </div>
-              <div className="p-2 rounded-lg bg-amber-950/20 border border-amber-500/20 backdrop-blur-sm">
+              <div className="p-2 rounded-lg bg-accent-900/10 border border-accent-500/20 backdrop-blur-sm">
                 {renderVehicleStatus()}
               </div>
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-red-950/20 border border-red-500/20 backdrop-blur-sm">
+          <div className="mt-4 text-xs text-secondary p-2 rounded-lg bg-secondary-900/20 border border-secondary-500/20 backdrop-blur-sm">
             <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
             <p className="mt-1">
-              <strong className="text-red-400">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
+              <strong className="text-secondary-400">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
               needs drop below 70%. The system prioritizes hunger and thirst first.
             </p>
           </div>
