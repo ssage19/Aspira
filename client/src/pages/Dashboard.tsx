@@ -212,21 +212,38 @@ export default function Dashboard() {
   useEffect(() => {
     // Check if there's a discrepancy between localStorage and state
     try {
+      // Check if we've already checked for discrepancies this session
+      if (sessionStorage.getItem('dashboard_already_checked_consistency') === 'true') {
+        console.log('Already checked time consistency in this session');
+        return;
+      }
+      
+      // Mark as checked to prevent reload loops
+      sessionStorage.setItem('dashboard_already_checked_consistency', 'true');
+      
       const timeData = localStorage.getItem('luxury_lifestyle_time');
       if (timeData) {
         const parsedTime = JSON.parse(timeData);
-        // If stored time is different from what's in state, reload the page to force a fresh load
-        if (parsedTime.currentDay !== currentDay || 
-            parsedTime.currentMonth !== currentMonth || 
-            parsedTime.currentYear !== currentYear) {
-          console.log('Date discrepancy detected between localStorage and state, reloading...');
-          window.location.reload();
+        
+        // Log the values for debugging
+        console.log(`Dashboard checking time: State(${currentMonth}/${currentDay}/${currentYear}) vs Storage(${parsedTime.currentMonth}/${parsedTime.currentDay}/${parsedTime.currentYear})`);
+        
+        // Only reload if there's a significant discrepancy (more than 30 days)
+        const stateDate = new Date(currentYear, currentMonth - 1, currentDay);
+        const storageDate = new Date(parsedTime.currentYear, parsedTime.currentMonth - 1, parsedTime.currentDay);
+        const diffTime = Math.abs(stateDate.getTime() - storageDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays > 30) { // Only reload for significant differences
+          console.log(`Major date discrepancy detected (${diffDays} days difference), manually updating time store...`);
+          // Instead of reloading, manually update the time store
+          timeStore.setDate(parsedTime.currentDay, parsedTime.currentMonth, parsedTime.currentYear);
         }
       }
     } catch (e) {
       console.error('Error checking time consistency in Dashboard:', e);
     }
-  }, [currentDay, currentMonth, currentYear]);
+  }, []);
   
   const { economyState } = useEconomy();
   const audio = useAudio();

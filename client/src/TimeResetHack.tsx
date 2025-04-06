@@ -3,9 +3,20 @@ import { useEffect } from 'react';
 /**
  * This component is a direct hack to force a time reset when loaded
  * It bypasses all standard mechanisms and directly overwrites time data
+ * 
+ * IMPORTANT: Only runs ONCE per session to avoid reload loops
  */
 const TimeResetHack: React.FC = () => {
   useEffect(() => {
+    // Check if we've already run the hack this session to prevent reload loops
+    if (sessionStorage.getItem('time_reset_already_run') === 'true') {
+      console.log('⚠️ TimeResetHack: Already run this session, skipping');
+      return;
+    }
+    
+    // Mark as run to prevent future executions
+    sessionStorage.setItem('time_reset_already_run', 'true');
+    
     // Get the current real date
     const now = new Date();
     const currentDay = now.getDate();
@@ -36,11 +47,8 @@ const TimeResetHack: React.FC = () => {
     
     // DIRECT INTERVENTION: Write to localStorage without using any utility functions
     try {
-      // First, clear all storage to be safe
-      localStorage.clear();
-      sessionStorage.clear();
-      
-      // Then overwrite with fresh time state
+      // Do NOT clear all localStorage - this was causing issues
+      // Only update the time key
       localStorage.setItem('luxury_lifestyle_time', JSON.stringify(freshTimeState));
       
       // Verify
@@ -49,14 +57,10 @@ const TimeResetHack: React.FC = () => {
         const parsed = JSON.parse(check);
         console.log(`⚠️ TimeResetHack: Verified date in storage: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
         
-        // Set a flag that Dashboard can check to force a reload if needed
+        // Set a flag that Dashboard can check to show correct date
         sessionStorage.setItem('time_reset_performed', 'true');
         
-        // If we're on the Dashboard page, force reload to pick up the new time
-        if (window.location.pathname === '/') {
-          console.log('⚠️ TimeResetHack: On Dashboard page, forcing reload to apply new time');
-          window.location.reload();
-        }
+        // No longer forcing a reload - this was causing the flashing issue
       } else {
         console.error('⚠️ TimeResetHack: Failed to verify time data after writing');
       }
