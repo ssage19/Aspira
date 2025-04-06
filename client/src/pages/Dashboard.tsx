@@ -6,7 +6,7 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
-import { useRandomEvents } from '../lib/stores/useRandomEvents';
+import useRandomEvents from '../lib/stores/useRandomEvents';
 import { toast } from 'sonner';
 
 import { CharacterAttributes } from '../components/CharacterAttributes';
@@ -562,10 +562,16 @@ export default function Dashboard() {
                                   const { reset } = useGame.getState();
                                   const { resetCharacter } = useCharacter.getState();
                                   const { resetTime } = useTime.getState();
+                                  const { resetEconomy } = useEconomy.getState();
+                                  const { resetEvents } = useRandomEvents.getState();
+                                  const { resetAchievements } = useAchievements.getState();
                                   
                                   // Reset individual stores first
                                   resetCharacter();
                                   resetTime();
+                                  resetEconomy();
+                                  resetEvents();
+                                  resetAchievements();
                                   reset();
                                   
                                   // Clear all localStorage to ensure clean state

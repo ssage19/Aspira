@@ -3,6 +3,8 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useGame } from '../lib/stores/useGame';
+import { useAchievements } from '../lib/stores/useAchievements';
+import useRandomEvents from '../lib/stores/useRandomEvents';
 
 export function DebugPanel() {
   const { name, wealth, netWorth, assets, properties, lifestyleItems, resetCharacter } = useCharacter();
@@ -16,17 +18,33 @@ export function DebugPanel() {
     // Get reset functions from all stores
     const { reset } = useGame.getState();
     const { resetTime } = useTime.getState();
+    const { resetAchievements } = useAchievements.getState();
+    const { resetEconomy } = useEconomy.getState();
+    const { resetEvents } = useRandomEvents.getState();
     
-    // Reset all game state properly
+    // Clear all localStorage keys
+    localStorage.removeItem('business-empire-character');
+    localStorage.removeItem('business-empire-game');
+    localStorage.removeItem('luxury_lifestyle_time');
+    localStorage.removeItem('business-empire-economy');
+    localStorage.removeItem('business-empire-claimed-rewards');
+    localStorage.removeItem('business-empire-events');
+    localStorage.removeItem('auto-maintain-needs');
+    
+    // Reset all game state properly in memory too
     resetCharacter();
     resetTime();
+    resetAchievements();
+    resetEconomy();
+    resetEvents();
     reset();
+    
+    // Force the browser to fully reload the page 
+    // which will reinstantiate all stores with their default values
+    window.location.href = '/create';
     
     // Hide confirmation dialog
     setShowResetConfirm(false);
-    
-    // Redirect to character creation
-    window.location.href = '/create';
   };
   
   return (

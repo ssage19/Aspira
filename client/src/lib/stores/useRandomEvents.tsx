@@ -127,6 +127,9 @@ interface RandomEventsState {
   
   // Add a new active event directly (for health events, etc.)
   addActiveEvent: (event: ActiveEvent) => void;
+  
+  // Reset all events state
+  resetEvents: () => void;
 }
 
 const STORAGE_KEY = 'business-empire-events';
@@ -314,6 +317,22 @@ export const useRandomEvents = create<RandomEventsState>()(
         // Add the new event to active events
         set({ activeEvents: [...activeEvents, event] });
         saveState();
+      },
+      
+      // Reset all events state
+      resetEvents: () => {
+        set({
+          events: [], // Will be repopulated on initialization
+          currentEvent: null,
+          activeEvents: [],
+          eventHistory: [],
+          debugMode: false
+        });
+        
+        // Remove from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY);
+        }
       }
     };
   })

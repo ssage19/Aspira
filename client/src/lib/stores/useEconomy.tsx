@@ -43,6 +43,7 @@ interface EconomyStore {
   setRealEstateMarketHealth: (health: number) => void;
   setInflation: (rate: number) => void;
   setInterestRate: (rate: number) => void;
+  resetEconomy: () => void; // Reset economy to default values
 }
 
 const STORAGE_KEY = 'business-empire-economy';
@@ -222,6 +223,23 @@ export const useEconomy = create<EconomyStore>()(
       setInterestRate: (rate: number) => {
         set({ interestRate: Math.max(0, rate) });
         saveState();
+      },
+      
+      // Reset the economy to its default state
+      resetEconomy: () => {
+        set({
+          economyState: "stable",
+          marketTrend: "stable",
+          stockMarketHealth: 50,
+          realEstateMarketHealth: 50,
+          inflation: 2.5,
+          interestRate: 3.0
+        });
+        
+        // Remove from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem(STORAGE_KEY);
+        }
       }
     };
   })
