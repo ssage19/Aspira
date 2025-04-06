@@ -286,7 +286,7 @@ export function Lifestyle() {
                     Price: {formatCurrency(item.price)}
                     {item.maintenanceCost > 0 && (
                       <span className="ml-2 text-amber-600">
-                        +{formatCurrency(item.maintenanceCost * 30)}/month
+                        +{formatCurrency(item.maintenanceCost)}/month
                       </span>
                     )}
                   </>
@@ -462,7 +462,7 @@ export function Lifestyle() {
                           {/* Only show maintenance if it exists and is greater than zero - always show as monthly now */}
                           {item.maintenanceCost && item.maintenanceCost > 0 && (
                             <span className="ml-2 text-amber-600">
-                              +{formatCurrency(item.type === 'hobbies' ? item.maintenanceCost : item.maintenanceCost * 30)}/month
+                              +{formatCurrency(item.maintenanceCost)}/month
                             </span>
                           )}
                         </CardDescription>
