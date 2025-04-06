@@ -22,7 +22,7 @@ import {
   Home,
   Car
 } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Progress } from './ui/progress';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
@@ -65,13 +65,17 @@ export function CharacterAttributes() {
   
   // Ensure this component refreshes at the same rate as Dashboard and Essentials
   // This guarantees all UI components show consistent values
+  const [_, forceUpdate] = useState({});
+  
   useEffect(() => {
     // State refresh interval - always active to ensure UI stays updated
     const stateRefreshInterval = setInterval(() => {
-      // Using getState() to force a refresh of state
-      const _ = useCharacter.getState();
-      // We don't need to do anything with the state, just accessing it
-      // triggers a refresh of all components using the useCharacter hook
+      // Get the current state
+      const currentState = useCharacter.getState();
+      
+      // Force component to rerender by updating state
+      // This is needed to ensure the component updates when values increase
+      forceUpdate({});
     }, 1000);
     
     // Cleanup function to prevent memory leaks

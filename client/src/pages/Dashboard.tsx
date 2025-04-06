@@ -262,13 +262,17 @@ export default function Dashboard() {
   
   // Force refresh of character state every second to match Essentials component
   // This ensures consistent values between Dashboard and Lifestyle tabs
+  const [_, forceUpdate] = useState({});
+  
   useEffect(() => {
     // Create a state refresh interval that matches the Essentials component
     const refreshInterval = setInterval(() => {
-      // Using getState() to force a refresh of the character state
-      const _ = useCharacter.getState();
-      // We don't need to do anything with the state, just accessing it
-      // triggers a refresh of all components using the useCharacter hook
+      // Get the current state
+      const currentState = useCharacter.getState();
+      
+      // Force component to rerender by updating state
+      // This ensures the dashboard updates when values increase as well as decrease
+      forceUpdate({});
     }, 1000);
     
     return () => clearInterval(refreshInterval);

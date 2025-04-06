@@ -511,6 +511,9 @@ export function Essentials() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   
+  // Force component to update regularly to reflect state changes
+  const [_, forceUpdate] = useState({});
+  
   // Always refresh the component state every second
   useEffect(() => {
     // Set up two different intervals:
@@ -527,9 +530,10 @@ export function Essentials() {
     // This ensures values are consistent with other components like Dashboard
     const stateRefreshInterval = setInterval(() => {
       // Using getState() to force a refresh of state
-      const _ = useCharacter.getState();
-      // We don't need to do anything with the state, just accessing it
-      // triggers a refresh of all components using the useCharacter hook
+      const currentState = useCharacter.getState();
+      // Force component to rerender by updating state
+      // This is needed to ensure the component updates when values increase
+      forceUpdate({});
     }, 1000);
     
     // Cleanup function to prevent memory leaks
