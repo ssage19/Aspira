@@ -80,6 +80,10 @@ export interface LifestyleItem {
   purchaseDate?: string;
   imageUrl?: string;
   
+  // Duration-based properties for vacations and experiences
+  durationInDays?: number; // How many days the experience/vacation lasts
+  endDate?: string; // The date when the lifestyle item expires (ISO string)
+  
   // Additional attributes
   socialStatus?: number;
   healthImpact?: number;
@@ -1317,11 +1321,31 @@ export const useCharacter = create<CharacterState>()(
         // Use maintenanceCost for monthly expenses, defaulting to 0 if not provided
         const monthlyCost = item.maintenanceCost || 0;
         
+        // Get current date - we'll use this for duration-based items
+        const currentDate = new Date();
+        const purchaseDate = currentDate.toISOString();
+        
+        // Calculate end date for vacations and experiences if they have duration
+        let endDate: string | undefined;
+        
+        if ((item.type === 'vacations' || item.type === 'experiences') && item.durationInDays) {
+          // Create a new date object for the end date by adding durationInDays to the current date
+          const endDateTime = new Date(currentDate);
+          endDateTime.setDate(endDateTime.getDate() + item.durationInDays);
+          endDate = endDateTime.toISOString();
+          
+          console.log(`Adding ${item.name} with duration of ${item.durationInDays} days. Will expire on ${endDate}`);
+        }
+        
         set((state) => ({
           lifestyleItems: [...state.lifestyleItems, {
             ...item,
             // Ensure we have a monthlyCost property for expense calculations
-            monthlyCost: monthlyCost
+            monthlyCost: monthlyCost,
+            // Add purchase date for all items
+            purchaseDate: purchaseDate,
+            // Add end date for duration-based items
+            endDate: endDate
           }],
           // Add to expenses using the correct monthly cost
           expenses: state.expenses + monthlyCost,
@@ -1650,7 +1674,74 @@ export const useCharacter = create<CharacterState>()(
           let dailyIncome = 0;
           
           // Get the dayCounter from useTime
-          const { dayCounter } = useTime.getState();
+          const { dayCounter, currentGameDate } = useTime.getState();
+          
+          // Check for expired lifestyle items (vacations and experiences that have ended)
+          const currentDate = new Date();
+          const expiredItems: LifestyleItem[] = [];
+          
+          state.lifestyleItems.forEach(item => {
+            if (item.endDate && (item.type === 'vacations' || item.type === 'experiences')) {
+              const endDate = new Date(item.endDate);
+              if (currentDate > endDate) {
+                // This item has expired
+                expiredItems.push(item);
+              }
+            }
+          });
+          
+          // Remove expired items
+          if (expiredItems.length > 0) {
+            expiredItems.forEach(item => {
+              console.log(`${item.name} has expired and will be removed.`);
+              
+              // Show toast notification for each expired item
+              toast(`Your ${item.name} has ended.`, {
+                duration: 5000,
+                position: 'bottom-right',
+                icon: '⏱️'
+              });
+              
+              // Reverse the effects of the expired item on character attributes
+              // Decrease happiness and prestige if they were boosted by this item
+              if (item.happiness) {
+                state.happiness = Math.max(0, state.happiness - item.happiness);
+              }
+              
+              if (item.prestige) {
+                state.prestige = Math.max(0, state.prestige - item.prestige);
+              }
+              
+              // Reverse other effects
+              if (item.socialStatus) {
+                state.socialConnections = Math.max(0, state.socialConnections - item.socialStatus);
+              }
+              
+              if (item.healthImpact) {
+                state.health = Math.max(0, Math.min(100, state.health - item.healthImpact));
+              }
+              
+              if (item.stressReduction) {
+                state.stress = Math.min(100, state.stress + item.stressReduction);
+              }
+              
+              if (item.environmentalImpact) {
+                state.environmentalImpact = Math.max(0, Math.min(100, state.environmentalImpact - item.environmentalImpact));
+              }
+              
+              // Remove any monthly costs from expenses
+              const monthlyCost = item.monthlyCost || item.maintenanceCost || 0;
+              state.expenses = Math.max(0, state.expenses - monthlyCost);
+            });
+            
+            // Filter out the expired items from lifestyleItems
+            const filteredItems = state.lifestyleItems.filter(item => 
+              !expiredItems.some(expiredItem => expiredItem.id === item.id)
+            );
+            
+            // Update the state with the filtered items
+            state.lifestyleItems = filteredItems;
+          }
           
           if (state.job) {
             // Increment days since promotion

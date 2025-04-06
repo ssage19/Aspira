@@ -1332,6 +1332,7 @@ export const vacations = [
     type: 'vacations',
     price: 15000,
     duration: '1 week',
+    durationInDays: 7, // 1 week = 7 days
     description: 'All-inclusive stay at a premium resort with world-class amenities.',
     prestige: 10,
     happiness: 30,
@@ -1353,6 +1354,7 @@ export const vacations = [
     type: 'vacations',
     price: 20000,
     duration: '1 week',
+    durationInDays: 7, // 1 week = 7 days
     description: 'Pristine powder skiing at a premier mountain resort with luxury accommodations.',
     prestige: 15,
     happiness: 35,
@@ -1375,6 +1377,7 @@ export const vacations = [
     type: 'vacations',
     price: 25000,
     duration: '10 days',
+    durationInDays: 10,
     description: 'Private beachfront villa with personalized service in a tropical paradise.',
     prestige: 20,
     happiness: 40,
@@ -1755,6 +1758,7 @@ export const experiences = [
     name: 'Supercar Track Day',
     type: 'experiences',
     price: 15000,
+    durationInDays: 1, // One-day experience
     description: 'Drive a selection of the world\'s finest supercars on a professional race track.',
     prestige: 15,
     happiness: 35,
@@ -1776,6 +1780,7 @@ export const experiences = [
     name: 'Private Helicopter City Tour',
     type: 'experiences',
     price: 5000,
+    durationInDays: 1, // One-day experience
     description: 'Exclusive aerial tour of a major city with champagne and personalized route.',
     prestige: 10,
     happiness: 25,
@@ -1796,6 +1801,7 @@ export const experiences = [
     name: 'Private Chef Experience',
     type: 'experiences',
     price: 8000,
+    durationInDays: 1, // One-day experience
     description: 'Renowned chef prepares an exclusive multi-course meal in your home with wine pairings.',
     prestige: 12,
     happiness: 30,
