@@ -15,41 +15,19 @@ const setLocalStorage = (key: string, value: any): void =>
  * This includes resetting all store states, clearing localStorage, and forcing a page reload
  */
 export const performCompleteGameReset = () => {
-  // Import all store reset functions
-  // Note: We use dynamic imports to avoid circular dependency issues
-  import('./stores/useCharacter').then(characterModule => {
-    const characterStore = characterModule.useCharacter;
-    characterStore.getState().resetCharacter();
-  });
+  console.log("Starting complete game reset process...");
   
-  import('./stores/useGame').then(gameModule => {
-    const gameStore = gameModule.useGame;
-    gameStore.getState().reset();
-  });
+  // 1. First, add flags to sessionStorage to guide the reset process
+  // These will be used after page reload to continue the reset process
+  sessionStorage.setItem('game_reset_in_progress', 'true');
   
-  import('./stores/useTime').then(timeModule => {
-    const timeStore = timeModule.useTime;
-    timeStore.getState().resetTime();
-  });
+  // Set up the redirect target
+  const createPageUrl = '/create';
+  if (window.location.pathname !== createPageUrl) {
+    sessionStorage.setItem('redirect_after_reset', createPageUrl);
+  }
   
-  import('./stores/useEconomy').then(economyModule => {
-    const economyStore = economyModule.useEconomy;
-    economyStore.getState().resetEconomy();
-  });
-  
-  import('./stores/useRandomEvents').then(eventsModule => {
-    const eventsStore = eventsModule.default;
-    eventsStore.getState().resetEvents();
-  });
-  
-  import('./stores/useAchievements').then(achievementsModule => {
-    const achievementsStore = achievementsModule.useAchievements;
-    if (achievementsStore.getState().resetAchievements) {
-      achievementsStore.getState().resetAchievements();
-    }
-  });
-  
-  // 1. List of all known localStorage keys used in the game
+  // 2. List of all known localStorage keys used in the game
   const allGameStorageKeys = [
     'business-empire-game',
     'business-empire-character',
@@ -61,26 +39,72 @@ export const performCompleteGameReset = () => {
     'business-empire-achievements'
   ];
   
-  // 2. Clear each specific key to ensure nothing is missed
+  // 3. Clear each specific key to ensure nothing is missed
+  console.log("Clearing all game storage keys...");
   allGameStorageKeys.forEach(key => {
     localStorage.removeItem(key);
   });
   
-  // 3. Also do a complete localStorage.clear() for any keys we might have missed
+  // 4. Also do a complete localStorage.clear() for any keys we might have missed
+  // This is a more aggressive approach to ensure a complete reset
   localStorage.clear();
+  console.log("All localStorage data cleared");
   
-  // 4. Add a flag to indicate we're in the process of resetting
-  // This can be checked on character creation page to ensure proper initialization
-  sessionStorage.setItem('game_reset_in_progress', 'true');
+  // 5. Reset all stores synchronously before reload
+  // Note: We use a more synchronous approach to ensure all resets happen
+  // before the page reloads
+  try {
+    // Reset character store
+    console.log("Resetting character store...");
+    const characterStore = require('./stores/useCharacter').useCharacter;
+    if (characterStore.getState().resetCharacter) {
+      characterStore.getState().resetCharacter();
+    }
+    
+    // Reset game store
+    console.log("Resetting game store...");
+    const gameStore = require('./stores/useGame').useGame;
+    if (gameStore.getState().reset) {
+      gameStore.getState().reset();
+    }
+    
+    // Reset time store
+    console.log("Resetting time store...");
+    const timeStore = require('./stores/useTime').useTime;
+    if (timeStore.getState().resetTime) {
+      timeStore.getState().resetTime();
+    }
+    
+    // Reset economy store
+    console.log("Resetting economy store...");
+    const economyStore = require('./stores/useEconomy').useEconomy;
+    if (economyStore.getState().resetEconomy) {
+      economyStore.getState().resetEconomy();
+    }
+    
+    // Reset events store
+    console.log("Resetting events store...");
+    const eventsStore = require('./stores/useRandomEvents').default;
+    if (eventsStore.getState().resetEvents) {
+      eventsStore.getState().resetEvents();
+    }
+    
+    // Reset achievements store
+    console.log("Resetting achievements store...");
+    const achievementsStore = require('./stores/useAchievements').useAchievements;
+    if (achievementsStore.getState().resetAchievements) {
+      achievementsStore.getState().resetAchievements();
+    }
+  } catch (error) {
+    console.error("Error during store resets:", error);
+    console.log("Continuing with page reload to complete reset...");
+  }
   
-  // 5. Force navigation to character creation page
-  window.location.href = '/create';
+  console.log("All stores reset, reloading page to complete reset process...");
   
-  // 6. After a short delay, do a complete page reload
-  // This is necessary to fully reinitialize all JavaScript state
-  setTimeout(() => {
-    window.location.reload();
-  }, 100);
+  // 6. Force a page reload to complete the reset and clear any in-memory state
+  // The App.tsx useEffect will handle the redirect to character creation afterward
+  window.location.reload();
 };
 
 /**

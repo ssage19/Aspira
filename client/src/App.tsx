@@ -34,6 +34,35 @@ function App() {
   const { phase, start } = useGame();
   const { checkForNewEvents } = useRandomEvents();
 
+  // Check for redirect after reset
+  useEffect(() => {
+    // Check if we need to redirect after a game reset
+    const redirectUrl = sessionStorage.getItem('redirect_after_reset');
+    const resetInProgress = sessionStorage.getItem('game_reset_in_progress');
+    
+    if (redirectUrl) {
+      console.log(`Handling post-reset redirect to: ${redirectUrl}`);
+      // Clear the redirect flag
+      sessionStorage.removeItem('redirect_after_reset');
+      sessionStorage.removeItem('game_reset_in_progress');
+      // Perform the navigation
+      window.location.href = redirectUrl;
+    } else if (resetInProgress) {
+      // If reset was in progress but we don't have a redirect URL
+      // (happens if we're already on the character creation page)
+      console.log('Reset completed, clearing reset flag');
+      sessionStorage.removeItem('game_reset_in_progress');
+      
+      // If we're not on the character creation page, redirect there
+      if (window.location.pathname !== '/create') {
+        window.location.href = '/create';
+      } else {
+        // Force a reload to ensure fresh state on the character creation page
+        window.location.reload();
+      }
+    }
+  }, []);
+  
   // Initialize game state
   useEffect(() => {
     // Check if we're on the character creation page

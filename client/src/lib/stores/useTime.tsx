@@ -57,13 +57,22 @@ const loadSavedTime = () => {
 };
 
 // Get the current real device date
-const getCurrentDeviceDate = () => {
-  const now = new Date();
-  return {
-    day: now.getDate(),
-    month: now.getMonth() + 1, // JavaScript months are 0-indexed
-    year: now.getFullYear()
-  };
+// Global variable to cache device date for consistent use across resets
+let globalDeviceDate: {day: number, month: number, year: number} | null = null;
+
+// Get current device date, with option to force refresh the global variable
+const getCurrentDeviceDate = (forceRefresh: boolean = false) => {
+  // If forceRefresh is true or globalDeviceDate is null, get a fresh date
+  if (forceRefresh || globalDeviceDate === null) {
+    const now = new Date();
+    globalDeviceDate = {
+      day: now.getDate(),
+      month: now.getMonth() + 1, // JavaScript months are 0-indexed
+      year: now.getFullYear()
+    };
+  }
+  
+  return globalDeviceDate;
 };
 
 export const useTime = create<TimeState>()(
@@ -185,8 +194,10 @@ export const useTime = create<TimeState>()(
       }),
       
       resetTime: () => set(() => {
-        // Get current real-world date
-        const realDate = getCurrentDeviceDate();
+        // Force a refresh of the real-world date from the device
+        const realDate = getCurrentDeviceDate(true);
+        
+        console.log("Resetting time to current device date:", realDate);
         
         // Create a new Date object for the reset time
         const newGameDate = new Date(realDate.year, realDate.month - 1, realDate.day);
@@ -208,6 +219,9 @@ export const useTime = create<TimeState>()(
           accumulatedProgress: 0,
           dayCounter: 0
         };
+        
+        // Clear the localStorage entry first to ensure all previous data is gone
+        localStorage.removeItem(STORAGE_KEY);
         
         // Save to local storage
         setLocalStorage(STORAGE_KEY, newState);

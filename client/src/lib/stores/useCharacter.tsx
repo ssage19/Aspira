@@ -246,6 +246,7 @@ interface CharacterState {
   
   // Net worth calculation
   calculateNetWorth: () => number;
+  calculateNetWorthInternal: (wealth: number, assets: any[], properties: any[], lifestyleItems: any[]) => number;
   getNetWorthBreakdown: () => NetWorthBreakdown;
   
   // Daily/weekly updates
@@ -399,6 +400,7 @@ export const useCharacter = create<CharacterState>()(
           awardSkillPoints: state.awardSkillPoints,
           spendEarnedSkillPoint: state.spendEarnedSkillPoint,
           calculateNetWorth: state.calculateNetWorth,
+          calculateNetWorthInternal: state.calculateNetWorthInternal,
           processDailyUpdate: state.processDailyUpdate,
           weeklyUpdate: state.weeklyUpdate,
           monthlyUpdate: state.monthlyUpdate,
@@ -1534,6 +1536,71 @@ export const useCharacter = create<CharacterState>()(
         return success;
       },
       
+      // Internal function to calculate net worth from provided values
+      // This can be used by both calculateNetWorth and resetCharacter
+      calculateNetWorthInternal: (
+        wealth: number, 
+        assets: any[], 
+        properties: any[], 
+        lifestyleItems: any[]
+      ) => {
+        // Start with cash (liquid assets)
+        let netWorth = wealth;
+        
+        // Add investment assets
+        if (assets && assets.length > 0) {
+          for (const asset of assets) {
+            const assetValue = asset.currentPrice * asset.quantity;
+            netWorth += assetValue;
+          }
+        }
+        
+        // Add property values and subtract outstanding loans
+        if (properties && properties.length > 0) {
+          for (const property of properties) {
+            // Get current property value
+            const propertyValue = property.currentValue;
+            
+            // Get outstanding loan amount
+            const loanAmount = property.loanAmount || 0;
+            
+            // Property equity is value minus debt
+            const equity = propertyValue - loanAmount;
+            
+            // Add equity to net worth (value minus debt)
+            netWorth += equity;
+          }
+        }
+        
+        // Add lifestyle item values to net worth
+        if (lifestyleItems && lifestyleItems.length > 0) {
+          for (const item of lifestyleItems) {
+            // Skip vacations and experiences as they're temporary and shouldn't contribute to net worth
+            if (item.type === 'vacations' || item.type === 'experiences') {
+              continue; // Skip this item
+            }
+            
+            // For permanent lifestyle items, use purchase price with depreciation 
+            // or a fixed value based on their monthly cost
+            const purchasePrice = item.purchasePrice || 0;
+            let itemValue = 0;
+            
+            if (purchasePrice > 0) {
+              // For reset case we don't need to calculate depreciation
+              itemValue = purchasePrice * 0.8; // Assume 20% initial depreciation
+            } else {
+              // If no purchase price, estimate value based on monthly cost or maintenanceCost
+              const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+              itemValue = monthlyCost * 3; // Value as 3 months of payments
+            }
+            
+            netWorth += itemValue;
+          }
+        }
+        
+        return netWorth;
+      },
+      
       // Calculate net worth
       calculateNetWorth: () => {
         const state = get();
@@ -2056,6 +2123,8 @@ export const useCharacter = create<CharacterState>()(
             awardSkillPoints: state.awardSkillPoints,
             spendEarnedSkillPoint: state.spendEarnedSkillPoint,
             calculateNetWorth: state.calculateNetWorth,
+            calculateNetWorthInternal: state.calculateNetWorthInternal,
+            getNetWorthBreakdown: state.getNetWorthBreakdown,
             processDailyUpdate: state.processDailyUpdate,
             weeklyUpdate: state.weeklyUpdate,
             monthlyUpdate: state.monthlyUpdate,
