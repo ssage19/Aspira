@@ -13,8 +13,20 @@ export function DebugPanel() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   const handleReset = () => {
+    // Get reset functions from all stores
+    const { reset } = useGame.getState();
+    const { resetTime } = useTime.getState();
+    
+    // Reset all game state properly
     resetCharacter();
+    resetTime();
+    reset();
+    
+    // Hide confirmation dialog
     setShowResetConfirm(false);
+    
+    // Redirect to character creation
+    window.location.href = '/create';
   };
   
   return (

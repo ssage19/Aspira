@@ -7,6 +7,7 @@ import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import { useRandomEvents } from '../lib/stores/useRandomEvents';
+import { toast } from 'sonner';
 
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
@@ -557,12 +558,22 @@ export default function Dashboard() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
-                                  // Handle reset logic here
+                                  // Properly reset all game state
                                   const { reset } = useGame.getState();
-                                  // Reset game state first
+                                  const { resetCharacter } = useCharacter.getState();
+                                  const { resetTime } = useTime.getState();
+                                  
+                                  // Reset individual stores first
+                                  resetCharacter();
+                                  resetTime();
                                   reset();
-                                  // Clear all local storage
+                                  
+                                  // Clear all localStorage to ensure clean state
                                   localStorage.clear();
+                                  
+                                  // Display a toast message
+                                  toast.success("Game data has been reset successfully");
+                                  
                                   // Navigate to character creation
                                   window.location.href = '/create';
                                 }} className="bg-red-500 hover:bg-red-600">
