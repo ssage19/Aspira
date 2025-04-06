@@ -36,9 +36,43 @@ function App() {
 
   // Check for redirect after reset
   useEffect(() => {
+    console.log("App.tsx - Checking for post-reset status");
+    
     // Check if we need to redirect after a game reset
     const redirectUrl = sessionStorage.getItem('redirect_after_reset');
     const resetInProgress = sessionStorage.getItem('game_reset_in_progress');
+    
+    // Check for time consistency on app start - if localStorage time data is from future, reset
+    try {
+      const timeData = localStorage.getItem('luxury_lifestyle_time');
+      if (timeData) {
+        const parsedTime = JSON.parse(timeData);
+        const now = new Date();
+        
+        console.log(`Current real date: ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`);
+        console.log(`Stored game date: ${parsedTime.currentMonth}/${parsedTime.currentDay}/${parsedTime.currentYear}`);
+        
+        // Check if stored date is from the future (beyond 1 day difference)
+        const storedDate = new Date(parsedTime.currentYear, parsedTime.currentMonth - 1, parsedTime.currentDay);
+        const diffTime = Math.abs(storedDate.getTime() - now.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        console.log(`Date difference in days: ${diffDays}`);
+        
+        // If the stored date is more than 365 days different from now, it's likely wrong
+        if (diffDays > 365) {
+          console.warn("Stored date is extremely different from current date, forcing reset");
+          // Force time reset
+          const timeStore = require('./lib/stores/useTime').useTime;
+          if (timeStore.getState().resetTime) {
+            timeStore.getState().resetTime();
+            console.log("Time successfully reset to current date due to extreme date difference");
+          }
+        }
+      }
+    } catch (e) {
+      console.error("Error checking time consistency:", e);
+    }
     
     if (redirectUrl) {
       console.log(`Handling post-reset redirect to: ${redirectUrl}`);
@@ -50,16 +84,31 @@ function App() {
     } else if (resetInProgress) {
       // If reset was in progress but we don't have a redirect URL
       // (happens if we're already on the character creation page)
-      console.log('Reset completed, clearing reset flag');
+      console.log('Reset in progress detected, but no redirect URL');
       sessionStorage.removeItem('game_reset_in_progress');
+      
+      // Double-check time reset
+      try {
+        const timeStore = require('./lib/stores/useTime').useTime;
+        console.log("Performing additional time reset for safety");
+        if (timeStore.getState().resetTime) {
+          timeStore.getState().resetTime();
+        }
+      } catch (e) {
+        console.error("Error during additional time reset:", e);
+      }
       
       // If we're not on the character creation page, redirect there
       if (window.location.pathname !== '/create') {
+        console.log('Redirecting to character creation');
         window.location.href = '/create';
       } else {
         // Force a reload to ensure fresh state on the character creation page
+        console.log('Already on character creation, forcing reload');
         window.location.reload();
       }
+    } else {
+      console.log("No reset in progress detected");
     }
   }, []);
   
