@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useAudio } from '../lib/stores/useAudio';
+import { useTime } from '../lib/stores/useTime';
 import { Button } from './ui/button';
 import { 
   Card, 
@@ -54,7 +55,15 @@ import { hobbies } from '../lib/data/hobbies';
 export function Lifestyle() {
   const { wealth, addWealth, addLifestyleItem, removeLifestyleItem, lifestyleItems: ownedItems } = useCharacter();
   const { playSuccess, playHit } = useAudio();
+  const { currentGameDate, dayCounter } = useTime(); // Access game time
   const [activeTab, setActiveTab] = useState('luxury');
+  const [, forceUpdate] = useState({});
+  
+  // Force component to re-render when game time changes, to update countdowns
+  useEffect(() => {
+    // Re-render the component whenever the day changes
+    forceUpdate({});
+  }, [dayCounter, currentGameDate]);
   
   const handlePurchase = (item: any) => {
     // Check cost based on item type
@@ -495,10 +504,11 @@ export function Lifestyle() {
                             <div className="mt-1 flex items-center text-xs">
                               <Clock className="h-3 w-3 mr-1 text-orange-500" />
                               {(() => {
+                                // Use the game time instead of actual time for consistent countdown
                                 const endDate = new Date(item.endDate);
-                                const currentDate = new Date();
+                                // Use the current game date for calculating days remaining
                                 const daysRemaining = Math.ceil(
-                                  (endDate.getTime() - currentDate.getTime()) / (1000 * 3600 * 24)
+                                  (endDate.getTime() - currentGameDate.getTime()) / (1000 * 3600 * 24)
                                 );
                                 
                                 if (daysRemaining > 0) {

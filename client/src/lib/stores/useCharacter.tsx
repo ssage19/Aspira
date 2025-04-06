@@ -1321,16 +1321,16 @@ export const useCharacter = create<CharacterState>()(
         // Use maintenanceCost for monthly expenses, defaulting to 0 if not provided
         const monthlyCost = item.maintenanceCost || 0;
         
-        // Get current date - we'll use this for duration-based items
-        const currentDate = new Date();
-        const purchaseDate = currentDate.toISOString();
+        // Get current game date instead of actual time for consistent durations
+        const { currentGameDate } = useTime.getState();
+        const purchaseDate = currentGameDate.toISOString();
         
         // Calculate end date for vacations and experiences if they have duration
         let endDate: string | undefined;
         
         if ((item.type === 'vacations' || item.type === 'experiences') && item.durationInDays) {
-          // Create a new date object for the end date by adding durationInDays to the current date
-          const endDateTime = new Date(currentDate);
+          // Create a new date object for the end date by adding durationInDays to the game date
+          const endDateTime = new Date(currentGameDate);
           endDateTime.setDate(endDateTime.getDate() + item.durationInDays);
           endDate = endDateTime.toISOString();
           
@@ -1605,7 +1605,8 @@ export const useCharacter = create<CharacterState>()(
           if (purchasePrice > 0) {
             // Calculate time since purchase to apply depreciation
             const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
-            const currentDate = new Date();
+            // Use game time for consistent depreciation
+            const currentDate = useTime.getState().currentGameDate;
             const monthsSincePurchase = Math.max(0, 
               (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
               (currentDate.getMonth() - purchaseDate.getMonth())
@@ -1677,13 +1678,13 @@ export const useCharacter = create<CharacterState>()(
           const { dayCounter, currentGameDate } = useTime.getState();
           
           // Check for expired lifestyle items (vacations and experiences that have ended)
-          const currentDate = new Date();
+          // Use the game time instead of actual time for consistent expiration
           const expiredItems: LifestyleItem[] = [];
           
           state.lifestyleItems.forEach(item => {
             if (item.endDate && (item.type === 'vacations' || item.type === 'experiences')) {
               const endDate = new Date(item.endDate);
-              if (currentDate > endDate) {
+              if (currentGameDate > endDate) {
                 // This item has expired
                 expiredItems.push(item);
               }
