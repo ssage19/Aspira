@@ -10,149 +10,149 @@
     --radius: 0.75rem;
     
     /* Glow shadow variables */
-    --shadow-glow-sm: 0 0 8px rgba(var(--glow-color, 136, 189, 188), 0.4);
-    --shadow-glow: 0 0 15px rgba(var(--glow-color, 136, 189, 188), 0.5);
-    --shadow-glow-lg: 0 0 25px rgba(var(--glow-color, 136, 189, 188), 0.6);
+    --shadow-glow-sm: 0 0 8px rgba(var(--glow-color, 49, 112, 190), 0.4);
+    --shadow-glow: 0 0 15px rgba(var(--glow-color, 49, 112, 190), 0.5);
+    --shadow-glow-lg: 0 0 25px rgba(var(--glow-color, 49, 112, 190), 0.6);
 
-    /* Light mode - Using colors from the image: #88BDBC (mint), #6E8659 (sage) */
-    --background: 176 35% 95%; /* Lighter mint background for better contrast */
-    --foreground: 187 40% 15%; /* Darker teal for text to ensure readability */
+    /* Light mode - Our new palette with Royal Blue and Olive Green */
+    --background: 210 30% 98%; /* Light blue-gray background for better contrast */
+    --foreground: 215 40% 20%; /* Dark navy for text to ensure readability */
 
-    --muted: 176 20% 85%;
-    --muted-foreground: 187 40% 20%; /* Darker for better contrast on light backgrounds */
+    --muted: 210 20% 90%;
+    --muted-foreground: 215 35% 35%; /* Medium navy for muted text */
 
-    --accent: 176 40% 55%; /* #88BDBC - mint accent, slightly darkened */
+    --accent: 200 30% 50%; /* Cerulean accent */
     --accent-foreground: 0 0% 100%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 187 40% 15%;
+    --popover-foreground: 215 40% 20%;
 
-    --border: 176 30% 70%; /* Darker mint for borders */
-    --input: 176 20% 90%;
+    --border: 210 25% 85%; /* Light blue-gray for borders */
+    --input: 210 20% 95%;
 
     --card: 0 0% 100%;
-    --card-foreground: 187 40% 15%;
+    --card-foreground: 215 40% 20%;
 
-    --primary: 176 40% 40%; /* Darker mint primary color for better contrast */
+    --primary: 215 60% 45%; /* Royal blue primary color */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 77 25% 35%; /* Darker sage secondary */
+    --secondary: 90 20% 40%; /* Olive green secondary */
     --secondary-foreground: 0 0% 100%;
 
-    --tertiary: 33 25% 40%; /* Darker Tan/Sand color */
+    --tertiary: 200 30% 50%; /* Cerulean accent color */
     --tertiary-foreground: 0 0% 100%;
   
-    --quaternary: 176 35% 30%; /* Darker mint variant */
+    --quaternary: 215 50% 35%; /* Darker royal blue variant */
     --quaternary-foreground: 0 0% 100%;
 
-    --quinary: 77 30% 40%; /* Darker sage color */
+    --quinary: 90 25% 30%; /* Darker olive green color */
     --quinary-foreground: 0 0% 100%;
     
     --destructive: 0 85% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --ring: 176 40% 60%; /* #88BDBC - mint */
+    --ring: 215 60% 50%; /* Royal blue */
 
     /* Sidebar styles */
-    --sidebar-background: 77 25% 45%; /* #6E8659 - sage */
+    --sidebar-background: 90 25% 40%; /* Olive green */
     --sidebar-foreground: 0 0% 100%;
     
     /* Chart colors */
-    --chart-1: 176 40% 60%; /* #88BDBC - mint */
-    --chart-2: 77 25% 45%; /* #6E8659 - sage */
-    --chart-3: 40 30% 60%; /* Tan/Sand color */
-    --chart-4: 184 30% 25%; /* Dark teal */
-    --chart-5: 77 30% 55%; /* Lighter sage */
+    --chart-1: 215 60% 50%; /* Royal blue */
+    --chart-2: 90 25% 40%; /* Olive green */
+    --chart-3: 200 35% 55%; /* Cerulean */
+    --chart-4: 215 45% 35%; /* Darker royal blue */
+    --chart-5: 90 30% 55%; /* Lighter olive green */
     
     /* Achievement category colors */
-    --wealth-color-start: #88BDBC;
-    --wealth-color-end: #6E8659;
-    --property-color-start: #6E8659;
-    --property-color-end: #254E58;
-    --investment-color-start: #88BDBC;
-    --investment-color-end: #4F4A41;
-    --lifestyle-color-start: #4F4A41;
-    --lifestyle-color-end: #6E8659;
-    --general-color-start: #254E58;
-    --general-color-end: #112D32;
-    --challenge-color-start: #6E8659;
-    --challenge-color-end: #254E58;
-    --strategy-color-start: #88BDBC;
-    --strategy-color-end: #6E8659;
+    --wealth-color-start: #3170BE;
+    --wealth-color-end: #5085A5;
+    --property-color-start: #5085A5;
+    --property-color-end: #687864;
+    --investment-color-start: #3170BE;
+    --investment-color-end: #687864;
+    --lifestyle-color-start: #687864;
+    --lifestyle-color-end: #5085A5;
+    --general-color-start: #1E4387;
+    --general-color-end: #3170BE;
+    --challenge-color-start: #687864;
+    --challenge-color-end: #1E4387;
+    --strategy-color-start: #3170BE;
+    --strategy-color-end: #5085A5;
   }
 
   .dark {
-    /* Colors from the image: #254E58 (teal), #112D32 (dark green), #4F4A41 (brown) */
-    --background: 187 35% 15%; /* Darker background for better contrast */
+    /* Our new navy and blue color palette */
+    --background: 215 40% 10%; /* Deep navy background */
     --foreground: 0 0% 100%; /* Pure white text for maximum contrast */
 
-    --muted: 187 30% 12%;
+    --muted: 215 35% 12%;
     --muted-foreground: 0 0% 90%; /* Very light muted text for better contrast */
 
-    --accent: 187 40% 35%; /* Brighter teal accent for contrast */
+    --accent: 200 40% 40%; /* Brighter cerulean accent for contrast */
     --accent-foreground: 0 0% 100%; /* Pure white text */
 
-    --popover: 187 35% 10%;
+    --popover: 215 35% 8%;
     --popover-foreground: 0 0% 100%; /* Pure white text */
 
-    --border: 187 40% 35%; /* Brighter border color for visibility */
-    --input: 187 35% 10%; /* Dark input fields */
+    --border: 215 45% 25%; /* Brighter border color for visibility */
+    --input: 215 35% 8%; /* Dark input fields */
 
-    --card: 187 40% 12%; /* Darker card background */
+    --card: 215 40% 12%; /* Darker card background */
     --card-foreground: 0 0% 100%; /* Pure white text */
 
-    --primary: 187 40% 40%; /* Brighter teal primary color for visibility */
+    --primary: 215 60% 45%; /* Bright royal blue primary color for visibility */
     --primary-foreground: 0 0% 100%; /* Pure white text */
 
-    --secondary: 187 47% 25%; /* Brighter dark green secondary */
+    --secondary: 90 25% 35%; /* Olive green secondary */
     --secondary-foreground: 0 0% 100%; /* Pure white text */
 
-    --tertiary: 33 20% 45%; /* Brighter brown/tan color */
+    --tertiary: 200 40% 45%; /* Brighter cerulean color */
     --tertiary-foreground: 0 0% 100%; /* Pure white text */
   
-    --quaternary: 187 45% 25%; /* Brighter green variant */
+    --quaternary: 215 55% 35%; /* Brighter royal blue variant */
     --quaternary-foreground: 0 0% 100%; /* Pure white text */
 
-    --quinary: 33 25% 50%; /* Brighter tan variant */
+    --quinary: 90 30% 30%; /* Darker olive green variant */
     --quinary-foreground: 0 0% 100%; /* Pure white text */
 
     --destructive: 0 95% 60%; /* Brighter destructive color */
     --destructive-foreground: 0 0% 100%; /* Pure white text */
 
-    --ring: 187 40% 40%; /* Brighter ring color */
+    --ring: 215 60% 55%; /* Bright royal blue */
     
     /* Sidebar styles */
-    --sidebar-background: 187 47% 14%; /* #112D32 - dark green */
+    --sidebar-background: 215 45% 15%; /* Deep navy blue */
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 187 40% 25%; /* #254E58 */
+    --sidebar-primary: 215 50% 30%; /* Royal blue */
     --sidebar-primary-foreground: 0 0% 95%;
-    --sidebar-accent: 33 10% 30%; /* #4F4A41 */
+    --sidebar-accent: 200 35% 35%; /* Cerulean accent */
     --sidebar-accent-foreground: 0 0% 95%;
-    --sidebar-border: 187 45% 18%;
-    --sidebar-ring: 187 40% 25%; /* #254E58 */
+    --sidebar-border: 215 45% 18%;
+    --sidebar-ring: 215 50% 30%; /* Royal blue */
     
     /* Chart colors */
-    --chart-1: 187 40% 25%; /* #254E58 - teal primary */
-    --chart-2: 187 47% 14%; /* #112D32 - dark green */
-    --chart-3: 33 10% 30%; /* #4F4A41 - brown/tan */
-    --chart-4: 33 13% 38%; /* Lighter brown */
-    --chart-5: 187 25% 35%; /* Lighter teal */
+    --chart-1: 215 60% 45%; /* Royal blue */
+    --chart-2: 90 25% 30%; /* Olive green */
+    --chart-3: 200 40% 40%; /* Cerulean */
+    --chart-4: 215 50% 30%; /* Medium royal blue */
+    --chart-5: 200 35% 50%; /* Lighter cerulean */
     
     /* Achievement category colors */
-    --wealth-color-start: #254E58;
-    --wealth-color-end: #4F4A41;
-    --property-color-start: #4F4A41;
-    --property-color-end: #112D32;
-    --investment-color-start: #254E58;
-    --investment-color-end: #6E8659;
-    --lifestyle-color-start: #6E8659;
-    --lifestyle-color-end: #4F4A41;
-    --general-color-start: #112D32;
-    --general-color-end: #254E58;
-    --challenge-color-start: #4F4A41;
-    --challenge-color-end: #112D32;
-    --strategy-color-start: #254E58;
-    --strategy-color-end: #88BDBC;
+    --wealth-color-start: #3170BE;
+    --wealth-color-end: #5085A5;
+    --property-color-start: #5085A5;
+    --property-color-end: #142E4C;
+    --investment-color-start: #3170BE;
+    --investment-color-end: #687864;
+    --lifestyle-color-start: #687864;
+    --lifestyle-color-end: #5085A5;
+    --general-color-start: #0A1726;
+    --general-color-end: #3170BE;
+    --challenge-color-start: #687864;
+    --challenge-color-end: #0A1726;
+    --strategy-color-start: #3170BE;
+    --strategy-color-end: #5085A5;
   }
 
   * {
@@ -189,13 +189,13 @@ canvas {
 
 .dark .glass-effect {
   @apply bg-opacity-10 backdrop-blur-md backdrop-filter border-opacity-20 bg-black border-primary/30 shadow-md;
-  box-shadow: 0 4px 30px rgba(17, 100, 102, 0.1), inset 0 0 10px rgba(17, 100, 102, 0.05);
+  box-shadow: 0 4px 30px rgba(49, 112, 190, 0.15), inset 0 0 10px rgba(49, 112, 190, 0.08);
 }
 
 /* Futuristic card effect */
 .futuristic-card {
   @apply relative overflow-hidden rounded-lg border border-primary/20 bg-background/80 p-4 backdrop-blur-sm;
-  box-shadow: 0 4px 20px rgba(17, 100, 102, 0.1);
+  box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
 }
 
 .futuristic-card::before {
@@ -221,11 +221,11 @@ canvas {
 
 /* Gradient texts */
 .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#116466] to-[#D9B08C];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#3170BE] to-[#5085A5];
 }
 
 .dark .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#116466] to-[#FFCB9A];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#3170BE] to-[#687864];
 }
 
 /* Button animations */
@@ -287,11 +287,11 @@ canvas {
 /* Futuristic theme components */
 .futuristic-glass {
   @apply backdrop-blur-md bg-black/5 dark:bg-black/20 border border-white/10 dark:border-white/5;
-  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.15);
+  box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
 }
 
 .futuristic-glow {
-  box-shadow: 0 0 15px var(--glow-color, rgba(0, 229, 255, 0.5));
+  box-shadow: 0 0 15px var(--glow-color, rgba(49, 112, 190, 0.5));
 }
 
 .futuristic-border {
@@ -303,7 +303,7 @@ canvas {
   @apply absolute inset-0 rounded-md;
   background: linear-gradient(90deg, 
     transparent, 
-    rgba(var(--border-glow-color, 0, 229, 255), 0.6), 
+    rgba(var(--border-glow-color, 49, 112, 190), 0.6), 
     transparent
   );
   background-size: 200% 100%;
@@ -319,20 +319,20 @@ canvas {
   @apply text-transparent bg-clip-text;
   background-image: linear-gradient(
     90deg,
-    rgba(var(--text-glow-color, 0, 229, 255), 1),
-    rgba(var(--text-glow-color, 0, 229, 255), 0.8),
-    rgba(var(--text-glow-color, 0, 229, 255), 1)
+    rgba(var(--text-glow-color, 49, 112, 190), 1),
+    rgba(var(--text-glow-color, 49, 112, 190), 0.8),
+    rgba(var(--text-glow-color, 49, 112, 190), 1)
   );
-  text-shadow: 0 0 5px rgba(var(--text-glow-color, 0, 229, 255), 0.3);
+  text-shadow: 0 0 5px rgba(var(--text-glow-color, 49, 112, 190), 0.3);
 }
 
-/* Style variants for neon theme */
-.neon-dark .futuristic-glass {
-  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.25);
-  @apply bg-black/10 border-[#00E5FF]/20;
+/* Style variants for theme */
+.dark .futuristic-glass {
+  box-shadow: 0 4px 20px rgba(49, 112, 190, 0.25);
+  @apply bg-black/10 border-[#3170BE]/20;
 }
 
-.cyber-light .futuristic-glass {
-  box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
-  @apply bg-white/10 border-[#2563EB]/20;
+.light .futuristic-glass {
+  box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
+  @apply bg-white/10 border-[#3170BE]/20;
 }
