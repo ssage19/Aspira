@@ -19,8 +19,16 @@ type WealthOption = 'bootstrapped' | 'middle-class' | 'wealthy';
 export default function CharacterCreation() {
   const navigate = useNavigate();
   const { createNewCharacter, allocateSkillPoint } = useCharacter();
-  const { start } = useGame();
+  const { phase, reset, start } = useGame();
   const { playSuccess } = useAudio();
+  
+  // Force reset the game state if we're on the character creation page
+  useEffect(() => {
+    // Force the game phase to "ready" when on character creation page
+    if (phase !== "ready") {
+      reset();
+    }
+  }, [phase, reset]);
   
   const [name, setName] = useState('');
   const [selectedWealth, setSelectedWealth] = useState<WealthOption>('bootstrapped');

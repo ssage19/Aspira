@@ -558,8 +558,13 @@ export default function Dashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
                                   // Handle reset logic here
+                                  const { reset } = useGame.getState();
+                                  // Reset game state first
+                                  reset();
+                                  // Clear all local storage
                                   localStorage.clear();
-                                  window.location.href = '/character-creation';
+                                  // Navigate to character creation
+                                  window.location.href = '/create';
                                 }} className="bg-red-500 hover:bg-red-600">
                                   Reset Game
                                 </AlertDialogAction>

@@ -36,8 +36,11 @@ function App() {
 
   // Initialize game state
   useEffect(() => {
-    // Start the game if it's not already started
-    if (phase === "ready") {
+    // Check if we're on the character creation page
+    const isOnCreatePage = window.location.pathname === '/create';
+    
+    // Start the game if it's not already started and we're not on the character creation page
+    if (phase === "ready" && !isOnCreatePage) {
       start();
     }
   }, [phase, start]);
