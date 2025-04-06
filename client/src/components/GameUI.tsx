@@ -27,7 +27,9 @@ import {
   TrendingDown,
   ArrowRight,
   GraduationCap,
-  XCircle
+  XCircle,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
@@ -35,9 +37,8 @@ import { Progress } from './ui/progress';
 import { toast } from 'sonner';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
 
-// New time scale: 5 minutes = 2 weeks (14 days) in-game time
-// So, each in-game day would last approximately 21.43 seconds of real time (5 * 60 / 14)
-const DAY_DURATION_MS = (5 * 60 * 1000) / 14; // about 21,429 ms per in-game day
+// New time scale: 1 day = 24 seconds (1 second = 1 hour in-game)
+const DAY_DURATION_MS = 24 * 1000; // exactly 24,000 ms per in-game day
 
 export function GameUI() {
   const navigate = useNavigate();
@@ -618,23 +619,46 @@ export function GameUI() {
           <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
             <Calendar className="h-4 w-4 text-primary dark:text-primary" />
             <div>
-              <p className="text-sm font-medium">{`${currentMonth}/${currentDay}/${currentYear}`}</p>
+              <p className="text-sm font-medium">
+                {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </p>
             </div>
           </div>
           
-          {/* Day progress bar */}
-          <div className="w-64 flex items-center gap-2">
-            <Progress value={timeProgress} className="h-2" 
-              aria-label={autoAdvanceEnabled ? `${Math.floor(timeProgress)}% until next day` : "Auto-advance disabled"} />
-            <span className="text-xs font-medium">
-              {autoAdvanceEnabled ? 
-                timeSpeed === 'superfast' ? 
-                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 6))}s left (6x)` : 
-                timeSpeed === 'fast' ? 
-                  `${Math.max(0, Math.floor((21.43 - (timeProgress * 21.43 / 100)) / 3))}s left (3x)` : 
-                  `${Math.max(0, Math.floor(21.43 - (timeProgress * 21.43 / 100)))}s left` 
-                : "Paused"}
-            </span>
+          {/* Day/Night cycle indicator */}
+          <div className="w-64 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 relative">
+              {/* Sun/Moon indicator based on time progress */}
+              <div className="relative h-6 w-24 bg-gradient-to-r from-indigo-900 via-amber-400 to-indigo-900 rounded-full overflow-hidden">
+                {/* Day/Night position indicator */}
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                  style={{ 
+                    left: `${Math.min(Math.max(timeProgress - 4, 0), 92)}%`,
+                    filter: "drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))"
+                  }}
+                >
+                  {timeProgress < 50 ? (
+                    <Sun className="h-5 w-5 text-yellow-300" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-blue-100" />
+                  )}
+                </div>
+              </div>
+              <span className="text-xs font-medium whitespace-nowrap">
+                {autoAdvanceEnabled ? 
+                  timeSpeed === 'superfast' ? 
+                    `${Math.max(0, Math.floor((24 - (timeProgress * 24 / 100)) / 6))}s (6x)` : 
+                  timeSpeed === 'fast' ? 
+                    `${Math.max(0, Math.floor((24 - (timeProgress * 24 / 100)) / 3))}s (3x)` : 
+                    `${Math.max(0, Math.floor(24 - (timeProgress * 24 / 100)))}s` 
+                  : "Paused"}
+              </span>
+            </div>
           </div>
         </div>
         
