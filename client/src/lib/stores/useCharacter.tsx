@@ -1597,7 +1597,12 @@ export const useCharacter = create<CharacterState>()(
         // Add lifestyle item values to net worth
         // These should be considered depreciating assets but still have some value
         state.lifestyleItems.forEach(item => {
-          // For lifestyle items, use purchase price with depreciation 
+          // Skip vacations and experiences as they're temporary and shouldn't contribute to net worth
+          if (item.type === 'vacations' || item.type === 'experiences') {
+            return; // Skip this item
+          }
+          
+          // For permanent lifestyle items, use purchase price with depreciation 
           // or a fixed value based on their monthly cost
           const purchasePrice = item.purchasePrice || 0;
           let itemValue = 0;
