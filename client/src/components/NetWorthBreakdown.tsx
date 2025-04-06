@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export function NetWorthBreakdown() {
-  const { wealth, assets, properties, lifestyleItems, getNetWorthBreakdown } = useCharacter();
+  const { wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth } = useCharacter();
   const [netWorth, setNetWorth] = useState(0);
   const [breakdown, setBreakdown] = useState<any>({
     cash: 0,
@@ -26,11 +26,15 @@ export function NetWorthBreakdown() {
 
   // Use the breakdown directly from the useCharacter store
   useEffect(() => {
+    // Force calculation of the net worth to ensure we have fresh data
+    // This helps after a game reset to rebuild the breakdown with current data
+    calculateNetWorth();
+    
     // Get the net worth breakdown directly from the store
     const storeBreakdown = getNetWorthBreakdown();
     setBreakdown(storeBreakdown);
     setNetWorth(storeBreakdown.total);
-  }, [wealth, assets, properties, lifestyleItems, getNetWorthBreakdown]);
+  }, [wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth]);
 
   // Prepare chart data - now include lifestyle items
   const chartData = {

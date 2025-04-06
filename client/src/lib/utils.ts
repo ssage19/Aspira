@@ -131,7 +131,8 @@ export const performCompleteGameReset = () => {
     'business-empire-economy',
     'business-empire-claimed-rewards',
     'auto-maintain-needs',
-    'business-empire-achievements'
+    'business-empire-achievements',
+    'business-empire-networth-breakdown' // Add key for net worth breakdown if it exists
   ];
   
   // Verify all keys are cleared
@@ -222,6 +223,13 @@ export const performCompleteGameReset = () => {
     console.log("Resetting character store...");
     const characterStore = require('./stores/useCharacter').useCharacter;
     if (characterStore.getState().resetCharacter) {
+      // First, manually clear any cached net worth breakdown
+      if (characterStore.getState() && (characterStore.getState() as any).netWorthBreakdown) {
+        console.log("Explicitly clearing cached netWorthBreakdown data");
+        (characterStore.getState() as any).netWorthBreakdown = null;
+      }
+      
+      // Now perform the full character reset
       characterStore.getState().resetCharacter();
       console.log("Character store state reset");
     } else {

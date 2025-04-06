@@ -2153,6 +2153,22 @@ export const useCharacter = create<CharacterState>()(
             newState.netWorth = calculatedNetWorth;
           }
           
+          // Explicitly set fresh netWorthBreakdown to prevent stale data
+          (newState as any).netWorthBreakdown = {
+            cash: defaultCharacter.wealth,
+            stocks: 0,
+            crypto: 0,
+            bonds: 0,
+            otherInvestments: 0,
+            propertyEquity: 0,
+            propertyValue: 0,
+            propertyDebt: 0,
+            lifestyleItems: 0,
+            total: newState.netWorth || defaultCharacter.wealth
+          };
+          
+          console.log("Character reset with fresh netWorthBreakdown:", (newState as any).netWorthBreakdown);
+          
           return newState;
         });
         
