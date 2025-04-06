@@ -323,10 +323,13 @@ export function CharacterAttributes() {
         
         {/* Progress bar */}
         <div className="relative pt-1">
-          <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+          <div className="h-2 w-full bg-muted/30 backdrop-blur-sm rounded-full overflow-hidden border border-muted/50">
             <div 
-              className={cn("h-full rounded-full transition-all duration-700", color.replace('text-', 'bg-'))}
-              style={{ width: `${progressValue}%` }}
+              className={cn("h-full rounded-full transition-all duration-700 shadow-glow", color.replace('text-', 'bg-'))}
+              style={{ 
+                width: `${progressValue}%`, 
+                boxShadow: `0 0 10px ${color.replace('text-', '#').replace('-500', '').replace('-600', '')}`
+              }}
             />
           </div>
           
@@ -343,7 +346,11 @@ export function CharacterAttributes() {
               >
                 {i === levelIndex && (
                   <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 -translate-y-full">
-                    <div className={cn("w-1.5 h-1.5 rounded-full", color.replace('text-', 'bg-'))}></div>
+                    <div className={cn("w-2 h-2 rounded-full shadow-glow", color.replace('text-', 'bg-'))}
+                      style={{ 
+                        boxShadow: `0 0 5px ${color.replace('text-', '#').replace('-500', '').replace('-600', '')}`
+                      }}
+                    ></div>
                   </div>
                 )}
                 {label}
@@ -436,9 +443,11 @@ export function CharacterAttributes() {
 
   return (
     <div className="flex flex-col gap-4">
-      <Card className="shadow-md">
+      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-blue-500/30">
+        <div className="absolute -top-20 -right-20 h-40 w-40 bg-blue-500/10 blur-xl rounded-full"></div>
+        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-teal-500/10 blur-xl rounded-full"></div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center">
+          <CardTitle className="text-lg flex items-center text-blue-400">
             <User className="mr-2 h-5 w-5 text-blue-500" />
             Personal Attributes
           </CardTitle>
@@ -459,19 +468,21 @@ export function CharacterAttributes() {
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-gray-500">
+          <div className="mt-4 text-xs text-gray-400 p-2 rounded-lg bg-blue-950/20 border border-blue-500/20 backdrop-blur-sm">
             <p>Your attributes are affected by your lifestyle choices, purchases, and hobbies.</p>
             <p className="mt-1">
-              <strong className="text-primary">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
+              <strong className="text-blue-400">Health calculation:</strong> Based on basic needs (hunger, thirst, energy, comfort) and stress levels. 
               Keep all basic needs above 50% for optimal health.
             </p>
           </div>
         </CardContent>
       </Card>
       
-      <Card className="shadow-md">
+      <Card className="shadow-md relative overflow-hidden bg-black/10 backdrop-blur-sm border border-red-500/30">
+        <div className="absolute -top-20 -right-20 h-40 w-40 bg-red-500/10 blur-xl rounded-full"></div>
+        <div className="absolute -bottom-20 -left-20 h-32 w-32 bg-amber-500/10 blur-xl rounded-full"></div>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg flex items-center">
+          <CardTitle className="text-lg flex items-center text-red-400">
             <Heart className="mr-2 h-5 w-5 text-red-500" />
             Basic Needs
           </CardTitle>
@@ -489,21 +500,21 @@ export function CharacterAttributes() {
           </div>
           
           <div className="mt-4">
-            <div className="text-sm font-medium mb-2">Living Situation</div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div>
+            <div className="text-sm font-medium mb-3 text-amber-400">Living Situation</div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="p-2 rounded-lg bg-amber-950/20 border border-amber-500/20 backdrop-blur-sm">
                 {renderHousingStatus()}
               </div>
-              <div>
+              <div className="p-2 rounded-lg bg-amber-950/20 border border-amber-500/20 backdrop-blur-sm">
                 {renderVehicleStatus()}
               </div>
             </div>
           </div>
           
-          <div className="mt-4 text-xs text-gray-500">
+          <div className="mt-4 text-xs text-gray-400 p-2 rounded-lg bg-red-950/20 border border-red-500/20 backdrop-blur-sm">
             <p>Your basic needs affect your health and happiness. Be sure to maintain them!</p>
             <p className="mt-1">
-              <strong className="text-primary">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
+              <strong className="text-red-400">Auto-maintenance:</strong> When enabled, essential items are automatically consumed when 
               needs drop below 70%. The system prioritizes hunger and thirst first.
             </p>
           </div>
