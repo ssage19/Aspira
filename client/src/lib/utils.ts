@@ -10,10 +10,47 @@ export function cn(...inputs: ClassValue[]) {
 let resetInProgress = false;
 
 const getLocalStorage = (key: string): any => {
-  // If reset is in progress and we're requesting time data, return null to force fresh date
-  if (resetInProgress && key === 'luxury_lifestyle_time') {
-    console.log('Reset in progress, forcing fresh date by returning null for time data');
-    return null;
+  // Special case: If we just performed a game reset, force fresh date
+  const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+  const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+  
+  // If reset is in progress or we need to force current date and we're requesting time data
+  if ((resetInProgress || blockTimeLoads || forceCurrentDate) && key === 'luxury_lifestyle_time') {
+    console.log('Reset or force condition active, forcing fresh date by returning null for time data');
+    
+    // Get the current real date
+    const now = new Date();
+    const freshTimeState = {
+      currentDay: now.getDate(),
+      currentMonth: now.getMonth() + 1,
+      currentYear: now.getFullYear(),
+      startDay: now.getDate(),
+      startMonth: now.getMonth() + 1,
+      startYear: now.getFullYear(),
+      currentGameDate: now.toISOString(),
+      timeSpeed: 'normal',
+      timeMultiplier: 1.0,
+      autoAdvanceEnabled: true,
+      timeProgress: 0,
+      lastTickTime: Date.now(),
+      pausedTimestamp: 0,
+      accumulatedProgress: 0,
+      dayCounter: 0,
+      _manuallyReset: true,
+      _resetTimestamp: Date.now(),
+      _source: "ForceCurrentDate_getLocalStorage"
+    };
+    
+    // Save this to localStorage
+    try {
+      localStorage.setItem('luxury_lifestyle_time', JSON.stringify(freshTimeState));
+      console.log(`Forced current date in localStorage: ${freshTimeState.currentMonth}/${freshTimeState.currentDay}/${freshTimeState.currentYear}`);
+    } catch (err) {
+      console.error('Error saving forced current date:', err);
+    }
+    
+    // Return the fresh state directly
+    return freshTimeState;
   }
   
   try {
@@ -25,6 +62,32 @@ const getLocalStorage = (key: string): any => {
     // Debug for time data
     if (key === 'luxury_lifestyle_time' && value) {
       console.log(`Retrieved from localStorage - ${key}: Date = ${value.currentMonth}/${value.currentDay}/${value.currentYear}`);
+      
+      // Validate time data
+      if (forceCurrentDate || blockTimeLoads) {
+        // We need to ensure this is today's date
+        const now = new Date();
+        const currentDay = now.getDate();
+        const currentMonth = now.getMonth() + 1;
+        const currentYear = now.getFullYear();
+        
+        // If the date doesn't match, return a fresh state
+        if (value.currentDay !== currentDay || value.currentMonth !== currentMonth || value.currentYear !== currentYear) {
+          console.warn('Time data does not match today\'s date, forcing fresh date');
+          const freshState = {
+            ...value,
+            currentDay,
+            currentMonth,
+            currentYear,
+            startDay: currentDay,
+            startMonth: currentMonth, 
+            startYear: currentYear,
+            currentGameDate: now.toISOString(),
+            _source: "ForceCurrentDate_getLocalStorage_validation"
+          };
+          return freshState;
+        }
+      }
     }
     
     return value;
@@ -332,12 +395,16 @@ export const performCompleteGameReset = () => {
   
   console.log("All steps completed, reloading page to complete reset process...");
   
-  // 8. Set a flag to indicate we're about to navigate to character creation
-  // This prevents flashing screens during the navigation
+  // 8. Set flags to ensure correct time usage
+  // These flags will be checked by various components to ensure the correct date is used
+  sessionStorage.setItem('force_current_date', 'true');
+  sessionStorage.setItem('block_time_loads', 'true');
   sessionStorage.setItem('smooth_navigation', 'true');
 
-  // Navigate to the character creation screen
-  window.location.href = '/create';
+  // 9. Add a cache-busting parameter to the URL to ensure we get a fresh page
+  // This is crucial for avoiding cached data during navigation
+  const timestamp = Date.now();
+  window.location.href = `/create?reset=${timestamp}`;
 };
 
 /**

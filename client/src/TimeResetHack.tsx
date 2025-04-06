@@ -8,19 +8,77 @@ import { useEffect } from 'react';
  */
 const TimeResetHack: React.FC = () => {
   useEffect(() => {
-    // Check if we've already run the hack this session to prevent reload loops
+    // Special case: If we just performed a complete game reset, we need to ensure
+    // the correct date is being used
+    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    
+    if (forceCurrentDate || blockTimeLoads) {
+      console.log('⚠️ TimeResetHack: Force current date flag detected, ensuring we use today\'s date');
+      sessionStorage.removeItem('force_current_date');
+      sessionStorage.removeItem('block_time_loads');
+      
+      // Force the use of today's date
+      const now = new Date();
+      const currentDay = now.getDate();
+      const currentMonth = now.getMonth() + 1;
+      const currentYear = now.getFullYear();
+      
+      console.log(`⚠️ TimeResetHack: Forcing date to today: ${currentMonth}/${currentDay}/${currentYear}`);
+      
+      // Create a fresh time state with today's date
+      const freshTimeState = {
+        currentDay,
+        currentMonth,
+        currentYear,
+        startDay: currentDay,
+        startMonth: currentMonth,
+        startYear: currentYear,
+        currentGameDate: now.toISOString(),
+        timeSpeed: 'normal',
+        timeMultiplier: 1.0,
+        autoAdvanceEnabled: true,
+        timeProgress: 0,
+        lastTickTime: Date.now(),
+        pausedTimestamp: 0,
+        accumulatedProgress: 0,
+        dayCounter: 0,
+        _manuallyReset: true,
+        _resetTimestamp: Date.now(),
+        _source: "TimeResetHack_ForceCurrentDate"
+      };
+      
+      // Write directly to localStorage
+      localStorage.setItem('luxury_lifestyle_time', JSON.stringify(freshTimeState));
+      
+      // Set flag that this has been done
+      sessionStorage.setItem('time_reset_already_run', 'true');
+      sessionStorage.setItem('time_just_reset', 'true');
+      sessionStorage.setItem('time_reset_timestamp', Date.now().toString());
+      
+      // Verify it worked
+      const check = localStorage.getItem('luxury_lifestyle_time');
+      if (check) {
+        const parsed = JSON.parse(check);
+        console.log(`⚠️ TimeResetHack: Verified date in storage: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
+      }
+      
+      return;
+    }
+    
+    // Normal case: Check if we've already run the hack this session to prevent reload loops
     if (sessionStorage.getItem('time_reset_already_run') === 'true') {
       console.log('⚠️ TimeResetHack: Already run this session, skipping');
       return;
     }
     
-    // Check if a time reset was recently performed by the App component
+    // Check if a time reset was recently performed by another component
     const timeJustReset = sessionStorage.getItem('time_just_reset') === 'true';
     const resetTimestamp = parseInt(sessionStorage.getItem('time_reset_timestamp') || '0');
     const isRecentReset = Date.now() - resetTimestamp < 10000; // Within 10 seconds
     
     if (timeJustReset && isRecentReset) {
-      console.log('⚠️ TimeResetHack: Time was already reset recently by App.tsx, skipping duplicate reset');
+      console.log('⚠️ TimeResetHack: Time was already reset recently, skipping duplicate reset');
       // Still mark as run to prevent future executions
       sessionStorage.setItem('time_reset_already_run', 'true');
       return;
@@ -35,6 +93,28 @@ const TimeResetHack: React.FC = () => {
     const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
     const currentYear = now.getFullYear();
     
+    // Check if there's already time data in localStorage
+    const existingTimeData = localStorage.getItem('luxury_lifestyle_time');
+    if (existingTimeData) {
+      try {
+        const parsedTime = JSON.parse(existingTimeData);
+        const storedDate = new Date(parsedTime.currentYear, parsedTime.currentMonth - 1, parsedTime.currentDay);
+        const realDate = new Date();
+        const diffTime = Math.abs(storedDate.getTime() - realDate.getTime());
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        
+        // Only reset if difference is more than 30 days or if date is clearly wrong
+        if (diffDays <= 30 && parsedTime.currentYear >= 2023 && parsedTime.currentMonth >= 1 && parsedTime.currentMonth <= 12) {
+          console.log(`⚠️ TimeResetHack: Found reasonable date in storage (${diffDays} days difference), not resetting`);
+          return;
+        }
+        
+        console.log(`⚠️ TimeResetHack: Found stored date with ${diffDays} days difference, proceeding with reset`);
+      } catch (e) {
+        console.error('⚠️ TimeResetHack: Error parsing existing time data:', e);
+      }
+    }
+    
     console.log('⚠️ TimeResetHack: Emergency time reset in progress');
     console.log(`⚠️ TimeResetHack: Setting date to: ${currentMonth}/${currentDay}/${currentYear}`);
     
@@ -46,7 +126,7 @@ const TimeResetHack: React.FC = () => {
       startDay: currentDay,
       startMonth: currentMonth,
       startYear: currentYear,
-      currentGameDate: now,
+      currentGameDate: now.toISOString(),
       timeSpeed: 'normal',
       timeMultiplier: 1.0,
       autoAdvanceEnabled: true,

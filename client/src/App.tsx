@@ -44,15 +44,30 @@ function App() {
     const resetInProgress = sessionStorage.getItem('game_reset_in_progress');
     const smoothNavigation = sessionStorage.getItem('smooth_navigation') === 'true';
     
-    // Handle smooth navigation to character creation
-    if (smoothNavigation) {
-      console.log("Smooth navigation in progress, skipping other checks");
+    // Handle smooth navigation to character creation and/or time reset
+    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    
+    if (smoothNavigation || forceCurrentDate || blockTimeLoads) {
+      console.log("Smooth navigation or time reset in progress, skipping other checks");
+      
+      // Clear all navigation flags
       sessionStorage.removeItem('smooth_navigation');
+      
+      // Force the current date to be used (but don't clear these flags yet)
+      // They will be handled by TimeResetHack component
+      if (forceCurrentDate || blockTimeLoads) {
+        console.log("Force current date active - ensuring we use today's date");
+        
+        // Let TimeResetHack component handle the actual date setting
+        // as it has better access to this functionality
+      }
       
       // If we're not already on the character creation page, go there
       if (window.location.pathname !== '/create') {
         console.log('Redirecting to character creation via smooth navigation');
-        window.location.href = '/create';
+        const timestamp = Date.now(); // Add cache-busting parameter
+        window.location.href = `/create?t=${timestamp}`;
         return;
       }
       return;
