@@ -60,14 +60,58 @@ function App() {
         
         console.log(`Date difference in days: ${diffDays}`);
         
-        // If the stored date is more than 365 days different from now, it's likely wrong
-        if (diffDays > 365) {
-          console.warn("Stored date is extremely different from current date, forcing reset");
-          // Force time reset
-          const timeStore = require('./lib/stores/useTime').useTime;
-          if (timeStore.getState().resetTime) {
-            timeStore.getState().resetTime();
-            console.log("Time successfully reset to current date due to extreme date difference");
+        // If the stored date is different by more than 3 days from the real date, force reset
+        if (diffDays > 3) {
+          console.warn(`Date difference of ${diffDays} days detected - forcing reset to real-world date`);
+          
+          try {
+            // Create a new time state with the real-world date
+            const freshTimeState = {
+              currentDay: now.getDate(),
+              currentMonth: now.getMonth() + 1,
+              currentYear: now.getFullYear(),
+              startDay: now.getDate(),
+              startMonth: now.getMonth() + 1,
+              startYear: now.getFullYear(),
+              currentGameDate: now,
+              timeSpeed: 'normal',
+              timeMultiplier: 1.0,
+              autoAdvanceEnabled: true,
+              timeProgress: 0,
+              lastTickTime: Date.now(),
+              pausedTimestamp: 0,
+              accumulatedProgress: 0,
+              dayCounter: 0
+            };
+            
+            // Direct write to localStorage
+            localStorage.setItem('luxury_lifestyle_time', JSON.stringify(freshTimeState));
+            console.log(`Directly reset time to current real date: ${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`);
+            
+            // Double-check 
+            const afterReset = localStorage.getItem('luxury_lifestyle_time');
+            if (afterReset) {
+              const parsed = JSON.parse(afterReset);
+              console.log(`After reset - localStorage date: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
+              
+              // Force a full page reload to make sure all components pick up the new date
+              console.log("Forcing reload to ensure all components see correct date");
+              window.location.reload();
+              return; // Early return as we're reloading
+            }
+            
+            // Also update the store if possible
+            try {
+              const timeStore = require('./lib/stores/useTime').useTime;
+              if (timeStore.getState().setDate) {
+                timeStore.getState().setDate(now.getDate(), now.getMonth() + 1, now.getFullYear());
+                console.log("Also updated time store state");
+              }
+            } catch (e) {
+              console.error("Error updating time store:", e);
+            }
+          } catch (e) {
+            console.error("Error during direct time reset:", e);
           }
         }
       }
