@@ -5,6 +5,7 @@ import { useTime } from '../lib/stores/useTime';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import useRandomEvents from '../lib/stores/useRandomEvents';
+import { performCompleteGameReset } from '../lib/utils';
 
 export function DebugPanel() {
   const { name, wealth, netWorth, assets, properties, lifestyleItems, resetCharacter } = useCharacter();
@@ -15,28 +16,8 @@ export function DebugPanel() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   const handleReset = () => {
-    // First, clear ALL localStorage completely
-    localStorage.clear();
-    
-    // Get reset functions from all stores
-    const { reset } = useGame.getState();
-    const { resetTime } = useTime.getState();
-    const { resetAchievements } = useAchievements.getState();
-    const { resetEconomy } = useEconomy.getState();
-    const { resetEvents } = useRandomEvents.getState();
-    
-    // Reset all game state properly in memory too
-    resetCharacter();
-    resetTime();
-    resetAchievements();
-    resetEconomy();
-    resetEvents();
-    reset();
-    
-    // Force a complete browser reload (not just a navigation)
-    // This ensures all components and state are fully reinitialized
-    window.location.href = '/create';
-    setTimeout(() => window.location.reload(), 100);
+    // Use our centralized reset function that handles everything properly
+    performCompleteGameReset();
     
     // Hide confirmation dialog
     setShowResetConfirm(false);

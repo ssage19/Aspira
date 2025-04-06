@@ -53,7 +53,7 @@ import {
 import { Separator } from '../components/ui/separator';
 import GameUI from '../components/GameUI';
 import MainScene from '../components/MainScene';
-import { formatCurrency } from '../lib/utils';
+import { formatCurrency, performCompleteGameReset } from '../lib/utils';
 
 import { useEffect as useInitAchievements } from 'react';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
@@ -558,38 +558,11 @@ export default function Dashboard() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
-                                  // Clear all localStorage completely first
-                                  localStorage.clear();
-                                  
-                                  // Get reset functions from all stores
-                                  const { reset } = useGame.getState();
-                                  const { resetCharacter } = useCharacter.getState();
-                                  const { resetTime } = useTime.getState();
-                                  const { resetEconomy } = useEconomy.getState();
-                                  const { resetEvents } = useRandomEvents.getState();
-                                  const { resetAchievements } = useAchievements.getState();
-                                  
-                                  // Reset local state values first
-                                  setStocksValue(0);
-                                  setPropertiesValue(0);
-                                  setLifestyleValue(0);
-                                  setNetWorth(10000); // Default starting cash
-                                  
-                                  // Reset all stores
-                                  resetCharacter();
-                                  resetTime();
-                                  resetEconomy();
-                                  resetEvents();
-                                  resetAchievements();
-                                  reset();
+                                  // Use our centralized reset function that ensures complete reset
+                                  performCompleteGameReset();
                                   
                                   // Display a toast message
                                   toast.success("Game data has been completely reset");
-                                  
-                                  // Force a complete browser reload after navigating 
-                                  // to ensure everything is reinitialized
-                                  window.location.href = '/create';
-                                  setTimeout(() => window.location.reload(), 100);
                                 }} className="bg-red-500 hover:bg-red-600">
                                   Reset Game
                                 </AlertDialogAction>
