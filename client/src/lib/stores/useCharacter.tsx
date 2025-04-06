@@ -1752,9 +1752,36 @@ export const useCharacter = create<CharacterState>()(
       },
       
       monthlyUpdate: () => {
-        set((state) => {
-          // Property income is now calculated daily instead of monthly
+        const state = get();
+        
+        // Calculate monthly expenses from lifestyle items
+        const lifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
+          const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+          return total + monthlyCost;
+        }, 0);
+        
+        // Apply the monthly expenses if we have any
+        if (lifestyleExpenses > 0) {
+          const oldWealth = state.wealth;
           
+          // Deduct expenses using our method to ensure proper state updates
+          get().deductWealth(lifestyleExpenses);
+          
+          // Log the expense transaction with clear indication
+          console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(lifestyleExpenses)} has been deducted from your wealth.`);
+          console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(state.wealth - lifestyleExpenses)}`);
+          
+          // Show a toast to make it more visible to the player
+          toast.warning(
+            <div className="flex flex-col space-y-2">
+              <div className="font-semibold">Monthly Lifestyle Expenses Deducted</div>
+              <div>-{formatCurrency(lifestyleExpenses)} has been deducted from your wealth.</div>
+            </div>,
+            { duration: 5000 }
+          );
+        }
+        
+        set((state) => {
           // Monthly health adjustments based on happiness and environmental factors
           // Daily calculation handles basic needs and stress, this handles longer-term factors
           

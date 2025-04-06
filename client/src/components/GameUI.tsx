@@ -280,53 +280,10 @@ export function GameUI() {
           // Create a month ID string (e.g., "4-2025" for April 2025)
           const monthId = `${currentMonth}-${currentYear}`;
           
-          // Check if we've already processed expenses for this month
-          if (lastExpenseMonth !== monthId) {
-            // Calculate and show monthly summary notification
-            const characterState = useCharacter.getState();
-            
-            // Calculate monthly income from properties
-            const propertyIncome = characterState.properties.reduce((total, property) => 
-              total + property.income, 0);
-            
-            // Calculate monthly expenses from lifestyle items
-            const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
-              const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-              return total + monthlyCost;
-            }, 0);
-            
-            // Calculate salary (bi-weekly * 2.17 to get monthly equivalent)
-            const job = characterState.job;
-            const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-            
-            // Total monthly net change
-            const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
-            
-            // Apply the monthly expenses to the player's wealth
-            // Note: Daily property income and bi-weekly salary are already handled separately
-            // so we only need to deduct the lifestyle expenses here
-            if (lifestyleExpenses > 0) {
-              // Get the state setter methods
-              const { wealth, netWorth } = characterState;
-              // Manually update wealth and netWorth
-              useCharacter.setState({ 
-                wealth: wealth - lifestyleExpenses,
-                netWorth: netWorth - lifestyleExpenses,
-                lastUpdated: Date.now()
-              });
-              // Log with before and after to verify deduction is working
-              console.log(`EXPENSE DEDUCTION: Previous wealth: ${formatCurrency(wealth)}, deducted: -${formatCurrency(lifestyleExpenses)}, new wealth: ${formatCurrency(wealth - lifestyleExpenses)}`);
-            }
-            
-            // Update the last expense month to prevent double-charging
-            setLastExpenseMonth(monthId);
-            console.log(`Set last expense month to: ${monthId}`);
-          } else {
-            console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
-          }
+          // Get character state for calculations
+          const characterState = useCharacter.getState();
           
           // Calculate summary information for the toast
-          const characterState = useCharacter.getState();
           const propertyIncome = characterState.properties.reduce((total, property) => 
             total + property.income, 0);
           const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
@@ -336,6 +293,19 @@ export function GameUI() {
           const job = characterState.job;
           const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
           const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+          
+          // Check if we've already processed expenses for this month
+          if (lastExpenseMonth !== monthId) {
+            // Call the character store's monthly update method to handle expense deduction
+            // This includes deducting lifestyle expenses and showing visual feedback
+            characterState.monthlyUpdate();
+            
+            // Update the last expense month to prevent double-charging
+            setLastExpenseMonth(monthId);
+            console.log(`Set last expense month to: ${monthId}`);
+          } else {
+            console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+          }
           
           // Show the end-of-month summary toast
           toast(
@@ -439,54 +409,10 @@ export function GameUI() {
       // Create a month ID string (e.g., "4-2025" for April 2025)
       const monthId = `${currentMonth}-${currentYear}`;
       
-      // Check if we've already processed expenses for this month
-      if (lastExpenseMonth !== monthId) {
-        // Calculate and show monthly summary notification
-        const characterState = useCharacter.getState();
-        
-        // Calculate monthly income from properties
-        const propertyIncome = characterState.properties.reduce((total, property) => 
-          total + property.income, 0);
-        
-        // Calculate monthly expenses from lifestyle items
-        const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
-          const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-          return total + monthlyCost;
-        }, 0);
-        
-        // Calculate salary (bi-weekly * 2.17 to get monthly equivalent)
-        const job = characterState.job;
-        const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-        
-        // Total monthly net change
-        const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
-        
-        // Apply the monthly expenses to the player's wealth
-        // Note: Daily property income and bi-weekly salary are already handled separately
-        // so we only need to deduct the lifestyle expenses here
-        if (lifestyleExpenses > 0) {
-          // Get the state setter methods
-          const { wealth, netWorth } = characterState;
-          const oldWealth = wealth;
-          // Manually update wealth and netWorth
-          useCharacter.setState({ 
-            wealth: wealth - lifestyleExpenses,
-            netWorth: netWorth - lifestyleExpenses,
-            lastUpdated: Date.now()
-          });
-          // Log with before and after to verify deduction is working
-          console.log(`EXPENSE DEDUCTION: Previous wealth: ${formatCurrency(oldWealth)}, deducted: -${formatCurrency(lifestyleExpenses)}, new wealth: ${formatCurrency(wealth - lifestyleExpenses)}`);
-        }
-        
-        // Update the last expense month to prevent double-charging
-        setLastExpenseMonth(monthId);
-        console.log(`Set last expense month to: ${monthId}`);
-      } else {
-        console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
-      }
+      // Get character state for calculations
+      const characterState = useCharacter.getState();
       
       // Calculate the summary values for the toast
-      const characterState = useCharacter.getState();
       const propertyIncome = characterState.properties.reduce((total, property) => 
         total + property.income, 0);
       const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
@@ -496,6 +422,19 @@ export function GameUI() {
       const job = characterState.job;
       const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
       const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+      
+      // Check if we've already processed expenses for this month
+      if (lastExpenseMonth !== monthId) {
+        // Call the character store's monthly update method to handle expense deduction
+        // This includes deducting lifestyle expenses and showing visual feedback
+        characterState.monthlyUpdate();
+        
+        // Update the last expense month to prevent double-charging
+        setLastExpenseMonth(monthId);
+        console.log(`Set last expense month to: ${monthId}`);
+      } else {
+        console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+      }
       
       // Show the end-of-month summary toast
       toast(
