@@ -2014,52 +2014,69 @@ export const useCharacter = create<CharacterState>()(
         const defaultCharacter = getDefaultCharacter();
         
         // Apply the default character but preserve all the functions
-        set((state) => ({
-          ...defaultCharacter,
-          // Keep the functions from the current state
-          setName: state.setName,
-          createNewCharacter: state.createNewCharacter,
-          addWealth: state.addWealth,
-          addIncome: state.addIncome,
-          getHousingExpense: state.getHousingExpense,
-          getTransportationExpense: state.getTransportationExpense,
-          getFoodExpense: state.getFoodExpense,
-          getLifestyleExpense: state.getLifestyleExpense,
-          getTotalMonthlyExpense: state.getTotalMonthlyExpense,
-          addExpense: state.addExpense,
-          addHappiness: state.addHappiness,
-          addStress: state.addStress,
-          addHealth: state.addHealth,
-          addPrestige: state.addPrestige,
-          addAsset: state.addAsset,
-          sellAsset: state.sellAsset,
-          updateAssetValue: state.updateAssetValue,
-          updateAllAssetValues: state.updateAllAssetValues,
-          updateAssetValuesByType: state.updateAssetValuesByType,
-          addProperty: state.addProperty,
-          sellProperty: state.sellProperty,
-          updatePropertyValue: state.updatePropertyValue,
-          updatePropertyIncome: state.updatePropertyIncome,
-          updateAllPropertyValues: state.updateAllPropertyValues,
-          updateAllPropertyIncome: state.updateAllPropertyIncome,
-          updatePropertyValuesByType: state.updatePropertyValuesByType,
-          updatePropertyIncomeByType: state.updatePropertyIncomeByType,
-          addLifestyleItem: state.addLifestyleItem,
-          removeLifestyleItem: state.removeLifestyleItem,
-          setJob: state.setJob,
-          promoteJob: state.promoteJob,
-          quitJob: state.quitJob,
-          improveSkill: state.improveSkill,
-          allocateSkillPoint: state.allocateSkillPoint,
-          awardSkillPoints: state.awardSkillPoints,
-          spendEarnedSkillPoint: state.spendEarnedSkillPoint,
-          calculateNetWorth: state.calculateNetWorth,
-          processDailyUpdate: state.processDailyUpdate,
-          weeklyUpdate: state.weeklyUpdate,
-          monthlyUpdate: state.monthlyUpdate,
-          saveState: state.saveState,
-          resetCharacter: state.resetCharacter
-        }));
+        set((state) => {
+          // Create a new state with default values but preserved functions
+          const newState = {
+            ...defaultCharacter,
+            // Keep the functions from the current state
+            setName: state.setName,
+            createNewCharacter: state.createNewCharacter,
+            addWealth: state.addWealth,
+            addIncome: state.addIncome,
+            getHousingExpense: state.getHousingExpense,
+            getTransportationExpense: state.getTransportationExpense,
+            getFoodExpense: state.getFoodExpense,
+            getLifestyleExpense: state.getLifestyleExpense,
+            getTotalMonthlyExpense: state.getTotalMonthlyExpense,
+            addExpense: state.addExpense,
+            addHappiness: state.addHappiness,
+            addStress: state.addStress,
+            addHealth: state.addHealth,
+            addPrestige: state.addPrestige,
+            addAsset: state.addAsset,
+            sellAsset: state.sellAsset,
+            updateAssetValue: state.updateAssetValue,
+            updateAllAssetValues: state.updateAllAssetValues,
+            updateAssetValuesByType: state.updateAssetValuesByType,
+            addProperty: state.addProperty,
+            sellProperty: state.sellProperty,
+            updatePropertyValue: state.updatePropertyValue,
+            updatePropertyIncome: state.updatePropertyIncome,
+            updateAllPropertyValues: state.updateAllPropertyValues,
+            updateAllPropertyIncome: state.updateAllPropertyIncome,
+            updatePropertyValuesByType: state.updatePropertyValuesByType,
+            updatePropertyIncomeByType: state.updatePropertyIncomeByType,
+            addLifestyleItem: state.addLifestyleItem,
+            removeLifestyleItem: state.removeLifestyleItem,
+            setJob: state.setJob,
+            promoteJob: state.promoteJob,
+            quitJob: state.quitJob,
+            improveSkill: state.improveSkill,
+            allocateSkillPoint: state.allocateSkillPoint,
+            awardSkillPoints: state.awardSkillPoints,
+            spendEarnedSkillPoint: state.spendEarnedSkillPoint,
+            calculateNetWorth: state.calculateNetWorth,
+            processDailyUpdate: state.processDailyUpdate,
+            weeklyUpdate: state.weeklyUpdate,
+            monthlyUpdate: state.monthlyUpdate,
+            saveState: state.saveState,
+            resetCharacter: state.resetCharacter
+          };
+
+          // Calculate initial net worth for default character
+          const { calculateNetWorthInternal } = state;
+          if (calculateNetWorthInternal) {
+            const calculatedNetWorth = calculateNetWorthInternal(
+              defaultCharacter.wealth,
+              defaultCharacter.assets,
+              defaultCharacter.properties,
+              defaultCharacter.lifestyleItems
+            );
+            newState.netWorth = calculatedNetWorth;
+          }
+          
+          return newState;
+        });
         
         // Also clear localStorage
         if (typeof window !== 'undefined') {

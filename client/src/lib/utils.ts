@@ -12,18 +12,53 @@ const setLocalStorage = (key: string, value: any): void =>
   
 /**
  * Complete game reset function that ensures all game state is properly reset
- * This includes clearing localStorage, resetting all stores, and forcing a page reload
+ * This includes resetting all store states, clearing localStorage, and forcing a page reload
  */
 export const performCompleteGameReset = () => {
+  // Import all store reset functions
+  // Note: We use dynamic imports to avoid circular dependency issues
+  import('./stores/useCharacter').then(characterModule => {
+    const characterStore = characterModule.useCharacter;
+    characterStore.getState().resetCharacter();
+  });
+  
+  import('./stores/useGame').then(gameModule => {
+    const gameStore = gameModule.useGame;
+    gameStore.getState().reset();
+  });
+  
+  import('./stores/useTime').then(timeModule => {
+    const timeStore = timeModule.useTime;
+    timeStore.getState().resetTime();
+  });
+  
+  import('./stores/useEconomy').then(economyModule => {
+    const economyStore = economyModule.useEconomy;
+    economyStore.getState().resetEconomy();
+  });
+  
+  import('./stores/useRandomEvents').then(eventsModule => {
+    const eventsStore = eventsModule.default;
+    eventsStore.getState().resetEvents();
+  });
+  
+  import('./stores/useAchievements').then(achievementsModule => {
+    const achievementsStore = achievementsModule.useAchievements;
+    if (achievementsStore.getState().resetAchievements) {
+      achievementsStore.getState().resetAchievements();
+    }
+  });
+  
   // 1. List of all known localStorage keys used in the game
   const allGameStorageKeys = [
     'business-empire-game',
     'business-empire-character',
     'business-empire-events',
-    'luxury_lifestyle_time',
+    'luxury_lifestyle_time', 
     'business-empire-economy',
     'business-empire-claimed-rewards',
-    'auto-maintain-needs'
+    'auto-maintain-needs',
+    'business-empire-achievements'
   ];
   
   // 2. Clear each specific key to ensure nothing is missed

@@ -192,45 +192,36 @@ const AchievementsWidget = () => {
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const character = useCharacter();
   const { 
     wealth, 
-    setWealth, 
     name, 
     happiness,
     prestige,
     stress,
     energy,
-    relationship,
     health,
-    intelligence,
-    charisma,
-    creativity,
-    leadership,
-    marketingSkill,
-    technicalSkill,
-    financialSkill,
-    operationSkill,
-  } = useCharacter();
+    netWorth,
+  } = character;
   
   const { currentDay, currentMonth, currentYear } = useTime();
   const { economyState } = useEconomy();
-  const { playSoundEffect } = useAudio();
-  const { isGamePaused, gameSpeed } = useGame();
-  const { activeRandomEvents } = useRandomEvents();
+  const audio = useAudio();
+  const game = useGame();
+  const randomEvents = useRandomEvents();
   
-  // State to track stocks, properties and assets
+  // For demo purposes we'll keep these stocks and property values
+  // In a real implementation, these would come from their respective stores
   const [stocksValue, setStocksValue] = useState(15000);
   const [propertiesValue, setPropertiesValue] = useState(0);
   const [lifestyleValue, setLifestyleValue] = useState(5000);
-  const [netWorth, setNetWorth] = useState(wealth + stocksValue + propertiesValue + lifestyleValue);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
   
-  // Update net worth when component mounts and when related values change
-  useEffect(() => {
-    setNetWorth(wealth + stocksValue + propertiesValue + lifestyleValue);
-  }, [wealth, stocksValue, propertiesValue, lifestyleValue]);
+  // Calculate total assets values for display (this is just for UI demo purposes)
+  // The actual netWorth calculation is handled by the character store
+  const totalAssetValue = stocksValue + propertiesValue + lifestyleValue;
   
   // Format the date
   const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)
@@ -404,7 +395,7 @@ export default function Dashboard() {
                         <p className="text-sm text-muted-foreground mb-1">Cash</p>
                         <p className="font-semibold text-lg">{formatCurrency(wealth)}</p>
                         <div className="mt-2 text-xs px-2 py-1 bg-green-400/10 text-green-400 rounded-full inline-block border border-green-400/20">
-                          {((wealth / netWorth) * 100).toFixed(1)}% of total
+                          {((wealth / character.netWorth) * 100).toFixed(1)}% of total
                         </div>
                       </div>
                       
@@ -530,7 +521,7 @@ export default function Dashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
                                   // Handle backup logic here
-                                  playSoundEffect('success');
+                                  audio.playSoundEffect?.('success');
                                   setShowBackupDialog(true);
                                 }}>
                                   Create Backup
