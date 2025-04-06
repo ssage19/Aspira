@@ -48,6 +48,15 @@ const TimeResetHack: React.FC = () => {
       if (check) {
         const parsed = JSON.parse(check);
         console.log(`⚠️ TimeResetHack: Verified date in storage: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
+        
+        // Set a flag that Dashboard can check to force a reload if needed
+        sessionStorage.setItem('time_reset_performed', 'true');
+        
+        // If we're on the Dashboard page, force reload to pick up the new time
+        if (window.location.pathname === '/') {
+          console.log('⚠️ TimeResetHack: On Dashboard page, forcing reload to apply new time');
+          window.location.reload();
+        }
       } else {
         console.error('⚠️ TimeResetHack: Failed to verify time data after writing');
       }

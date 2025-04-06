@@ -204,7 +204,30 @@ export default function Dashboard() {
     netWorth,
   } = character;
   
-  const { currentDay, currentMonth, currentYear } = useTime();
+  // Force reload of date from localStorage when dashboard mounts
+  const timeStore = useTime();
+  const { currentDay, currentMonth, currentYear } = timeStore;
+  
+  // Refresh time data on component mount to make sure we have the latest
+  useEffect(() => {
+    // Check if there's a discrepancy between localStorage and state
+    try {
+      const timeData = localStorage.getItem('luxury_lifestyle_time');
+      if (timeData) {
+        const parsedTime = JSON.parse(timeData);
+        // If stored time is different from what's in state, reload the page to force a fresh load
+        if (parsedTime.currentDay !== currentDay || 
+            parsedTime.currentMonth !== currentMonth || 
+            parsedTime.currentYear !== currentYear) {
+          console.log('Date discrepancy detected between localStorage and state, reloading...');
+          window.location.reload();
+        }
+      }
+    } catch (e) {
+      console.error('Error checking time consistency in Dashboard:', e);
+    }
+  }, [currentDay, currentMonth, currentYear]);
+  
   const { economyState } = useEconomy();
   const audio = useAudio();
   const game = useGame();

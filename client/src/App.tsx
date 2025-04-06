@@ -25,6 +25,7 @@ import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
+import TimeResetHack from "./TimeResetHack";
 
 import "@fontsource/inter";
 
@@ -182,6 +183,9 @@ function App() {
             
             {/* Global systems */}
             <GlobalAutoMaintenance />
+            
+            {/* Emergency hack to reset time if needed */}
+            <TimeResetHack />
           </Suspense>
         </Router>
         <Toaster position="top-right" richColors />
