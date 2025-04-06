@@ -1,14 +1,12 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-// Expanded theme options to include futuristic variants
-type Theme = 'dark' | 'light' | 'system' | 'neon-dark' | 'cyber-light';
+// Simplified theme options
+type Theme = 'dark' | 'light' | 'system';
 
 // Theme descriptions for UI
 export const themeDescriptions = {
-  'dark': 'Classic Dark - Teal & Sand tones for a sleek, professional appearance',
-  'light': 'Classic Light - Clean, minimal design with contrasting elements',
-  'neon-dark': 'Neo Cyberpunk - Electric teal & neon purple with futuristic glow effects',
-  'cyber-light': 'Tech Azure - Bright blue & purple accents with a clean, high-tech feel',
+  'dark': 'Dark Mode - Deep teal and sand tones with a calm aesthetic',
+  'light': 'Light Mode - Soft mint and neutral tones for a clean appearance',
   'system': 'System Default - Follows your device theme preferences'
 };
 
@@ -26,10 +24,10 @@ type ThemeProviderState = {
   availableThemes: Theme[];
 };
 
-const availableThemes: Theme[] = ['neon-dark', 'cyber-light', 'dark', 'light', 'system'];
+const availableThemes: Theme[] = ['dark', 'light', 'system'];
 
 const initialState: ThemeProviderState = {
-  theme: 'neon-dark', // Using our futuristic dark theme as default
+  theme: 'dark', // Using dark theme as default
   setTheme: () => null,
   isDark: true,
   getThemeDescription: () => '',
@@ -40,7 +38,7 @@ const ThemeProviderContext = createContext<ThemeProviderState>(initialState);
 
 export function ThemeProvider({
   children,
-  defaultTheme = 'neon-dark',
+  defaultTheme = 'dark',
   storageKey = 'business-empire-ui-theme',
   ...props
 }: ThemeProviderProps) {
@@ -53,7 +51,7 @@ export function ThemeProvider({
     if (currentTheme === 'system') {
       return window.matchMedia('(prefers-color-scheme: dark)').matches;
     }
-    return currentTheme === 'dark' || currentTheme === 'neon-dark';
+    return currentTheme === 'dark';
   };
 
   // Get theme description
@@ -65,18 +63,15 @@ export function ThemeProvider({
     const root = window.document.documentElement;
     
     // Remove all theme classes
-    root.classList.remove('light', 'dark', 'neon-dark', 'cyber-light');
+    root.classList.remove('light', 'dark');
     
     if (theme === 'system') {
       const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
         .matches
-        ? 'neon-dark'  // Use futuristic dark theme as default dark
-        : 'cyber-light'; // Use futuristic light theme as default light
+        ? 'dark'
+        : 'light';
       
       root.classList.add(systemTheme);
-      
-      // Also add the base theme class for compatibility
-      root.classList.add(systemTheme.includes('dark') ? 'dark' : 'light');
       
       // Apply theme-specific CSS variables
       applyThemeVariables(systemTheme);
@@ -86,13 +81,6 @@ export function ThemeProvider({
     
     // Add the selected theme class
     root.classList.add(theme);
-    
-    // For compatibility, also add the base theme class
-    if (theme === 'neon-dark') {
-      root.classList.add('dark');
-    } else if (theme === 'cyber-light') {
-      root.classList.add('light');
-    }
     
     // Apply theme-specific CSS variables
     applyThemeVariables(theme);
@@ -107,37 +95,26 @@ export function ThemeProvider({
     document.documentElement.style.removeProperty('--border-glow-color');
     document.documentElement.style.removeProperty('--text-glow-color');
     document.documentElement.style.removeProperty('--glow-color');
+    document.documentElement.style.removeProperty('--background-image');
     
     // Apply theme-specific variables
     switch (currentTheme) {
-      case 'neon-dark':
-        document.documentElement.style.setProperty('--primary-glow', '0 0 10px rgba(0, 229, 255, 0.7)');
-        document.documentElement.style.setProperty('--secondary-glow', '0 0 8px rgba(139, 92, 246, 0.6)');
-        document.documentElement.style.setProperty('--border-glow-color', '0, 229, 255');
-        document.documentElement.style.setProperty('--text-glow-color', '0, 229, 255');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(0, 229, 255, 0.5)');
-        break;
-        
-      case 'cyber-light':
-        document.documentElement.style.setProperty('--primary-glow', '0 0 8px rgba(37, 99, 235, 0.5)');
-        document.documentElement.style.setProperty('--secondary-glow', '0 0 6px rgba(139, 92, 246, 0.4)');
-        document.documentElement.style.setProperty('--border-glow-color', '37, 99, 235');
-        document.documentElement.style.setProperty('--text-glow-color', '37, 99, 235');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(37, 99, 235, 0.4)');
-        break;
-        
       case 'dark':
-        document.documentElement.style.setProperty('--primary-glow', '0 0 8px rgba(17, 100, 102, 0.5)');
-        document.documentElement.style.setProperty('--border-glow-color', '17, 100, 102');
-        document.documentElement.style.setProperty('--text-glow-color', '17, 100, 102');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(17, 100, 102, 0.4)');
+        // Colors from the image: #254E58 (teal), #112D32 (dark green), #4F4A41 (brown)
+        document.documentElement.style.setProperty('--primary-glow', '0 0 8px rgba(37, 78, 88, 0.5)');
+        document.documentElement.style.setProperty('--border-glow-color', '37, 78, 88');
+        document.documentElement.style.setProperty('--text-glow-color', '37, 78, 88');
+        document.documentElement.style.setProperty('--glow-color', 'rgba(37, 78, 88, 0.4)');
+        document.documentElement.style.setProperty('--background-image', 'linear-gradient(to bottom, #254E58, #112D32)');
         break;
         
       case 'light':
-        document.documentElement.style.setProperty('--primary-glow', '0 0 6px rgba(69, 162, 158, 0.3)');
-        document.documentElement.style.setProperty('--border-glow-color', '69, 162, 158');
-        document.documentElement.style.setProperty('--text-glow-color', '69, 162, 158');
-        document.documentElement.style.setProperty('--glow-color', 'rgba(69, 162, 158, 0.3)');
+        // Colors from the image: #88BDBC (mint), #6E8659 (sage)
+        document.documentElement.style.setProperty('--primary-glow', '0 0 6px rgba(136, 189, 188, 0.3)');
+        document.documentElement.style.setProperty('--border-glow-color', '136, 189, 188');
+        document.documentElement.style.setProperty('--text-glow-color', '136, 189, 188');
+        document.documentElement.style.setProperty('--glow-color', 'rgba(136, 189, 188, 0.3)');
+        document.documentElement.style.setProperty('--background-image', 'linear-gradient(to bottom, #88BDBC, #6E8659)');
         break;
         
       default:

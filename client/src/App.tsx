@@ -21,6 +21,7 @@ import { EventDebugger } from "./components/EventDebugger";
 import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
 import AchievementNotification from "./components/AchievementNotification";
 import { ThemeSwitcher } from "./components/ThemeSwitcher";
+import { AppBackground } from "./components/AppBackground";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 
@@ -72,13 +73,18 @@ function App() {
   }, [phase]);
 
   return (
-    <ThemeProvider defaultTheme="neon-dark">
+    <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
         <Router>
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
+            {/* Background with gradient based on theme */}
+            <AppBackground />
+            
+            {/* Theme switcher in top right corner */}
             <div className="fixed top-4 right-4 z-50">
               <ThemeSwitcher />
             </div>
+            
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/create" element={<CharacterCreation />} />
@@ -90,6 +96,8 @@ function App() {
               <Route path="/test" element={<TestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
+            
+            {/* Overlays and notifications */}
             <RandomEventModal />
             <ActiveEventsIndicator />
             <AchievementNotification />

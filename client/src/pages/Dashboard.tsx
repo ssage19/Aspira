@@ -356,11 +356,8 @@ export default function Dashboard() {
     });
   
   return (
-    <div className="w-full min-h-screen bg-background pt-20 pb-32">
-      {/* 3D Scene - Fixed Position */}
-      <div className="fixed inset-0 z-0">
-        <MainScene />
-      </div>
+    <div className="w-full min-h-screen pt-20 pb-32">
+      {/* The MainScene component is no longer needed as we now use AppBackground */}
       
       {/* Dashboard UI */}
       <div className="relative z-10">
@@ -368,8 +365,8 @@ export default function Dashboard() {
         
         {/* Central Dashboard - scrollable */}
         <div className="relative w-full max-w-5xl mx-auto p-6">
-          <Card className="backdrop-blur-md border-primary/30 bg-background/40 card-hover shadow-lg rounded-xl overflow-hidden">
-            {/* Futuristic glow elements */}
+          <Card className="backdrop-blur-md border-primary/20 bg-background/30 card-hover shadow-lg rounded-xl overflow-hidden">
+            {/* Soft glow elements using our new theme colors */}
             <div className="absolute -bottom-2 -right-2 h-32 w-32 bg-primary/20 blur-3xl rounded-full"></div>
             <div className="absolute -top-2 -left-2 h-24 w-24 bg-secondary/20 blur-3xl rounded-full"></div>
             
