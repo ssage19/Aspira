@@ -264,7 +264,7 @@ export function EnhancedLifestyleSelector() {
     
     return (
       <div className="mt-2">
-        <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+        <div className="flex items-center justify-between text-xs text-secondary mb-1">
           <span className="flex items-center">
             <Leaf className="h-3 w-3 mr-1" />
             <span>Sustainability:</span>
@@ -307,9 +307,9 @@ export function EnhancedLifestyleSelector() {
     if (ownedItems.length === 0) {
       return (
         <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-          <h3 className="text-lg font-medium text-gray-700 mb-1">No lifestyle choices yet</h3>
-          <p className="text-sm text-gray-500">
+          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <h3 className="text-lg font-medium text-primary mb-1">No lifestyle choices yet</h3>
+          <p className="text-sm text-secondary">
             Enhance your character by adding lifestyle choices that match your goals
           </p>
         </div>
@@ -324,9 +324,9 @@ export function EnhancedLifestyleSelector() {
     if (enhancedOwnedItems.length === 0) {
       return (
         <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-          <h3 className="text-lg font-medium text-gray-700 mb-1">No enhanced lifestyle choices yet</h3>
-          <p className="text-sm text-gray-500">
+          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <h3 className="text-lg font-medium text-primary mb-1">No enhanced lifestyle choices yet</h3>
+          <p className="text-sm text-secondary">
             Explore the new lifestyle categories to make more impactful choices
           </p>
         </div>
@@ -360,7 +360,7 @@ export function EnhancedLifestyleSelector() {
               </CardHeader>
               
               <CardContent className="pb-2">
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="text-sm text-secondary mb-3">
                   {enhancedItem.description}
                 </p>
                 
@@ -424,9 +424,9 @@ export function EnhancedLifestyleSelector() {
     if (filteredItems.length === 0) {
       return (
         <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-          <h3 className="text-lg font-medium text-gray-700 mb-1">No items in this category</h3>
-          <p className="text-sm text-gray-500">
+          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
+          <h3 className="text-lg font-medium text-primary mb-1">No items in this category</h3>
+          <p className="text-sm text-secondary">
             Try another category to find more lifestyle choices
           </p>
         </div>
@@ -459,7 +459,7 @@ export function EnhancedLifestyleSelector() {
             </CardHeader>
             
             <CardContent className="pb-2">
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">
+              <p className="text-sm text-secondary mb-3 line-clamp-2">
                 {item.description}
               </p>
               
