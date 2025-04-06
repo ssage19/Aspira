@@ -15,7 +15,7 @@ export default function LifestyleScreen() {
   const navigate = useNavigate();
   
   return (
-    <div className="w-full min-h-screen pt-12 pb-32">
+    <div className="w-full min-h-screen pt-2 pb-24">
       {/* Background */}
       <div className="fixed inset-0 bg-gradient-to-b from-amber-800 to-amber-900 opacity-90 z-0" />
       
