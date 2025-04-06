@@ -124,6 +124,14 @@ export function Lifestyle() {
       // Convert daily maintenance to monthly cost (30 days per month)
       const monthlyMaintenance = (item.maintenanceCost || 0) * 30;
       
+      // Calculate end date for vacations and experiences with durationInDays
+      let endDate;
+      if ((item.type === 'vacations' || item.type === 'experiences') && item.durationInDays) {
+        const now = new Date();
+        endDate = new Date(now);
+        endDate.setDate(now.getDate() + item.durationInDays);
+      }
+      
       lifestyleItem = {
         id: item.id,
         name: item.name,
@@ -136,6 +144,8 @@ export function Lifestyle() {
         prestige: item.prestige || 5,
         // Add purchase date
         purchaseDate: new Date().toISOString(),
+        // Add end date for time-limited items
+        ...(endDate && { endDate: endDate.toISOString() }),
         
         // Add attributes from the item if they exist
         ...(item.attributes && {
@@ -199,8 +209,21 @@ export function Lifestyle() {
         }, 1000);
       }
     } else {
-      // Standard purchase message for non-hobby items
-      toast.success(`Purchased ${item.name}`);
+      // Special message for vacation and experience items with duration
+      if ((item.type === 'vacations' || item.type === 'experiences') && item.durationInDays) {
+        toast.success(
+          <div>
+            <p className="font-bold">Purchased {item.name}</p>
+            <p className="text-sm mt-1">
+              Duration: {item.durationInDays} {item.durationInDays === 1 ? 'day' : 'days'}
+            </p>
+          </div>,
+          { duration: 4000 }
+        );
+      } else {
+        // Standard purchase message for other non-hobby items
+        toast.success(`Purchased ${item.name}`);
+      }
       
       // Show environmental impact warning for very negative items
       if (item.attributes?.environmentalImpact && item.attributes.environmentalImpact < -30) {
