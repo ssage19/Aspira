@@ -55,7 +55,6 @@ export interface Vacation {
   prestige: number;
   happiness: number;
   unique: boolean;
-  durationInDays: number; // Duration in days before the item expires
   attributes?: LifestyleAttributes;
 }
 
@@ -69,7 +68,6 @@ export interface Experience {
   happiness: number;
   unique: boolean;
   durationInDays: number; // Duration in days before the item expires
-  attributes?: LifestyleAttributes;
 }
 
 export const luxuryItems: LuxuryItem[] = [
@@ -85,8 +83,8 @@ export const luxuryItems: LuxuryItem[] = [
     prestige: 5,
     happiness: 10,
     unique: false,
+    durationInDays: 365, // 1 year
     attributes: {
-      socialStatus: 5,
       healthImpact: 0,
       timeCommitment: 0,
       environmentalImpact: -2,
@@ -101,9 +99,9 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'watch_mid',
     name: 'Mid-Range Luxury Watch',
+    durationInDays: 730, // 2 years
     type: 'luxury',
     price: 10000,
-    brand: 'Various',
     maintenanceCost: 200,
     description: 'Fine timepiece with excellent craftsmanship and brand heritage.',
     prestige: 15,
@@ -129,7 +127,6 @@ export const luxuryItems: LuxuryItem[] = [
     type: 'luxury',
     price: 50000,
     brand: 'Various',
-    maintenanceCost: 500,
     description: 'Exceptional timepiece with superior mechanics and precious materials.',
     prestige: 30,
     happiness: 20,
@@ -155,7 +152,6 @@ export const luxuryItems: LuxuryItem[] = [
     price: 250000,
     brand: 'Elite Watchmakers',
     maintenanceCost: 2500,
-    description: 'Rare complication timepiece from the most prestigious watchmakers in the world.',
     prestige: 60,
     happiness: 30,
     unique: false,
@@ -187,7 +183,6 @@ export const luxuryItems: LuxuryItem[] = [
     brand: 'Various',
     maintenanceCost: 100,
     description: 'Beautiful jewelry crafted with precious metals and gemstones.',
-    prestige: 10,
     happiness: 15,
     unique: false,
     attributes: {
@@ -212,7 +207,6 @@ export const luxuryItems: LuxuryItem[] = [
     maintenanceCost: 300,
     description: 'Coordinated jewelry set from respected designers featuring premium materials.',
     prestige: 20,
-    happiness: 20,
     unique: false,
     attributes: {
       socialStatus: 20,
@@ -237,7 +231,6 @@ export const luxuryItems: LuxuryItem[] = [
     description: 'Exquisite collection of rare and valuable jewelry pieces.',
     prestige: 40,
     happiness: 25,
-    unique: false,
     attributes: {
       socialStatus: 40,
       healthImpact: 0,
@@ -262,7 +255,6 @@ export const luxuryItems: LuxuryItem[] = [
     prestige: 55,
     happiness: 30,
     unique: false,
-    attributes: {
       socialStatus: 55,
       healthImpact: 0,
       timeCommitment: 1,
@@ -288,7 +280,6 @@ export const luxuryItems: LuxuryItem[] = [
     happiness: 35,
     unique: false,
     attributes: {
-      socialStatus: 65,
       healthImpact: 0,
       timeCommitment: 2,
       environmentalImpact: -20,
@@ -316,7 +307,6 @@ export const luxuryItems: LuxuryItem[] = [
     attributes: {
       socialStatus: 5,
       healthImpact: 0,
-      timeCommitment: 0,
       environmentalImpact: -1,
       stressReduction: 10,
       wealthIndicator: 1,
@@ -340,7 +330,6 @@ export const luxuryItems: LuxuryItem[] = [
       socialStatus: 10,
       healthImpact: 0,
       timeCommitment: 0,
-      environmentalImpact: -1,
       stressReduction: 15,
       skillDevelopment: 5,
       wealthIndicator: 2,
@@ -365,7 +354,6 @@ export const luxuryItems: LuxuryItem[] = [
       healthImpact: 0,
       timeCommitment: 0,
       environmentalImpact: -2,
-      stressReduction: 20,
       skillDevelopment: 10,
       wealthIndicator: 4,
       exclusivity: 40,
@@ -390,7 +378,6 @@ export const luxuryItems: LuxuryItem[] = [
       timeCommitment: 0,
       environmentalImpact: -5,
       stressReduction: 20,
-      wealthIndicator: 5,
       exclusivity: 50,
       appreciationRate: 4,
       luxuryTier: 'high'
@@ -414,7 +401,6 @@ export const luxuryItems: LuxuryItem[] = [
       environmentalImpact: -10,
       stressReduction: 30,
       skillDevelopment: 15,
-      wealthIndicator: 7,
       exclusivity: 70,
       appreciationRate: 7,
       luxuryTier: 'high',
@@ -440,7 +426,6 @@ export const luxuryItems: LuxuryItem[] = [
       stressReduction: 35,
       skillDevelopment: 20,
       wealthIndicator: 9,
-      exclusivity: 95,
       appreciationRate: 8,
       luxuryTier: 'ultra',
       unlockNetWorth: 5000000,
@@ -472,7 +457,6 @@ export const luxuryItems: LuxuryItem[] = [
       skillDevelopment: 25,
       wealthIndicator: 6,
       exclusivity: 60,
-      appreciationRate: 5,
       luxuryTier: 'high'
     }
   },
@@ -497,7 +481,6 @@ export const luxuryItems: LuxuryItem[] = [
       exclusivity: 55,
       appreciationRate: 3,
       luxuryTier: 'high'
-    }
   },
   {
     id: 'vintage_car',
@@ -521,7 +504,6 @@ export const luxuryItems: LuxuryItem[] = [
       exclusivity: 65,
       appreciationRate: 10,
       luxuryTier: 'high',
-      specialBenefits: [
         'Invitation to exclusive car shows',
         'Membership in collectors clubs',
         'Participation in vintage rallies'
@@ -551,7 +533,6 @@ export const luxuryItems: LuxuryItem[] = [
       appreciationRate: 12,
       luxuryTier: 'ultra',
       unlockNetWorth: 5000000,
-      specialBenefits: [
         'Global recognition in collector communities',
         'Invitations to exhibit at prestigious events',
         'Media attention and documentary features',
@@ -585,7 +566,6 @@ export const luxuryItems: LuxuryItem[] = [
     }
   },
   {
-    id: 'bespoke_suits',
     name: 'Bespoke Suit Collection',
     durationInDays: 730, // 2 years
     type: 'luxury',
@@ -609,7 +589,6 @@ export const luxuryItems: LuxuryItem[] = [
   },
   {
     id: 'couture_collection',
-    name: 'Haute Couture Collection',
     durationInDays: 730, // 2 years
     type: 'luxury',
     price: 250000,
@@ -633,7 +612,6 @@ export const luxuryItems: LuxuryItem[] = [
         'Front row invitations to fashion shows',
         'Personal relationships with designers',
         'Access to pre-release collections',
-        'Feature in fashion publications'
       ]
     }
   },
@@ -664,7 +642,6 @@ export const luxuryItems: LuxuryItem[] = [
   {
     id: 'rare_whiskey',
     name: 'Rare Whiskey Collection',
-    durationInDays: 3650, // 10 years
     type: 'luxury',
     price: 150000,
     maintenanceCost: 1000,
@@ -689,7 +666,6 @@ export const luxuryItems: LuxuryItem[] = [
     id: 'home_spa',
     name: 'Luxury Home Spa',
     durationInDays: 1825, // 5 years
-    type: 'luxury',
     price: 100000,
     maintenanceCost: 5000,
     description: 'Professional-grade spa facility in your home with sauna, steam room, and treatment areas.',
@@ -714,7 +690,6 @@ export const luxuryItems: LuxuryItem[] = [
     durationInDays: 1825, // 5 years
     type: 'luxury',
     price: 150000,
-    maintenanceCost: 3000,
     description: 'Commercial-grade cinema experience with state-of-the-art technology and seating.',
     prestige: 20,
     happiness: 30,
@@ -738,7 +713,6 @@ export const luxuryItems: LuxuryItem[] = [
     price: 80000,
     maintenanceCost: 2000,
     description: 'Commercial-quality fitness facility with premium equipment and training technology.',
-    prestige: 15,
     happiness: 25,
     unique: true,
     attributes: {
@@ -1387,7 +1361,6 @@ export const vacations = [
     happiness: 35,
     unique: false,
     attributes: {
-      socialStatus: 15,
       healthImpact: 10,
       timeCommitment: 7,
       environmentalImpact: -20,
@@ -1410,7 +1383,6 @@ export const vacations = [
     happiness: 40,
     unique: false,
     attributes: {
-      socialStatus: 20,
       healthImpact: 20,
       timeCommitment: 10,
       environmentalImpact: -15,
@@ -1434,7 +1406,6 @@ export const vacations = [
     attributes: {
       socialStatus: 25,
       healthImpact: 10,
-      timeCommitment: 10,
       environmentalImpact: -15,
       stressReduction: 45,
       skillDevelopment: 15,
@@ -1457,7 +1428,6 @@ export const vacations = [
     attributes: {
       socialStatus: 20,
       healthImpact: 15,
-      timeCommitment: 14,
       environmentalImpact: -25,
       stressReduction: 40,
       skillDevelopment: 15,
@@ -1480,7 +1450,6 @@ export const vacations = [
     attributes: {
       socialStatus: 30,
       healthImpact: 15,
-      timeCommitment: 12,
       environmentalImpact: -20,
       stressReduction: 55,
       skillDevelopment: 15,
@@ -1503,17 +1472,18 @@ export const vacations = [
     attributes: {
       socialStatus: 35,
       healthImpact: 15,
-      timeCommitment: 14,
       environmentalImpact: -20,
       stressReduction: 45,
       skillDevelopment: 20,
       wealthIndicator: 6,
       exclusivity: 55,
       luxuryTier: 'high'
+ durationInDays: 14,
     }
   },
   {
     id: 'antarctic_expedition',
+    durationInDays: 7, // 1 week
     name: 'Antarctic Luxury Expedition',
     type: 'vacations',
     price: 65000,
@@ -1524,7 +1494,6 @@ export const vacations = [
     unique: false,
     attributes: {
       socialStatus: 40,
-      healthImpact: 10,
       timeCommitment: 14,
       environmentalImpact: -30,
       stressReduction: 50,
@@ -1532,6 +1501,7 @@ export const vacations = [
       wealthIndicator: 7,
       exclusivity: 70,
       luxuryTier: 'high'
+      durationInDays: 2,
     }
   },
   
@@ -1542,13 +1512,11 @@ export const vacations = [
     name: 'Private Island Retreat',
     type: 'vacations',
     price: 75000,
-    duration: '1 week',
     description: 'Exclusive vacation on a private island with dedicated staff.',
     prestige: 45,
     happiness: 50,
     unique: false,
     attributes: {
-      socialStatus: 45,
       healthImpact: 25, // Complete rejuvenation and relaxation
       timeCommitment: 7, // Full week plus travel
       environmentalImpact: -20, // Remote location travel
@@ -1564,17 +1532,16 @@ export const vacations = [
         'Potential to host select friends for unique experiences',
         'Refreshed perspective and creativity boost'
       ]
+ durationInDays: 7,
     }
   },
   {
-    id: 'himalayan_retreat',
     name: 'Himalayan Wellness Retreat',
     type: 'vacations',
     price: 90000,
     duration: '2 weeks',
     description: 'Transformative wellness experience in a secluded Himalayan sanctuary with world-renowned practitioners.',
     prestige: 50,
-    happiness: 55,
     unique: false,
     attributes: {
       socialStatus: 50,
@@ -1587,6 +1554,7 @@ export const vacations = [
       exclusivity: 80,
       luxuryTier: 'high',
       unlockNetWorth: 750000
+      durationInDays: 14, // 2 weeks
     }
   },
   {
@@ -1601,7 +1569,6 @@ export const vacations = [
     unique: false,
     attributes: {
       socialStatus: 55,
-      healthImpact: 15,
       timeCommitment: 12,
       environmentalImpact: -25,
       stressReduction: 60,
@@ -1610,8 +1577,8 @@ export const vacations = [
       exclusivity: 85,
       luxuryTier: 'ultra',
       unlockNetWorth: 1000000
-    },
-    durationInDays: 7 // 1 week
+    durationInDays: 7, // 1 week
+    }
   },
   {
     id: 'world_cruise',
@@ -1626,13 +1593,13 @@ export const vacations = [
     attributes: {
       socialStatus: 60,
       healthImpact: 20,
-      timeCommitment: 90,
       environmentalImpact: -40,
       stressReduction: 75,
       skillDevelopment: 30,
       wealthIndicator: 8,
       exclusivity: 90,
       luxuryTier: 'ultra',
+    durationInDays: 7, // 1 week
       unlockNetWorth: 2000000
     }
   },
@@ -1650,15 +1617,14 @@ export const vacations = [
       socialStatus: 75,
       healthImpact: 25,
       timeCommitment: 21,
-      environmentalImpact: -35,
       stressReduction: 80,
       skillDevelopment: 20,
       wealthIndicator: 9,
       exclusivity: 95,
       luxuryTier: 'ultra',
       unlockNetWorth: 5000000
-    },
-    durationInDays: 21 // 3 weeks
+    durationInDays: 7, // 1 week
+    }
   },
   
   // EXTRAORDINARY EXPERIENCES - 15 ITEMS
@@ -1668,14 +1634,12 @@ export const vacations = [
     type: 'vacations',
     price: 500000,
     duration: '1 week',
-    durationInDays: 7, // 1 week
     description: 'Groundbreaking journey to the edge of space for an unforgettable experience.',
     prestige: 100,
     happiness: 80,
     unique: false,
     attributes: {
       socialStatus: 100,
-      healthImpact: -5, // Mild physical stress
       timeCommitment: 14, // Training and preparation time
       environmentalImpact: -40,
       stressReduction: 60, // Perspective-changing experience
@@ -1687,6 +1651,7 @@ export const vacations = [
       specialBenefits: [
         'Membership in the exclusive space travelers club',
         'Speaking engagement opportunities',
+    durationInDays: 7, // 1 week
         'Media coverage potential',
         'Automatic entry to select scientific and futurist circles'
       ]
@@ -1698,10 +1663,8 @@ export const vacations = [
     type: 'vacations',
     price: 400000,
     duration: '2 weeks',
-    durationInDays: 14, // 2 weeks
     description: 'Extraordinary expedition to the geographic North Pole aboard a nuclear-powered icebreaker.',
     prestige: 85,
-    happiness: 65,
     unique: false,
     attributes: {
       socialStatus: 85,
@@ -1710,6 +1673,7 @@ export const vacations = [
       environmentalImpact: -45,
       stressReduction: 50,
       skillDevelopment: 20,
+    durationInDays: 7, // 1 week
       wealthIndicator: 9,
       exclusivity: 95,
       luxuryTier: 'exclusive',
@@ -1722,7 +1686,6 @@ export const vacations = [
     type: 'vacations',
     price: 1000000,
     duration: '1 year',
-    durationInDays: 365, // 1 year
     description: 'Expedition to climb the highest peaks on each continent with elite guides and luxury base camps.',
     prestige: 95,
     happiness: 70,
@@ -1731,8 +1694,8 @@ export const vacations = [
       socialStatus: 95,
       healthImpact: 15,
       timeCommitment: 365,
-      environmentalImpact: -50,
       stressReduction: 40,
+    durationInDays: 7, // 1 week
       skillDevelopment: 40,
       wealthIndicator: 10,
       exclusivity: 100,
@@ -1746,7 +1709,6 @@ export const vacations = [
     type: 'vacations',
     price: 750000,
     duration: '1 month',
-    durationInDays: 30, // 1 month
     description: 'First-class world tour aboard a dedicated private jet with stays at the world\'s finest hotels.',
     prestige: 90,
     happiness: 75,
@@ -1755,7 +1717,7 @@ export const vacations = [
       socialStatus: 90,
       healthImpact: 10,
       timeCommitment: 30,
-      environmentalImpact: -60,
+    durationInDays: 7, // 1 week
       stressReduction: 65,
       skillDevelopment: 25,
       wealthIndicator: 10,
@@ -1770,7 +1732,6 @@ export const vacations = [
     type: 'vacations',
     price: 350000,
     duration: '10 days',
-    durationInDays: 10, // 10 days
     description: 'Rare opportunity to explore the ocean depths in advanced submersibles alongside marine scientists.',
     prestige: 80,
     happiness: 60,
@@ -1779,13 +1740,13 @@ export const vacations = [
       socialStatus: 80,
       healthImpact: 0,
       timeCommitment: 14,
-      environmentalImpact: -30,
       stressReduction: 55,
       skillDevelopment: 30,
       wealthIndicator: 9,
       exclusivity: 95,
       luxuryTier: 'ultra',
       unlockNetWorth: 5000000
+ durationInDays: 10,
     }
   }
 ];
@@ -1802,7 +1763,6 @@ export const experiences = [
     prestige: 15,
     happiness: 35,
     unique: false,
-    attributes: {
       socialStatus: 15,
       healthImpact: 5,
       timeCommitment: 1,
@@ -1833,7 +1793,6 @@ export const experiences = [
       wealthIndicator: 3,
       exclusivity: 25,
       luxuryTier: 'entry'
-    }
   },
   {
     id: 'chef_dinner',
@@ -1846,7 +1805,6 @@ export const experiences = [
     happiness: 30,
     unique: false,
     attributes: {
-      socialStatus: 12,
       healthImpact: 5,
       timeCommitment: 1,
       environmentalImpact: -5,
@@ -1869,7 +1827,6 @@ export const experiences = [
     unique: false,
     attributes: {
       socialStatus: 20,
-      healthImpact: 5,
       timeCommitment: 7,
       environmentalImpact: -15,
       stressReduction: 40,
@@ -1891,7 +1848,6 @@ export const experiences = [
     unique: false,
     attributes: {
       socialStatus: 25,
-      healthImpact: 0,
       timeCommitment: 4,
       environmentalImpact: -10,
       stressReduction: 25,
@@ -1909,11 +1865,11 @@ export const experiences = [
     durationInDays: 1, // One-day experience
     type: 'experiences',
     price: 50000,
+ durationInDays: 1, // One-day experience
     description: 'Exclusive wildlife experience with private guides and luxury accommodations.',
     prestige: 30,
     happiness: 45,
     unique: false,
-    attributes: {
       socialStatus: 30,
       healthImpact: 15,
       timeCommitment: 10,
@@ -1931,10 +1887,10 @@ export const experiences = [
     name: 'VIP Access to Exclusive Event',
     type: 'experiences',
     price: 50000,
+ durationInDays: 1, // One-day experience
     description: 'Behind-the-scenes access and VIP treatment at a major global event.',
     prestige: 35,
     happiness: 40,
-    unique: false,
     attributes: {
       socialStatus: 35,
       healthImpact: 0,
@@ -1948,20 +1904,19 @@ export const experiences = [
     }
   },
   {
+    durationInDays: 1, // One-day experience
     id: 'wine_tour_premium',
     name: 'Exclusive Vineyard Experience',
     type: 'experiences',
     price: 60000,
-    durationInDays: 1, // One-day experience
+ durationInDays: 1, // One-day experience
     description: 'Private access to the world\'s most prestigious vineyards with tastings of rare vintages and meetings with legendary winemakers.',
     prestige: 40,
     happiness: 45,
     unique: false,
-    attributes: {
       socialStatus: 40,
       healthImpact: 5,
       timeCommitment: 7,
-      environmentalImpact: -20,
       stressReduction: 50,
       skillDevelopment: 15,
       wealthIndicator: 7,
@@ -1969,50 +1924,49 @@ export const experiences = [
       luxuryTier: 'high'
     }
   },
+    durationInDays: 1, // One-day experience
   {
     id: 'yacht_week',
     name: 'Mediterranean Yacht Week',
     type: 'experiences',
     price: 100000,
-    durationInDays: 7, // One week experience
+ durationInDays: 1, // One-day experience
     description: 'Charter a crewed yacht to explore the most beautiful Mediterranean destinations.',
     prestige: 45,
     happiness: 50,
     unique: false,
     attributes: {
-      socialStatus: 45,
       healthImpact: 15,
       timeCommitment: 7,
       environmentalImpact: -30,
       stressReduction: 60,
-      skillDevelopment: 10,
       wealthIndicator: 7,
       exclusivity: 65,
       luxuryTier: 'high'
     }
+    durationInDays: 1, // One-day experience
+ durationInDays: 1, // One-day experience
   },
   {
     id: 'art_immersion',
     name: 'Global Art Immersion',
     type: 'experiences',
     price: 85000,
-    durationInDays: 14, // Two-week experience
     description: 'Private tours of the world\'s most prestigious museums and galleries after hours with renowned art experts.',
     prestige: 50,
     happiness: 45,
     unique: false,
     attributes: {
       socialStatus: 50,
-      healthImpact: 5,
       timeCommitment: 14,
       environmentalImpact: -25,
       stressReduction: 45,
       skillDevelopment: 25,
       wealthIndicator: 7,
-      exclusivity: 70,
       luxuryTier: 'high'
     }
   },
+    durationInDays: 1, // One-day experience
   
   // HIGH-END LUXURY EXPERIENCES - 15 ITEMS
   {
@@ -2020,22 +1974,21 @@ export const experiences = [
     name: 'Professional Racing School',
     type: 'experiences',
     price: 150000,
-    durationInDays: 14, // Two-week experience
     description: 'Intensive racing program with championship drivers at prestigious circuits worldwide.',
     prestige: 55,
     happiness: 55,
     unique: false,
     attributes: {
       socialStatus: 55,
-      healthImpact: 10,
       timeCommitment: 14,
       environmentalImpact: -35,
       stressReduction: 50,
       skillDevelopment: 30,
       wealthIndicator: 8,
       exclusivity: 75,
-      luxuryTier: 'ultra',
+    durationInDays: 1, // One-day experience
       unlockNetWorth: 1000000
+ durationInDays: 1, // One-day experience
     }
   },
   {
@@ -2043,16 +1996,13 @@ export const experiences = [
     name: 'Private Performance by Famous Artist',
     type: 'experiences',
     price: 250000,
-    durationInDays: 1, // One-day experience
     description: 'Personal concert by a famous artist for you and your guests.',
     prestige: 60,
     happiness: 60,
     unique: false,
     attributes: {
       socialStatus: 60,
-      healthImpact: 5, // Joy and wellbeing
       timeCommitment: 5, // Planning and hosting
-      environmentalImpact: -15,
       stressReduction: 55,
       skillDevelopment: 5,
       wealthIndicator: 8,
@@ -2063,7 +2013,9 @@ export const experiences = [
         'Significant social media exposure potential',
         'Industry connections to entertainment business',
         'Enhanced personal brand and status',
+    durationInDays: 1, // One-day experience
         'Potential long-term relationship with the artist'
+ durationInDays: 1, // One-day experience
       ]
     }
   },
@@ -2072,10 +2024,8 @@ export const experiences = [
     name: 'Zero Gravity Experience',
     type: 'experiences',
     price: 175000,
-    durationInDays: 1, // One-day experience
     description: 'Experience weightlessness aboard specialized aircraft used to train astronauts.',
     prestige: 65,
-    happiness: 65,
     unique: false,
     attributes: {
       socialStatus: 65,
@@ -2085,7 +2035,9 @@ export const experiences = [
       stressReduction: 50,
       skillDevelopment: 15,
       wealthIndicator: 8,
+    durationInDays: 1, // One-day experience
       exclusivity: 85,
+ durationInDays: 1, // One-day experience
       luxuryTier: 'ultra',
       unlockNetWorth: 2500000
     }
@@ -2095,19 +2047,18 @@ export const experiences = [
     name: 'Feature Film Cameo Role',
     type: 'experiences',
     price: 300000,
-    durationInDays: 7, // One-week experience
     description: 'Speaking role in a major motion picture with A-list actors and red carpet premiere invitation.',
-    prestige: 70,
     happiness: 60,
     unique: false,
-    attributes: {
       socialStatus: 70,
       healthImpact: 5,
       timeCommitment: 7,
       environmentalImpact: -20,
       stressReduction: 45,
       skillDevelopment: 15,
+    durationInDays: 1, // One-day experience
       wealthIndicator: 9,
+ durationInDays: 1, // One-day experience
       exclusivity: 90,
       luxuryTier: 'ultra',
       unlockNetWorth: 3000000
@@ -2118,7 +2069,6 @@ export const experiences = [
     name: 'Haute Couture Experience',
     type: 'experiences',
     price: 200000,
-    durationInDays: 3, // Three-day experience
     description: 'Custom haute couture garment created by a legendary fashion house with private fittings and behind-the-scenes access.',
     prestige: 75,
     happiness: 55,
@@ -2127,11 +2077,11 @@ export const experiences = [
       socialStatus: 75,
       healthImpact: 0,
       timeCommitment: 10,
-      environmentalImpact: -25,
       stressReduction: 40,
       skillDevelopment: 10,
-      wealthIndicator: 9,
+    durationInDays: 1, // One-day experience
       exclusivity: 92,
+ durationInDays: 1, // One-day experience
       luxuryTier: 'ultra',
       unlockNetWorth: 3500000
     }
@@ -2143,7 +2093,6 @@ export const experiences = [
     name: 'Royal Living Experience',
     type: 'experiences',
     price: 500000,
-    durationInDays: 14, // Two-week experience
     description: 'Live like royalty in a historic palace or castle with full staff, royal protocols, and exclusive access to royal events.',
     prestige: 80,
     happiness: 65,
@@ -2151,9 +2100,9 @@ export const experiences = [
     attributes: {
       socialStatus: 80,
       healthImpact: 10,
-      timeCommitment: 14,
       environmentalImpact: -35,
-      stressReduction: 60,
+    durationInDays: 1, // One-day experience
+ durationInDays: 1, // One-day experience
       skillDevelopment: 20,
       wealthIndicator: 9,
       exclusivity: 95,
@@ -2166,7 +2115,6 @@ export const experiences = [
     name: 'Master Chef Apprenticeship',
     type: 'experiences',
     price: 400000,
-    durationInDays: 21, // Three-week experience
     description: 'Private culinary education with multiple Michelin-starred chefs in their own kitchens around the world.',
     prestige: 70,
     happiness: 70,
@@ -2176,7 +2124,7 @@ export const experiences = [
       healthImpact: 15,
       timeCommitment: 30,
       environmentalImpact: -30,
-      stressReduction: 50,
+ durationInDays: 1, // One-day experience
       skillDevelopment: 40,
       wealthIndicator: 9,
       exclusivity: 93,
@@ -2189,7 +2137,6 @@ export const experiences = [
     name: 'Private Archaeological Expedition',
     type: 'experiences',
     price: 600000,
-    durationInDays: 30, // One-month experience
     description: 'Fund and participate in a legitimate archaeological expedition with world-renowned archaeologists.',
     prestige: 75,
     happiness: 75,
@@ -2197,12 +2144,12 @@ export const experiences = [
     attributes: {
       socialStatus: 75,
       healthImpact: 10,
+    durationInDays: 1, // One-day experience
       timeCommitment: 21,
+ durationInDays: 1, // One-day experience
       environmentalImpact: -20,
-      stressReduction: 65,
       skillDevelopment: 35,
       wealthIndicator: 10,
-      exclusivity: 97,
       luxuryTier: 'exclusive',
       unlockNetWorth: 15000000
     }
@@ -2212,21 +2159,20 @@ export const experiences = [
     name: 'Global Heritage Tour',
     type: 'experiences',
     price: 850000,
-    durationInDays: 21, // Three-week experience
     description: 'Private access to UNESCO World Heritage sites after hours with the world\'s leading experts and historians.',
     prestige: 85,
     happiness: 80,
     unique: false,
     attributes: {
       socialStatus: 85,
+    durationInDays: 1, // One-day experience
       healthImpact: 15,
+ durationInDays: 1, // One-day experience
       timeCommitment: 30,
       environmentalImpact: -40,
       stressReduction: 70,
-      skillDevelopment: 35,
       wealthIndicator: 10,
       exclusivity: 98,
-      luxuryTier: 'exclusive',
       unlockNetWorth: 20000000
     }
   },
@@ -2235,7 +2181,6 @@ export const experiences = [
     name: 'Private Space Station Mission',
     type: 'experiences',
     price: 55000000,
-    durationInDays: 180, // Six-month experience including training and mission
     description: 'Ultimate space tourism: training with astronauts, launch to the International Space Station, and spacewalk experience.',
     prestige: 100,
     happiness: 100,
@@ -2249,10 +2194,8 @@ export const experiences = [
       skillDevelopment: 50,
       wealthIndicator: 10,
       exclusivity: 100,
-      luxuryTier: 'exclusive',
       unlockNetWorth: 100000000,
       specialBenefits: [
-        'Membership in the most exclusive club on Earth - humans who have been to space',
         'Permanent historical significance',
         'Global media coverage',
         'Perspective-altering experience unlike any other'

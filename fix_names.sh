@@ -2,8 +2,16 @@
 
 file="client/src/lib/data/lifestyleItems.ts"
 
-# Fix all instances of "name: name:"
-sed -i 's/name: name:/name:/g' $file
+# First, remove the duplicated entries
+duplicates=$(grep -n "^ \+durationInDays:" $file | cut -d':' -f1)
 
-echo "Fixed duplicate name attributes"
+for line in $duplicates; do
+  # Delete the line
+  sed -i "${line}d" $file
+done
 
+# Fix any JSON syntax issues
+sed -i 's/,\s*}/}/g' $file  # Remove trailing commas before closing braces
+sed -i 's/,\s*\]/]/g' $file  # Remove trailing commas before closing brackets
+
+echo "Fixed duplicate durationInDays entries and JSON syntax issues"

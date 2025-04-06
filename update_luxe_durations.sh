@@ -1,42 +1,133 @@
 #!/bin/bash
 
-file="client/src/lib/data/lifestyleItems.ts"
+# Create a backup
+cp client/src/lib/data/lifestyleItems.ts client/src/lib/data/lifestyleItems.ts.bak2
 
-# Add durations to jewelry and watches
-sed -i 's/name: .Mid-Range Luxury Watch.,/name: \0\n    durationInDays: 730, \/\/ 2 years/g' $file
-sed -i 's/name: .High-End Luxury Watch.,/name: \0\n    durationInDays: 1095, \/\/ 3 years/g' $file
-sed -i 's/name: .Ultra-Premium Timepiece.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Fine Jewelry Piece.,/name: \0\n    durationInDays: 730, \/\/ 2 years/g' $file
-sed -i 's/name: .Designer Jewelry Set.,/name: \0\n    durationInDays: 1095, \/\/ 3 years/g' $file
-sed -i 's/name: .Signature Jewelry Collection.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Iconic Branded Jewelry.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Rare Gemstone Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
+# Create a temporary file for processed content
+temp_file=$(mktemp)
 
-# Add durations to art and collectibles
-sed -i 's/name: .Limited Edition Art Print.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Emerging Artist Original.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Original Painting.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Fine Art Sculpture.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Fine Art Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Museum-Quality Masterpiece.,/name: \0\n    durationInDays: 7300, \/\/ 20 years/g' $file
-sed -i 's/name: .Rare Book Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Antique Furniture Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Classic Vintage Car.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Vintage Car Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
+# Process the file and add the type declaration as needed
+awk '
+BEGIN {
+  inside_vacation = 0
+  vacation_item_start = 0
+  attributes_end = 0
+  duration_value = 7
+}
 
-# Add durations to lifestyle items 
-sed -i 's/name: .Designer Wardrobe.,/name: \0\n    durationInDays: 365, \/\/ 1 year/g' $file
-sed -i 's/name: .Bespoke Suit Collection.,/name: \0\n    durationInDays: 730, \/\/ 2 years/g' $file
-sed -i 's/name: .Haute Couture Collection.,/name: \0\n    durationInDays: 730, \/\/ 2 years/g' $file
-sed -i 's/name: .Fine Wine Collection.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Rare Whiskey Collection.,/name: \0\n    durationInDays: 3650, \/\/ 10 years/g' $file
-sed -i 's/name: .Luxury Home Spa.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Premium Home Theater.,/name: \0\n    durationInDays: 1825, \/\/ 5 years/g' $file
-sed -i 's/name: .Smart Home System.,/name: \0\n    durationInDays: 1095, \/\/ 3 years/g' $file
-sed -i 's/name: .Private Chef Service.,/name: \0\n    durationInDays: 365, \/\/ 1 year/g' $file
-sed -i 's/name: .Personal Stylist.,/name: \0\n    durationInDays: 365, \/\/ 1 year/g' $file
-sed -i 's/name: .Celebrity Personal Trainer.,/name: \0\n    durationInDays: 180, \/\/ 6 months/g' $file
-sed -i 's/name: .Meditation Retreat Package.,/name: \0\n    durationInDays: 180, \/\/ 6 months/g' $file
+# Track when we start a vacation item
+/type: '\''vacations'\''/ {
+  inside_vacation = 1
+  vacation_item_start = NR
+}
 
-echo "Updated durations for luxury items"
+# Parse duration to determine duration in days
+/duration:/ && inside_vacation {
+  if ($0 ~ /1 day/) duration_value = 1
+  else if ($0 ~ /2 day/) duration_value = 2
+  else if ($0 ~ /3 day/) duration_value = 3
+  else if ($0 ~ /4 day/) duration_value = 4
+  else if ($0 ~ /5 day/) duration_value = 5
+  else if ($0 ~ /6 day/) duration_value = 6
+  else if ($0 ~ /2 week/) duration_value = 14
+  else if ($0 ~ /3 week/) duration_value = 21
+  else if ($0 ~ /4 week/) duration_value = 28
+  else if ($0 ~ /month/) duration_value = 30
+  else if ($0 ~ /2 month/) duration_value = 60
+  else if ($0 ~ /3 month/) duration_value = 90
+  else if ($0 ~ /year/) duration_value = 365
+  else if ($0 ~ /10 day/) duration_value = 10
+  else duration_value = 7  # default to 1 week
+}
 
+# Handle end of attributes or item
+/^    }/ && inside_vacation {
+  attributes_end = NR
+}
+
+# End of item - check if we need to add durationInDays
+/^  },/ && inside_vacation {
+  # If we havent found durationInDays, insert it after attributes
+  if (!has_duration_days && attributes_end > 0) {
+    print $0
+    print "    durationInDays: " duration_value ","
+    inside_vacation = 0
+    has_duration_days = 0
+    attributes_end = 0
+    duration_value = 7
+    next
+  }
+  inside_vacation = 0
+  has_duration_days = 0
+  attributes_end = 0
+  duration_value = 7
+}
+
+# Check if durationInDays already exists
+/durationInDays:/ && inside_vacation {
+  has_duration_days = 1
+}
+
+# Print the line
+{
+  print $0
+}
+' client/src/lib/data/lifestyleItems.ts > $temp_file
+
+# Replace the original file
+mv $temp_file client/src/lib/data/lifestyleItems.ts
+
+echo "Added missing durationInDays to vacation items"
+
+# Now handle experience items
+temp_file=$(mktemp)
+
+# Process the file and add the type declaration as needed
+awk '
+BEGIN {
+  inside_experience = 0
+  exp_item_start = 0
+  has_duration_days = 0
+}
+
+# Track when we start an experience item
+/type: '\''experiences'\''/ {
+  inside_experience = 1
+  exp_item_start = NR
+}
+
+# Process price line to add durationInDays
+/price:/ && inside_experience && !has_price {
+  has_price = 1
+  print $0
+  
+  # If we havent found durationInDays, insert it after price
+  if (!has_duration_days) {
+    gsub(/^[ \t]+/, "", indentation)  # Get the indentation
+    print "    durationInDays: 1, // One-day experience"
+    next
+  }
+}
+
+# End of item - reset flags
+/^  },/ && inside_experience {
+  inside_experience = 0
+  has_duration_days = 0
+  has_price = 0
+}
+
+# Check if durationInDays already exists
+/durationInDays:/ && inside_experience {
+  has_duration_days = 1
+}
+
+# Print the line
+{
+  print $0
+}
+' client/src/lib/data/lifestyleItems.ts > $temp_file
+
+# Replace the original file
+mv $temp_file client/src/lib/data/lifestyleItems.ts
+
+echo "Added missing durationInDays to experience items"
