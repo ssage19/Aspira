@@ -286,7 +286,7 @@ export function Lifestyle() {
                     Price: {formatCurrency(item.price)}
                     {item.maintenanceCost > 0 && (
                       <span className="ml-2 text-amber-600">
-                        +{formatCurrency(item.maintenanceCost)}/day
+                        +{formatCurrency(item.maintenanceCost * 30)}/month
                       </span>
                     )}
                   </>
@@ -457,13 +457,12 @@ export function Lifestyle() {
                           </span>
                         </CardTitle>
                         <CardDescription>
-                          {/* Handle potentially undefined purchase price */}
-                          Value: {formatCurrency((item.purchasePrice || 0) * 0.5)}
-                          {/* Only show maintenance if it exists and is greater than zero */}
+                          {/* Handle potentially undefined purchase price - now selling at 85% value */}
+                          Resale value: {formatCurrency((item.purchasePrice || 0) * 0.85)}
+                          {/* Only show maintenance if it exists and is greater than zero - always show as monthly now */}
                           {item.maintenanceCost && item.maintenanceCost > 0 && (
                             <span className="ml-2 text-amber-600">
-                              +{formatCurrency(item.maintenanceCost)}/
-                              {item.type === 'hobbies' ? 'month' : 'day'}
+                              +{formatCurrency(item.type === 'hobbies' ? item.maintenanceCost : item.maintenanceCost * 30)}/month
                             </span>
                           )}
                         </CardDescription>
@@ -531,16 +530,16 @@ export function Lifestyle() {
                       <CardFooter>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="w-full text-red-500 hover:bg-red-50">
-                              <X className="h-4 w-4 mr-2" />
-                              Remove
+                            <Button variant="outline" className="w-full text-green-600 hover:bg-green-50">
+                              <ShoppingBag className="h-4 w-4 mr-2" />
+                              Sell
                             </Button>
                           </AlertDialogTrigger>
                           <AlertDialogContent>
                             <AlertDialogHeader>
-                              <AlertDialogTitle>Remove {item.name}?</AlertDialogTitle>
+                              <AlertDialogTitle>Sell {item.name}?</AlertDialogTitle>
                               <AlertDialogDescription>
-                                Removing this item will reverse its effects on your character attributes.
+                                Selling this item will give you {formatCurrency((item.purchasePrice || 0) * 0.85)} (85% of purchase price) and reverse its effects on your character attributes.
                               </AlertDialogDescription>
                               <div className="mt-3 mb-3 text-sm text-muted-foreground">
                                 {item.type === 'hobbies' && item.timeCommitment !== undefined && (
@@ -563,11 +562,16 @@ export function Lifestyle() {
                             <AlertDialogFooter>
                               <AlertDialogCancel>Cancel</AlertDialogCancel>
                               <AlertDialogAction onClick={() => {
+                                // Calculate 85% of the purchase price as resale value
+                                const resaleValue = (item.purchasePrice || 0) * 0.85;
+                                // Add the resale value to the player's wealth
+                                addWealth(resaleValue);
+                                // Remove the item from the player's inventory
                                 removeLifestyleItem(item.id);
-                                toast.success(`Removed ${item.name}`);
+                                toast.success(`Sold ${item.name} for ${formatCurrency(resaleValue)}`);
                                 playSuccess();
                               }}>
-                                Remove
+                                Sell for {formatCurrency((item.purchasePrice || 0) * 0.85)}
                               </AlertDialogAction>
                             </AlertDialogFooter>
                           </AlertDialogContent>
