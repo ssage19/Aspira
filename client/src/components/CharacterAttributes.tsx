@@ -129,7 +129,7 @@ export function CharacterAttributes() {
       description: 'Physical and mental wellbeing',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Critical', 'Poor', 'Average', 'Good', 'Excellent'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     },
     happiness: {
       name: 'Happiness',
@@ -137,7 +137,7 @@ export function CharacterAttributes() {
       description: 'Overall life satisfaction',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Miserable', 'Unhappy', 'Content', 'Happy', 'Blissful'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-400', 'text-primary-300']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     },
     socialConnections: {
       name: 'Social Network',
@@ -145,7 +145,7 @@ export function CharacterAttributes() {
       description: 'Quality and quantity of relationships',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Isolated', 'Limited', 'Moderate', 'Strong', 'Thriving'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-accent-500', 'text-accent-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
     },
     skills: {
       name: 'Skills',
@@ -153,7 +153,7 @@ export function CharacterAttributes() {
       description: 'Developed abilities and knowledge',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Novice', 'Beginner', 'Intermediate', 'Advanced', 'Expert'],
-      colors: ['text-gray-500', 'text-primary-300', 'text-primary-400', 'text-primary-500', 'text-primary-600']
+      colors: ['text-gray-500', 'text-blue-400', 'text-blue-500', 'text-purple-500', 'text-purple-600']
     },
     stress: {
       name: 'Stress',
@@ -161,7 +161,7 @@ export function CharacterAttributes() {
       description: 'Mental pressure and tension',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Minimal', 'Low', 'Moderate', 'High', 'Extreme'],
-      colors: ['text-primary-400', 'text-primary-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
       isInverted: true
     },
     timeManagement: {
@@ -170,7 +170,7 @@ export function CharacterAttributes() {
       description: 'Balance of free time vs commitments',
       scale: ['High Ratio', 'Good Ratio', 'Balanced', 'Low Ratio', 'Very Low'],
       levels: ['Relaxed', 'Balanced', 'Busy', 'Hectic', 'Overwhelmed'],
-      colors: ['text-primary-400', 'text-primary-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
+      colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
       isSpecialScale: true,
       unit: 'hrs'
     },
@@ -180,7 +180,7 @@ export function CharacterAttributes() {
       description: 'Effect on the environment',
       scale: ['< -60', '-60 to -30', '-30 to 0', '0 to 50', '> 50'],
       levels: ['Harmful', 'Concerning', 'Neutral', 'Positive', 'Sustainable'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-secondary-500', 'text-secondary-400'],
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600'],
       isSpecialScale: true
     },
     prestige: {
@@ -189,7 +189,7 @@ export function CharacterAttributes() {
       description: 'Social status and recognition',
       scale: ['0-20', '21-40', '41-60', '61-80', '81+'],
       levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
-      colors: ['text-gray-500', 'text-accent-500', 'text-primary-500', 'text-primary-400', 'text-yellow-500']
+      colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500']
     },
     
     // Basic needs
@@ -199,7 +199,7 @@ export function CharacterAttributes() {
       description: 'Satiety and nutritional status',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Starving', 'Hungry', 'Satisfied', 'Full', 'Very Full'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     },
     thirst: {
       name: 'Hydration',
@@ -207,7 +207,7 @@ export function CharacterAttributes() {
       description: 'Fluid balance and hydration',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Dehydrated', 'Thirsty', 'Hydrated', 'Well-Hydrated', 'Perfectly Hydrated'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-accent-500', 'text-accent-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-blue-500', 'text-blue-600']
     },
     energy: {
       name: 'Energy',
@@ -215,7 +215,7 @@ export function CharacterAttributes() {
       description: 'Physical and mental energy levels',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Exhausted', 'Tired', 'Rested', 'Energetic', 'Fully Charged'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-primary-500', 'text-primary-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     },
     comfort: {
       name: 'Comfort',
@@ -223,7 +223,7 @@ export function CharacterAttributes() {
       description: 'Housing and general comfort',
       scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
       levels: ['Miserable', 'Uncomfortable', 'Adequate', 'Comfortable', 'Luxurious'],
-      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-secondary-500', 'text-secondary-400']
+      colors: ['text-red-500', 'text-orange-500', 'text-amber-500', 'text-green-500', 'text-green-600']
     }
   };
   
