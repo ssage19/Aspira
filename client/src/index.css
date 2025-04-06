@@ -12,37 +12,37 @@
     --shadow-glow-lg: 0 0 25px rgba(var(--glow-color, 136, 189, 188), 0.6);
 
     /* Light mode - Using colors from the image: #88BDBC (mint), #6E8659 (sage) */
-    --background: 176 35% 90%; /* Light mint background */
-    --foreground: 184 30% 25%; /* Dark teal for text */
+    --background: 176 35% 95%; /* Lighter mint background for better contrast */
+    --foreground: 187 40% 15%; /* Darker teal for text to ensure readability */
 
-    --muted: 176 20% 80%;
-    --muted-foreground: 184 25% 30%;
+    --muted: 176 20% 85%;
+    --muted-foreground: 187 40% 20%; /* Darker for better contrast on light backgrounds */
 
-    --accent: 176 40% 60%; /* #88BDBC - mint accent */
+    --accent: 176 40% 55%; /* #88BDBC - mint accent, slightly darkened */
     --accent-foreground: 0 0% 100%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 184 30% 25%;
+    --popover-foreground: 187 40% 15%;
 
-    --border: 176 30% 75%; /* Lighter mint for borders */
-    --input: 176 20% 80%;
+    --border: 176 30% 70%; /* Darker mint for borders */
+    --input: 176 20% 90%;
 
     --card: 0 0% 100%;
-    --card-foreground: 184 30% 25%;
+    --card-foreground: 187 40% 15%;
 
-    --primary: 176 40% 60%; /* #88BDBC - mint primary color */
+    --primary: 176 40% 40%; /* Darker mint primary color for better contrast */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 77 25% 45%; /* #6E8659 - sage secondary */
+    --secondary: 77 25% 35%; /* Darker sage secondary */
     --secondary-foreground: 0 0% 100%;
 
-    --tertiary: 40 30% 60%; /* Tan/Sand color */
-    --tertiary-foreground: 0 0% 20%;
+    --tertiary: 33 25% 40%; /* Darker Tan/Sand color */
+    --tertiary-foreground: 0 0% 100%;
   
-    --quaternary: 176 35% 50%; /* Darker mint variant */
+    --quaternary: 176 35% 30%; /* Darker mint variant */
     --quaternary-foreground: 0 0% 100%;
 
-    --quinary: 77 30% 55%; /* Lighter sage color */
+    --quinary: 77 30% 40%; /* Darker sage color */
     --quinary-foreground: 0 0% 100%;
     
     --destructive: 0 85% 60%;
@@ -80,43 +80,43 @@
 
   .dark {
     /* Colors from the image: #254E58 (teal), #112D32 (dark green), #4F4A41 (brown) */
-    --background: 187 23% 21%; /* #254E58 - dark teal background */
-    --foreground: 0 0% 95%; /* Light text color */
+    --background: 187 35% 15%; /* Darker background for better contrast */
+    --foreground: 0 0% 100%; /* Pure white text for maximum contrast */
 
-    --muted: 187 25% 15%;
-    --muted-foreground: 0 0% 85%; /* Slightly darker than foreground */
+    --muted: 187 30% 12%;
+    --muted-foreground: 0 0% 90%; /* Very light muted text for better contrast */
 
-    --accent: 187 40% 25%; /* #254E58 - darker teal accent */
-    --accent-foreground: 0 0% 95%; /* Light text */
+    --accent: 187 40% 35%; /* Brighter teal accent for contrast */
+    --accent-foreground: 0 0% 100%; /* Pure white text */
 
-    --popover: 187 30% 12%;
-    --popover-foreground: 0 0% 95%; /* Light text */
+    --popover: 187 35% 10%;
+    --popover-foreground: 0 0% 100%; /* Pure white text */
 
-    --border: 187 40% 25%; /* #254E58 - teal accent for borders */
-    --input: 187 40% 12%; /* Dark input fields */
+    --border: 187 40% 35%; /* Brighter border color for visibility */
+    --input: 187 35% 10%; /* Dark input fields */
 
-    --card: 187 40% 10%; /* Darker card background */
-    --card-foreground: 0 0% 95%;
+    --card: 187 40% 12%; /* Darker card background */
+    --card-foreground: 0 0% 100%; /* Pure white text */
 
-    --primary: 187 40% 25%; /* #254E58 - teal primary color */
-    --primary-foreground: 0 0% 95%; /* Light text */
+    --primary: 187 40% 40%; /* Brighter teal primary color for visibility */
+    --primary-foreground: 0 0% 100%; /* Pure white text */
 
-    --secondary: 187 47% 14%; /* #112D32 - dark green secondary */
-    --secondary-foreground: 0 0% 95%; /* Light text on secondary */
+    --secondary: 187 47% 25%; /* Brighter dark green secondary */
+    --secondary-foreground: 0 0% 100%; /* Pure white text */
 
-    --tertiary: 33 10% 30%; /* #4F4A41 - brown/tan color */
-    --tertiary-foreground: 0 0% 95%; /* Light text */
+    --tertiary: 33 20% 45%; /* Brighter brown/tan color */
+    --tertiary-foreground: 0 0% 100%; /* Pure white text */
   
-    --quaternary: 187 45% 18%; /* #112D32 darker variant */
-    --quaternary-foreground: 0 0% 95%;
+    --quaternary: 187 45% 25%; /* Brighter green variant */
+    --quaternary-foreground: 0 0% 100%; /* Pure white text */
 
-    --quinary: 33 12% 35%; /* #4F4A41 lighter variant */
-    --quinary-foreground: 0 0% 95%;
+    --quinary: 33 25% 50%; /* Brighter tan variant */
+    --quinary-foreground: 0 0% 100%; /* Pure white text */
 
-    --destructive: 0 95% 50%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 95% 60%; /* Brighter destructive color */
+    --destructive-foreground: 0 0% 100%; /* Pure white text */
 
-    --ring: 187 40% 25%; /* #254E58 - teal */
+    --ring: 187 40% 40%; /* Brighter ring color */
     
     /* Sidebar styles */
     --sidebar-background: 187 47% 14%; /* #112D32 - dark green */
