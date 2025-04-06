@@ -418,51 +418,61 @@ export function Essentials() {
   const handleAutoMaintenance = () => {
     if (!autoMaintain) return;
     
+    // Get the most up-to-date state values directly from the store
+    const {
+      hunger: currentHunger,
+      thirst: currentThirst,
+      energy: currentEnergy,
+      socialConnections: currentSocial,
+      stress: currentStress,
+      wealth: currentWealth
+    } = useCharacter.getState();
+    
     // Track if any actions were taken
     let actionsTaken = 0;
-    const maxActionsPerCycle = 12; // Further increased maximum actions per maintenance cycle
+    const maxActionsPerCycle = 12; // Maintain the increased action limit per cycle
     
     // Check and address all needs in order of priority
     
     // First check the most critical needs: hunger and thirst
-    // Check hunger level - increased threshold to 70%
-    if (hunger <= 70 && actionsTaken < maxActionsPerCycle) {
+    // Check hunger level - maintain threshold at 70%
+    if (currentHunger <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestFood = findBestItemForNeed('hunger', foodItems);
-      if (bestFood) {
+      if (bestFood && bestFood.price <= currentWealth) {
         handleConsumeEssential(bestFood);
         actionsTaken++;
       }
     }
     
-    // Check thirst level - increased threshold to 70%
-    if (thirst <= 70 && actionsTaken < maxActionsPerCycle) {
+    // Check thirst level - maintain threshold at 70%
+    if (currentThirst <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestDrink = findBestItemForNeed('thirst', drinkItems);
-      if (bestDrink) {
+      if (bestDrink && bestDrink.price <= currentWealth) {
         handleConsumeEssential(bestDrink);
         actionsTaken++;
       }
     }
     
-    // Check energy level - increased threshold to 70%
-    if (energy <= 70 && actionsTaken < maxActionsPerCycle) {
+    // Check energy level - maintain threshold at 70%
+    if (currentEnergy <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestRest = findBestItemForNeed('energy', restActivities);
-      if (bestRest) {
+      if (bestRest && bestRest.price <= currentWealth) {
         handleConsumeEssential(bestRest);
         actionsTaken++;
       }
     }
     
-    // Check social connections level - increased threshold to 70%
-    if (socialConnections <= 70 && actionsTaken < maxActionsPerCycle) {
+    // Check social connections level - maintain threshold at 70%
+    if (currentSocial <= 70 && actionsTaken < maxActionsPerCycle) {
       const bestSocial = findBestItemForNeed('socialConnections', socialActivities);
-      if (bestSocial) {
+      if (bestSocial && bestSocial.price <= currentWealth) {
         handleConsumeEssential(bestSocial);
         actionsTaken++;
       }
     }
     
     // Check stress level - manage when it gets high (above 50%)
-    if (stress >= 50 && actionsTaken < maxActionsPerCycle) {
+    if (currentStress >= 50 && actionsTaken < maxActionsPerCycle) {
       // Look for stress reduction in different activities
       let bestStressReliever = findBestItemForNeed('stress', restActivities);
       
@@ -481,7 +491,7 @@ export function Essentials() {
         bestStressReliever = findBestItemForNeed('stress', foodItems);
       }
       
-      if (bestStressReliever) {
+      if (bestStressReliever && bestStressReliever.price <= currentWealth) {
         handleConsumeEssential(bestStressReliever);
         actionsTaken++;
       }
@@ -514,7 +524,7 @@ export function Essentials() {
   // Force component to update regularly to reflect state changes
   const [_, forceUpdate] = useState({});
   
-  // Always refresh the component state every 250ms
+  // Always refresh the component state every 100ms for UI updates and run auto-maintenance
   useEffect(() => {
     // Set up two different intervals:
     // 1. For auto-maintenance (only runs when enabled)
@@ -523,7 +533,19 @@ export function Essentials() {
     // Auto-maintenance interval - only active when enabled
     let autoMaintainInterval: NodeJS.Timeout | null = null;
     if (autoMaintain) {
-      autoMaintainInterval = setInterval(handleAutoMaintenance, 1000);
+      // Run the auto-maintenance function on a timer (every 1 second)
+      autoMaintainInterval = setInterval(() => {
+        // Get the latest state values directly from the store
+        const currentState = useCharacter.getState();
+        
+        // Only run auto-maintenance if we need to maintain something
+        // This helps avoid unnecessary actions when all needs are met
+        if (currentState.hunger <= 70 || currentState.thirst <= 70 || 
+            currentState.energy <= 70 || currentState.socialConnections <= 70 || 
+            currentState.stress >= 50) {
+          handleAutoMaintenance();
+        }
+      }, 1000);
     }
     
     // State refresh interval - always active to ensure UI stays updated
@@ -534,11 +556,12 @@ export function Essentials() {
       // Force component to rerender by updating state
       // This is needed to ensure the component updates when values increase
       forceUpdate({});
-    }, 250); // More frequent updates (250ms instead of 1000ms)
+    }, 100); // Even more frequent updates (100ms instead of 250ms) for smoother UI
     
     // Subscribe to state changes directly
     const unsubscribe = useCharacter.subscribe(
-      (state) => [state.hunger, state.thirst, state.energy, state.comfort],
+      // Include the lastUpdated field in the subscription
+      (state) => [state.hunger, state.thirst, state.energy, state.comfort, state.lastUpdated],
       () => {
         // Force an immediate update whenever any basic need changes
         forceUpdate({});
