@@ -22,6 +22,7 @@ import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
 import AchievementNotification from "./components/AchievementNotification";
 
 import { AppBackground } from "./components/AppBackground";
+import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 
@@ -97,6 +98,9 @@ function App() {
             <ActiveEventsIndicator />
             <AchievementNotification />
             <EventDebugger />
+            
+            {/* Global systems */}
+            <GlobalAutoMaintenance />
           </Suspense>
         </Router>
         <Toaster position="top-right" richColors />
