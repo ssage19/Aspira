@@ -117,7 +117,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-2 border rounded shadow text-xs">
+        <div className="bg-background p-2 border border-border rounded shadow-md text-xs text-foreground">
           <p>Day {label}</p>
           <p className="font-semibold">${payload[0].value.toFixed(2)}</p>
         </div>

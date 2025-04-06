@@ -225,24 +225,24 @@ export function Investments() {
   });
 
   return (
-    <div className="p-4 bg-white rounded-lg shadow-lg animate-scale-in">
-      <h2 className="text-2xl font-bold mb-4 flex items-center" aria-label={`Stock Market - ${marketTrend} market`}>
+    <div className="p-4 bg-background rounded-lg shadow-lg animate-scale-in border border-border">
+      <h2 className="text-2xl font-bold mb-4 flex items-center text-foreground" aria-label={`Stock Market - ${marketTrend} market`}>
         <ChartBar className="mr-2" />
         Stock Market
         {marketTrend === 'bull' && <TrendingUp className="ml-2 text-accessible-green" aria-hidden="true" />}
         {marketTrend === 'bear' && <TrendingDown className="ml-2 text-accessible-red" aria-hidden="true" />}
       </h2>
       
-      <div className="mb-4 bg-gray-100 p-4 rounded-md border border-gray-200 shadow-sm">
-        <h3 className="text-lg font-medium mb-3 text-gray-800">Market Indicators</h3>
+      <div className="mb-4 bg-muted p-4 rounded-md border border-border shadow-sm">
+        <h3 className="text-lg font-medium mb-3 text-foreground">Market Indicators</h3>
         
-        <div className="flex justify-between items-center mb-3 bg-white p-2 rounded">
-          <p className="text-sm font-medium flex items-center">
-            <ChartBar className="w-4 h-4 mr-1 text-gray-600" />
+        <div className="flex justify-between items-center mb-3 bg-background p-2 rounded border border-border">
+          <p className="text-sm font-medium flex items-center text-foreground">
+            <ChartBar className="w-4 h-4 mr-1" />
             Market Health:
           </p>
           <div className="flex items-center">
-            <div className="w-40 bg-gray-200 rounded-full h-3 mr-2">
+            <div className="w-40 bg-muted rounded-full h-3 mr-2">
               <div 
                 className={`h-3 rounded-full ${
                   stockMarketHealth >= 80 ? 'bg-emerald-500' : 
@@ -256,19 +256,19 @@ export function Investments() {
               ></div>
             </div>
             <span className={`text-sm font-semibold px-2 py-1 rounded-full ${
-              stockMarketHealth >= 80 ? 'bg-emerald-100 text-emerald-800' : 
-              stockMarketHealth >= 60 ? 'bg-green-100 text-green-800' : 
-              stockMarketHealth >= 40 ? 'bg-yellow-100 text-yellow-800' : 
-              stockMarketHealth >= 20 ? 'bg-orange-100 text-orange-800' :
-              'bg-red-100 text-red-800'
+              stockMarketHealth >= 80 ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-100' : 
+              stockMarketHealth >= 60 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : 
+              stockMarketHealth >= 40 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100' : 
+              stockMarketHealth >= 20 ? 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100' :
+              'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100'
             }`}>
               {getStockMarketHealthCategory().toUpperCase()}
             </span>
           </div>
         </div>
         
-        <div className="flex justify-between items-center bg-white p-2 rounded">
-          <p className="text-sm font-medium flex items-center">
+        <div className="flex justify-between items-center bg-background p-2 rounded border border-border">
+          <p className="text-sm font-medium flex items-center text-foreground">
             {marketTrend === 'bull' ? (
               <TrendingUp className="w-4 h-4 mr-1 text-accessible-green" />
             ) : marketTrend === 'bear' ? (
@@ -281,7 +281,7 @@ export function Investments() {
           <span className={`px-3 py-1 rounded-full text-sm font-medium ${
             marketTrend === 'bull' ? 'bg-accessible-green/20 text-accessible-green border border-accessible-green/30' : 
             marketTrend === 'bear' ? 'bg-accessible-red/20 text-accessible-red border border-accessible-red/30' : 
-            'bg-gray-200 text-gray-700'
+            'bg-muted text-foreground'
           }`}>
             {marketTrend.charAt(0).toUpperCase() + marketTrend.slice(1)} Market
           </span>
@@ -318,9 +318,9 @@ export function Investments() {
                     placeholder="Search by name or symbol..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full p-2 pr-8 border rounded-md text-sm"
+                    className="w-full p-2 pr-8 border border-input bg-background rounded-md text-sm text-foreground"
                   />
-                  <div className="absolute right-2 top-2 text-gray-400">
+                  <div className="absolute right-2 top-2 text-muted-foreground">
                     <Search className="h-4 w-4" />
                   </div>
                 </div>
@@ -328,7 +328,7 @@ export function Investments() {
                 <select
                   value={selectedSector}
                   onChange={(e) => setSelectedSector(e.target.value)}
-                  className="w-full p-2 border rounded-md text-sm"
+                  className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
                   aria-label="Filter by sector"
                 >
                   <option value="all">All Sectors</option>
@@ -340,12 +340,12 @@ export function Investments() {
                 </select>
               </div>
               
-              <div className="flex items-center justify-between mb-2 text-xs text-gray-500">
+              <div className="flex items-center justify-between mb-2 text-xs text-muted-foreground">
                 <span>Showing {filteredStocks.length} of {expandedStockMarket.length} stocks</span>
                 {searchQuery && (
                   <button 
                     onClick={() => setSearchQuery('')} 
-                    className="text-accessible-blue"
+                    className="text-primary hover:text-primary/80"
                     aria-label="Clear search"
                   >
                     Clear search
@@ -354,7 +354,7 @@ export function Investments() {
               </div>
               
               <div 
-                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-muted" 
                 aria-labelledby="available-stocks-heading"
                 role="listbox"
               >
@@ -365,8 +365,8 @@ export function Investments() {
                     aria-selected={selectedStock.id === stock.id}
                     className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
                       selectedStock.id === stock.id 
-                        ? 'bg-blue-50 border-accessible-blue shadow-sm' 
-                        : 'hover:bg-gray-50 hover:border-gray-300'
+                        ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                        : 'hover:bg-muted hover:border-border'
                     }`}
                     onClick={() => setSelectedStock(stock)}
                   >
