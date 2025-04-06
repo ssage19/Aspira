@@ -42,18 +42,36 @@ export const performCompleteGameReset = () => {
   // 3. Clear each specific key to ensure nothing is missed
   console.log("Clearing all game storage keys...");
   allGameStorageKeys.forEach(key => {
-    localStorage.removeItem(key);
+    try {
+      localStorage.removeItem(key);
+      console.log(`Successfully cleared key: ${key}`);
+    } catch (e) {
+      console.error(`Failed to clear key ${key}:`, e);
+    }
   });
   
   // 4. Also do a complete localStorage.clear() for any keys we might have missed
   // This is a more aggressive approach to ensure a complete reset
-  localStorage.clear();
-  console.log("All localStorage data cleared");
+  try {
+    localStorage.clear();
+    console.log("All localStorage data cleared");
+  } catch (e) {
+    console.error("Failed to clear all localStorage:", e);
+  }
   
   // 5. Reset all stores synchronously before reload
   // Note: We use a more synchronous approach to ensure all resets happen
   // before the page reloads
   try {
+    // Reset time store FIRST - IMPORTANT: do this first to ensure accurate date reset
+    console.log("Resetting time store...");
+    const timeStore = require('./stores/useTime').useTime;
+    if (timeStore.getState().resetTime) {
+      // Reset time to current device date
+      timeStore.getState().resetTime();
+      console.log("Time successfully reset to current date");
+    }
+
     // Reset character store
     console.log("Resetting character store...");
     const characterStore = require('./stores/useCharacter').useCharacter;
@@ -66,13 +84,6 @@ export const performCompleteGameReset = () => {
     const gameStore = require('./stores/useGame').useGame;
     if (gameStore.getState().reset) {
       gameStore.getState().reset();
-    }
-    
-    // Reset time store
-    console.log("Resetting time store...");
-    const timeStore = require('./stores/useTime').useTime;
-    if (timeStore.getState().resetTime) {
-      timeStore.getState().resetTime();
     }
     
     // Reset economy store

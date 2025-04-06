@@ -57,22 +57,15 @@ const loadSavedTime = () => {
 };
 
 // Get the current real device date
-// Global variable to cache device date for consistent use across resets
-let globalDeviceDate: {day: number, month: number, year: number} | null = null;
-
-// Get current device date, with option to force refresh the global variable
+// Get current device date, always returning a fresh date to ensure accuracy
 const getCurrentDeviceDate = (forceRefresh: boolean = false) => {
-  // If forceRefresh is true or globalDeviceDate is null, get a fresh date
-  if (forceRefresh || globalDeviceDate === null) {
-    const now = new Date();
-    globalDeviceDate = {
-      day: now.getDate(),
-      month: now.getMonth() + 1, // JavaScript months are 0-indexed
-      year: now.getFullYear()
-    };
-  }
-  
-  return globalDeviceDate;
+  // Always get a fresh date to avoid stale data issues
+  const now = new Date();
+  return {
+    day: now.getDate(),
+    month: now.getMonth() + 1, // JavaScript months are 0-indexed
+    year: now.getFullYear()
+  };
 };
 
 export const useTime = create<TimeState>()(
@@ -194,21 +187,25 @@ export const useTime = create<TimeState>()(
       }),
       
       resetTime: () => set(() => {
-        // Force a refresh of the real-world date from the device
-        const realDate = getCurrentDeviceDate(true);
+        // Always get a fresh current date - don't rely on any cached values
+        const now = new Date();
+        const currentDay = now.getDate();
+        const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
+        const currentYear = now.getFullYear();
         
-        console.log("Resetting time to current device date:", realDate);
+        console.log(`Resetting time to fresh device date: ${currentMonth}/${currentDay}/${currentYear}`);
         
         // Create a new Date object for the reset time
-        const newGameDate = new Date(realDate.year, realDate.month - 1, realDate.day);
+        const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
         
+        // Create a completely fresh state with the current date
         const newState = {
-          currentDay: realDate.day,
-          currentMonth: realDate.month,
-          currentYear: realDate.year,
-          startDay: realDate.day,
-          startMonth: realDate.month,
-          startYear: realDate.year,
+          currentDay,
+          currentMonth,
+          currentYear,
+          startDay: currentDay,
+          startMonth: currentMonth,
+          startYear: currentYear,
           currentGameDate: newGameDate,
           timeSpeed: 'normal' as GameTimeSpeed,
           timeMultiplier: 1.0,
@@ -223,7 +220,7 @@ export const useTime = create<TimeState>()(
         // Clear the localStorage entry first to ensure all previous data is gone
         localStorage.removeItem(STORAGE_KEY);
         
-        // Save to local storage
+        // Save the fresh state to localStorage
         setLocalStorage(STORAGE_KEY, newState);
         
         return newState;
