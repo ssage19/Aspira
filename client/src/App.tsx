@@ -60,8 +60,9 @@ function App() {
         
         console.log(`Date difference in days: ${diffDays}`);
         
-        // If the stored date is different by more than 3 days from the real date, force reset
-        if (diffDays > 3) {
+        // If the stored date is different from the real date at all, force reset
+        // This ensures we're always on a consistent date
+        if (diffDays > 0) {
           console.warn(`Date difference of ${diffDays} days detected - forcing reset to real-world date`);
           
           try {
@@ -81,7 +82,10 @@ function App() {
               lastTickTime: Date.now(),
               pausedTimestamp: 0,
               accumulatedProgress: 0,
-              dayCounter: 0
+              dayCounter: 0,
+              _manuallyReset: true,
+              _resetTimestamp: Date.now(),
+              _source: "App_DateCheck"
             };
             
             // Direct write to localStorage

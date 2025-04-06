@@ -107,6 +107,10 @@ export const performCompleteGameReset = () => {
   // These will be used after page reload to continue the reset process
   sessionStorage.setItem('game_reset_in_progress', 'true');
   
+  // Mark that a reset has been completed - this will be checked by components
+  // to ensure they refresh their data (especially NetWorthBreakdown)
+  sessionStorage.setItem('game_reset_completed', 'true');
+  
   // Set up the redirect target
   const createPageUrl = '/create';
   if (window.location.pathname !== createPageUrl) {
@@ -211,6 +215,31 @@ export const performCompleteGameReset = () => {
     
     // Reset time store FIRST
     console.log("STEP 3: Resetting store states...");
+    
+    // FIRST - EXPLICITLY reset net worth breakdown to ensure no stale data
+    try {
+      // First check if there's a dedicated net worth breakdown store
+      const netWorthStore = require('./stores/useNetWorthBreakdown').useNetWorthBreakdown;
+      if (netWorthStore && netWorthStore.getState()) {
+        console.log("Found dedicated netWorthBreakdown store, resetting it first");
+        if (netWorthStore.getState().reset) {
+          netWorthStore.getState().reset();
+        } else {
+          // If no reset function, nullify the state directly
+          Object.keys(netWorthStore.getState()).forEach(key => {
+            if (typeof netWorthStore.getState()[key] !== 'function') {
+              netWorthStore.getState()[key] = null;
+            }
+          });
+        }
+      }
+    } catch (e) {
+      // No dedicated store exists, try looking for localStorage version
+      console.log("No dedicated netWorthBreakdown store found, clearing any localStorage entry");
+      localStorage.removeItem('business-empire-networth-breakdown');
+    }
+    
+    // SECOND - Reset time store
     const timeStore = require('./stores/useTime').useTime;
     if (timeStore.getState().resetTime) {
       timeStore.getState().resetTime();
@@ -219,7 +248,7 @@ export const performCompleteGameReset = () => {
       console.error("Time store reset function not found!");
     }
     
-    // Reset character store SECOND
+    // Reset character store THIRD
     console.log("Resetting character store...");
     const characterStore = require('./stores/useCharacter').useCharacter;
     if (characterStore.getState().resetCharacter) {
@@ -227,6 +256,12 @@ export const performCompleteGameReset = () => {
       if (characterStore.getState() && (characterStore.getState() as any).netWorthBreakdown) {
         console.log("Explicitly clearing cached netWorthBreakdown data");
         (characterStore.getState() as any).netWorthBreakdown = null;
+      }
+      
+      // Also try to clear the recalculated flag if it exists
+      if (characterStore.getState() && (characterStore.getState() as any)._netWorthRecalculated) {
+        console.log("Clearing netWorthRecalculated flag");
+        (characterStore.getState() as any)._netWorthRecalculated = false;
       }
       
       // Now perform the full character reset

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { formatCurrency, formatPercentage } from '../lib/utils';
 import { Doughnut } from 'react-chartjs-2';
@@ -8,33 +8,106 @@ import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 // Register Chart.js components
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// Define the shape of our breakdown object
+interface NetWorthBreakdown {
+  cash: number;
+  stocks: number;
+  crypto: number;
+  bonds: number;
+  otherInvestments: number;
+  propertyEquity: number;
+  propertyValue: number;
+  propertyDebt: number;
+  lifestyleItems: number;
+  total: number;
+}
+
+// Default empty breakdown object
+const defaultBreakdown: NetWorthBreakdown = {
+  cash: 0,
+  stocks: 0,
+  crypto: 0,
+  bonds: 0,
+  otherInvestments: 0,
+  propertyEquity: 0,
+  propertyValue: 0,
+  propertyDebt: 0,
+  lifestyleItems: 0,
+  total: 0
+};
+
 export function NetWorthBreakdown() {
   const { wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth } = useCharacter();
   const [netWorth, setNetWorth] = useState(0);
-  const [breakdown, setBreakdown] = useState<any>({
-    cash: 0,
-    stocks: 0,
-    crypto: 0,
-    bonds: 0,
-    otherInvestments: 0,
-    propertyEquity: 0,
-    propertyValue: 0,
-    propertyDebt: 0,
-    lifestyleItems: 0,
-    total: 0
-  });
+  const [breakdown, setBreakdown] = useState<NetWorthBreakdown>(defaultBreakdown);
 
-  // Use the breakdown directly from the useCharacter store
-  useEffect(() => {
-    // Force calculation of the net worth to ensure we have fresh data
-    // This helps after a game reset to rebuild the breakdown with current data
+  // Function to refresh the breakdown data
+  const refreshBreakdown = useCallback(() => {
+    // IMPORTANT: Force calculation of the net worth to ensure fresh data
+    // This is crucial after a game reset to rebuild with current data
     calculateNetWorth();
     
-    // Get the net worth breakdown directly from the store
-    const storeBreakdown = getNetWorthBreakdown();
-    setBreakdown(storeBreakdown);
-    setNetWorth(storeBreakdown.total);
+    try {
+      // Get the breakdown from the store
+      const storeBreakdown = getNetWorthBreakdown() as unknown as NetWorthBreakdown;
+      
+      // Sanity check - ensure the breakdown makes sense relative to current wealth
+      // If breakdown.cash doesn't match current wealth, it's stale data
+      if (storeBreakdown && typeof storeBreakdown === 'object' && 
+          'total' in storeBreakdown && storeBreakdown.total && 
+          'cash' in storeBreakdown && Math.abs(storeBreakdown.cash - wealth) < 0.01) {
+        // Data is fresh and valid
+        setBreakdown(storeBreakdown as NetWorthBreakdown);
+        setNetWorth(storeBreakdown.total);
+      } else {
+        // Data might be stale or invalid, force a recalculation
+        console.log('NetWorthBreakdown: Detected possibly stale data, forcing recalculation');
+        try {
+          const freshBreakdown = calculateNetWorth() as unknown as NetWorthBreakdown;
+          // Ensure freshBreakdown is an object with the expected properties
+          if (freshBreakdown && typeof freshBreakdown === 'object' && 
+              'total' in freshBreakdown && 'cash' in freshBreakdown) {
+            setBreakdown(freshBreakdown);
+            setNetWorth(freshBreakdown.total);
+          } else {
+            // If calculation return value is invalid, set defaults
+            console.warn('NetWorthBreakdown: Invalid calculation result, using defaults');
+            const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+            setBreakdown(basicBreakdown);
+            setNetWorth(wealth || 0);
+          }
+        } catch (err) {
+          console.error('Error during net worth calculation:', err);
+          const basicBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
+          setBreakdown(basicBreakdown);
+          setNetWorth(wealth || 0);
+        }
+      }
+    } catch (e) {
+      console.error('Error getting net worth breakdown:', e);
+      // In case of error, set to default empty breakdown
+      setBreakdown(defaultBreakdown);
+      setNetWorth(wealth || 0); // At minimum, show current cash as net worth
+    }
   }, [wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth]);
+
+  // Effect to update the breakdown when relevant data changes
+  useEffect(() => {
+    refreshBreakdown();
+  }, [refreshBreakdown]);
+  
+  // Additional effect that runs once on mount to ensure fresh data
+  useEffect(() => {
+    // Check if we need to clear any session storage flags after a reset
+    const resetCompleted = sessionStorage.getItem('game_reset_completed');
+    if (resetCompleted === 'true') {
+      console.log('NetWorthBreakdown: Detected recent game reset, ensuring fresh data');
+      // Force an immediate refresh
+      refreshBreakdown();
+      // Clear the flag to avoid repeated refreshes
+      sessionStorage.removeItem('game_reset_completed');
+    }
+  }, [refreshBreakdown]);
 
   // Prepare chart data - now include lifestyle items
   const chartData = {
