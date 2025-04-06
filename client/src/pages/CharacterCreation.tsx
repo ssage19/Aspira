@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCharacter, Job, CharacterSkills } from '../lib/stores/useCharacter';
 import { useGame } from '../lib/stores/useGame';
+import { AppBackground } from '../components/AppBackground';
 import { useAudio } from '../lib/stores/useAudio';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
@@ -186,11 +187,14 @@ export default function CharacterCreation() {
   ];
   
   return (
-    <div className="w-full min-h-screen flex items-center justify-center bg-gray-50 p-8">
-      <Card className="w-full max-w-2xl shadow-xl">
+    <div className="w-full min-h-screen flex items-center justify-center p-8">
+      <div className="absolute inset-0 z-0">
+        <AppBackground />
+      </div>
+      <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold flex items-center">
-            <DollarSign className="h-8 w-8 mr-2 text-green-500" />
+          <CardTitle className="text-3xl font-bold flex items-center gradient-text">
+            <DollarSign className="h-8 w-8 mr-2 text-primary" />
             Luxury Lifestyle Simulator
           </CardTitle>
           <CardDescription className="text-lg">
@@ -227,13 +231,13 @@ export default function CharacterCreation() {
               
               {wealthOptions.map(option => (
                 <TabsContent key={option.id} value={option.id} className="mt-0">
-                  <Card>
+                  <Card className="border border-primary/20 bg-background/60 backdrop-blur-sm">
                     <CardHeader className="py-3">
                       <CardTitle className="text-xl flex items-center">
                         {option.icon}
                         <div>
                           {option.title}
-                          <span className="ml-2 text-sm font-normal text-gray-500">
+                          <span className="ml-2 text-sm font-normal text-muted-foreground">
                             (Difficulty: {option.difficulty})
                           </span>
                         </div>
@@ -241,7 +245,7 @@ export default function CharacterCreation() {
                     </CardHeader>
                     <CardContent className="py-2">
                       <p>{option.description}</p>
-                      <p className="mt-2 text-lg font-semibold">
+                      <p className="mt-2 text-lg font-semibold text-primary">
                         Starting Wealth: {formatCurrency(option.startingAmount)}
                       </p>
                     </CardContent>
@@ -256,11 +260,11 @@ export default function CharacterCreation() {
               <Target className="h-4 w-4 mr-1" />
               Allocate Skill Points
             </h3>
-            <Card>
+            <Card className="border border-primary/20 bg-background/60 backdrop-blur-sm">
               <CardContent className="pt-4">
                 <div className="flex justify-between mb-3">
                   <span className="text-sm font-medium">Available Skill Points:</span>
-                  <span className="font-bold text-lg">{skillPoints}</span>
+                  <span className="font-bold text-lg text-primary">{skillPoints}</span>
                 </div>
                 
                 <div className="space-y-4">
@@ -413,7 +417,7 @@ export default function CharacterCreation() {
               <Home className="h-4 w-4 mr-1 text-blue-500" />
               Basic Needs
             </h3>
-            <Card>
+            <Card className="border border-primary/20 bg-background/60 backdrop-blur-sm">
               <CardContent className="pt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Housing Options */}
@@ -423,18 +427,18 @@ export default function CharacterCreation() {
                     </label>
                     <div className="space-y-2">
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'homeless' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedHousing === 'homeless' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedHousing('homeless')}
                       >
                         <div className="mr-3">
-                          <Home className={`h-5 w-5 ${selectedHousing === 'homeless' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Home className={`h-5 w-5 ${selectedHousing === 'homeless' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Homeless</span>
-                            <span className="text-green-600 font-semibold">$0/mo</span>
+                            <span className="text-green-500 font-semibold">$0/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">No housing costs, but negatively impacts health and comfort</div>
+                          <div className="text-xs text-muted-foreground">No housing costs, but negatively impacts health and comfort</div>
                         </div>
                       </div>
                       
