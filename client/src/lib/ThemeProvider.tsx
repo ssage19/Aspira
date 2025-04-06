@@ -5,8 +5,8 @@ type Theme = 'dark' | 'light' | 'system';
 
 // Theme descriptions for UI
 export const themeDescriptions = {
-  'dark': 'Dark Mode - Deep teal and sand tones with a calm aesthetic',
-  'light': 'Light Mode - Soft mint and neutral tones for a clean appearance',
+  'dark': 'Dark Mode - Deep navy with cool blue tones for a modern look',
+  'light': 'Light Mode - Soft blue and olive green tones for a natural feel',
   'system': 'System Default - Follows your device theme preferences'
 };
 
@@ -121,8 +121,8 @@ export function ThemeProvider({
         // Glow effects
         document.documentElement.style.setProperty('--glow-color', 'var(--color-primary-600)');
         document.documentElement.style.setProperty('--primary-glow', 'var(--glow-primary-md)');
-        document.documentElement.style.setProperty('--border-glow-color', '46, 158, 155');
-        document.documentElement.style.setProperty('--text-glow-color', '46, 158, 155');
+        document.documentElement.style.setProperty('--border-glow-color', '49, 112, 190');
+        document.documentElement.style.setProperty('--text-glow-color', '49, 112, 190');
         break;
         
       case 'light':
@@ -136,8 +136,8 @@ export function ThemeProvider({
         // Glow effects
         document.documentElement.style.setProperty('--glow-color', 'var(--color-primary-400)');
         document.documentElement.style.setProperty('--primary-glow', 'var(--glow-primary-sm)');
-        document.documentElement.style.setProperty('--border-glow-color', '46, 158, 155');
-        document.documentElement.style.setProperty('--text-glow-color', '46, 158, 155');
+        document.documentElement.style.setProperty('--border-glow-color', '49, 112, 190');
+        document.documentElement.style.setProperty('--text-glow-color', '49, 112, 190');
         break;
         
       default:
