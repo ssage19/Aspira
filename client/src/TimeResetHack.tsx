@@ -14,6 +14,18 @@ const TimeResetHack: React.FC = () => {
       return;
     }
     
+    // Check if a time reset was recently performed by the App component
+    const timeJustReset = sessionStorage.getItem('time_just_reset') === 'true';
+    const resetTimestamp = parseInt(sessionStorage.getItem('time_reset_timestamp') || '0');
+    const isRecentReset = Date.now() - resetTimestamp < 10000; // Within 10 seconds
+    
+    if (timeJustReset && isRecentReset) {
+      console.log('⚠️ TimeResetHack: Time was already reset recently by App.tsx, skipping duplicate reset');
+      // Still mark as run to prevent future executions
+      sessionStorage.setItem('time_reset_already_run', 'true');
+      return;
+    }
+    
     // Mark as run to prevent future executions
     sessionStorage.setItem('time_reset_already_run', 'true');
     
@@ -42,7 +54,11 @@ const TimeResetHack: React.FC = () => {
       lastTickTime: Date.now(),
       pausedTimestamp: 0,
       accumulatedProgress: 0,
-      dayCounter: 0
+      dayCounter: 0,
+      // Add a flag to mark this as a manually reset time
+      _manuallyReset: true,
+      _resetTimestamp: Date.now(),
+      _source: "TimeResetHack"
     };
     
     // DIRECT INTERVENTION: Write to localStorage without using any utility functions
@@ -57,10 +73,26 @@ const TimeResetHack: React.FC = () => {
         const parsed = JSON.parse(check);
         console.log(`⚠️ TimeResetHack: Verified date in storage: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
         
-        // Set a flag that Dashboard can check to show correct date
+        // Set flags that other components can check to know time was reset
         sessionStorage.setItem('time_reset_performed', 'true');
+        sessionStorage.setItem('time_just_reset', 'true');
+        sessionStorage.setItem('time_reset_timestamp', Date.now().toString());
         
-        // No longer forcing a reload - this was causing the flashing issue
+        // Double-check if real date and saved date match
+        try {
+          const savedDate = new Date(parsed.currentYear, parsed.currentMonth - 1, parsed.currentDay);
+          const realDate = new Date();
+          const diffTime = Math.abs(savedDate.getTime() - realDate.getTime());
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+          
+          if (diffDays > 3) {
+            console.error(`⚠️ TimeResetHack: Date difference of ${diffDays} days detected even after reset!`);
+          } else {
+            console.log(`⚠️ TimeResetHack: Date reset successful - difference is only ${diffDays} days`);
+          }
+        } catch (e) {
+          console.error('⚠️ TimeResetHack: Error checking date difference:', e);
+        }
       } else {
         console.error('⚠️ TimeResetHack: Failed to verify time data after writing');
       }

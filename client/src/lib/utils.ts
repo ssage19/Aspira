@@ -37,15 +37,59 @@ const getLocalStorage = (key: string): any => {
 
 const setLocalStorage = (key: string, value: any): void => {
   try {
-    // Debug for time data
+    // If we're handling time data and a reset is in progress, check for consistency
     if (key === 'luxury_lifestyle_time' && value) {
+      // Check for reset flags
+      const timeJustReset = sessionStorage.getItem('time_just_reset') === 'true';
+      const resetTimestamp = parseInt(sessionStorage.getItem('time_reset_timestamp') || '0');
+      const isRecentReset = Date.now() - resetTimestamp < 10000; // Within 10 seconds of reset
+      
+      // Log the current date we're trying to save
       console.log(`Saving to localStorage - ${key}: Date = ${value.currentMonth}/${value.currentDay}/${value.currentYear}`);
+      
+      // If a reset just happened, check if we're trying to save a future date
+      if (timeJustReset && isRecentReset) {
+        // Get the real-world date
+        const now = new Date();
+        const realDay = now.getDate();
+        const realMonth = now.getMonth() + 1;
+        const realYear = now.getFullYear();
+        
+        // Check if we're trying to save a future date that's significantly different
+        const isFutureDate = isFutureDateByDays(
+          value.currentDay, value.currentMonth, value.currentYear,
+          realDay, realMonth, realYear,
+          3 // More than 3 days is considered problematic
+        );
+        
+        if (isFutureDate) {
+          console.warn(`Attempted to save a future date (${value.currentMonth}/${value.currentDay}/${value.currentYear}) right after reset. Blocking this save.`);
+          return; // Don't save this value
+        }
+      }
     }
     
     window.localStorage.setItem(key, JSON.stringify(value));
   } catch (e) {
     console.error(`Error saving ${key} to localStorage:`, e);
   }
+};
+
+// Helper function to check if a date is in the future by more than N days
+const isFutureDateByDays = (
+  day1: number, month1: number, year1: number,
+  day2: number, month2: number, year2: number,
+  thresholdDays: number
+): boolean => {
+  const date1 = new Date(year1, month1 - 1, day1);
+  const date2 = new Date(year2, month2 - 1, day2);
+  
+  // Calculate the difference in milliseconds and convert to days
+  const diffTime = date1.getTime() - date2.getTime();
+  const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  
+  // Return true if the first date is more than threshold days ahead of the second date
+  return diffDays > thresholdDays;
 };
   
 /**
@@ -128,7 +172,11 @@ export const performCompleteGameReset = () => {
       lastTickTime: Date.now(),
       pausedTimestamp: 0,
       accumulatedProgress: 0,
-      dayCounter: 0
+      dayCounter: 0,
+      // Add a flag to mark this as a manually reset time
+      // This prevents future writes during redirect/reload cycles
+      _manuallyReset: true,
+      _resetTimestamp: Date.now()
     };
     
     // Directly set in localStorage - bypass our custom function to avoid any issues
@@ -140,6 +188,11 @@ export const performCompleteGameReset = () => {
     if (savedTimeRaw) {
       const savedTime = JSON.parse(savedTimeRaw);
       console.log(`Verified saved time: ${savedTime.currentMonth}/${savedTime.currentDay}/${savedTime.currentYear}`);
+      
+      // Add a session variable that indicates the time was just reset
+      // App.tsx can check this to avoid unnecessary reloads/resets
+      sessionStorage.setItem('time_just_reset', 'true');
+      sessionStorage.setItem('time_reset_timestamp', Date.now().toString());
     } else {
       console.error("Failed to save time data!");
     }

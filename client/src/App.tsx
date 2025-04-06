@@ -94,10 +94,32 @@ function App() {
               const parsed = JSON.parse(afterReset);
               console.log(`After reset - localStorage date: ${parsed.currentMonth}/${parsed.currentDay}/${parsed.currentYear}`);
               
-              // Force a full page reload to make sure all components pick up the new date
-              console.log("Forcing reload to ensure all components see correct date");
-              window.location.reload();
-              return; // Early return as we're reloading
+              // Mark that time was reset in this session
+              sessionStorage.setItem('time_just_reset', 'true');
+              sessionStorage.setItem('time_reset_timestamp', Date.now().toString());
+              
+              // Force a full page reload only if we haven't already reset recently
+              // This prevents reload loops
+              if (!sessionStorage.getItem('recent_time_reload')) {
+                console.log("Forcing reload to ensure all components see correct date");
+                // Mark that we've done a recent reload (valid for 5 seconds)
+                sessionStorage.setItem('recent_time_reload', Date.now().toString());
+                window.location.reload();
+                return; // Early return as we're reloading
+              } else {
+                // Check if the recent reload was more than 5 seconds ago
+                const lastReloadTime = parseInt(sessionStorage.getItem('recent_time_reload') || '0');
+                const now = Date.now();
+                if (now - lastReloadTime > 5000) {
+                  // It's been more than 5 seconds, we can reload again if needed
+                  console.log("More than 5 seconds since last reload, forcing another reload");
+                  sessionStorage.setItem('recent_time_reload', now.toString());
+                  window.location.reload();
+                  return; // Early return as we're reloading
+                } else {
+                  console.log("Skipping reload as we've already reloaded recently");
+                }
+              }
             }
             
             // Also update the store if possible
