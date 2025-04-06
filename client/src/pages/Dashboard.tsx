@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCharacter } from '../lib/stores/useCharacter';
+import useCharacter from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
@@ -127,18 +127,18 @@ const AchievementsWidget = () => {
             <div 
               key={achievement.id} 
               className={`flex justify-between items-center p-3 rounded-lg border backdrop-blur-sm ${
-                achievement.completed 
+                achievement.isUnlocked 
                   ? 'bg-background/30 border-yellow-400/30' 
                   : 'bg-background/10 border-primary/20'
               }`}
             >
               <div className="flex items-center">
                 <div className={`p-2 rounded-full mr-3 ${
-                  achievement.completed 
+                  achievement.isUnlocked 
                     ? 'bg-yellow-400/10 border border-yellow-400/20' 
                     : 'bg-secondary/10 border border-secondary/20'
                 }`}>
-                  {achievement.completed 
+                  {achievement.isUnlocked 
                     ? <Trophy className="h-5 w-5 text-yellow-400" /> 
                     : <span className={`h-5 w-5 ${getCategoryColor(achievement.category)}`}>
                         {achievement.category === 'wealth' ? <DollarSign className="h-5 w-5" /> :
@@ -155,7 +155,7 @@ const AchievementsWidget = () => {
                 </div>
               </div>
               
-              {achievement.completed ? (
+              {achievement.isUnlocked ? (
                 <div className="flex items-center gap-1 bg-yellow-400/10 px-2 py-1 rounded-full text-xs text-yellow-400 border border-yellow-400/20">
                   <Award className="h-3 w-3" />
                   <span>Completed</span>
@@ -521,7 +521,7 @@ export default function Dashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
                                   // Handle backup logic here
-                                  audio.playSoundEffect?.('success');
+                                  audio.playSuccess();
                                   setShowBackupDialog(true);
                                 }}>
                                   Create Backup

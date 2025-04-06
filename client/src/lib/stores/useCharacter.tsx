@@ -271,31 +271,36 @@ const loadSavedCharacter = () => {
 };
 
 // Default state for a new character
-const getDefaultCharacter = () => ({
-  name: "",
-  wealth: 10000,
-  netWorth: 10000,
+// Get a fresh default character state always using current date/time
+const getDefaultCharacter = () => {
+  // Always get a fresh current timestamp
+  const currentTimestamp = Date.now();
   
-  happiness: 70,
-  prestige: 10,
-  stress: 30,
-  health: 80,
-  socialConnections: 60,
-  environmentalImpact: 0,
-  
-  // Initialize basic needs with default values
-  hunger: 90,      // Start well-fed
-  thirst: 90,      // Start well-hydrated
-  energy: 80,      // Start rested
-  comfort: 70,     // Start reasonably comfortable
-  
-  // State synchronization helper
-  lastUpdated: Date.now(),
-  
-  // Transportation & Housing
-  hasVehicle: false,
-  vehicleType: 'none' as const,
-  housingType: 'shared' as const,
+  return {
+    name: "",
+    wealth: 10000,
+    netWorth: 10000,
+    
+    happiness: 70,
+    prestige: 10,
+    stress: 30,
+    health: 80,
+    socialConnections: 60,
+    environmentalImpact: 0,
+    
+    // Initialize basic needs with default values
+    hunger: 90,      // Start well-fed
+    thirst: 90,      // Start well-hydrated
+    energy: 80,      // Start rested
+    comfort: 70,     // Start reasonably comfortable
+    
+    // State synchronization helper - ALWAYS use fresh timestamp
+    lastUpdated: currentTimestamp,
+    
+    // Transportation & Housing
+    hasVehicle: false,
+    vehicleType: 'none' as const,
+    housingType: 'shared' as const,
   
   freeTime: 40,
   timeCommitment: 40,
@@ -327,7 +332,8 @@ const getDefaultCharacter = () => ({
   
   age: 25,
   education: "Bachelor's Degree"
-});
+  };
+};
 
 export const useCharacter = create<CharacterState>()(
   subscribeWithSelector((set, get) => {
@@ -2078,7 +2084,10 @@ export const useCharacter = create<CharacterState>()(
       },
       
       resetCharacter: () => {
+        // Get a completely fresh default character with the current timestamp
         const defaultCharacter = getDefaultCharacter();
+        
+        console.log("Resetting character with fresh timestamp:", defaultCharacter.lastUpdated);
         
         // Apply the default character but preserve all the functions
         set((state) => {
