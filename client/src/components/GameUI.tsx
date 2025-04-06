@@ -283,6 +283,21 @@ export function GameUI() {
           // Total monthly net change
           const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
           
+          // Apply the monthly expenses to the player's wealth
+          // Note: Daily property income and bi-weekly salary are already handled separately
+          // so we only need to deduct the lifestyle expenses here
+          if (lifestyleExpenses > 0) {
+            // Get the state setter methods
+            const { wealth, netWorth } = characterState;
+            // Manually update wealth and netWorth
+            useCharacter.setState({ 
+              wealth: wealth - lifestyleExpenses,
+              netWorth: netWorth - lifestyleExpenses,
+              lastUpdated: Date.now()
+            });
+            console.log(`Deducted monthly lifestyle expenses: -${formatCurrency(lifestyleExpenses)}`);
+          }
+          
           // Show the end-of-month summary toast
           toast(
             <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
@@ -395,6 +410,21 @@ export function GameUI() {
       
       // Total monthly net change
       const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+      
+      // Apply the monthly expenses to the player's wealth
+      // Note: Daily property income and bi-weekly salary are already handled separately
+      // so we only need to deduct the lifestyle expenses here
+      if (lifestyleExpenses > 0) {
+        // Get the state setter methods
+        const { wealth, netWorth } = characterState;
+        // Manually update wealth and netWorth
+        useCharacter.setState({ 
+          wealth: wealth - lifestyleExpenses,
+          netWorth: netWorth - lifestyleExpenses,
+          lastUpdated: Date.now()
+        });
+        console.log(`Deducted monthly lifestyle expenses: -${formatCurrency(lifestyleExpenses)}`);
+      }
       
       // Show the end-of-month summary toast
       toast(

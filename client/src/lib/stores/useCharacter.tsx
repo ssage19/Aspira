@@ -163,6 +163,7 @@ interface CharacterState {
   
   // Economy functions
   addWealth: (amount: number) => void;
+  deductWealth: (amount: number) => void;
   addIncome: (amount: number) => void;
   addExpense: (amount: number) => void;
   
@@ -397,6 +398,35 @@ export const useCharacter = create<CharacterState>()(
         });
         
         console.log(`Adding ${validAmount} to wealth. New wealth: ${get().wealth}`);
+        saveState();
+      },
+      
+      deductWealth: (amount: number) => {
+        // Ensure amount is a valid positive number
+        const validAmount = typeof amount === 'number' && !isNaN(amount) && amount > 0 ? amount : 0;
+        
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
+        set((state) => {
+          // Ensure wealth and netWorth are valid numbers
+          const currentWealth = typeof state.wealth === 'number' && !isNaN(state.wealth) 
+                              ? state.wealth : 0;
+          const currentNetWorth = typeof state.netWorth === 'number' && !isNaN(state.netWorth) 
+                                ? state.netWorth : 0;
+          
+          // Ensure we don't subtract more than the player has (fallback to current wealth)
+          const amountToDeduct = Math.min(validAmount, currentWealth);
+                                
+          return { 
+            wealth: currentWealth - amountToDeduct,
+            netWorth: currentNetWorth - amountToDeduct,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
+        });
+        
+        console.log(`Deducting ${validAmount} from wealth. New wealth: ${get().wealth}`);
         saveState();
       },
       
