@@ -618,9 +618,9 @@ export function GameUI() {
   };
   
   return (
-    <div className="w-full min-h-screen pointer-events-none">
+    <div className="w-full pointer-events-none">
       {/* Top bar with wealth - fixed at top of viewport */}
-      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 text-foreground p-3 flex justify-between items-center pointer-events-auto z-50 transition-all duration-300">
+      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 text-foreground p-2 flex justify-between items-center pointer-events-auto z-50 transition-all duration-300">
         {/* Wealth indicator - most important info */}
         <div className="flex items-center transition-all duration-300 hover:scale-105 space-x-3" aria-label="Current wealth and net worth">
           <div className="p-2 rounded-full bg-quaternary/10 flex items-center justify-center">

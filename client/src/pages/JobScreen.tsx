@@ -513,6 +513,10 @@ export default function JobScreen() {
     setSelectedChallenge(null);
   };
   
+  // Calculate derived values
+  const dailyIncome = job ? calculateDailyIncome(job.salary) : 0;
+  const hourlyRate = job ? job.salary / (52 * job.timeCommitment) : 0;
+  
   if (!job) {
     return (
       <div className="container mx-auto p-4 py-20">
@@ -525,663 +529,600 @@ export default function JobScreen() {
       </div>
     );
   }
-  
-  const dailyIncome = calculateDailyIncome(job.salary);
-  const hourlyRate = job.salary / (52 * job.timeCommitment);
 
   return (
     <div className="w-full min-h-screen pt-2 pb-24">
-      {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-blue-900 to-slate-900 opacity-90 z-0" />
-      
       {/* Content */}
-      <div className="relative z-10 w-full">
-        <GameUI />
+      <GameUI />
+      
+      <div className="relative z-10 w-full max-w-5xl mx-auto p-4 mt-14">
+        <Button 
+          variant="outline" 
+          onClick={() => navigate('/')}
+          className="mb-4 bg-white"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
         
-        <div className="p-4 max-w-5xl mx-auto">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="mb-4 bg-white"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
-          
-          <div className="space-y-6">
-            <Card className="bg-secondary/10 border-secondary/20 overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 bg-secondary/30 rounded-bl-lg">
-                <div className="text-sm font-medium">Job Level</div>
-                <div className="font-bold text-lg">{formatJobLevel(job.jobLevel)}</div>
-              </div>
-              
-              <CardHeader className="pb-2">
-                <div className="flex items-center mb-2">
-                  <Briefcase className="h-5 w-5 text-secondary mr-2" />
-                  <CardTitle>{job.title}</CardTitle>
-                </div>
-                <CardDescription className="text-base">
-                  at {job.company}
-                </CardDescription>
-              </CardHeader>
-              
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                  <Card className="bg-secondary/5 border-secondary/10">
-                    <CardHeader className="py-3">
-                      <div className="flex items-center">
-                        <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
-                        <CardTitle className="text-base">Salary</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-                        {formatCurrency(job.salary)}/year
-                      </div>
-                      <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
-                        <div className="flex justify-between">
-                          <span>Monthly:</span>
-                          <span className="font-medium">{formatCurrency(job.salary / 12)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Daily:</span>
-                          <span className="font-medium">{formatCurrency(dailyIncome)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Hourly:</span>
-                          <span className="font-medium">{formatCurrency(hourlyRate)}</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-secondary/5 border-secondary/10">
-                    <CardHeader className="py-3">
-                      <div className="flex items-center">
-                        <Clock className="h-4 w-4 text-blue-500 mr-2" />
-                        <CardTitle className="text-base">Experience</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {job.monthsInPosition} months
-                      </div>
-                      <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
-                        <div className="flex justify-between">
-                          <span>Time in position:</span>
-                          <span className="font-medium">{Math.floor(job.monthsInPosition / 12)} years, {job.monthsInPosition % 12} months</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Days since last review:</span>
-                          <span className="font-medium">{daysSincePromotion} days</span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card className="bg-secondary/5 border-secondary/10">
-                    <CardHeader className="py-3">
-                      <div className="flex items-center">
-                        <Trophy className="h-4 w-4 text-amber-500 mr-2" />
-                        <CardTitle className="text-base">Job Stats</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="grid grid-cols-2 gap-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Hours:</span>
-                          <span className="font-medium">{job.timeCommitment}/week</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Stress:</span>
-                          <span className={`font-medium ${job.stress > 60 ? 'text-red-500' : job.stress > 40 ? 'text-amber-500' : 'text-green-500'}`}>
-                            {job.stress}/100
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Happiness:</span>
-                          <span className={`font-medium ${job.happinessImpact >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                            {job.happinessImpact >= 0 ? '+' : ''}{job.happinessImpact}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Prestige:</span>
-                          <span className="font-medium text-indigo-500">
-                            {job.prestigeImpact >= 0 ? '+' : ''}{job.prestigeImpact}
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="space-y-6">
+          <Card className="bg-secondary/10 border-secondary/20 overflow-hidden">
+            <div className="absolute top-0 right-0 p-4 bg-secondary/30 rounded-bl-lg">
+              <div className="text-sm font-medium">Job Level</div>
+              <div className="font-bold text-lg">{formatJobLevel(job.jobLevel)}</div>
+            </div>
             
-            <Tabs defaultValue="career">
-              <TabsList className="grid grid-cols-3">
-                <TabsTrigger value="career">Career Path</TabsTrigger>
-                <TabsTrigger value="challenges">Skill Challenges</TabsTrigger>
-                <TabsTrigger value="skills">Skills & Growth</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="career" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Award className="h-5 w-5 text-amber-500 mr-2" />
-                      Career Progression
-                    </CardTitle>
-                    <CardDescription>
-                      {profession?.description || 'Your career path and progression'}
-                    </CardDescription>
+            <CardHeader className="pb-2">
+              <div className="flex items-center mb-2">
+                <Briefcase className="h-5 w-5 text-secondary mr-2" />
+                <CardTitle>{job.title}</CardTitle>
+              </div>
+              <CardDescription className="text-base">
+                at {job.company}
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <Card className="bg-secondary/5 border-secondary/10">
+                  <CardHeader className="py-3">
+                    <div className="flex items-center">
+                      <TrendingUp className="h-4 w-4 text-green-500 mr-2" />
+                      <CardTitle className="text-base">Salary</CardTitle>
+                    </div>
                   </CardHeader>
-                  <CardContent>
-                    {profession && (
-                      <div className="space-y-8">
-                        {/* Career path visualization */}
-                        <div className="relative">
-                          <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800"></div>
-                          
-                          {profession.careerPath.map((careerStep, index) => {
-                            const isCurrentJob = job.jobLevel === careerStep.level;
-                            const isPastJob = profession.careerPath.findIndex(cp => cp.level === job.jobLevel) > index;
-                            
-                            return (
-                              <div key={careerStep.level} className="relative flex items-start mb-8 last:mb-0">
-                                <div className={`absolute left-4 -translate-x-1/2 w-3 h-3 rounded-full z-10 mt-1.5 ${
-                                  isCurrentJob 
-                                    ? 'bg-secondary ring-4 ring-secondary/20' 
-                                    : isPastJob 
-                                      ? 'bg-green-500' 
-                                      : 'bg-gray-300 dark:bg-gray-700'
-                                }`}></div>
-                                
-                                <div className={`ml-10 p-4 rounded-lg border ${
-                                  isCurrentJob 
-                                    ? 'bg-secondary/20 border-secondary/30' 
-                                    : isPastJob 
-                                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30' 
-                                      : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
-                                }`}>
-                                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
-                                    <div>
-                                      <h4 className="text-lg font-bold">{careerStep.title}</h4>
-                                      <p className="text-sm text-muted-foreground">{formatJobLevel(careerStep.level)}</p>
-                                    </div>
-                                    <div className="text-right">
-                                      <p className="font-semibold">{formatCurrency(careerStep.salary)}/year</p>
-                                      {!isPastJob && !isCurrentJob && (
-                                        <p className="text-xs text-muted-foreground">
-                                          Requires {careerStep.experience} months exp.
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  <p className="mt-2 text-sm">{careerStep.description}</p>
-                                  
-                                  {/* Skill requirements */}
-                                  {Object.keys(careerStep.skillRequirements).length > 0 && (
-                                    <div className="mt-3">
-                                      <h5 className="text-sm font-semibold mb-2">Required Skills:</h5>
-                                      <div className="flex flex-wrap gap-2">
-                                        {Object.entries(careerStep.skillRequirements).map(([skill, level]) => {
-                                          const currentLevel = skills[skill as keyof typeof skills] || 0;
-                                          const isMet = currentLevel >= level;
-                                          
-                                          return (
-                                            <div key={skill} className={`px-2 py-1 rounded-full text-xs ${
-                                              isMet 
-                                                ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200' 
-                                                : 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300'
-                                            }`}>
-                                              {skill}: {level} {isMet && '✓'}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {isCurrentJob && (
-                                    <div className="mt-4 italic text-sm text-muted-foreground">
-                                      Current Position
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                        
-                        {nextJob && (
-                          <Card className="mt-6 bg-primary/5 border-primary/20">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg">Next Promotion: {nextJob.title}</CardTitle>
-                              <CardDescription>
-                                {calculateTimeToPromotion()}
-                              </CardDescription>
-                            </CardHeader>
-                            <CardContent>
-                              <div className="space-y-3">
-                                {Object.entries(nextJob.skillRequirements).map(([skill, requiredLevel]) => {
-                                  const currentLevel = skills[skill as keyof typeof skills] || 0;
-                                  const isMet = currentLevel >= requiredLevel;
-                                  const progressPercent = progress[skill] || 0;
-                                  
-                                  return (
-                                    <div key={skill} className="space-y-1">
-                                      <div className="flex justify-between items-center text-sm">
-                                        <div className="flex items-center gap-1">
-                                          {getSkillIcon(skill)}
-                                          <span className="capitalize">{skill}</span>
-                                        </div>
-                                        <div className={isMet ? 'text-green-600 dark:text-green-400' : ''}>
-                                          {currentLevel}/{requiredLevel} {isMet && '✓'}
-                                        </div>
-                                      </div>
-                                      <Progress value={progressPercent} className="h-2" />
-                                    </div>
-                                  );
-                                })}
-                              </div>
-                              
-                              <div className="flex justify-center mt-6">
-                                <Button 
-                                  onClick={handleTryPromotion}
-                                  disabled={calculateTimeToPromotion() !== 'Ready for promotion!'}
-                                  className="bg-primary hover:bg-primary/90"
-                                >
-                                  Apply for Promotion
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
-                        
-                        {job.jobLevel === 'executive' && !nextJob && (
-                          <Card className="mt-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
-                            <CardHeader className="pb-2">
-                              <CardTitle className="text-lg flex items-center">
-                                <Trophy className="h-5 w-5 text-amber-500 mr-2" />
-                                Career Mastery
-                              </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                              <p>Congratulations! You've reached the highest level in your career path. 
-                              You are now at the executive level of your profession.</p>
-                              
-                              <div className="flex justify-center mt-4">
-                                <Button variant="outline" className="border-amber-300 dark:border-amber-700">
-                                  Look for New Opportunities
-                                </Button>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        )}
+                  <CardContent className="pt-0">
+                    <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                      {formatCurrency(job.salary)}/year
+                    </div>
+                    <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Monthly:</span>
+                        <span className="font-medium">{formatCurrency(job.salary / 12)}</span>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="challenges" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <Brain className="h-5 w-5 text-indigo-500 mr-2" />
-                      Skill Challenges
-                    </CardTitle>
-                    <CardDescription>
-                      Complete challenges to improve your skills faster
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {selectedChallenge && !selectedChallenge.completed ? (
-                      <div className="space-y-4">
-                        <Card className={`${
-                          selectedChallenge.readyForCompletion ? 'border-green-500 bg-green-50/30 dark:bg-green-900/10' : 
-                          selectedChallenge.inProgress ? 'border-blue-500 bg-blue-50/30 dark:bg-blue-900/10' : 
-                          'bg-secondary/5 border-secondary/10'
-                        }`}>
-                          <CardHeader>
-                            <div className="flex justify-between items-center">
-                              <CardTitle className="text-lg flex items-center">
-                                {getSkillIcon(selectedChallenge.skill)}
-                                <span className="ml-2">{selectedChallenge.title}</span>
-                              </CardTitle>
-                              <div className="flex space-x-2">
-                                {selectedChallenge.inProgress && (
-                                  <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
-                                    In Progress
-                                  </span>
-                                )}
-                                {selectedChallenge.readyForCompletion && (
-                                  <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
-                                    Ready
-                                  </span>
-                                )}
-                                <span className={`px-2 py-1 text-xs rounded-full ${
-                                  selectedChallenge.difficultyLevel === 'easy'
-                                    ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                                    : selectedChallenge.difficultyLevel === 'medium'
-                                      ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
-                                      : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                                }`}>
-                                  {selectedChallenge.difficultyLevel}
-                                </span>
-                              </div>
-                            </div>
-                            <CardDescription>{selectedChallenge.description}</CardDescription>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-4">
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="bg-secondary/10 p-3 rounded-md">
-                                  <div className="text-sm font-medium">Reward</div>
-                                  <div className="text-lg font-bold">+{selectedChallenge.xpReward} {selectedChallenge.skill} skill</div>
-                                </div>
-                                <div className="bg-secondary/10 p-3 rounded-md">
-                                  <div className="text-sm font-medium">Time Required</div>
-                                  <div className="text-lg font-bold">{selectedChallenge.completionTime} months</div>
-                                </div>
-                              </div>
-                              
-                              {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && selectedChallenge.startDate && (
-                                <div className="mt-4">
-                                  <div className="text-sm font-medium mb-1 flex justify-between">
-                                    <span>Progress</span>
-                                    <span>
-                                      {Math.min(
-                                        Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)), 
-                                        selectedChallenge.completionTime
-                                      )} / {selectedChallenge.completionTime} months
-                                    </span>
-                                  </div>
-                                  <Progress 
-                                    value={Math.min(
-                                      100, 
-                                      (Math.floor((currentGameDate.getTime() - new Date(selectedChallenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) / selectedChallenge.completionTime) * 100
-                                    )} 
-                                    className="h-2"
-                                  />
-                                  
-                                  {selectedChallenge.startDate && (
-                                    <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                                      <span>Started: {new Date(selectedChallenge.startDate).toLocaleDateString()}</span>
-                                      <span>
-                                        ETA: {new Date(new Date(selectedChallenge.startDate).getTime() + (selectedChallenge.completionTime * 30 * 24 * 60 * 60 * 1000)).toLocaleDateString()}
-                                      </span>
-                                    </div>
-                                  )}
-                                </div>
-                              )}
-                              
-                              <div className="flex justify-between mt-6">
-                                <div>
-                                  <Button variant="outline" onClick={() => setSelectedChallenge(null)}>
-                                    Go Back
-                                  </Button>
-                                </div>
-                                
-                                <div className="space-x-2">
-                                  {selectedChallenge.readyForCompletion && (
-                                    <Button onClick={() => handleCompleteChallenge(selectedChallenge)}>
-                                      Complete Challenge
-                                    </Button>
-                                  )}
-                                  
-                                  {!selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
-                                    <Button onClick={() => handleStartChallenge(selectedChallenge)}>
-                                      Start Challenge
-                                    </Button>
-                                  )}
-                                  
-                                  {selectedChallenge.inProgress && !selectedChallenge.readyForCompletion && (
-                                    <>
-                                      <Button disabled>
-                                        In Progress...
-                                      </Button>
-                                      
-                                      <Button variant="destructive" onClick={() => handleAbandonChallenge(selectedChallenge)}>
-                                        Abandon
-                                      </Button>
-                                    </>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
-                          </CardContent>
-                        </Card>
+                      <div className="flex justify-between">
+                        <span>Daily:</span>
+                        <span className="font-medium">{formatCurrency(dailyIncome)}</span>
                       </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {/* Sort challenges by skill and difficulty */}
-                        {challenges.length > 0 ? (
-                          <div className="space-y-4">
-                            {Object.entries(
-                              challenges.reduce<Record<string, ChallengeType[]>>((acc, challenge) => {
-                                // Only show incomplete challenges
-                                if (!challenge.completed) {
-                                  if (!acc[challenge.skill]) {
-                                    acc[challenge.skill] = [];
-                                  }
-                                  acc[challenge.skill].push(challenge);
-                                }
-                                return acc;
-                              }, {})
-                            ).map(([skill, skillChallenges]) => (
-                              <div key={skill} className="space-y-2">
-                                <h3 className="font-semibold capitalize flex items-center">
-                                  {getSkillIcon(skill)}
-                                  <span className="ml-2">{skill}</span>
-                                </h3>
-                                
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                  {skillChallenges
-                                    .sort((a, b) => {
-                                      const difficultyOrder = { easy: 0, medium: 1, hard: 2 };
-                                      return difficultyOrder[a.difficultyLevel] - difficultyOrder[b.difficultyLevel];
-                                    })
-                                    .map(challenge => (
-                                      <Card key={challenge.id} className={`hover:bg-secondary/5 transition-colors ${
-                                        challenge.readyForCompletion ? 'border-green-500 bg-green-50 dark:bg-green-900/10' : 
-                                        challenge.inProgress ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/10' : 
-                                        'cursor-pointer'
-                                      }`} onClick={() => !challenge.inProgress && setSelectedChallenge(challenge)}>
-                                        <CardHeader className="py-3">
-                                          <div className="flex justify-between items-center">
-                                            <h4 className="font-medium">{challenge.title}</h4>
-                                            <div className="flex space-x-2">
-                                              {challenge.inProgress && (
-                                                <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200">
-                                                  In Progress
-                                                </span>
-                                              )}
-                                              {challenge.readyForCompletion && (
-                                                <span className="px-2 py-1 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200">
-                                                  Ready
-                                                </span>
-                                              )}
-                                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                                challenge.difficultyLevel === 'easy'
-                                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-200'
-                                                  : challenge.difficultyLevel === 'medium'
-                                                    ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-200'
-                                                    : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-200'
-                                              }`}>
-                                                {challenge.difficultyLevel}
-                                              </span>
-                                            </div>
-                                          </div>
-                                        </CardHeader>
-                                        <CardContent className="py-0">
-                                          <p className="text-sm text-muted-foreground">{challenge.description}</p>
-                                          
-                                          {challenge.inProgress && !challenge.readyForCompletion && challenge.startDate && (
-                                            <div className="mt-2">
-                                              <div className="text-xs text-muted-foreground mb-1 flex justify-between">
-                                                <span>Progress</span>
-                                                <span>
-                                                  {Math.min(
-                                                    Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)), 
-                                                    challenge.completionTime
-                                                  )} / {challenge.completionTime} months
-                                                </span>
-                                              </div>
-                                              <Progress 
-                                                value={Math.min(
-                                                  100, 
-                                                  (Math.floor((currentGameDate.getTime() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) / challenge.completionTime) * 100
-                                                )} 
-                                                className="h-1.5"
-                                              />
-                                            </div>
-                                          )}
-                                          
-                                          <div className="flex justify-between mt-2 text-sm">
-                                            <span>+{challenge.xpReward} skill</span>
-                                            <span>{challenge.completionTime} months</span>
-                                          </div>
-                                          
-                                          <div className="mt-3 pt-2 border-t flex justify-end space-x-2">
-                                            {challenge.readyForCompletion && (
-                                              <Button 
-                                                size="sm" 
-                                                onClick={(e) => { 
-                                                  e.stopPropagation(); 
-                                                  handleCompleteChallenge(challenge); 
-                                                }}
-                                              >
-                                                Complete
-                                              </Button>
-                                            )}
-                                            
-                                            {!challenge.inProgress && !challenge.readyForCompletion && (
-                                              <Button 
-                                                size="sm" 
-                                                variant="outline" 
-                                                onClick={(e) => { 
-                                                  e.stopPropagation(); 
-                                                  handleStartChallenge(challenge); 
-                                                }}
-                                              >
-                                                Start Challenge
-                                              </Button>
-                                            )}
-                                            
-                                            {challenge.inProgress && !challenge.readyForCompletion && (
-                                              <Button 
-                                                size="sm" 
-                                                variant="destructive" 
-                                                onClick={(e) => { 
-                                                  e.stopPropagation(); 
-                                                  handleAbandonChallenge(challenge); 
-                                                }}
-                                              >
-                                                Abandon
-                                              </Button>
-                                            )}
-                                          </div>
-                                        </CardContent>
-                                      </Card>
-                                    ))
-                                  }
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="flex flex-col items-center justify-center py-12">
-                            <AlertCircle className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-lg font-semibold">No Challenges Available</h3>
-                            <p className="text-center text-muted-foreground max-w-md mt-2">
-                              There are no skill challenges available for your current position. 
-                              Check back later or advance in your career to unlock new challenges.
-                            </p>
-                          </div>
-                        )}
+                      <div className="flex justify-between">
+                        <span>Hourly:</span>
+                        <span className="font-medium">{formatCurrency(hourlyRate)}</span>
                       </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </TabsContent>
-              
-              <TabsContent value="skills" className="space-y-4 mt-4">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center">
-                      <TrendingUp className="h-5 w-5 text-blue-500 mr-2" />
-                      Skill Development
-                    </CardTitle>
-                    <CardDescription>
-                      Skills you're developing at your current job
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-6">
-                      {/* Skills being developed */}
-                      <div className="space-y-4">
-                        <h3 className="font-medium">Monthly Skill Gains</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(job.skillGains).map(([skill, gain]) => (
-                            <Card key={skill} className="bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800">
-                              <CardContent className="p-4 flex justify-between items-center">
-                                <div className="flex items-center">
-                                  {getSkillIcon(skill)}
-                                  <span className="ml-2 capitalize">{skill}</span>
-                                </div>
-                                <span className="font-medium text-green-600 dark:text-green-400">+{gain}/month</span>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Current skill levels */}
-                      <div className="space-y-4">
-                        <h3 className="font-medium">Current Skill Levels</h3>
-                        <div className="space-y-4">
-                          {Object.entries(skills).map(([skill, level]) => (
-                            <div key={skill} className="space-y-1">
-                              <div className="flex justify-between items-center">
-                                <div className="flex items-center">
-                                  {getSkillIcon(skill)}
-                                  <span className="ml-2 capitalize">{skill}</span>
-                                </div>
-                                <div className="font-medium">{level}</div>
-                              </div>
-                              <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-800">
-                                <div className={`h-full rounded-full ${getSkillColor(skill)}`} style={{ width: `${Math.min(100, level * 10)}%` }}></div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      {/* Skill tips */}
-                      <Card className="bg-indigo-50 dark:bg-indigo-900/20 border-indigo-100 dark:border-indigo-900/30">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="text-base flex items-center text-indigo-900 dark:text-indigo-300">
-                            <Lightbulb className="h-4 w-4 mr-2" />
-                            Skill Development Tips
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ul className="list-disc pl-5 space-y-1 text-sm text-indigo-900 dark:text-indigo-200">
-                            <li>Complete skill challenges to gain experience faster</li>
-                            <li>Focus on skills required for your next promotion</li>
-                            <li>Balance skill development with your job responsibilities</li>
-                            <li>Some skills can also be improved through lifestyle choices</li>
-                          </ul>
-                        </CardContent>
-                      </Card>
                     </div>
                   </CardContent>
                 </Card>
-              </TabsContent>
-            </Tabs>
-          </div>
+                
+                <Card className="bg-secondary/5 border-secondary/10">
+                  <CardHeader className="py-3">
+                    <div className="flex items-center">
+                      <Clock className="h-4 w-4 text-blue-500 mr-2" />
+                      <CardTitle className="text-base">Experience</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                      {job.monthsInPosition} months
+                    </div>
+                    <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
+                      <div className="flex justify-between">
+                        <span>Time in position:</span>
+                        <span className="font-medium">{Math.floor(job.monthsInPosition / 12)} years, {job.monthsInPosition % 12} months</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Days since last review:</span>
+                        <span className="font-medium">{daysSincePromotion} days</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                
+                <Card className="bg-secondary/5 border-secondary/10">
+                  <CardHeader className="py-3">
+                    <div className="flex items-center">
+                      <Trophy className="h-4 w-4 text-amber-500 mr-2" />
+                      <CardTitle className="text-base">Job Stats</CardTitle>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="flex justify-between">
+                        <span>Hours:</span>
+                        <span className="font-medium">{job.timeCommitment}/week</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Stress:</span>
+                        <span className={`font-medium ${job.stress > 60 ? 'text-red-500' : job.stress > 40 ? 'text-amber-500' : 'text-green-500'}`}>
+                          {job.stress}/100
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Happiness:</span>
+                        <span className={`font-medium ${job.happinessImpact >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                          {job.happinessImpact >= 0 ? '+' : ''}{job.happinessImpact}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Prestige:</span>
+                        <span className="font-medium text-indigo-500">
+                          {job.prestigeImpact >= 0 ? '+' : ''}{job.prestigeImpact}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Tabs defaultValue="career">
+            <TabsList className="grid grid-cols-3">
+              <TabsTrigger value="career">Career Path</TabsTrigger>
+              <TabsTrigger value="challenges">Skill Challenges</TabsTrigger>
+              <TabsTrigger value="skills">Skills & Growth</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="career" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Award className="h-5 w-5 text-amber-500 mr-2" />
+                    Career Progression
+                  </CardTitle>
+                  <CardDescription>
+                    {profession?.description || 'Your career path and progression'}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {profession && (
+                    <div className="space-y-8">
+                      {/* Career path visualization */}
+                      <div className="relative">
+                        <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-gray-200 dark:bg-gray-800"></div>
+                        
+                        {profession.careerPath.map((careerStep, index) => {
+                          const isCurrentJob = job.jobLevel === careerStep.level;
+                          const isPastJob = profession.careerPath.findIndex(cp => cp.level === job.jobLevel) > index;
+                          
+                          return (
+                            <div key={careerStep.level} className="relative flex items-start mb-8 last:mb-0">
+                              <div className={`absolute left-4 -translate-x-1/2 w-3 h-3 rounded-full z-10 mt-1.5 ${
+                                isCurrentJob 
+                                  ? 'bg-secondary ring-4 ring-secondary/20' 
+                                  : isPastJob 
+                                    ? 'bg-green-500' 
+                                    : 'bg-gray-300 dark:bg-gray-700'
+                              }`}></div>
+                              
+                              <div className={`ml-10 p-4 rounded-lg border ${
+                                isCurrentJob 
+                                  ? 'bg-secondary/20 border-secondary/30' 
+                                  : isPastJob 
+                                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-900/30' 
+                                    : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-800'
+                              }`}>
+                                <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                                  <div>
+                                    <h4 className="text-lg font-bold">{careerStep.title}</h4>
+                                    <p className="text-sm text-muted-foreground">{formatJobLevel(careerStep.level)}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="font-semibold">{formatCurrency(careerStep.salary)}/year</p>
+                                    {!isPastJob && !isCurrentJob && (
+                                      <p className="text-xs text-muted-foreground">
+                                        Requires {careerStep.experience} months exp.
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <p className="mt-2 text-sm">{careerStep.description}</p>
+                                
+                                {/* Skill requirements */}
+                                {Object.keys(careerStep.skillRequirements).length > 0 && (
+                                  <div className="mt-3">
+                                    <h5 className="text-sm font-semibold mb-2">Required Skills:</h5>
+                                    <div className="flex flex-wrap gap-2">
+                                      {Object.entries(careerStep.skillRequirements).map(([skill, level]) => {
+                                        const currentLevel = skills[skill as keyof typeof skills] || 0;
+                                        const isMet = currentLevel >= level;
+                                        
+                                        return (
+                                          <div key={skill} className={`px-2 py-1 rounded-full text-xs ${
+                                            isMet 
+                                              ? 'bg-green-100 text-green-800 dark:bg-green-900/50 dark:text-green-200' 
+                                              : 'bg-gray-100 text-gray-800 dark:bg-gray-900/50 dark:text-gray-300'
+                                          }`}>
+                                            {skill}: {level} {isMet && '✓'}
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                )}
+                                
+                                {isCurrentJob && (
+                                  <div className="mt-4 italic text-sm text-muted-foreground">
+                                    Current Position
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {nextJob && (
+                        <Card className="mt-6 bg-primary/5 border-primary/20">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg">Next Promotion: {nextJob.title}</CardTitle>
+                            <CardDescription>
+                              {calculateTimeToPromotion()}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {Object.entries(nextJob.skillRequirements).map(([skill, requiredLevel]) => {
+                                const currentLevel = skills[skill as keyof typeof skills] || 0;
+                                const isMet = currentLevel >= requiredLevel;
+                                const progressPercent = progress[skill] || 0;
+                                
+                                return (
+                                  <div key={skill} className="space-y-1">
+                                    <div className="flex justify-between items-center text-sm">
+                                      <div className="flex items-center gap-1">
+                                        {getSkillIcon(skill)}
+                                        <span className="capitalize">{skill}</span>
+                                      </div>
+                                      <div className={isMet ? 'text-green-600 dark:text-green-400' : ''}>
+                                        {currentLevel}/{requiredLevel} {isMet && '✓'}
+                                      </div>
+                                    </div>
+                                    <Progress value={progressPercent} className="h-2" />
+                                  </div>
+                                );
+                              })}
+                            </div>
+                            
+                            <div className="flex justify-center mt-6">
+                              <Button 
+                                onClick={handleTryPromotion}
+                                disabled={calculateTimeToPromotion() !== 'Ready for promotion!'}
+                                className="bg-primary hover:bg-primary/90"
+                              >
+                                Apply for Promotion
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                      
+                      {job.jobLevel === 'executive' && !nextJob && (
+                        <Card className="mt-6 bg-amber-50 dark:bg-amber-900/20 border-amber-200 dark:border-amber-800">
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-lg flex items-center">
+                              <Trophy className="h-5 w-5 text-amber-500 mr-2" />
+                              Career Mastery
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <p>Congratulations! You've reached the highest level in your career path. 
+                            You are now at the executive level of your profession.</p>
+                            
+                            <div className="flex justify-center mt-4">
+                              <Button variant="outline" className="border-amber-300 dark:border-amber-700">
+                                Change Career Path
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+            
+            <TabsContent value="challenges" className="space-y-4 mt-4">
+              {/* Selected challenge details */}
+              {selectedChallenge && (
+                <Card className="mb-6 bg-secondary/5 border-secondary/20">
+                  <CardHeader>
+                    <div className="flex justify-between items-start">
+                      <div className="flex items-start gap-2">
+                        <div className={`h-6 w-6 rounded-full flex items-center justify-center mt-1 ${getSkillColor(selectedChallenge.skill)}`}>
+                          {getSkillIcon(selectedChallenge.skill)}
+                        </div>
+                        <div>
+                          <CardTitle>{selectedChallenge.title}</CardTitle>
+                          <CardDescription className="text-base mt-1">{selectedChallenge.description}</CardDescription>
+                        </div>
+                      </div>
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedChallenge(null)}>
+                        <ChevronLeft className="h-4 w-4 mr-1" />
+                        Back
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="flex items-center gap-2">
+                          <Lightbulb className="h-4 w-4 text-amber-500" />
+                          <div>
+                            <div className="text-sm text-muted-foreground">Skill</div>
+                            <div className="font-medium capitalize">{selectedChallenge.skill}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Brain className="h-4 w-4 text-indigo-500" />
+                          <div>
+                            <div className="text-sm text-muted-foreground">Difficulty</div>
+                            <div className="font-medium capitalize">{selectedChallenge.difficultyLevel}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Timer className="h-4 w-4 text-green-500" />
+                          <div>
+                            <div className="text-sm text-muted-foreground">Time to Complete</div>
+                            <div className="font-medium">{selectedChallenge.completionTime} months</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {selectedChallenge.inProgress && selectedChallenge.startDate && (
+                        <div className="mt-6">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm font-medium">Progress</div>
+                            <div className="text-sm text-muted-foreground">
+                              {(() => {
+                                if (!currentGameDate || !selectedChallenge.startDate) return '0%';
+                                
+                                const startDate = new Date(selectedChallenge.startDate);
+                                const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                const monthsPassed = Math.floor(daysPassed / 30);
+                                const progressPercent = Math.min(100, Math.round((monthsPassed / selectedChallenge.completionTime) * 100));
+                                
+                                return `${progressPercent}%`;
+                              })()}
+                            </div>
+                          </div>
+                          <Progress value={(() => {
+                            if (!currentGameDate || !selectedChallenge.startDate) return 0;
+                            
+                            const startDate = new Date(selectedChallenge.startDate);
+                            const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                            const monthsPassed = Math.floor(daysPassed / 30);
+                            return Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
+                          })()} className="h-2" />
+                          
+                          <div className="flex justify-between mt-6 gap-4">
+                            {selectedChallenge.readyForCompletion ? (
+                              <Button 
+                                className="w-full bg-green-600 hover:bg-green-700"
+                                onClick={() => handleCompleteChallenge(selectedChallenge)}
+                              >
+                                Complete Challenge
+                              </Button>
+                            ) : (
+                              <Button 
+                                className="w-full"
+                                variant="outline"
+                                onClick={() => handleAbandonChallenge(selectedChallenge)}
+                              >
+                                Abandon Challenge
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {!selectedChallenge.inProgress && !selectedChallenge.completed && (
+                        <div className="flex justify-center mt-6">
+                          <Button 
+                            onClick={() => handleStartChallenge(selectedChallenge)}
+                            className="bg-primary hover:bg-primary/90"
+                          >
+                            Start Challenge
+                          </Button>
+                        </div>
+                      )}
+                      
+                      {selectedChallenge.completed && (
+                        <div className="mt-6 bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-200 dark:border-green-900/30">
+                          <div className="flex items-center gap-2">
+                            <Trophy className="h-5 w-5 text-green-600" />
+                            <div className="font-semibold text-green-800 dark:text-green-200">Challenge Completed</div>
+                          </div>
+                          <p className="text-sm mt-1 text-green-700 dark:text-green-300">
+                            You've successfully completed this challenge and gained skill experience.
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {!selectedChallenge && (
+                <div className="grid grid-cols-1 gap-4">
+                  {/* Group challenges by skill */}
+                  {Object.entries(
+                    challenges.reduce((acc: Record<string, ChallengeType[]>, challenge) => {
+                      if (!acc[challenge.skill]) {
+                        acc[challenge.skill] = [];
+                      }
+                      acc[challenge.skill].push(challenge);
+                      return acc;
+                    }, {})
+                  ).map(([skill, skillChallenges]) => (
+                    <Card key={skill} className="overflow-hidden">
+                      <CardHeader className="bg-secondary/5 py-3">
+                        <div className="flex items-center">
+                          <div className={`h-6 w-6 rounded-full flex items-center justify-center ${getSkillColor(skill)}`}>
+                            {getSkillIcon(skill)}
+                          </div>
+                          <CardTitle className="ml-2 capitalize">{skill} Challenges</CardTitle>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="p-0">
+                        <div className="divide-y divide-border/50">
+                          {/* Sort challenges by difficulty */}
+                          {[...skillChallenges].sort((a, b) => {
+                            const difficultyOrder = { 'easy': 0, 'medium': 1, 'hard': 2 };
+                            return difficultyOrder[a.difficultyLevel] - difficultyOrder[b.difficultyLevel];
+                          }).map((challenge) => (
+                            <div 
+                              key={challenge.id} 
+                              className={`p-4 hover:bg-secondary/5 transition-colors cursor-pointer flex justify-between items-center ${
+                                challenge.completed 
+                                  ? 'bg-green-50/50 dark:bg-green-900/10' 
+                                  : challenge.inProgress
+                                    ? 'bg-blue-50/50 dark:bg-blue-900/10'
+                                    : ''
+                              }`}
+                              onClick={() => setSelectedChallenge(challenge)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center">
+                                  <h4 className="font-medium">{challenge.title}</h4>
+                                  {challenge.completed && (
+                                    <span className="ml-2 bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-xs px-2 py-0.5 rounded-full">
+                                      Completed
+                                    </span>
+                                  )}
+                                  {challenge.inProgress && !challenge.completed && (
+                                    <span className="ml-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-200 text-xs px-2 py-0.5 rounded-full">
+                                      In Progress
+                                    </span>
+                                  )}
+                                  {challenge.readyForCompletion && !challenge.completed && (
+                                    <span className="ml-2 bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-200 text-xs px-2 py-0.5 rounded-full">
+                                      Ready to Complete
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
+                                  {challenge.description}
+                                </p>
+                              </div>
+                              <div className="ml-4 flex items-center gap-3">
+                                <div className="text-xs px-2 py-0.5 bg-secondary/10 rounded">
+                                  {challenge.difficultyLevel}
+                                </div>
+                                <AlertCircle className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="skills" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <GraduationCap className="h-5 w-5 text-indigo-500 mr-2" />
+                    Job Skills & Growth
+                  </CardTitle>
+                  <CardDescription>
+                    Skills you're developing in your current role
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-4">
+                      {Object.entries(job.skillGains).filter(([_, gain]) => gain > 0).map(([skill, gain]) => (
+                        <div key={skill} className="p-4 rounded-lg border border-secondary/20 bg-secondary/5">
+                          <div className="flex justify-between items-center mb-2">
+                            <div className="flex items-center gap-2">
+                              <div className={`h-6 w-6 rounded-full flex items-center justify-center ${getSkillColor(skill)}`}>
+                                {getSkillIcon(skill)}
+                              </div>
+                              <h3 className="font-semibold capitalize">{skill}</h3>
+                            </div>
+                            <div className="text-sm font-medium text-secondary">
+                              Current: {skills[skill as keyof typeof skills] || 0}
+                            </div>
+                          </div>
+                          
+                          <div className="text-sm text-muted-foreground mb-4">
+                            <p>Daily skill gain: +{(gain * 0.033).toFixed(2)}</p>
+                            <p>Monthly skill gain: +{gain.toFixed(1)}</p>
+                          </div>
+                          
+                          {/* Show active challenges for this skill */}
+                          {challenges.filter(c => c.skill === skill && c.inProgress).length > 0 && (
+                            <div className="mt-2">
+                              <div className="text-sm font-medium mb-2">Active Challenges:</div>
+                              <div className="space-y-2">
+                                {challenges
+                                  .filter(c => c.skill === skill && c.inProgress)
+                                  .map(challenge => (
+                                    <div key={challenge.id} 
+                                      className="flex justify-between items-center p-2 rounded bg-secondary/10 cursor-pointer hover:bg-secondary/20"
+                                      onClick={() => setSelectedChallenge(challenge)}
+                                    >
+                                      <div>
+                                        <div className="font-medium text-sm">{challenge.title}</div>
+                                        <div className="text-xs text-muted-foreground">Reward: +{challenge.xpReward} skill points</div>
+                                      </div>
+                                      {challenge.readyForCompletion && (
+                                        <Button size="sm" variant="outline" className="h-8 text-xs">
+                                          Complete
+                                        </Button>
+                                      )}
+                                    </div>
+                                  ))
+                                }
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Show available challenges for this skill */}
+                          {challenges.filter(c => c.skill === skill && !c.inProgress && !c.completed).length > 0 && (
+                            <div className="mt-4">
+                              <div className="text-sm font-medium mb-2">Available Challenges:</div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                {challenges
+                                  .filter(c => c.skill === skill && !c.inProgress && !c.completed)
+                                  .sort((a, b) => {
+                                    const difficultyOrder = { 'easy': 0, 'medium': 1, 'hard': 2 };
+                                    return difficultyOrder[a.difficultyLevel] - difficultyOrder[b.difficultyLevel];
+                                  })
+                                  .map(challenge => (
+                                    <div key={challenge.id} 
+                                      className="flex items-center gap-2 p-2 rounded bg-secondary/10 cursor-pointer hover:bg-secondary/20"
+                                      onClick={() => setSelectedChallenge(challenge)}
+                                    >
+                                      <div className="flex-1">
+                                        <div className="font-medium text-sm">{challenge.title}</div>
+                                        <div className="text-xs flex items-center gap-1">
+                                          <span className="capitalize">{challenge.difficultyLevel}</span>
+                                          <span className="text-muted-foreground">•</span>
+                                          <span className="text-muted-foreground">{challenge.completionTime} months</span>
+                                        </div>
+                                      </div>
+                                      <Button size="sm" variant="ghost" className="h-8 text-xs">
+                                        View
+                                      </Button>
+                                    </div>
+                                  ))
+                                }
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
