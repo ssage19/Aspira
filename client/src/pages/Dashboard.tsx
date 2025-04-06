@@ -225,10 +225,21 @@ export default function Dashboard() {
   
   // Handle reset confirmation
   const handleResetProgress = () => {
-    // Reset character data
+    // First clear local storage for all game state to ensure no persistence between resets
+    localStorage.removeItem('business-empire-character');
+    localStorage.removeItem('business-empire-game');
+    localStorage.removeItem('business-empire-time');
+    localStorage.removeItem('business-empire-achievements');
+    localStorage.removeItem('business-empire-claimed-rewards');
+    localStorage.removeItem('auto-maintain-needs');
+    localStorage.removeItem('luxury_lifestyle_time');
+    
+    // Now reset the stores in memory
+    
+    // Reset character data (this should happen after localStorage is cleared)
     resetCharacter();
     
-    // Reset game state 
+    // Reset game state
     restart();
     
     // Reset achievements
@@ -243,11 +254,17 @@ export default function Dashboard() {
       resetTime();
     }
     
-    // Clear claimed rewards in localStorage
-    localStorage.removeItem('business-empire-claimed-rewards');
-    
-    // Navigate to character creation
-    navigate('/create');
+    // Force an immediate state save to ensure all stores get their default values written to localStorage
+    setTimeout(() => {
+      // Force all stores to save their default states
+      const characterState = useCharacter.getState();
+      if (characterState.saveState) {
+        characterState.saveState();
+      }
+      
+      // After everything is reset, navigate to character creation
+      navigate('/create');
+    }, 100); // Short timeout to ensure state resets are processed
   };
   
   // Background music functionality
