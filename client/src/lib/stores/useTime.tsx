@@ -47,13 +47,39 @@ interface TimeState {
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
 
-// Load from local storage if available
+// Load from local storage if available, with validation
 const loadSavedTime = () => {
-  const saved = getLocalStorage(STORAGE_KEY);
-  if (saved) {
-    return saved;
+  try {
+    const saved = getLocalStorage(STORAGE_KEY);
+    
+    // Only return saved time if it's valid
+    if (saved && 
+        saved.currentDay && 
+        saved.currentMonth && 
+        saved.currentYear && 
+        typeof saved.currentDay === 'number' &&
+        typeof saved.currentMonth === 'number' &&
+        typeof saved.currentYear === 'number') {
+      
+      // Additional validation - check if the date makes sense
+      if (saved.currentDay >= 1 && saved.currentDay <= 31 &&
+          saved.currentMonth >= 1 && saved.currentMonth <= 12 &&
+          saved.currentYear >= 2020 && saved.currentYear <= 2050) {
+        
+        console.log(`Loaded valid saved time: ${saved.currentMonth}/${saved.currentDay}/${saved.currentYear}`);
+        return saved;
+      } else {
+        console.warn("Saved time data contains invalid date values, using current device date instead");
+        return null;
+      }
+    }
+    
+    console.warn("No valid saved time data found, using current device date");
+    return null;
+  } catch (e) {
+    console.error("Error loading saved time data:", e);
+    return null;
   }
-  return null;
 };
 
 // Get the current real device date
@@ -186,7 +212,7 @@ export const useTime = create<TimeState>()(
         return newState;
       }),
       
-      resetTime: () => set(() => {
+      resetTime: () => {
         // Always get a fresh current date - don't rely on any cached values
         const now = new Date();
         const currentDay = now.getDate();
@@ -217,14 +243,26 @@ export const useTime = create<TimeState>()(
           dayCounter: 0
         };
         
-        // Clear the localStorage entry first to ensure all previous data is gone
-        localStorage.removeItem(STORAGE_KEY);
+        // Aggressively clear localStorage entry first to ensure all previous data is gone
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+          console.log(`Successfully removed time data from localStorage at key: ${STORAGE_KEY}`);
+        } catch (e) {
+          console.error(`Error removing time data from localStorage: ${e}`);
+        }
         
-        // Save the fresh state to localStorage
-        setLocalStorage(STORAGE_KEY, newState);
+        // Save the fresh state to localStorage immediately, before the state update
+        // This ensures the storage is updated even if the state update fails
+        try {
+          setLocalStorage(STORAGE_KEY, newState);
+          console.log('Successfully saved fresh time data to localStorage');
+        } catch (e) {
+          console.error(`Error saving fresh time data to localStorage: ${e}`);
+        }
         
-        return newState;
-      }),
+        // Return the new state for the set() call
+        return set(() => newState);
+      },
       
       setTimeSpeed: (speed: GameTimeSpeed) => set((state) => {
         // Set multiplier based on selected speed

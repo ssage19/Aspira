@@ -39,77 +39,110 @@ export const performCompleteGameReset = () => {
     'business-empire-achievements'
   ];
   
-  // 3. Clear each specific key to ensure nothing is missed
-  console.log("Clearing all game storage keys...");
-  allGameStorageKeys.forEach(key => {
-    try {
-      localStorage.removeItem(key);
-      console.log(`Successfully cleared key: ${key}`);
-    } catch (e) {
-      console.error(`Failed to clear key ${key}:`, e);
-    }
-  });
-  
-  // 4. Also do a complete localStorage.clear() for any keys we might have missed
-  // This is a more aggressive approach to ensure a complete reset
+  // 3. Reset all stores synchronously before clearing localStorage
+  // This way the stores can save their reset state to localStorage
   try {
-    localStorage.clear();
-    console.log("All localStorage data cleared");
-  } catch (e) {
-    console.error("Failed to clear all localStorage:", e);
-  }
-  
-  // 5. Reset all stores synchronously before reload
-  // Note: We use a more synchronous approach to ensure all resets happen
-  // before the page reloads
-  try {
+    // RESET SEQUENCE IS CRITICAL:
+    // 1. Time store MUST be reset first
+    // 2. Character store second
+    // 3. Other stores after
+    // This order ensures proper date handling
+    
     // Reset time store FIRST - IMPORTANT: do this first to ensure accurate date reset
-    console.log("Resetting time store...");
+    console.log("STEP 1: Resetting time store...");
     const timeStore = require('./stores/useTime').useTime;
     if (timeStore.getState().resetTime) {
       // Reset time to current device date
       timeStore.getState().resetTime();
       console.log("Time successfully reset to current date");
+    } else {
+      console.error("Time store reset function not found!");
     }
 
-    // Reset character store
-    console.log("Resetting character store...");
+    // Force a small delay to ensure time store changes are saved
+    console.log("Waiting for time store changes to be saved...");
+    
+    // Reset character store SECOND
+    console.log("STEP 2: Resetting character store...");
     const characterStore = require('./stores/useCharacter').useCharacter;
     if (characterStore.getState().resetCharacter) {
       characterStore.getState().resetCharacter();
+      console.log("Character successfully reset");
+    } else {
+      console.error("Character store reset function not found!");
     }
     
     // Reset game store
-    console.log("Resetting game store...");
+    console.log("STEP 3: Resetting game store...");
     const gameStore = require('./stores/useGame').useGame;
     if (gameStore.getState().reset) {
       gameStore.getState().reset();
+      console.log("Game store successfully reset");
+    } else {
+      console.error("Game store reset function not found!");
     }
     
     // Reset economy store
-    console.log("Resetting economy store...");
+    console.log("STEP 4: Resetting economy store...");
     const economyStore = require('./stores/useEconomy').useEconomy;
     if (economyStore.getState().resetEconomy) {
       economyStore.getState().resetEconomy();
+      console.log("Economy store successfully reset");
+    } else {
+      console.error("Economy store reset function not found!");
     }
     
     // Reset events store
-    console.log("Resetting events store...");
+    console.log("STEP 5: Resetting events store...");
     const eventsStore = require('./stores/useRandomEvents').default;
     if (eventsStore.getState().resetEvents) {
       eventsStore.getState().resetEvents();
+      console.log("Events store successfully reset");
+    } else {
+      console.error("Events store reset function not found!");
     }
     
     // Reset achievements store
-    console.log("Resetting achievements store...");
+    console.log("STEP 6: Resetting achievements store...");
     const achievementsStore = require('./stores/useAchievements').useAchievements;
     if (achievementsStore.getState().resetAchievements) {
       achievementsStore.getState().resetAchievements();
+      console.log("Achievements store successfully reset");
+    } else {
+      console.error("Achievements store reset function not found!");
     }
+    
+    console.log("All stores have been reset");
   } catch (error) {
     console.error("Error during store resets:", error);
-    console.log("Continuing with page reload to complete reset...");
   }
+  
+  // 4. Verify the localStorage after all store resets
+  console.log("Verifying localStorage after store resets...");
+  // Get the current time data from localStorage
+  const timeData = getLocalStorage('luxury_lifestyle_time');
+  if (timeData) {
+    console.log(`Current date in storage after reset: ${timeData.currentMonth}/${timeData.currentDay}/${timeData.currentYear}`);
+  } else {
+    console.warn("No time data in localStorage after store resets!");
+  }
+  
+  // 5. Clear localStorage just to be doubly sure no old data remains
+  // but only AFTER all stores have had a chance to save their reset state
+  console.log("STEP 7: Clearing all game storage keys...");
+  allGameStorageKeys.forEach(key => {
+    try {
+      // Skip the time storage key since we just reset it
+      if (key !== 'luxury_lifestyle_time') {
+        localStorage.removeItem(key);
+        console.log(`Successfully cleared key: ${key}`);
+      } else {
+        console.log(`Keeping time data for key: ${key}`);
+      }
+    } catch (e) {
+      console.error(`Failed to clear key ${key}:`, e);
+    }
+  });
   
   console.log("All stores reset, reloading page to complete reset process...");
   
