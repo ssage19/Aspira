@@ -420,7 +420,7 @@ export function Essentials() {
     
     // Track if any actions were taken
     let actionsTaken = 0;
-    const maxActionsPerCycle = 8; // Increased maximum actions per maintenance cycle
+    const maxActionsPerCycle = 12; // Further increased maximum actions per maintenance cycle
     
     // Check and address all needs in order of priority
     
@@ -515,9 +515,9 @@ export function Essentials() {
   useEffect(() => {
     if (!autoMaintain) return;
     
-    // This will run the auto-maintenance check every 2 seconds
-    // Shorter interval to be more responsive to needs falling below 70%
-    const intervalId = setInterval(handleAutoMaintenance, 2000);
+    // This will run the auto-maintenance check every 1 second (increased frequency)
+    // More responsive to needs falling below thresholds
+    const intervalId = setInterval(handleAutoMaintenance, 1000);
     
     // Cleanup function to prevent memory leaks
     return () => clearInterval(intervalId);
@@ -548,7 +548,7 @@ export function Essentials() {
           </div>
           <p className="text-xs text-blue-600 italic">
             {autoMaintain ? 
-              "Needs will be automatically maintained when they drop below 70%, and stress will be managed when above 50%" : 
+              "Needs will be automatically maintained when they drop below 70%, and stress will be managed when above 50% (checks every second)" : 
               "You need to manually maintain your needs"}
           </p>
         </div>
