@@ -558,7 +558,10 @@ export default function Dashboard() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
-                                  // Properly reset all game state
+                                  // Clear all localStorage completely first
+                                  localStorage.clear();
+                                  
+                                  // Get reset functions from all stores
                                   const { reset } = useGame.getState();
                                   const { resetCharacter } = useCharacter.getState();
                                   const { resetTime } = useTime.getState();
@@ -566,10 +569,13 @@ export default function Dashboard() {
                                   const { resetEvents } = useRandomEvents.getState();
                                   const { resetAchievements } = useAchievements.getState();
                                   
-                                  // Clear ALL localStorage completely first
-                                  localStorage.clear();
+                                  // Reset local state values first
+                                  setStocksValue(0);
+                                  setPropertiesValue(0);
+                                  setLifestyleValue(0);
+                                  setNetWorth(10000); // Default starting cash
                                   
-                                  // Reset individual stores
+                                  // Reset all stores
                                   resetCharacter();
                                   resetTime();
                                   resetEconomy();
@@ -580,8 +586,10 @@ export default function Dashboard() {
                                   // Display a toast message
                                   toast.success("Game data has been completely reset");
                                   
-                                  // Navigate to character creation screen
+                                  // Force a complete browser reload after navigating 
+                                  // to ensure everything is reinitialized
                                   window.location.href = '/create';
+                                  setTimeout(() => window.location.reload(), 100);
                                 }} className="bg-red-500 hover:bg-red-600">
                                   Reset Game
                                 </AlertDialogAction>

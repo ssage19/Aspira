@@ -15,15 +15,15 @@ export function DebugPanel() {
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   
   const handleReset = () => {
+    // First, clear ALL localStorage completely
+    localStorage.clear();
+    
     // Get reset functions from all stores
     const { reset } = useGame.getState();
     const { resetTime } = useTime.getState();
     const { resetAchievements } = useAchievements.getState();
     const { resetEconomy } = useEconomy.getState();
     const { resetEvents } = useRandomEvents.getState();
-    
-    // Clear ALL localStorage keys completely
-    localStorage.clear();
     
     // Reset all game state properly in memory too
     resetCharacter();
@@ -33,9 +33,10 @@ export function DebugPanel() {
     resetEvents();
     reset();
     
-    // Force the browser to fully reload the page 
-    // which will reinstantiate all stores with their default values
+    // Force a complete browser reload (not just a navigation)
+    // This ensures all components and state are fully reinitialized
     window.location.href = '/create';
+    setTimeout(() => window.location.reload(), 100);
     
     // Hide confirmation dialog
     setShowResetConfirm(false);
