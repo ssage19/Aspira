@@ -120,6 +120,9 @@ interface CharacterState {
   energy: number;      // 0 = exhausted, 100 = energetic
   comfort: number;     // 0 = uncomfortable, 100 = comfortable
   
+  // State synchronization helper
+  lastUpdated?: number; // Timestamp to ensure state changes are noticed by all subscribers
+  
   // Transportation & Housing
   hasVehicle: boolean;
   vehicleType: 'none' | 'bicycle' | 'economy' | 'standard' | 'luxury' | 'premium';
@@ -254,6 +257,9 @@ const getDefaultCharacter = () => ({
   energy: 80,      // Start rested
   comfort: 70,     // Start reasonably comfortable
   
+  // State synchronization helper
+  lastUpdated: Date.now(),
+  
   // Transportation & Housing
   hasVehicle: false,
   vehicleType: 'none' as const,
@@ -372,6 +378,9 @@ export const useCharacter = create<CharacterState>()(
         // Ensure amount is a valid number
         const validAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
         
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           // Ensure wealth and netWorth are valid numbers
           const currentWealth = typeof state.wealth === 'number' && !isNaN(state.wealth) 
@@ -381,7 +390,9 @@ export const useCharacter = create<CharacterState>()(
                                 
           return { 
             wealth: currentWealth + validAmount,
-            netWorth: currentNetWorth + validAmount
+            netWorth: currentNetWorth + validAmount,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
           };
         });
         
@@ -401,75 +412,174 @@ export const useCharacter = create<CharacterState>()(
       
       // Attributes
       addHappiness: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newHappiness = Math.max(0, Math.min(100, state.happiness + amount));
-          return { happiness: newHappiness };
+          return { 
+            happiness: newHappiness,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
         });
         saveState();
       },
       
       addStress: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newStress = Math.max(0, Math.min(100, state.stress + amount));
-          return { stress: newStress };
+          return { 
+            stress: newStress,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
         });
         saveState();
       },
       
       addHealth: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newHealth = Math.max(0, Math.min(100, state.health + amount));
-          return { health: newHealth };
+          return { 
+            health: newHealth,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
         });
         saveState();
       },
       
       addPrestige: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newPrestige = Math.max(0, Math.min(100, state.prestige + amount));
-          return { prestige: newPrestige };
+          return { 
+            prestige: newPrestige,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
         });
         saveState();
       },
       
       updateSocialConnections: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newSocialConnections = Math.max(0, Math.min(100, state.socialConnections + amount));
-          return { socialConnections: newSocialConnections };
+          return { 
+            socialConnections: newSocialConnections,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
         });
         saveState();
       },
       
       // Basic needs
       updateHunger: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newHunger = Math.max(0, Math.min(100, state.hunger + amount));
-          return { hunger: newHunger };
+          // Include lastUpdated field to force subscribers to recognize changes
+          return { 
+            hunger: newHunger,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp 
+          };
         });
+        
+        // Log a message that will help with debugging
+        if (amount < 0) {
+          console.log(`Auto-maintenance consumed food, new hunger: ${get().hunger}`);
+        } else if (amount > 0) {
+          console.log(`Food consumed, new hunger: ${get().hunger}`);
+        }
+        
         saveState();
       },
       
       updateThirst: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newThirst = Math.max(0, Math.min(100, state.thirst + amount));
-          return { thirst: newThirst };
+          // Include lastUpdated field to force subscribers to recognize changes
+          return { 
+            thirst: newThirst,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp 
+          };
         });
+        
+        // Log a message that will help with debugging
+        if (amount < 0) {
+          console.log(`Auto-maintenance consumed drink, new thirst: ${get().thirst}`);
+        } else if (amount > 0) {
+          console.log(`Drink consumed, new thirst: ${get().thirst}`);
+        }
+        
         saveState();
       },
       
       updateEnergy: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newEnergy = Math.max(0, Math.min(100, state.energy + amount));
-          return { energy: newEnergy };
+          // Include lastUpdated field to force subscribers to recognize changes
+          return { 
+            energy: newEnergy,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp 
+          };
         });
+        
+        // Log a message that will help with debugging
+        if (amount < 0) {
+          console.log(`Energy decreased, new energy: ${get().energy}`);
+        } else if (amount > 0) {
+          console.log(`Energy increased, new energy: ${get().energy}`);
+        }
+        
         saveState();
       },
       
       updateComfort: (amount) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
         set((state) => {
           const newComfort = Math.max(0, Math.min(100, state.comfort + amount));
-          return { comfort: newComfort };
+          // Include lastUpdated field to force subscribers to recognize changes
+          return { 
+            comfort: newComfort,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp 
+          };
         });
+        
+        // Log a message that will help with debugging
+        if (amount < 0) {
+          console.log(`Comfort decreased, new comfort: ${get().comfort}`);
+        } else if (amount > 0) {
+          console.log(`Comfort increased, new comfort: ${get().comfort}`);
+        }
+        
         saveState();
       },
       
@@ -1737,8 +1847,19 @@ if (typeof window !== 'undefined') {
 
 // Helper function to save the current state to localStorage
 function saveState() {
+  // Get the current state
   const state = useCharacter.getState();
-  setLocalStorage(STORAGE_KEY, state);
+  
+  // Update the lastUpdated timestamp if needed
+  const currentTimestamp = Date.now();
+  if (!state.lastUpdated || (currentTimestamp - state.lastUpdated) > 500) {
+    // Only update timestamp if it's null or older than 500ms to reduce unnecessary updates
+    useCharacter.setState({ lastUpdated: currentTimestamp });
+  }
+  
+  // Save the updated state
+  const updatedState = useCharacter.getState();
+  setLocalStorage(STORAGE_KEY, updatedState);
 }
 
 export default useCharacter;
