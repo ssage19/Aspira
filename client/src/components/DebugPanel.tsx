@@ -22,14 +22,8 @@ export function DebugPanel() {
     const { resetEconomy } = useEconomy.getState();
     const { resetEvents } = useRandomEvents.getState();
     
-    // Clear all localStorage keys
-    localStorage.removeItem('business-empire-character');
-    localStorage.removeItem('business-empire-game');
-    localStorage.removeItem('luxury_lifestyle_time');
-    localStorage.removeItem('business-empire-economy');
-    localStorage.removeItem('business-empire-claimed-rewards');
-    localStorage.removeItem('business-empire-events');
-    localStorage.removeItem('auto-maintain-needs');
+    // Clear ALL localStorage keys completely
+    localStorage.clear();
     
     // Reset all game state properly in memory too
     resetCharacter();

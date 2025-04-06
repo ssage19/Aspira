@@ -566,7 +566,10 @@ export default function Dashboard() {
                                   const { resetEvents } = useRandomEvents.getState();
                                   const { resetAchievements } = useAchievements.getState();
                                   
-                                  // Reset individual stores first
+                                  // Clear ALL localStorage completely first
+                                  localStorage.clear();
+                                  
+                                  // Reset individual stores
                                   resetCharacter();
                                   resetTime();
                                   resetEconomy();
@@ -574,13 +577,10 @@ export default function Dashboard() {
                                   resetAchievements();
                                   reset();
                                   
-                                  // Clear all localStorage to ensure clean state
-                                  localStorage.clear();
-                                  
                                   // Display a toast message
-                                  toast.success("Game data has been reset successfully");
+                                  toast.success("Game data has been completely reset");
                                   
-                                  // Navigate to character creation
+                                  // Navigate to character creation screen
                                   window.location.href = '/create';
                                 }} className="bg-red-500 hover:bg-red-600">
                                   Reset Game
