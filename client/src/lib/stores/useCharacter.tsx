@@ -1611,6 +1611,50 @@ export const useCharacter = create<CharacterState>()(
       calculateNetWorth: () => {
         const state = get();
         
+        // Check for reset conditions first
+        const resetInProgress = typeof window !== 'undefined' && 
+                               window.sessionStorage && 
+                               window.sessionStorage.getItem('game_reset_in_progress') === 'true';
+                               
+        const gameResetCompleted = typeof window !== 'undefined' && 
+                                  window.sessionStorage && 
+                                  window.sessionStorage.getItem('game_reset_completed') === 'true';
+        
+        // If we're in the middle of a reset, just return a simple calculation
+        if (resetInProgress || gameResetCompleted) {
+          console.log('NetWorth calculation: Reset in progress, using simplified calculation');
+          
+          // Create a basic breakdown with just cash
+          const resetBreakdown = {
+            cash: state.wealth,
+            stocks: 0,
+            crypto: 0,
+            bonds: 0,
+            otherInvestments: 0,
+            propertyEquity: 0,
+            propertyValue: 0,
+            propertyDebt: 0,
+            lifestyleItems: 0,
+            total: state.wealth
+          };
+          
+          // Store this basic breakdown
+          (state as any).netWorthBreakdown = resetBreakdown;
+          
+          // Also clear any cached version in localStorage
+          try {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('business-empire-networth-breakdown');
+            }
+          } catch (e) {
+            console.error('Error clearing breakdown from localStorage:', e);
+          }
+          
+          return state.wealth;
+        }
+        
+        // Normal calculation path for non-reset situations
+        
         // Start with cash (liquid assets)
         let netWorth = state.wealth;
         
@@ -1731,8 +1775,71 @@ export const useCharacter = create<CharacterState>()(
       
       // Getter for the net worth breakdown
       getNetWorthBreakdown: () => {
-        return (get() as any).netWorthBreakdown || {
-          cash: get().wealth,
+        const state = get();
+        
+        // First, check for reset conditions that would indicate we should return empty data
+        // We use sessionStorage to check global app state
+        const resetInProgress = typeof window !== 'undefined' && 
+                               window.sessionStorage && 
+                               window.sessionStorage.getItem('game_reset_in_progress') === 'true';
+        
+        const forceCurrentDate = typeof window !== 'undefined' && 
+                                window.sessionStorage && 
+                                window.sessionStorage.getItem('force_current_date') === 'true';
+                                
+        const gameResetCompleted = typeof window !== 'undefined' && 
+                                  window.sessionStorage && 
+                                  window.sessionStorage.getItem('game_reset_completed') === 'true';
+        
+        // If any reset conditions are active, return a safe default
+        if (resetInProgress || forceCurrentDate || gameResetCompleted) {
+          console.log('Character store: Reset condition detected, returning default breakdown');
+          
+          // Also nullify any stored breakdown if it exists
+          if ((state as any).netWorthBreakdown) {
+            console.log('Character store: Explicitly nullifying cached breakdown due to reset');
+            (state as any).netWorthBreakdown = null;
+            
+            // Also try to remove from localStorage
+            try {
+              if (typeof window !== 'undefined') {
+                localStorage.removeItem('business-empire-networth-breakdown');
+              }
+            } catch (e) {
+              console.error('Error removing breakdown from localStorage:', e);
+            }
+          }
+          
+          return {
+            cash: state.wealth,
+            stocks: 0,
+            crypto: 0,
+            bonds: 0,
+            otherInvestments: 0,
+            propertyEquity: 0,
+            propertyValue: 0,
+            propertyDebt: 0,
+            lifestyleItems: 0,
+            total: state.wealth
+          };
+        }
+        
+        // Check if stored breakdown is valid - cash should match current wealth
+        if ((state as any).netWorthBreakdown && 
+            typeof (state as any).netWorthBreakdown === 'object' &&
+            'total' in (state as any).netWorthBreakdown) {
+            
+          // Check if cash value is out of sync with current wealth
+          if (Math.abs((state as any).netWorthBreakdown.cash - state.wealth) > 0.01) {
+            console.log('Character store: Cash value in breakdown out of sync, forcing recalculation');
+            // Force recalculation
+            state.calculateNetWorth();
+          }
+        }
+        
+        // Return current breakdown or default
+        return (state as any).netWorthBreakdown || {
+          cash: state.wealth,
           stocks: 0,
           crypto: 0,
           bonds: 0,
@@ -1741,7 +1848,7 @@ export const useCharacter = create<CharacterState>()(
           propertyValue: 0,
           propertyDebt: 0,
           lifestyleItems: 0, // Include lifestyle items in the default response
-          total: get().wealth
+          total: state.wealth
         };
       },
       

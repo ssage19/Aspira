@@ -45,14 +45,31 @@ export function NetWorthBreakdown() {
   const refreshBreakdown = useCallback(() => {
     console.log('NetWorthBreakdown: Refreshing breakdown data');
     
-    // Safety check - if we're in the middle of a reset, use default values
-    // This prevents using stale data during reset transitions
+    // Check for ANY reset-related flags that might indicate stale data
     const resetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
-    if (resetInProgress) {
-      console.log('NetWorthBreakdown: Reset in progress, using default values');
+    const resetCompleted = sessionStorage.getItem('game_reset_completed') === 'true';
+    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    
+    // If ANY of these conditions are true, we should use default values
+    if (resetInProgress || resetCompleted || forceCurrentDate || blockTimeLoads) {
+      console.log('NetWorthBreakdown: Reset condition detected, using default values');
+      
+      // Explicitly remove any stored data from localStorage
+      try {
+        localStorage.removeItem('business-empire-networth-breakdown');
+        console.log('NetWorthBreakdown: Removed any stored breakdown data');
+      } catch (e) {
+        console.error('Error clearing stored breakdown:', e);
+      }
+      
+      // Set to the most basic safe values - just cash equals total
       const safeBreakdown = { ...defaultBreakdown, cash: wealth || 0, total: wealth || 0 };
       setBreakdown(safeBreakdown);
       setNetWorth(wealth || 0);
+      
+      // Log details about what we're doing
+      console.log(`NetWorthBreakdown: Using safe default values - cash: ${wealth}, total: ${wealth}`);
       return;
     }
     
@@ -134,30 +151,54 @@ export function NetWorthBreakdown() {
   
   // Additional effect that runs once on mount to ensure fresh data
   useEffect(() => {
-    // Check if we need to clear any session storage flags after a reset
-    const resetCompleted = sessionStorage.getItem('game_reset_completed');
-    const smoothNavigation = sessionStorage.getItem('smooth_navigation');
+    // Check for various reset/refresh flags
+    const resetCompleted = sessionStorage.getItem('game_reset_completed') === 'true';
+    const smoothNavigation = sessionStorage.getItem('smooth_navigation') === 'true';
+    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    const gameResetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
     
-    if (resetCompleted === 'true' || smoothNavigation === 'true') {
-      console.log('NetWorthBreakdown: Detected recent game reset or navigation, ensuring fresh data');
+    // Any of these conditions indicate we need a refresh
+    if (resetCompleted || smoothNavigation || forceCurrentDate || blockTimeLoads || gameResetInProgress) {
+      console.log('NetWorthBreakdown: Detected reset condition, performing thorough refresh');
       
-      // Force multiple refreshes to ensure data is completely updated
-      // This helps with race conditions during resets
+      // First, force an immediate recalculation with default values
+      setBreakdown({...defaultBreakdown, cash: wealth, total: wealth});
+      setNetWorth(wealth);
+      
+      // Then schedule multiple refreshes at different intervals
+      // This ensures we catch any delayed state updates
       refreshBreakdown();
       
-      // Schedule additional refreshes with small delays to catch any late updates
-      const timer1 = setTimeout(() => refreshBreakdown(), 500);
-      const timer2 = setTimeout(() => refreshBreakdown(), 1500);
+      const timers = [
+        setTimeout(() => refreshBreakdown(), 100),
+        setTimeout(() => refreshBreakdown(), 500),
+        setTimeout(() => refreshBreakdown(), 1500),
+        setTimeout(() => {
+          // Force a final recalculation explicitly
+          try {
+            // Direct recalculation from scratch
+            calculateNetWorth();
+            
+            // Force one last refresh
+            refreshBreakdown();
+            
+            console.log('NetWorthBreakdown: Final refresh completed');
+          } catch (e) {
+            console.error('Error during final refresh:', e);
+          }
+        }, 2500)
+      ];
       
       // Clear the flags to avoid repeated refreshes
       sessionStorage.removeItem('game_reset_completed');
       
       return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
+        // Clean up all timers
+        timers.forEach(timer => clearTimeout(timer));
       };
     }
-  }, [refreshBreakdown]);
+  }, [refreshBreakdown, calculateNetWorth, wealth]);
 
   // Prepare chart data - now include lifestyle items
   const chartData = {
