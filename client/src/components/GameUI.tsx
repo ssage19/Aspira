@@ -325,6 +325,18 @@ export function GameUI() {
             console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
           }
           
+          // Calculate summary information for the toast
+          const characterState = useCharacter.getState();
+          const propertyIncome = characterState.properties.reduce((total, property) => 
+            total + property.income, 0);
+          const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
+            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+            return total + monthlyCost;
+          }, 0);
+          const job = characterState.job;
+          const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+          const monthlyNet = propertyIncome + monthlySalary - lifestyleExpenses;
+          
           // Show the end-of-month summary toast
           toast(
             <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
@@ -473,8 +485,7 @@ export function GameUI() {
         console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
       }
       
-      // Calculate the summary values for the toast even if we didn't deduct expenses
-      // (we still want to show the monthly summary)
+      // Calculate the summary values for the toast
       const characterState = useCharacter.getState();
       const propertyIncome = characterState.properties.reduce((total, property) => 
         total + property.income, 0);
