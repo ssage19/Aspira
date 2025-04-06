@@ -51,39 +51,39 @@
   }
 
   .dark {
-    /* Bert Theme - Dark Mode */
-    --background: 200 33% 17%; /* #1F2833 */
-    --foreground: 184 2% 78%; /* #C5C8C7 */
+    /* Solarin Theme - Dark Mode based on the attached image */
+    --background: 194 41% 15%; /* #2C3531 - dark teal background */
+    --foreground: 180 6% 95%; /* #F2F2F2 - light text color */
 
-    --muted: 200 33% 27%;
-    --muted-foreground: 184 2% 78%; /* #C5C8C7 */
+    --muted: 194 41% 20%;
+    --muted-foreground: 180 6% 85%; /* Slightly darker than foreground */
 
-    --accent: 178 93% 72%; /* #66FCF1 */
-    --accent-foreground: 200 33% 17%; /* #1F2833 */
+    --accent: 176 56% 57%; /* #116466 - teal accent */
+    --accent-foreground: 180 6% 95%; /* Light text */
 
-    --popover: 200 33% 12%;
-    --popover-foreground: 184 2% 78%; /* #C5C8C7 */
+    --popover: 194 41% 12%;
+    --popover-foreground: 180 6% 95%; /* Light text */
 
-    --border: 200 33% 25%;
-    --input: 200 33% 25%;
+    --border: 176 56% 57%; /* #116466 - teal accent for borders */
+    --input: 180 6% 18%; /* Dark input fields */
 
-    --card: 200 33% 12%;
-    --card-foreground: 184 2% 78%;
+    --card: 194 41% 10%; /* Darker card background */
+    --card-foreground: 180 6% 95%;
 
-    --primary: 178 93% 72%; /* #66FCF1 */
-    --primary-foreground: 200 33% 17%; /* #1F2833 */
+    --primary: 176 56% 57%; /* #116466 - teal primary color */
+    --primary-foreground: 180 6% 95%; /* Light text */
 
-    --secondary: 177 52% 48%; /* #45A29E */
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 24 43% 58%; /* #D9B08C - copper/sand color from image */
+    --secondary-foreground: 0 0% 10%; /* Dark text on secondary */
 
-    --tertiary: 180 100% 41%; /* #0BD0C10 (without the extra 0) */
-    --tertiary-foreground: 0 0% 100%;
+    --tertiary: 34 33% 82%; /* #FFCB9A - lighter sand color */
+    --tertiary-foreground: 0 0% 10%; /* Dark text */
   
-    --quaternary: 200 33% 27%; /* Darker variant of #1F2833 */
+    --quaternary: 169 35% 49%; /* #116466 darker variant */
     --quaternary-foreground: 0 0% 100%;
 
-    --quinary: 200 33% 17%; /* #1F2833 */
-    --quinary-foreground: 178 93% 72%; /* #66FCF1 */
+    --quinary: 177 16% 22%; /* #D1E8E2 - aqua/mint color */
+    --quinary-foreground: 169 42% 87%; /* Light mint text */
 
     --destructive: 0 91% 42%;
     --destructive-foreground: 0 0% 100%;
@@ -101,27 +101,27 @@
     --sidebar-ring: 178 93% 72%; /* #66FCF1 */
     
     /* Chart colors */
-    --chart-1: 178 93% 72%; /* #66FCF1 */
-    --chart-2: 177 52% 48%; /* #45A29E */
-    --chart-3: 180 100% 41%; /* #0BD0C10 */
-    --chart-4: 200 33% 27%; /* Darker variant of #1F2833 */
-    --chart-5: 200 33% 17%; /* #1F2833 */
+    --chart-1: 176 56% 57%; /* #116466 - teal primary */
+    --chart-2: 24 43% 58%; /* #D9B08C - copper/sand color */
+    --chart-3: 34 33% 82%; /* #FFCB9A - lighter sand color */
+    --chart-4: 194 41% 15%; /* #2C3531 - dark teal */
+    --chart-5: 169 42% 87%; /* #D1E8E2 - mint color */
     
-    /* Achievement category colors - Bert theme */
-    --wealth-color-start: #66FCF1;
-    --wealth-color-end: #45A29E;
-    --property-color-start: #45A29E;
-    --property-color-end: #1F2833;
-    --investment-color-start: #66FCF1;
-    --investment-color-end: #0BD0C1;
-    --lifestyle-color-start: #0BD0C1;
-    --lifestyle-color-end: #45A29E;
-    --general-color-start: #1F2833;
+    /* Achievement category colors - Solarin theme */
+    --wealth-color-start: #116466;
+    --wealth-color-end: #D9B08C;
+    --property-color-start: #D9B08C;
+    --property-color-end: #2C3531;
+    --investment-color-start: #116466;
+    --investment-color-end: #FFCB9A;
+    --lifestyle-color-start: #FFCB9A;
+    --lifestyle-color-end: #D9B08C;
+    --general-color-start: #2C3531;
     --general-color-end: #0B0C10;
-    --challenge-color-start: #45A29E;
-    --challenge-color-end: #1F2833;
-    --strategy-color-start: #66FCF1;
-    --strategy-color-end: #0BD0C1;
+    --challenge-color-start: #D9B08C;
+    --challenge-color-end: #2C3531;
+    --strategy-color-start: #116466;
+    --strategy-color-end: #D1E8E2;
   }
 
   * {
@@ -157,7 +157,30 @@ canvas {
 }
 
 .dark .glass-effect {
-  @apply bg-opacity-20 backdrop-blur-lg backdrop-filter border-opacity-30 bg-black border-zinc-800 shadow-lg;
+  @apply bg-opacity-10 backdrop-blur-md backdrop-filter border-opacity-20 bg-black border-primary/30 shadow-md;
+  box-shadow: 0 4px 30px rgba(17, 100, 102, 0.1), inset 0 0 10px rgba(17, 100, 102, 0.05);
+}
+
+/* Futuristic card effect */
+.futuristic-card {
+  @apply relative overflow-hidden rounded-lg border border-primary/20 bg-background/80 p-4 backdrop-blur-sm;
+  box-shadow: 0 4px 20px rgba(17, 100, 102, 0.1);
+}
+
+.futuristic-card::before {
+  content: '';
+  @apply absolute -inset-1 bg-gradient-to-r from-transparent via-primary/10 to-transparent opacity-50 blur-sm;
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.futuristic-card::after {
+  content: '';
+  @apply absolute top-0 left-0 h-px w-full bg-gradient-to-r from-transparent via-primary to-transparent opacity-70;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.7; }
 }
 
 /* Card hover animations */
@@ -167,11 +190,11 @@ canvas {
 
 /* Gradient texts */
 .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#66FCF1] to-[#45A29E];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#116466] to-[#D9B08C];
 }
 
 .dark .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#66FCF1] to-[#0BD0C1];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#116466] to-[#FFCB9A];
 }
 
 /* Button animations */

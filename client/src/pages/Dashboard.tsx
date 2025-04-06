@@ -356,7 +356,7 @@ export default function Dashboard() {
     });
   
   return (
-    <div className="w-full min-h-screen bg-background dark:bg-[#1F2833] pt-20 pb-32">
+    <div className="w-full min-h-screen bg-background pt-20 pb-32">
       {/* 3D Scene - Fixed Position */}
       <div className="fixed inset-0 z-0">
         <MainScene />
@@ -368,12 +368,16 @@ export default function Dashboard() {
         
         {/* Central Dashboard - scrollable */}
         <div className="relative w-full max-w-5xl mx-auto p-6">
-          <Card className="glass-effect border card-hover shadow-2xl rounded-xl">
-            <CardHeader className="pb-2">
+          <Card className="backdrop-blur-md border-primary/30 bg-background/40 card-hover shadow-lg rounded-xl overflow-hidden">
+            {/* Futuristic glow elements */}
+            <div className="absolute -bottom-2 -right-2 h-32 w-32 bg-primary/20 blur-3xl rounded-full"></div>
+            <div className="absolute -top-2 -left-2 h-24 w-24 bg-secondary/20 blur-3xl rounded-full"></div>
+            
+            <CardHeader className="pb-2 border-b border-primary/10">
               <CardTitle className="text-3xl flex justify-between items-center font-bold">
                 <span className="gradient-text">Welcome, {name}</span>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
-                  <TabsList className="bg-accent">
+                  <TabsList className="bg-background/50 backdrop-blur-md border border-primary/20">
                     <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
                     <TabsTrigger value="settings" className="text-sm flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
                       <Settings className="h-3.5 w-3.5 mr-1" />
@@ -383,17 +387,17 @@ export default function Dashboard() {
                 </Tabs>
               </CardTitle>
               <CardDescription className="text-muted-foreground flex items-center space-x-2 flex-wrap">
-                <Calendar className="h-4 w-4" />
+                <Calendar className="h-4 w-4 text-primary" />
                 <span>{formattedDate}</span>
-                <span className="px-2">•</span>
+                <span className="px-2 text-primary/60">•</span>
                 <span className={`px-2 py-1 rounded-full text-xs ${
-                  economyState === 'boom' ? 'bg-green-500/20 text-green-500' : 
-                  economyState === 'recession' ? 'bg-red-500/20 text-red-500' : 
-                  'bg-blue-500/20 text-blue-500'
+                  economyState === 'boom' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
+                  economyState === 'recession' ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 
+                  'bg-blue-500/20 text-blue-500 border border-blue-500/30'
                 }`}>
                   {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
                 </span>
-                <span className="px-2">•</span>
+                <span className="px-2 text-primary/60">•</span>
                 <ActiveEventsIndicator />
               </CardDescription>
             </CardHeader>
@@ -403,16 +407,19 @@ export default function Dashboard() {
                 <TabsContent value="overview" className="mt-0 p-0">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     {/* Wealth Overview */}
-                    <Card className="glass-effect border-accent shadow-md">
-                      <CardHeader className="py-3">
+                    <Card className="futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                      {/* Glow effect */}
+                      <div className="absolute -bottom-2 -right-2 h-16 w-16 bg-green-500/30 blur-2xl rounded-full"></div>
+                      
+                      <CardHeader className="py-3 border-b border-primary/10">
                         <CardTitle className="text-lg flex items-center">
-                          <div className="mr-3 p-2 rounded-full bg-green-400/10">
+                          <div className="mr-3 p-2 rounded-full bg-green-400/10 border border-green-400/20">
                             <DollarSign className="h-5 w-5 text-green-400" />
                           </div>
                           <span className="text-primary font-medium">Wealth Overview</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="py-2">
+                      <CardContent className="py-4">
                         <div className="space-y-4">
                           <div className="flex justify-between items-center">
                             <span className="text-muted-foreground">Cash:</span>
@@ -422,12 +429,12 @@ export default function Dashboard() {
                             <span className="text-muted-foreground">Net Worth:</span>
                             <span className="font-semibold text-lg">{formatCurrency(netWorth)}</span>
                           </div>
-                          <div className="flex justify-between items-center bg-secondary/40 p-2 rounded-lg">
+                          <div className="flex justify-between items-center backdrop-blur-sm p-3 rounded-lg border border-primary/20 bg-primary/5">
                             <span className="text-sm text-muted-foreground">Portfolio Growth:</span>
                             <span className={`text-sm font-medium px-2 py-1 rounded-full ${
                               netWorth > wealth 
-                                ? "bg-green-500/20 text-green-500" 
-                                : "bg-red-500/20 text-red-500"
+                                ? "bg-green-500/20 text-green-500 border border-green-500/30" 
+                                : "bg-red-500/20 text-red-500 border border-red-500/30"
                             }`}>
                               {((netWorth / Math.max(wealth, 1) - 1) * 100).toFixed(1)}%
                             </span>
@@ -437,16 +444,19 @@ export default function Dashboard() {
                     </Card>
                     
                     {/* Status Overview */}
-                    <Card className="glass-effect border-accent shadow-md">
-                      <CardHeader className="py-3">
+                    <Card className="futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                      {/* Glow effect */}
+                      <div className="absolute -bottom-2 -left-2 h-16 w-16 bg-amber-500/30 blur-2xl rounded-full"></div>
+                      
+                      <CardHeader className="py-3 border-b border-primary/10">
                         <CardTitle className="text-lg flex items-center">
-                          <div className="mr-3 p-2 rounded-full bg-amber-400/10">
+                          <div className="mr-3 p-2 rounded-full bg-amber-400/10 border border-amber-400/20">
                             <Crown className="h-5 w-5 text-amber-400" />
                           </div>
                           <span className="text-primary font-medium">Status Overview</span>
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="py-2">
+                      <CardContent className="py-4">
                         <div className="space-y-5">
                           <div>
                             <div className="flex justify-between mb-2">
@@ -454,10 +464,10 @@ export default function Dashboard() {
                                 <HeartPulse className="h-4 w-4 mr-2 text-pink-400" />
                                 Happiness
                               </span>
-                              <span className="text-sm font-medium bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full">{happiness}%</span>
+                              <span className="text-sm font-medium bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full border border-pink-500/20">{happiness}%</span>
                             </div>
                             <div className="relative pt-1">
-                              <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                              <div className="overflow-hidden h-2 text-xs flex rounded backdrop-blur-sm bg-secondary/20 border border-primary/10">
                                 <div style={{ width: `${happiness}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-pink-400 to-pink-600 rounded"></div>
                               </div>
                             </div>
@@ -468,10 +478,10 @@ export default function Dashboard() {
                                 <Crown className="h-4 w-4 mr-2 text-amber-400" />
                                 Prestige
                               </span>
-                              <span className="text-sm font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full">{prestige} points</span>
+                              <span className="text-sm font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full border border-amber-500/20">{prestige} points</span>
                             </div>
                             <div className="relative pt-1">
-                              <div className="overflow-hidden h-2 text-xs flex rounded bg-secondary/40">
+                              <div className="overflow-hidden h-2 text-xs flex rounded backdrop-blur-sm bg-secondary/20 border border-primary/10">
                                 <div style={{ width: `${Math.min(prestige, 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-400 to-amber-600 rounded"></div>
                               </div>
                             </div>
@@ -482,15 +492,22 @@ export default function Dashboard() {
                   </div>
                   
                   {/* Character Attributes Section */}
-                  <Card className="mb-8 glass-effect border-accent shadow-md">
+                  <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-6 right-1/4 h-16 w-16 bg-primary/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-6 left-1/4 h-16 w-16 bg-tertiary/30 blur-2xl rounded-full"></div>
                     <CharacterAttributes />
                   </Card>
                   
                   {/* Portfolio Breakdown */}
-                  <Card className="mb-8 glass-effect border-accent shadow-md">
-                    <CardHeader className="py-3">
+                  <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-4 left-1/3 h-16 w-16 bg-blue-500/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-4 right-1/3 h-16 w-16 bg-purple-500/30 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
                       <CardTitle className="text-lg flex items-center">
-                        <div className="mr-3 p-2 rounded-full bg-blue-400/10">
+                        <div className="mr-3 p-2 rounded-full bg-blue-400/10 border border-blue-400/20">
                           <Briefcase className="h-5 w-5 text-blue-400" />
                         </div>
                         <span className="text-primary font-medium">Portfolio Breakdown</span>
@@ -498,46 +515,50 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
-                          <div className="bg-green-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-green-400/20 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute top-1 right-1 h-8 w-8 bg-green-400/20 blur-xl rounded-full"></div>
+                          <div className="bg-green-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-400/20">
                             <DollarSign className="h-6 w-6 text-green-400" />
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">Cash</p>
                           <p className="font-semibold text-lg">{formatCurrency(wealth)}</p>
-                          <div className="mt-2 text-xs px-2 py-1 bg-green-400/10 text-green-400 rounded-full inline-block">
+                          <div className="mt-2 text-xs px-2 py-1 bg-green-400/10 text-green-400 rounded-full inline-block border border-green-400/20">
                             {((wealth / netWorth) * 100).toFixed(1)}% of total
                           </div>
                         </div>
                         
-                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
-                          <div className="bg-blue-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-blue-400/20 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute top-1 right-1 h-8 w-8 bg-blue-400/20 blur-xl rounded-full"></div>
+                          <div className="bg-blue-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-400/20">
                             <ChartBar className="h-6 w-6 text-blue-400" />
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">Stocks</p>
                           <p className="font-semibold text-lg">{formatCurrency(stocksValue)}</p>
-                          <div className="mt-2 text-xs px-2 py-1 bg-blue-400/10 text-blue-400 rounded-full inline-block">
+                          <div className="mt-2 text-xs px-2 py-1 bg-blue-400/10 text-blue-400 rounded-full inline-block border border-blue-400/20">
                             {((stocksValue / netWorth) * 100).toFixed(1)}% of total
                           </div>
                         </div>
                         
-                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
-                          <div className="bg-purple-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-purple-400/20 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute top-1 right-1 h-8 w-8 bg-purple-400/20 blur-xl rounded-full"></div>
+                          <div className="bg-purple-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-purple-400/20">
                             <Home className="h-6 w-6 text-purple-400" />
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">Properties</p>
                           <p className="font-semibold text-lg">{formatCurrency(propertiesValue)}</p>
-                          <div className="mt-2 text-xs px-2 py-1 bg-purple-400/10 text-purple-400 rounded-full inline-block">
+                          <div className="mt-2 text-xs px-2 py-1 bg-purple-400/10 text-purple-400 rounded-full inline-block border border-purple-400/20">
                             {((propertiesValue / netWorth) * 100).toFixed(1)}% of total
                           </div>
                         </div>
                         
-                        <div className="text-center p-4 bg-secondary/30 backdrop-blur-sm rounded-lg glass-effect card-hover border border-secondary/10">
-                          <div className="bg-amber-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-amber-400/20 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute top-1 right-1 h-8 w-8 bg-amber-400/20 blur-xl rounded-full"></div>
+                          <div className="bg-amber-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-400/20">
                             <Crown className="h-6 w-6 text-amber-400" />
                           </div>
                           <p className="text-sm text-muted-foreground mb-1">Lifestyle</p>
                           <p className="font-semibold text-lg">{formatCurrency(lifestyleValue)}</p>
-                          <div className="mt-2 text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full inline-block">
+                          <div className="mt-2 text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full inline-block border border-amber-400/20">
                             {((lifestyleValue / netWorth) * 100).toFixed(1)}% of total
                           </div>
                         </div>
@@ -546,10 +567,14 @@ export default function Dashboard() {
                   </Card>
                   
                   {/* Monthly Financial Report */}
-                  <Card className="mb-8 glass-effect border-accent shadow-md">
-                    <CardHeader className="py-3">
+                  <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-4 right-1/4 h-16 w-16 bg-quaternary/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-4 left-1/4 h-16 w-16 bg-green-500/20 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
                       <CardTitle className="text-lg flex items-center">
-                        <div className="mr-3 p-2 rounded-full bg-quaternary/10">
+                        <div className="mr-3 p-2 rounded-full bg-quaternary/10 border border-quaternary/20">
                           <DollarSign className="h-5 w-5 text-quaternary" />
                         </div>
                         <span className="text-primary font-medium">Monthly Financial Report</span>
@@ -558,7 +583,8 @@ export default function Dashboard() {
                     <CardContent className="py-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Income Section */}
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-green-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-16 w-16 bg-green-500/20 blur-xl rounded-full"></div>
                           <h3 className="text-lg font-semibold mb-3 flex items-center">
                             <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
                             Monthly Income
@@ -641,7 +667,8 @@ export default function Dashboard() {
                         </div>
                         
                         {/* Expenses Section */}
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-red-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-16 w-16 bg-red-500/20 blur-xl rounded-full"></div>
                           <h3 className="text-lg font-semibold mb-3 flex items-center">
                             <TrendingUp className="h-4 w-4 mr-2 text-red-500 transform rotate-180" />
                             Monthly Expenses
@@ -777,9 +804,11 @@ export default function Dashboard() {
                       </div>
                       
                       {/* Monthly Balance */}
-                      <div className="mt-6 p-4 rounded-lg glass-effect border border-secondary/10 bg-primary/5">
+                      <div className="mt-6 p-4 rounded-lg futuristic-card border border-primary/20 bg-primary/5 relative overflow-hidden backdrop-blur-md">
+                        <div className="absolute -top-4 left-1/3 h-16 w-16 bg-primary/30 blur-xl rounded-full"></div>
+                        <div className="absolute bottom-4 right-1/3 h-16 w-16 bg-secondary/30 blur-xl rounded-full"></div>
                         <div className="flex justify-between items-center">
-                          <span className="font-semibold text-lg">Monthly Cash Flow</span>
+                          <span className="font-semibold text-lg gradient-text">Monthly Cash Flow</span>
                           
                           {/* Calculate monthly income */}
                           {(() => {
@@ -840,10 +869,14 @@ export default function Dashboard() {
                   </Card>
                   
                   {/* Achievements */}
-                  <Card className="glass-effect border-accent shadow-md mb-8">
-                    <CardHeader className="py-3">
+                  <Card className="futuristic-card border-primary/30 shadow-lg mb-8 relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-4 left-1/4 h-16 w-16 bg-yellow-500/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-4 right-1/4 h-16 w-16 bg-yellow-500/20 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
                       <CardTitle className="text-lg flex items-center">
-                        <div className="mr-3 p-2 rounded-full bg-yellow-400/10">
+                        <div className="mr-3 p-2 rounded-full bg-yellow-400/10 border border-yellow-400/20">
                           <Trophy className="h-5 w-5 text-yellow-400" />
                         </div>
                         <span className="text-primary font-medium">Recent Achievements</span>
@@ -864,10 +897,14 @@ export default function Dashboard() {
                   </Card>
                   
                   {/* Market Indicators */}
-                  <Card className="glass-effect border-accent shadow-md mb-4">
-                    <CardHeader className="py-3">
+                  <Card className="futuristic-card border-primary/30 shadow-lg mb-4 relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-4 right-1/4 h-16 w-16 bg-blue-500/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-4 left-1/4 h-16 w-16 bg-tertiary/30 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
                       <CardTitle className="text-lg flex items-center">
-                        <div className="mr-3 p-2 rounded-full bg-blue-400/10">
+                        <div className="mr-3 p-2 rounded-full bg-blue-400/10 border border-blue-400/20">
                           <TrendingUp className="h-5 w-5 text-blue-400" />
                         </div>
                         <span className="text-primary font-medium">Market Indicators</span>
@@ -875,9 +912,10 @@ export default function Dashboard() {
                     </CardHeader>
                     <CardContent className="py-4">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-blue-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-12 w-12 bg-blue-500/20 blur-xl rounded-full"></div>
                           <p className="text-sm text-muted-foreground mb-3 flex items-center">
-                            <ChartBar className="h-4 w-4 mr-2" />
+                            <ChartBar className="h-4 w-4 mr-2 text-blue-500" />
                             Stock Market
                           </p>
                           <div className="flex justify-between mb-2">
@@ -925,9 +963,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                         
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-purple-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-12 w-12 bg-purple-500/20 blur-xl rounded-full"></div>
                           <p className="text-sm text-muted-foreground mb-3 flex items-center">
-                            <Home className="h-4 w-4 mr-2" />
+                            <Home className="h-4 w-4 mr-2 text-purple-500" />
                             Real Estate Market
                           </p>
                           <div className="flex justify-between mb-2">
@@ -952,9 +991,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                         
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-red-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-12 w-12 bg-red-500/20 blur-xl rounded-full"></div>
                           <div className="flex items-start space-x-3">
-                            <div className="p-2 rounded-full bg-red-400/10 h-10 w-10 flex items-center justify-center">
+                            <div className="p-2 rounded-full bg-red-400/10 h-10 w-10 flex items-center justify-center border border-red-400/20">
                               <TrendingUp className={`h-5 w-5 text-red-400 ${inflation > 3 ? 'transform rotate-45' : ''}`} />
                             </div>
                             <div>
@@ -969,9 +1009,10 @@ export default function Dashboard() {
                           </div>
                         </div>
                         
-                        <div className="bg-secondary/30 p-4 rounded-lg glass-effect border border-secondary/10">
+                        <div className="p-4 rounded-lg futuristic-card border border-blue-500/30 bg-primary/5 relative overflow-hidden">
+                          <div className="absolute -top-4 -right-4 h-12 w-12 bg-blue-500/20 blur-xl rounded-full"></div>
                           <div className="flex items-start space-x-3">
-                            <div className="p-2 rounded-full bg-blue-400/10 h-10 w-10 flex items-center justify-center">
+                            <div className="p-2 rounded-full bg-blue-400/10 h-10 w-10 flex items-center justify-center border border-blue-400/20">
                               <DollarSign className="h-5 w-5 text-blue-400" />
                             </div>
                             <div>
@@ -991,10 +1032,14 @@ export default function Dashboard() {
                 </TabsContent>
                 
                 <TabsContent value="settings" className="mt-0 p-0">
-                  <Card className="glass-effect border-accent shadow-md">
-                    <CardHeader>
+                  <Card className="futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effects */}
+                    <div className="absolute -top-4 left-1/4 h-16 w-16 bg-slate-500/30 blur-2xl rounded-full"></div>
+                    <div className="absolute bottom-4 right-1/4 h-16 w-16 bg-tertiary/30 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="border-b border-primary/10">
                       <CardTitle className="text-xl flex items-center">
-                        <div className="mr-3 p-2 rounded-full bg-slate-400/10">
+                        <div className="mr-3 p-2 rounded-full bg-slate-400/10 border border-slate-400/20">
                           <Settings className="h-5 w-5 text-slate-400" />
                         </div>
                         <span className="text-primary font-medium">Game Settings</span>
@@ -1004,7 +1049,8 @@ export default function Dashboard() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-6">
-                      <div className="bg-secondary/30 p-5 rounded-lg glass-effect border border-secondary/10">
+                      <div className="p-5 rounded-lg futuristic-card border border-blue-500/30 bg-primary/5 relative overflow-hidden">
+                        <div className="absolute -top-4 -right-4 h-12 w-12 bg-blue-500/20 blur-xl rounded-full"></div>
                         <h3 className="text-lg font-medium mb-2 flex items-center">
                           <HardDrive className="h-5 w-5 mr-2 text-blue-400" />
                           Game Data
@@ -1047,7 +1093,8 @@ export default function Dashboard() {
                         </AlertDialog>
                       </div>
 
-                      <div className="bg-secondary/30 p-5 rounded-lg glass-effect border border-secondary/10">
+                      <div className="p-5 rounded-lg futuristic-card border border-purple-500/30 bg-primary/5 relative overflow-hidden">
+                        <div className="absolute -top-4 -right-4 h-12 w-12 bg-purple-500/20 blur-xl rounded-full"></div>
                         <h3 className="text-lg font-medium mb-2 flex items-center">
                           <Settings className="h-5 w-5 mr-2 text-purple-400" />
                           Display Settings
