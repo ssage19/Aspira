@@ -8,7 +8,7 @@ export default function InvestmentScreen() {
   const navigate = useNavigate();
   
   return (
-    <div className="w-full min-h-screen bg-slate-100 pt-20 pb-32">
+    <div className="w-full min-h-screen pt-12 pb-32">
       {/* Background */}
       <div className="fixed inset-0 bg-gradient-to-b from-blue-900 to-slate-900 opacity-90 z-0" />
       
