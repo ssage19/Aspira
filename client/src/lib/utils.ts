@@ -315,16 +315,50 @@ export const performCompleteGameReset = () => {
     console.log("Resetting character store...");
     const characterStore = require('./stores/useCharacter').useCharacter;
     if (characterStore.getState().resetCharacter) {
-      // First, manually clear any cached net worth breakdown
-      if (characterStore.getState() && (characterStore.getState() as any).netWorthBreakdown) {
-        console.log("Explicitly clearing cached netWorthBreakdown data");
-        (characterStore.getState() as any).netWorthBreakdown = null;
+      // Enhanced process for clearing netWorthBreakdown data
+      // 1. First remove any separate localStorage entry
+      console.log("Explicitly removing netWorthBreakdown from localStorage");
+      try {
+        localStorage.removeItem('business-empire-networth-breakdown');
+      } catch (e) {
+        console.error("Error removing breakdown from localStorage:", e);
       }
       
-      // Also try to clear the recalculated flag if it exists
-      if (characterStore.getState() && (characterStore.getState() as any)._netWorthRecalculated) {
-        console.log("Clearing netWorthRecalculated flag");
-        (characterStore.getState() as any)._netWorthRecalculated = false;
+      // 2. Then clear in-memory breakdown in character store
+      try {
+        if (characterStore.getState()) {
+          if ((characterStore.getState() as any).netWorthBreakdown) {
+            console.log("Explicitly clearing cached netWorthBreakdown data in character store");
+            (characterStore.getState() as any).netWorthBreakdown = null;
+          }
+          
+          // Also clear any flags related to netWorthBreakdown calculations
+          if ((characterStore.getState() as any)._netWorthRecalculated) {
+            console.log("Clearing netWorthRecalculated flag");
+            (characterStore.getState() as any)._netWorthRecalculated = false;
+          }
+          
+          // Force a clean default breakdown to be set in character state
+          if (characterStore.getState().wealth !== undefined) {
+            const defaultBreakdown = {
+              cash: characterStore.getState().wealth || 0,
+              stocks: 0,
+              crypto: 0,
+              bonds: 0,
+              otherInvestments: 0,
+              propertyEquity: 0,
+              propertyValue: 0,
+              propertyDebt: 0,
+              lifestyleItems: 0,
+              total: characterStore.getState().wealth || 0
+            };
+            
+            console.log("Setting clean default breakdown in character store:", defaultBreakdown);
+            (characterStore.getState() as any).netWorthBreakdown = defaultBreakdown;
+          }
+        }
+      } catch (err) {
+        console.error("Error handling in-memory breakdown:", err);
       }
       
       // Now perform the full character reset

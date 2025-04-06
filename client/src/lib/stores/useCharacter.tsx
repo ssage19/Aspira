@@ -2191,6 +2191,27 @@ export const useCharacter = create<CharacterState>()(
       },
       
       resetCharacter: () => {
+        // Start with explicit cleanup of any existing portfolio data
+        try {
+          console.log("Starting character reset with NetWorthBreakdown cleanup");
+          
+          // 1. First clear the specific localStorage entry for portfolio
+          const BREAKDOWN_STORAGE_KEY = 'business-empire-networth-breakdown';
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(BREAKDOWN_STORAGE_KEY);
+            console.log(`Removed breakdown storage at key: ${BREAKDOWN_STORAGE_KEY}`);
+          }
+          
+          // 2. Clear any in-memory breakdown data
+          const state = get();
+          if ((state as any).netWorthBreakdown) {
+            console.log("Nullifying existing netWorthBreakdown in memory");
+            (state as any).netWorthBreakdown = null;
+          }
+        } catch (e) {
+          console.error("Error during pre-reset cleanup:", e);
+        }
+        
         // Get a completely fresh default character with the current timestamp
         const defaultCharacter = getDefaultCharacter();
         
@@ -2248,20 +2269,12 @@ export const useCharacter = create<CharacterState>()(
             resetCharacter: state.resetCharacter
           };
 
-          // Calculate initial net worth for default character
-          const { calculateNetWorthInternal } = state;
-          if (calculateNetWorthInternal) {
-            const calculatedNetWorth = calculateNetWorthInternal(
-              defaultCharacter.wealth,
-              defaultCharacter.assets,
-              defaultCharacter.properties,
-              defaultCharacter.lifestyleItems
-            );
-            newState.netWorth = calculatedNetWorth;
-          }
+          // Net worth for a fresh character should simply equal the initial wealth
+          // No need for complex calculation since all assets are zeroed out
+          newState.netWorth = defaultCharacter.wealth;
           
-          // Explicitly set fresh netWorthBreakdown to prevent stale data
-          (newState as any).netWorthBreakdown = {
+          // Create a clean breakdown object that perfectly matches the initial state
+          const cleanBreakdown = {
             cash: defaultCharacter.wealth,
             stocks: 0,
             crypto: 0,
@@ -2271,17 +2284,38 @@ export const useCharacter = create<CharacterState>()(
             propertyValue: 0,
             propertyDebt: 0,
             lifestyleItems: 0,
-            total: newState.netWorth || defaultCharacter.wealth
+            total: defaultCharacter.wealth
           };
           
-          console.log("Character reset with fresh netWorthBreakdown:", (newState as any).netWorthBreakdown);
+          // Set the breakdown directly in the new state
+          (newState as any).netWorthBreakdown = cleanBreakdown;
+          
+          // Add a reset timestamp to help with validation
+          (newState as any)._netWorthResetTime = Date.now();
+          
+          console.log("Character reset with fresh netWorthBreakdown:", cleanBreakdown);
           
           return newState;
         });
         
-        // Also clear localStorage
+        // Also clear character data from localStorage
         if (typeof window !== 'undefined') {
-          localStorage.removeItem(STORAGE_KEY);
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+            console.log(`Removed character data at key: ${STORAGE_KEY}`);
+            
+            // Also explicitly remove breakdown again to be super sure
+            localStorage.removeItem('business-empire-networth-breakdown');
+          } catch (e) {
+            console.error("Error clearing localStorage during character reset:", e);
+          }
+        }
+        
+        // Set a session flag to indicate reset was completed
+        // This helps components know they need to refresh their data
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem('character_reset_completed', 'true');
+          sessionStorage.setItem('character_reset_timestamp', Date.now().toString());
         }
       }
     };

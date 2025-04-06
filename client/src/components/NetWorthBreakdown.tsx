@@ -36,10 +36,27 @@ const defaultBreakdown: NetWorthBreakdown = {
   total: 0
 };
 
+// Constants for localStorage storage
+const BREAKDOWN_STORAGE_KEY = 'business-empire-networth-breakdown';
+
 export function NetWorthBreakdown() {
-  const { wealth, assets, properties, lifestyleItems, getNetWorthBreakdown, calculateNetWorth } = useCharacter();
+  // Get character data including functions
+  const { 
+    wealth, 
+    assets, 
+    properties, 
+    lifestyleItems, 
+    getNetWorthBreakdown, 
+    calculateNetWorth, 
+    saveState // We'll use this to ensure state is persisted
+  } = useCharacter();
+  
+  // Local state for rendering
   const [netWorth, setNetWorth] = useState(0);
   const [breakdown, setBreakdown] = useState<NetWorthBreakdown>(defaultBreakdown);
+  
+  // Track if we need to force a refresh after reset
+  const [resetDetected, setResetDetected] = useState(false);
 
   // Function to refresh the breakdown data
   const refreshBreakdown = useCallback(() => {
