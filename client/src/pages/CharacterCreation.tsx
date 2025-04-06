@@ -14,6 +14,7 @@ import { formatCurrency } from '../lib/utils';
 import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery } from 'lucide-react';
 import { getAvailableEntryLevelJobs, professions, getCategoryLabel } from '../lib/services/jobService';
 import type { JobCategory } from '../lib/data/jobs';
+import TimeResetHack from '../TimeResetHack';
 
 type WealthOption = 'bootstrapped' | 'middle-class' | 'wealthy';
 
@@ -188,6 +189,9 @@ export default function CharacterCreation() {
   
   return (
     <div className="w-full min-h-screen flex items-center justify-center p-8">
+      {/* Direct hack to fix time issues */}
+      <TimeResetHack />
+      
       <div className="absolute inset-0 z-0">
         <AppBackground />
       </div>
