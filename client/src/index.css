@@ -333,3 +333,6 @@ canvas {
   box-shadow: 0 4px 20px rgba(37, 99, 235, 0.15);
   @apply bg-white/10 border-[#2563EB]/20;
 }
+
+/* Import theme contrast fixes */
+@import './styles/theme-contrast-fix.css';

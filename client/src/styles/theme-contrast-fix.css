@@ -1,0 +1,44 @@
+/* Theme Contrast Fixes
+ * This file improves text contrast throughout the application
+ * by replacing hard-coded color classes with theme-aware alternatives
+ */
+
+/* Replace bg-gray-50 with theme-aware background */
+.bg-gray-50 {
+  @apply bg-muted border border-border;
+}
+
+/* Fix text-gray-500 contrast issues */
+.text-gray-500 {
+  @apply text-foreground opacity-80;
+}
+
+/* Fix text-gray-600 contrast issues */
+.text-gray-600 {
+  @apply text-foreground opacity-90;
+}
+
+/* Fix text-gray-700 contrast issues */
+.text-gray-700 {
+  @apply text-foreground;
+}
+
+/* Fix bg-white with theme-aware background */
+.bg-white {
+  @apply bg-card;
+}
+
+/* Add additional contrast to card elements */
+.card-content {
+  @apply bg-card p-2 rounded border border-border shadow-sm;
+}
+
+/* Ensure text on cards is visible */
+.card-content p, .card-content span {
+  @apply text-foreground;
+}
+
+/* Add proper contrast to descriptions */
+.description-text {
+  @apply text-foreground opacity-90;
+}
