@@ -59,76 +59,25 @@ export function NewNetWorthBreakdown() {
   const [netWorth, setNetWorth] = useState(wealth || 0);
   const [breakdown, setBreakdown] = useState<NetWorthBreakdown>(defaultBreakdown);
   
-  // Function to refresh the breakdown data from asset tracker
+  // Function to refresh the breakdown data from asset tracker - simplified to avoid loops
   const refreshBreakdown = useCallback(() => {
     console.log('NewNetWorthBreakdown: Refreshing breakdown data from asset tracker');
     
-    // Check for ANY reset-related flags that might indicate stale data
-    const resetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
-    const resetCompleted = sessionStorage.getItem('game_reset_completed') === 'true';
-    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
-    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
-    const netWorthReset = sessionStorage.getItem('networth_breakdown_reset') === 'true';
-    const characterReset = sessionStorage.getItem('character_reset_completed') === 'true';
-    const assetTrackerReset = sessionStorage.getItem('asset_tracker_reset') === 'true';
-    
-    // If ANY of these conditions are true, we should reset the asset tracker
-    if (resetInProgress || resetCompleted || forceCurrentDate || blockTimeLoads || 
-        netWorthReset || characterReset || assetTrackerReset) {
-      console.log('NewNetWorthBreakdown: Reset condition detected, resetting asset tracker');
-      
-      // Reset the asset tracker
-      resetAssetTracker();
-      
-      // Also clear any legacy data
-      try {
-        localStorage.removeItem(LEGACY_BREAKDOWN_STORAGE_KEY);
-        console.log('NewNetWorthBreakdown: Removed legacy breakdown data');
-      } catch (e) {
-        console.error('Error clearing legacy breakdown:', e);
-      }
-      
-      // Create a safe baseline breakdown
-      const safeBreakdown = { 
-        ...defaultBreakdown, 
-        cash: wealth || 0, 
-        total: wealth || 0,
-        version: Date.now()
-      };
-      
-      setBreakdown(safeBreakdown);
-      setNetWorth(wealth || 0);
-      
-      // Update the asset tracker with this baseline
-      try {
-        const tracker = useAssetTracker.getState();
-        tracker.updateCash(wealth || 0);
-        tracker.recalculateTotals();
-      } catch (e) {
-        console.error('Error updating asset tracker during reset:', e);
-      }
-      
-      console.log(`NewNetWorthBreakdown: Reset complete with safe values - cash: ${wealth}, total: ${wealth}`);
-      return;
-    }
-    
     try {
-      // Force a recalculation in the asset tracker
-      recalculateTotals();
-      
-      // Get fresh breakdown data
+      // Get fresh breakdown data directly without modifying the store
       const trackerBreakdown = getTrackerBreakdown();
       
       if (trackerBreakdown && 
           typeof trackerBreakdown === 'object' && 
           'total' in trackerBreakdown) {
+        // Only update if we have valid data
         console.log('NewNetWorthBreakdown: Using asset tracker breakdown data');
         setBreakdown(trackerBreakdown);
         setNetWorth(trackerBreakdown.total);
       } else {
+        // Use safe defaults if data is invalid
         console.warn('NewNetWorthBreakdown: Invalid asset tracker data, using safe defaults');
         
-        // If asset tracker data is invalid, initialize with just cash
         const safeBreakdown = { 
           ...defaultBreakdown, 
           cash: wealth || 0, 
@@ -138,20 +87,11 @@ export function NewNetWorthBreakdown() {
         
         setBreakdown(safeBreakdown);
         setNetWorth(wealth || 0);
-        
-        // Update the asset tracker with this baseline
-        try {
-          const tracker = useAssetTracker.getState();
-          tracker.updateCash(wealth || 0);
-          tracker.recalculateTotals();
-        } catch (e) {
-          console.error('Error updating asset tracker with safe values:', e);
-        }
       }
     } catch (e) {
       console.error('Error refreshing breakdown from asset tracker:', e);
       
-      // In case of error, set to default empty breakdown
+      // Use a safe fallback in case of error
       const safeBreakdown = { 
         ...defaultBreakdown, 
         cash: wealth || 0, 
@@ -162,96 +102,45 @@ export function NewNetWorthBreakdown() {
       setBreakdown(safeBreakdown);
       setNetWorth(wealth || 0);
     }
-  }, [wealth, getTrackerBreakdown, recalculateTotals, resetAssetTracker]);
+  }, [wealth, getTrackerBreakdown]);
 
-  // Effect to update the breakdown when relevant data changes
-  // Only run this when lastUpdated changes to avoid infinite loops
+  // Effect to update the breakdown when lastUpdated changes
   useEffect(() => {
-    const initialRun = sessionStorage.getItem('networth_breakdown_initialized') !== 'true';
-    
-    if (initialRun || lastUpdated > 0) {
-      refreshBreakdown();
+    // Only run if there is an actual timestamp value
+    if (lastUpdated > 0) {
+      console.log(`NewNetWorthBreakdown: Asset tracker updated (timestamp: ${lastUpdated})`);
+      const trackerBreakdown = getTrackerBreakdown();
       
-      // Mark as initialized to avoid unnecessary runs
-      if (initialRun) {
-        sessionStorage.setItem('networth_breakdown_initialized', 'true');
+      if (trackerBreakdown && typeof trackerBreakdown === 'object' && 'total' in trackerBreakdown) {
+        // Update state with new data
+        setBreakdown(trackerBreakdown);
+        setNetWorth(trackerBreakdown.total);
       }
     }
-  }, [lastUpdated]);
+  }, [lastUpdated, getTrackerBreakdown]);
   
-  // Additional effect that runs once on mount to ensure fresh data
+  // Simple initialization on mount
   useEffect(() => {
-    // Check for various reset/refresh flags
-    const resetCompleted = sessionStorage.getItem('game_reset_completed') === 'true';
-    const smoothNavigation = sessionStorage.getItem('smooth_navigation') === 'true';
-    const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
-    const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
-    const gameResetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
-    const netWorthReset = sessionStorage.getItem('networth_breakdown_reset') === 'true';
-    const characterReset = sessionStorage.getItem('character_reset_completed') === 'true';
-    const assetTrackerReset = sessionStorage.getItem('asset_tracker_reset') === 'true';
+    // Do a single, initial data fetch
+    console.log('NewNetWorthBreakdown: Initial component mount');
     
-    // Any of these conditions indicate we need a thorough refresh
-    if (resetCompleted || smoothNavigation || forceCurrentDate || blockTimeLoads || 
-        gameResetInProgress || netWorthReset || characterReset || assetTrackerReset) {
-      console.log('NewNetWorthBreakdown: Detected reset condition, performing thorough refresh');
-      
-      // Reset the asset tracker
-      resetAssetTracker();
-      
-      // Set up baseline values
-      const initBreakdown = {
-        ...defaultBreakdown, 
-        cash: wealth || 0, 
-        total: wealth || 0,
-        version: Date.now()
-      };
-      
-      setBreakdown(initBreakdown);
-      setNetWorth(wealth || 0);
-      
-      // Update the asset tracker with initial cash
-      try {
-        const tracker = useAssetTracker.getState();
-        tracker.updateCash(wealth || 0);
-        tracker.recalculateTotals();
-      } catch (e) {
-        console.error('Error updating asset tracker during init:', e);
-      }
-      
-      // Schedule limited, controlled refreshes to avoid infinite loops
-      const timers = [
-        setTimeout(() => {
-          // Final forced refresh
-          try {
-            recalculateTotals();
-            
-            // Get fresh breakdown data without calling the full refresh function
-            const trackerBreakdown = getTrackerBreakdown();
-            if (trackerBreakdown && typeof trackerBreakdown === 'object' && 'total' in trackerBreakdown) {
-              setBreakdown(trackerBreakdown);
-              setNetWorth(trackerBreakdown.total);
-            }
-            
-            console.log('NewNetWorthBreakdown: Reset refresh completed');
-          } catch (e) {
-            console.error('Error during final refresh:', e);
-          }
-        }, 1000)
-      ];
-      
-      // Clear all reset flags
-      sessionStorage.removeItem('game_reset_completed');
-      sessionStorage.removeItem('networth_breakdown_reset');
-      sessionStorage.removeItem('character_reset_completed');
-      sessionStorage.removeItem('asset_tracker_reset');
-      
-      return () => {
-        // Clean up all timers
-        timers.forEach(timer => clearTimeout(timer));
-      };
+    // Set up baseline values with current wealth
+    const initBreakdown = {
+      ...defaultBreakdown, 
+      cash: wealth || 0, 
+      total: wealth || 0,
+      version: Date.now()
+    };
+    
+    setBreakdown(initBreakdown);
+    setNetWorth(wealth || 0);
+    
+    // Mark component as initialized
+    if (sessionStorage.getItem('networth_breakdown_initialized') !== 'true') {
+      sessionStorage.setItem('networth_breakdown_initialized', 'true');
+      console.log('NewNetWorthBreakdown: Component initialized');
     }
-  }, []);
+  }, [wealth]);
 
   // Prepare chart data
   const chartData = {

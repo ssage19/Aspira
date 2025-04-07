@@ -264,7 +264,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
   
-  // Initialize asset tracker with current character data
+  // Initialize asset tracker with current character data - only run once on mount
   useEffect(() => {
     // Update cash in asset tracker
     assetTracker.updateCash(wealth);
@@ -273,7 +273,7 @@ export default function Dashboard() {
     assetTracker.recalculateTotals();
     
     console.log('Asset tracker initialized with current character data');
-  }, [wealth, assetTracker]);
+  }, []);
   
   // Calculate total assets values for display (this is just for UI demo purposes)
   // The actual netWorth calculation is handled by the character store
