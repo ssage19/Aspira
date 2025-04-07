@@ -17,6 +17,10 @@ export function SimplePortfolioBreakdown() {
   const { wealth, netWorth } = useCharacter();
   const [displayTotal, setDisplayTotal] = useState(netWorth || wealth || 0);
   
+  // Source of truth for total and character wealth (defined early to avoid reference errors)
+  const characterWealth = useCharacter.getState().wealth || 0;
+  const total = useCharacter.getState().netWorth || useAssetTracker.getState().totalNetWorth || 1;
+  
   // Get asset tracker data
   const { 
     totalCash,
@@ -33,23 +37,61 @@ export function SimplePortfolioBreakdown() {
   
   // Force an update when the component mounts
   useEffect(() => {
-    // Get the latest character data
-    const { netWorth: characterNetWorth } = useCharacter.getState();
-    setDisplayTotal(characterNetWorth || totalNetWorth || wealth || 0);
-    
-    // Calculate totals
-    recalculateTotals();
-    forceUpdate();
-    
-    // Set up periodic refresh
-    const intervalId = setInterval(() => {
-      const { netWorth: refreshedNetWorth } = useCharacter.getState();
-      setDisplayTotal(refreshedNetWorth || totalNetWorth || wealth || 0);
+    // Force immediate recalculation to ensure latest data
+    const updateData = () => {
+      console.log("Portfolio breakdown refreshing asset data...");
+      
+      // Get the latest character wealth
+      const currentWealth = useCharacter.getState().wealth || 0;
+      
+      // Force recalculation before grabbing net worth
       recalculateTotals();
-    }, 3000);
+      forceUpdate();
+      
+      // Get the latest character data AFTER recalculation
+      const { netWorth: characterNetWorth } = useCharacter.getState();
+      
+      // Use totalNetWorth directly from the asset tracker first
+      const { 
+        totalNetWorth: calculatedNetWorth,
+        totalStocks: latestStocks,
+        totalPropertyEquity: latestProperty,
+        totalLifestyleValue: latestLifestyle 
+      } = useAssetTracker.getState(); 
+      
+      console.log("Portfolio breakdown totals:", {
+        cash: currentWealth,
+        stocks: latestStocks,
+        property: latestProperty,
+        lifestyle: latestLifestyle,
+        calculatedTotal: calculatedNetWorth,
+        characterTotal: characterNetWorth
+      });
+      
+      // Set display total
+      setDisplayTotal(calculatedNetWorth || characterNetWorth || wealth || 0);
+    };
     
-    return () => clearInterval(intervalId);
-  }, [recalculateTotals, forceUpdate, totalNetWorth, wealth]);
+    // Update immediately
+    updateData();
+    
+    // Set up more frequent periodic refresh (every second)
+    const intervalId = setInterval(updateData, 1000);
+    
+    // Subscribe to changes in the character store for wealth changes
+    const unsubscribeCharacter = useCharacter.subscribe(
+      (state) => state.wealth,
+      () => {
+        console.log("Character wealth changed, updating portfolio");
+        updateData();
+      }
+    );
+    
+    return () => {
+      clearInterval(intervalId);
+      unsubscribeCharacter();
+    };
+  }, [recalculateTotals, forceUpdate, wealth]);
   
   // Handle manual refresh
   const handleRefresh = () => {
@@ -65,12 +107,8 @@ export function SimplePortfolioBreakdown() {
     setTimeout(() => setIsLoading(false), 500);
   };
   
-  // Source of truth for total
-  const total = useCharacter.getState().netWorth || totalNetWorth || 1;
-  const characterWealth = useCharacter.getState().wealth || 0;
-  
-  // Prepare asset values
-  const assets = [
+  // Create a state for displayed assets to ensure they update correctly
+  const [assetValues, setAssetValues] = useState([
     { label: 'Cash', value: characterWealth, color: 'bg-blue-500' },
     { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
     { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
@@ -78,7 +116,24 @@ export function SimplePortfolioBreakdown() {
     { label: 'Other', value: totalOtherInvestments || 0, color: 'bg-purple-500' },
     { label: 'Property', value: totalPropertyEquity || 0, color: 'bg-pink-500' },
     { label: 'Lifestyle', value: totalLifestyleValue || 0, color: 'bg-rose-500' }
-  ].filter(item => item.value > 0); // Only show assets with value
+  ]);
+  
+  // Update asset values when any of the totals change
+  useEffect(() => {
+    const newAssets = [
+      { label: 'Cash', value: useCharacter.getState().wealth || 0, color: 'bg-blue-500' },
+      { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
+      { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
+      { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
+      { label: 'Other', value: totalOtherInvestments || 0, color: 'bg-purple-500' },
+      { label: 'Property', value: totalPropertyEquity || 0, color: 'bg-pink-500' },
+      { label: 'Lifestyle', value: totalLifestyleValue || 0, color: 'bg-rose-500' }
+    ];
+    setAssetValues(newAssets);
+  }, [totalStocks, totalCrypto, totalBonds, totalOtherInvestments, totalPropertyEquity, totalLifestyleValue]);
+  
+  // Filter to only show assets with value
+  const assets = assetValues.filter(item => item.value > 0);
     
   return (
     <Card className="w-full shadow-sm">
