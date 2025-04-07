@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useCharacter from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
@@ -256,28 +256,52 @@ export default function Dashboard() {
   // Get asset tracker to update with character data
   const assetTracker = useAssetTracker();
   
-  // For demo purposes we'll keep these stocks and property values
-  // In a real implementation, these would come from their respective stores
-  const [stocksValue, setStocksValue] = useState(15000);
+  // Use real-time asset data from the asset tracker
+  const [stocksValue, setStocksValue] = useState(0);
   const [propertiesValue, setPropertiesValue] = useState(0);
-  const [lifestyleValue, setLifestyleValue] = useState(5000);
+  const [lifestyleValue, setLifestyleValue] = useState(0);
   
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
   
-  // Temporarily disable asset tracker initialization to fix app crash
-  // useEffect(() => {
-  //   // Update cash in asset tracker
-  //   assetTracker.updateCash(wealth);
-  //   
-  //   // Recalculate totals to ensure consistency
-  //   assetTracker.recalculateTotals();
-  //   
-  //   console.log('Asset tracker initialized with current character data');
-  // }, []);
+  // Initialize values from asset tracker once on component mount 
+  useEffect(() => {
+    // Safely get values from asset tracker without causing rendering loops
+    function updateValuesFromAssetTracker() {
+      if (!assetTracker) return;
+      
+      try {
+        // Get breakdown values directly from asset tracker
+        const breakdown = assetTracker.getNetWorthBreakdown();
+        
+        // Only update state if values have changed
+        if (breakdown.stocks !== stocksValue) {
+          setStocksValue(breakdown.stocks || 0);
+        }
+        
+        if (breakdown.propertyValue !== propertiesValue) {
+          setPropertiesValue(breakdown.propertyValue || 0);
+        }
+        
+        if (breakdown.lifestyleItems !== lifestyleValue) {
+          setLifestyleValue(breakdown.lifestyleItems || 0);
+        }
+      } catch (err) {
+        console.error('Error updating portfolio values:', err);
+      }
+    }
+    
+    // Initial update
+    updateValuesFromAssetTracker();
+    
+    // Update when assets change
+    const intervalId = setInterval(updateValuesFromAssetTracker, 5000);
+    
+    // Clean up interval on unmount
+    return () => clearInterval(intervalId);
+  }, []);
   
-  // Calculate total assets values for display (this is just for UI demo purposes)
-  // The actual netWorth calculation is handled by the character store
+  // Calculate total assets values for display
   const totalAssetValue = stocksValue + propertiesValue + lifestyleValue;
   
   // Format the date

@@ -620,12 +620,35 @@ export const useAssetTracker = create<AssetTrackerState>()(
       // Reset the asset tracker to initial state
       resetAssetTracker: () => {
         console.log('AssetTracker: Performing complete reset');
-        set({ ...initialState, lastUpdated: Date.now() });
+        
+        // First notify about what's being reset
+        console.log('AssetTracker: Resetting assets...');
+        console.log(`- Stocks: ${get().stocks.length} items being reset`);
+        console.log(`- Crypto: ${get().cryptoAssets.length} items being reset`);
+        console.log(`- Bonds: ${get().bonds.length} items being reset`);
+        console.log(`- Other Investments: ${get().otherInvestments.length} items being reset`);
+        console.log(`- Properties: ${get().properties.length} items being reset`);
+        console.log(`- Lifestyle Items: ${get().lifestyleItems.length} items being reset`);
+        
+        // Reset to initial state
+        set({ 
+          ...initialState, 
+          cash: 10000, // Reset to starting cash value
+          totalCash: 10000,
+          totalNetWorth: 10000,
+          lastUpdated: Date.now() 
+        });
         
         // Clear the breakdown in localStorage
         try {
           localStorage.removeItem('business-empire-networth-breakdown');
+          localStorage.removeItem(ASSET_TRACKER_STORAGE_KEY);
           console.log('AssetTracker: Removed net worth breakdown from localStorage');
+          
+          // Double check it's gone
+          const checkBreakdown = localStorage.getItem('business-empire-networth-breakdown');
+          const checkTracker = localStorage.getItem(ASSET_TRACKER_STORAGE_KEY);
+          console.log(`AssetTracker: Verified removal - breakdown exists: ${!!checkBreakdown}, tracker exists: ${!!checkTracker}`);
         } catch (e) {
           console.error('Error removing net worth breakdown from localStorage:', e);
         }
