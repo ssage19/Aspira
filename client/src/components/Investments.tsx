@@ -3,6 +3,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
+import useAssetTracker from '../lib/stores/useAssetTracker';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { toast } from 'sonner';
@@ -19,6 +20,7 @@ export function Investments() {
   const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
   const { currentDay } = useTime();
   const { playSuccess, playHit } = useAudio();
+  const assetTracker = useAssetTracker();
   
   const [selectedStock, setSelectedStock] = useState<Stock>(expandedStockMarket[0]);
   const [investmentAmount, setInvestmentAmount] = useState(1000);
@@ -55,7 +57,28 @@ export function Investments() {
     });
     
     setStockPrices(updatedPrices);
-  }, [currentDay, marketTrend, stockMarketHealth]);
+    
+    // Update asset tracker stock prices
+    // This ensures the asset tracker's stock values stay in sync with current prices
+    syncAssetTrackerStockPrices(updatedPrices);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDay, marketTrend, stockMarketHealth, assets]);
+  
+  // Sync stock prices between character assets and asset tracker
+  const syncAssetTrackerStockPrices = (prices: Record<string, number>) => {
+    // Get all owned stocks from character assets
+    const ownedStocks = assets.filter(asset => asset.type === 'stock');
+    
+    // For each owned stock, update its price in the asset tracker
+    ownedStocks.forEach(stock => {
+      const currentPrice = prices[stock.id] || stock.purchasePrice;
+      
+      // Update the stock in the asset tracker
+      if (getOwnedStockQuantity(stock.id) > 0) {
+        assetTracker.updateStock(stock.id, stock.quantity, currentPrice);
+      }
+    });
+  };
 
   // Calculate owned stock value
   const getOwnedStockQuantity = (stockId: string) => {
@@ -106,7 +129,8 @@ export function Investments() {
       const amount = calculateAmountFromShares(shareQuantity);
       setInvestmentAmount(parseFloat(amount.toFixed(2)));
     }
-  }, [selectedStock.id, stockPrices]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStock.id, stockPrices, buyMode]);
 
   const handleBuy = () => {
     if (buyMode === 'amount') {
@@ -143,7 +167,7 @@ export function Investments() {
       ? investmentAmount
       : calculateAmountFromShares(shareQuantity);
     
-    // Buy stock
+    // Buy stock in character store
     addAsset({
       id: selectedStock.id,
       name: selectedStock.name,
@@ -152,6 +176,15 @@ export function Investments() {
       purchasePrice: stockPrice,
       currentPrice: stockPrice,
       purchaseDate: `${currentDay}`
+    });
+    
+    // Also update the AssetTracker store
+    assetTracker.addStock({
+      id: selectedStock.id,
+      name: selectedStock.name,
+      shares: quantity,
+      purchasePrice: stockPrice,
+      currentPrice: stockPrice
     });
     
     // Note: addWealth is intentionally removed from here because addAsset already
@@ -183,9 +216,16 @@ export function Investments() {
     if (isPartialSale) {
       // Partial sell - use sellAsset for the specified quantity
       sellAsset(selectedStock.id, quantityToSell);
+      
+      // Update AssetTracker with the new number of shares
+      const remainingShares = ownedQuantity - quantityToSell;
+      assetTracker.updateStock(selectedStock.id, remainingShares, stockPrice);
     } else {
       // Sell all shares
       sellAsset(selectedStock.id, ownedQuantity);
+      
+      // Remove stock completely from AssetTracker
+      assetTracker.removeStock(selectedStock.id);
     }
     
     // Note: addWealth is intentionally removed because sellAsset already 
