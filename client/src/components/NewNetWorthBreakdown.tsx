@@ -4,6 +4,8 @@ import { formatCurrency, formatPercentage } from '../lib/utils';
 import { Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { RefreshCw } from 'lucide-react';
+import { Button } from './ui/button';
 import useAssetTracker, { ASSET_TRACKER_STORAGE_KEY } from '../lib/stores/useAssetTracker';
 
 // Register Chart.js components
@@ -25,6 +27,7 @@ interface NetWorthBreakdown {
   lifestyleItems: number;
   total: number;
   version?: number; // Add version field to track freshness of data
+  [key: string]: number | undefined; // Allow string indexing to fix TypeScript errors
 }
 
 // Default empty breakdown object
@@ -59,34 +62,55 @@ export function NewNetWorthBreakdown() {
   const [netWorth, setNetWorth] = useState(wealth || 0);
   const [breakdown, setBreakdown] = useState<NetWorthBreakdown>(defaultBreakdown);
   
-  // Function to refresh the breakdown data from asset tracker - simplified to avoid loops
+  // Function to refresh the breakdown data from asset tracker - improved for reliability
   const refreshBreakdown = useCallback(() => {
     console.log('NewNetWorthBreakdown: Refreshing breakdown data from asset tracker');
     
     try {
-      // Get fresh breakdown data directly without modifying the store
+      // First, make sure the asset tracker has up-to-date calculations
+      recalculateTotals();
+      
+      // Now get the fresh breakdown data
       const trackerBreakdown = getTrackerBreakdown();
+      
+      console.log('NewNetWorthBreakdown: Got data from tracker:', 
+        JSON.stringify({
+          cash: trackerBreakdown.cash,
+          stocks: trackerBreakdown.stocks,
+          lifestyleItems: trackerBreakdown.lifestyleItems,
+          total: trackerBreakdown.total
+        })
+      );
       
       if (trackerBreakdown && 
           typeof trackerBreakdown === 'object' && 
           'total' in trackerBreakdown) {
+          
+        // Filter out undefined or NaN values to ensure chart doesn't break
+        const cleanBreakdown = Object.entries(trackerBreakdown).reduce((acc, [key, value]) => {
+          // Using type assertion to handle index signatures safely
+          (acc as Record<string, any>)[key] = (value === undefined || isNaN(value as number)) ? 0 : value;
+          return acc;
+        }, { ...defaultBreakdown } as NetWorthBreakdown);
+        
         // Only update if we have valid data
-        console.log('NewNetWorthBreakdown: Using asset tracker breakdown data');
-        setBreakdown(trackerBreakdown);
-        setNetWorth(trackerBreakdown.total);
+        console.log('NewNetWorthBreakdown: Using asset tracker breakdown data with total:', cleanBreakdown.total);
+        setBreakdown(cleanBreakdown);
+        setNetWorth(cleanBreakdown.total);
       } else {
         // Use safe defaults if data is invalid
         console.warn('NewNetWorthBreakdown: Invalid asset tracker data, using safe defaults');
         
+        // For safety, ensure we don't get undefined values
         const safeBreakdown = { 
           ...defaultBreakdown, 
-          cash: wealth || 0, 
-          total: wealth || 0,
+          cash: Math.max(wealth || 0, 0), 
+          total: Math.max(wealth || 0, 0),
           version: Date.now()
         };
         
         setBreakdown(safeBreakdown);
-        setNetWorth(wealth || 0);
+        setNetWorth(Math.max(wealth || 0, 0));
       }
     } catch (e) {
       console.error('Error refreshing breakdown from asset tracker:', e);
@@ -94,15 +118,15 @@ export function NewNetWorthBreakdown() {
       // Use a safe fallback in case of error
       const safeBreakdown = { 
         ...defaultBreakdown, 
-        cash: wealth || 0, 
-        total: wealth || 0,
+        cash: Math.max(wealth || 0, 0), 
+        total: Math.max(wealth || 0, 0),
         version: Date.now()
       };
       
       setBreakdown(safeBreakdown);
-      setNetWorth(wealth || 0);
+      setNetWorth(Math.max(wealth || 0, 0));
     }
-  }, [wealth, getTrackerBreakdown]);
+  }, [wealth, getTrackerBreakdown, recalculateTotals]);
 
   // Effect to update the breakdown when lastUpdated changes
   useEffect(() => {
@@ -119,7 +143,7 @@ export function NewNetWorthBreakdown() {
     }
   }, [lastUpdated, getTrackerBreakdown]);
   
-  // Simple initialization on mount
+  // Improved initialization on mount with fallback and immediate refresh
   useEffect(() => {
     // Do a single, initial data fetch
     console.log('NewNetWorthBreakdown: Initial component mount');
@@ -132,56 +156,68 @@ export function NewNetWorthBreakdown() {
       version: Date.now()
     };
     
+    // Set initial values but also try to get actual data
     setBreakdown(initBreakdown);
     setNetWorth(wealth || 0);
+    
+    // Immediately trigger a refresh to get latest data
+    setTimeout(() => {
+      console.log('NewNetWorthBreakdown: Running initial refresh');
+      refreshBreakdown();
+    }, 10);
     
     // Mark component as initialized
     if (sessionStorage.getItem('networth_breakdown_initialized') !== 'true') {
       sessionStorage.setItem('networth_breakdown_initialized', 'true');
       console.log('NewNetWorthBreakdown: Component initialized');
     }
-  }, [wealth]);
+    
+    // Set up a periodic refresh to keep data updated
+    const intervalId = setInterval(() => {
+      console.log('NewNetWorthBreakdown: Running periodic refresh');
+      refreshBreakdown();
+    }, 5000); // Refresh every 5 seconds
+    
+    return () => clearInterval(intervalId); // Clean up on unmount
+  }, [wealth, refreshBreakdown]);
 
+  // Filter out zero values for better chart display
+  const filterZeroValues = true; // Set to false if you want to show all segments even with zero value
+  
+  // Prepare data for chart with optional filtering of zero values
+  const dataPoints = [
+    { label: 'Cash', value: breakdown.cash, color: '#3B82F6', borderColor: '#2563EB' },
+    { label: 'Stocks', value: breakdown.stocks, color: '#10B981', borderColor: '#059669' },
+    { label: 'Crypto', value: breakdown.crypto, color: '#F59E0B', borderColor: '#D97706' },
+    { label: 'Bonds', value: breakdown.bonds, color: '#6366F1', borderColor: '#4F46E5' },
+    { label: 'Other Investments', value: breakdown.otherInvestments, color: '#8B5CF6', borderColor: '#7C3AED' },
+    { label: 'Property Equity', value: breakdown.propertyEquity, color: '#EC4899', borderColor: '#DB2777' },
+    { label: 'Lifestyle Items', value: breakdown.lifestyleItems || 0, color: '#FB7185', borderColor: '#E11D48' }
+  ];
+  
+  // Filter out zero values if enabled
+  const filteredData = filterZeroValues 
+    ? dataPoints.filter(item => item.value > 0)
+    : dataPoints;
+  
+  // If we have no data, add a placeholder
+  if (filteredData.length === 0) {
+    filteredData.push({ 
+      label: 'Cash', 
+      value: breakdown.cash > 0 ? breakdown.cash : 100, 
+      color: '#3B82F6', 
+      borderColor: '#2563EB' 
+    });
+  }
+  
   // Prepare chart data
   const chartData = {
-    labels: [
-      'Cash', 
-      'Stocks',
-      'Crypto',
-      'Bonds',
-      'Other Investments',
-      'Property Equity',
-      'Lifestyle Items'
-    ],
+    labels: filteredData.map(item => item.label),
     datasets: [
       {
-        data: [
-          breakdown.cash,
-          breakdown.stocks,
-          breakdown.crypto,
-          breakdown.bonds,
-          breakdown.otherInvestments,
-          breakdown.propertyEquity,
-          breakdown.lifestyleItems || 0
-        ],
-        backgroundColor: [
-          '#3B82F6', // Cash - Blue
-          '#10B981', // Stocks - Green
-          '#F59E0B', // Crypto - Amber
-          '#6366F1', // Bonds - Indigo
-          '#8B5CF6', // Other - Purple
-          '#EC4899', // Property - Pink
-          '#FB7185'  // Lifestyle - Rose
-        ],
-        borderColor: [
-          '#2563EB',
-          '#059669',
-          '#D97706',
-          '#4F46E5',
-          '#7C3AED',
-          '#DB2777',
-          '#E11D48'
-        ],
+        data: filteredData.map(item => item.value),
+        backgroundColor: filteredData.map(item => item.color),
+        borderColor: filteredData.map(item => item.borderColor),
         borderWidth: 1,
       },
     ],
@@ -210,12 +246,43 @@ export function NewNetWorthBreakdown() {
     maintainAspectRatio: false,
   };
 
+  // Track a refreshing state for the button
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Handle manual refresh with loading indication
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    console.log('NewNetWorthBreakdown: Manual refresh triggered');
+    
+    // Force a recalculation of the totals
+    recalculateTotals();
+    
+    // Then refresh our local state
+    refreshBreakdown();
+    
+    // Reset the refreshing state after a brief delay
+    setTimeout(() => {
+      setIsRefreshing(false);
+    }, 500);
+  };
+  
   return (
     <Card className="w-full shadow-sm h-full">
       <CardHeader className="pb-1">
         <CardTitle className="text-lg flex justify-between items-center">
           <span>Net Worth Breakdown</span>
-          <span className="text-base font-normal text-gray-600">{formatCurrency(netWorth)}</span>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-6 w-6" 
+              onClick={handleManualRefresh} 
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </Button>
+            <span className="text-base font-normal text-gray-600">{formatCurrency(netWorth)}</span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-2 px-3">
