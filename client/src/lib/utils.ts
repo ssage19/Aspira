@@ -281,12 +281,15 @@ export const performCompleteGameReset = () => {
     
     // FIRST - EXPLICITLY reset net worth breakdown to ensure no stale data
     try {
-      console.log("STEP 3.1: Explicitly removing localStorage entry for netWorthBreakdown");
+      console.log("STEP 3.1: Explicitly removing localStorage entries for asset tracking");
       localStorage.removeItem('business-empire-networth-breakdown');
+      localStorage.removeItem('business-empire-asset-tracker');
       
-      // Set a flag to indicate breakdown data has been reset
+      // Set flags to indicate breakdown data has been reset
       sessionStorage.setItem('networth_breakdown_reset', 'true');
       sessionStorage.setItem('networth_breakdown_reset_timestamp', Date.now().toString());
+      sessionStorage.setItem('asset_tracker_reset', 'true');
+      sessionStorage.setItem('asset_tracker_reset_timestamp', Date.now().toString());
             
       // Check if there's a dedicated net worth breakdown store
       try {
@@ -326,12 +329,25 @@ export const performCompleteGameReset = () => {
     const characterStore = require('./stores/useCharacter').useCharacter;
     if (characterStore.getState().resetCharacter) {
       // Enhanced process for clearing netWorthBreakdown data
-      // 1. First remove any separate localStorage entry
-      console.log("Explicitly removing netWorthBreakdown from localStorage");
+      // 1. First remove any separate localStorage entries for asset tracking
+      console.log("Explicitly removing asset tracking data from localStorage");
       try {
         localStorage.removeItem('business-empire-networth-breakdown');
+        localStorage.removeItem('business-empire-asset-tracker');
+        
+        // Also try to reset the asset tracker store if it exists
+        try {
+          const assetTracker = require('./stores/useAssetTracker').default;
+          if (assetTracker && assetTracker.getState() && assetTracker.getState().resetAssetTracker) {
+            console.log("Explicitly resetting asset tracker");
+            assetTracker.getState().resetAssetTracker();
+          }
+        } catch (err) {
+          // Asset tracker might not be loaded yet, which is fine
+          console.log("Asset tracker not available for reset yet");
+        }
       } catch (e) {
-        console.error("Error removing breakdown from localStorage:", e);
+        console.error("Error removing asset tracking data from localStorage:", e);
       }
       
       // 2. Then clear in-memory breakdown in character store

@@ -7,10 +7,12 @@ import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import useRandomEvents from '../lib/stores/useRandomEvents';
+import useAssetTracker from '../lib/stores/useAssetTracker';
 import { toast } from 'sonner';
 
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
+import { NewNetWorthBreakdown } from '../components/NewNetWorthBreakdown';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -250,6 +252,9 @@ export default function Dashboard() {
   const game = useGame();
   const randomEvents = useRandomEvents();
   
+  // Get asset tracker to update with character data
+  const assetTracker = useAssetTracker();
+  
   // For demo purposes we'll keep these stocks and property values
   // In a real implementation, these would come from their respective stores
   const [stocksValue, setStocksValue] = useState(15000);
@@ -258,6 +263,17 @@ export default function Dashboard() {
   
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
+  
+  // Initialize asset tracker with current character data
+  useEffect(() => {
+    // Update cash in asset tracker
+    assetTracker.updateCash(wealth);
+    
+    // Recalculate totals to ensure consistency
+    assetTracker.recalculateTotals();
+    
+    console.log('Asset tracker initialized with current character data');
+  }, [wealth, assetTracker]);
   
   // Calculate total assets values for display (this is just for UI demo purposes)
   // The actual netWorth calculation is handled by the character store
@@ -426,55 +442,8 @@ export default function Dashboard() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="py-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-green-400/20 bg-primary/5 relative overflow-hidden">
-                        <div className="absolute top-1 right-1 h-8 w-8 bg-green-400/20 blur-xl rounded-full"></div>
-                        <div className="bg-green-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-green-400/20">
-                          <DollarSign className="h-6 w-6 text-green-400" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">Cash</p>
-                        <p className="font-semibold text-lg">{formatCurrency(wealth)}</p>
-                        <div className="mt-2 text-xs px-2 py-1 bg-green-400/10 text-green-400 rounded-full inline-block border border-green-400/20">
-                          {((wealth / character.netWorth) * 100).toFixed(1)}% of total
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-blue-400/20 bg-primary/5 relative overflow-hidden">
-                        <div className="absolute top-1 right-1 h-8 w-8 bg-blue-400/20 blur-xl rounded-full"></div>
-                        <div className="bg-blue-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-blue-400/20">
-                          <ChartBar className="h-6 w-6 text-blue-400" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">Stocks</p>
-                        <p className="font-semibold text-lg">{formatCurrency(stocksValue)}</p>
-                        <div className="mt-2 text-xs px-2 py-1 bg-blue-400/10 text-blue-400 rounded-full inline-block border border-blue-400/20">
-                          {((stocksValue / netWorth) * 100).toFixed(1)}% of total
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-purple-400/20 bg-primary/5 relative overflow-hidden">
-                        <div className="absolute top-1 right-1 h-8 w-8 bg-purple-400/20 blur-xl rounded-full"></div>
-                        <div className="bg-purple-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-purple-400/20">
-                          <Home className="h-6 w-6 text-purple-400" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">Properties</p>
-                        <p className="font-semibold text-lg">{formatCurrency(propertiesValue)}</p>
-                        <div className="mt-2 text-xs px-2 py-1 bg-purple-400/10 text-purple-400 rounded-full inline-block border border-purple-400/20">
-                          {((propertiesValue / netWorth) * 100).toFixed(1)}% of total
-                        </div>
-                      </div>
-                      
-                      <div className="text-center p-4 backdrop-blur-sm rounded-lg futuristic-card card-hover border border-amber-400/20 bg-primary/5 relative overflow-hidden">
-                        <div className="absolute top-1 right-1 h-8 w-8 bg-amber-400/20 blur-xl rounded-full"></div>
-                        <div className="bg-amber-400/10 h-12 w-12 rounded-full flex items-center justify-center mx-auto mb-3 border border-amber-400/20">
-                          <Crown className="h-6 w-6 text-amber-400" />
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-1">Lifestyle</p>
-                        <p className="font-semibold text-lg">{formatCurrency(lifestyleValue)}</p>
-                        <div className="mt-2 text-xs px-2 py-1 bg-amber-400/10 text-amber-400 rounded-full inline-block border border-amber-400/20">
-                          {((lifestyleValue / netWorth) * 100).toFixed(1)}% of total
-                        </div>
-                      </div>
-                    </div>
+                    {/* Use our new asset tracking component */}
+                    <NewNetWorthBreakdown />
                   </CardContent>
                 </Card>
                 
