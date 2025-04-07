@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 // Temporarily disabled due to rendering issues
-import { PortfolioBreakdown } from '../components/PortfolioBreakdown';
+import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -415,7 +415,7 @@ export default function Dashboard() {
                   <div className="absolute bottom-4 right-1/3 h-16 w-16 bg-purple-500/30 blur-2xl rounded-full"></div>
                   
                   {/* Use our completely rewritten component for better reliability */}
-                  <PortfolioBreakdown />
+                  <SimplePortfolioBreakdown />
                 </Card>
                 
                 {/* Achievements Widget */}
