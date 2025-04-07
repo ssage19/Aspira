@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 // Temporarily disabled due to rendering issues
-import { NewNetWorthBreakdown } from '../components/NewNetWorthBreakdown';
+import { PortfolioBreakdown } from '../components/PortfolioBreakdown';
 import { 
   DollarSign, 
   TrendingUp, 
@@ -414,18 +414,8 @@ export default function Dashboard() {
                   <div className="absolute -top-4 left-1/3 h-16 w-16 bg-blue-500/30 blur-2xl rounded-full"></div>
                   <div className="absolute bottom-4 right-1/3 h-16 w-16 bg-purple-500/30 blur-2xl rounded-full"></div>
                   
-                  <CardHeader className="py-3 border-b border-primary/10">
-                    <CardTitle className="text-lg flex items-center">
-                      <div className="mr-3 p-2 rounded-full bg-blue-400/10 border border-blue-400/20">
-                        <Briefcase className="h-5 w-5 text-blue-400" />
-                      </div>
-                      <span className="text-primary font-medium">Portfolio Breakdown</span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="py-4">
-                    {/* Using the new component that directly reads from AssetTracker */}
-                    <NewNetWorthBreakdown />
-                  </CardContent>
+                  {/* Use our completely rewritten component for better reliability */}
+                  <PortfolioBreakdown />
                 </Card>
                 
                 {/* Achievements Widget */}
