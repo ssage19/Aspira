@@ -17,9 +17,8 @@ export function SimplePortfolioBreakdown() {
   const { wealth, netWorth } = useCharacter();
   const [displayTotal, setDisplayTotal] = useState(netWorth || wealth || 0);
   
-  // Source of truth for total and character wealth (defined early to avoid reference errors)
-  const characterWealth = useCharacter.getState().wealth || 0;
-  const total = useCharacter.getState().netWorth || useAssetTracker.getState().totalNetWorth || 1;
+  // Source of truth for character cash (defined early to avoid reference errors)
+  const characterCash = useCharacter.getState().wealth || 0;
   
   // Get asset tracker data
   const { 
@@ -30,10 +29,14 @@ export function SimplePortfolioBreakdown() {
     totalOtherInvestments,
     totalPropertyEquity,
     totalLifestyleValue,
-    totalNetWorth,
     recalculateTotals,
     forceUpdate
   } = useAssetTracker();
+  
+  // For real-time totals
+  const [calculatedTotal, setCalculatedTotal] = useState(
+    useAssetTracker.getState().totalNetWorth || useCharacter.getState().netWorth || characterCash || 1
+  );
   
   // Force an update when the component mounts
   useEffect(() => {
@@ -70,6 +73,9 @@ export function SimplePortfolioBreakdown() {
       
       // Set display total
       setDisplayTotal(calculatedNetWorth || characterNetWorth || wealth || 0);
+      
+      // Update calculated total for percentage calculations
+      setCalculatedTotal(calculatedNetWorth || characterNetWorth || currentWealth || 1);
     };
     
     // Update immediately
@@ -96,9 +102,15 @@ export function SimplePortfolioBreakdown() {
   // Handle manual refresh
   const handleRefresh = () => {
     setIsLoading(true);
+    
     // Get the latest character data
     const { netWorth: characterNetWorth } = useCharacter.getState();
-    setDisplayTotal(characterNetWorth || totalNetWorth || wealth || 0);
+    
+    // Get the latest net worth from asset tracker
+    const { totalNetWorth: latestNetWorth } = useAssetTracker.getState();
+    
+    setDisplayTotal(latestNetWorth || characterNetWorth || wealth || 0);
+    setCalculatedTotal(latestNetWorth || characterNetWorth || characterCash || 1);
     
     // Force recalculation
     recalculateTotals();
@@ -109,7 +121,7 @@ export function SimplePortfolioBreakdown() {
   
   // Create a state for displayed assets to ensure they update correctly
   const [assetValues, setAssetValues] = useState([
-    { label: 'Cash', value: characterWealth, color: 'bg-blue-500' },
+    { label: 'Cash', value: characterCash, color: 'bg-blue-500' },
     { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
     { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
     { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
@@ -169,7 +181,7 @@ export function SimplePortfolioBreakdown() {
                   </td>
                   <td className="text-right text-sm">{formatCurrency(asset.value)}</td>
                   <td className="text-right text-sm w-16 font-medium">
-                    {formatPercentage(asset.value / total)}
+                    {formatPercentage(asset.value / calculatedTotal)}
                   </td>
                 </tr>
               ))}
@@ -186,10 +198,10 @@ export function SimplePortfolioBreakdown() {
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">Cash Ratio</span>
               <span className={`font-medium ${
-                ((characterWealth) / total) > 0.15 ? 'text-green-600' : 
-                ((characterWealth) / total) > 0.05 ? 'text-amber-600' : 
+                ((characterCash) / calculatedTotal) > 0.15 ? 'text-green-600' : 
+                ((characterCash) / calculatedTotal) > 0.05 ? 'text-amber-600' : 
                 'text-red-600'}`}>
-                {formatPercentage(characterWealth / total)}
+                {formatPercentage(characterCash / calculatedTotal)}
               </span>
             </div>
             
