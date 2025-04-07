@@ -75,7 +75,7 @@ export function SimplePortfolioBreakdown() {
     // Update immediately
     updateData();
     
-    // Set up more frequent periodic refresh (every second)
+    // Set up refresh every 1 second
     const intervalId = setInterval(updateData, 1000);
     
     // Subscribe to changes in the character store for wealth changes
