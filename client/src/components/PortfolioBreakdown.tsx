@@ -62,13 +62,19 @@ export function PortfolioBreakdown() {
       total: totalNetWorth
     });
     
-    // Ensure we have some reasonable total - never zero
-    const calculatedTotal = totalNetWorth || wealth || 1;
+    // Use the character's net worth value as the source of truth
+    // This ensures consistency with the top display
+    const { netWorth: characterNetWorth } = useCharacter.getState();
+    const calculatedTotal = characterNetWorth || totalNetWorth || wealth || 1;
     setDisplayTotal(calculatedTotal);
+    
+    // Get character's current cash value to ensure consistency
+    const { wealth: characterWealth } = useCharacter.getState();
+    const cashValue = characterWealth || totalCash || 0;
     
     // Prepare an array of all asset values with labels and colors
     const assetData = [
-      { label: 'Cash', value: totalCash || 0, color: '#3B82F6' },
+      { label: 'Cash', value: cashValue, color: '#3B82F6' },
       { label: 'Stocks', value: totalStocks || 0, color: '#10B981' },
       { label: 'Crypto', value: totalCrypto || 0, color: '#F59E0B' },
       { label: 'Bonds', value: totalBonds || 0, color: '#6366F1' },
@@ -132,8 +138,9 @@ export function PortfolioBreakdown() {
     setTimeout(() => setIsLoading(false), 500);
   };
   
-  // Calculate total for percentages - ensure we never divide by zero
-  const total = totalNetWorth > 0 ? totalNetWorth : 1;
+  // Calculate total for percentages using character's net worth to match top display
+  const { netWorth: characterNetWorth } = useCharacter.getState();
+  const total = characterNetWorth || totalNetWorth || 1;
   
   // Options for the chart
   const chartOptions = {
@@ -176,13 +183,13 @@ export function PortfolioBreakdown() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-2 px-3">
-        <div className="h-40 mx-auto">
+        <div className="h-32 mx-auto relative">
           <Doughnut data={chartData} options={chartOptions} />
         </div>
         
         <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-3">
           {[
-            { label: 'Cash', value: totalCash || 0, color: 'bg-blue-500' },
+            { label: 'Cash', value: useCharacter.getState().wealth || 0, color: 'bg-blue-500' },
             { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
             { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
             { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
@@ -214,10 +221,10 @@ export function PortfolioBreakdown() {
               <span className="text-gray-600">Cash Ratio</span>
               <span className={`font-medium ${
                 total === 0 ? 'text-gray-500' :
-                ((totalCash || 0) / total) > 0.15 ? 'text-green-600' : 
-                ((totalCash || 0) / total) > 0.05 ? 'text-amber-600' : 
+                ((useCharacter.getState().wealth || 0) / total) > 0.15 ? 'text-green-600' : 
+                ((useCharacter.getState().wealth || 0) / total) > 0.05 ? 'text-amber-600' : 
                 'text-red-600'}`}>
-                {formatPercentage((totalCash || 0) / total)}
+                {formatPercentage((useCharacter.getState().wealth || 0) / total)}
               </span>
             </div>
             
