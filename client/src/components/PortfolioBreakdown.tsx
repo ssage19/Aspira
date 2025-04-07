@@ -183,32 +183,36 @@ export function PortfolioBreakdown() {
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-2 px-3">
-        <div className="h-32 mx-auto relative">
-          <Doughnut data={chartData} options={chartOptions} />
-        </div>
-        
-        <div className="grid grid-cols-2 gap-x-3 gap-y-1 mt-3">
-          {[
-            { label: 'Cash', value: useCharacter.getState().wealth || 0, color: 'bg-blue-500' },
-            { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
-            { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
-            { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
-            { label: 'Other', value: totalOtherInvestments || 0, color: 'bg-purple-500' },
-            { label: 'Property', value: totalPropertyEquity || 0, color: 'bg-pink-500' },
-            { label: 'Lifestyle', value: totalLifestyleValue || 0, color: 'bg-rose-500' }
-          ].map((item, index) => (
-            <div key={index} className="flex items-center space-x-1">
-              <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-              <div className="flex justify-between w-full text-xs">
-                <span>{item.label}</span>
-                <span className="font-medium">
-                  {total > 0 
-                    ? formatPercentage(item.value / total)
-                    : '0%'}
-                </span>
+        <div className="flex flex-row gap-4">
+          {/* Smaller chart in a flex container */}
+          <div className="h-20 w-20 flex-shrink-0 relative">
+            <Doughnut data={chartData} options={chartOptions} />
+          </div>
+          
+          {/* Legend in a flex container */}
+          <div className="flex-grow grid grid-cols-2 gap-x-2 gap-y-0.5">
+            {[
+              { label: 'Cash', value: useCharacter.getState().wealth || 0, color: 'bg-blue-500' },
+              { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
+              { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
+              { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
+              { label: 'Other', value: totalOtherInvestments || 0, color: 'bg-purple-500' },
+              { label: 'Property', value: totalPropertyEquity || 0, color: 'bg-pink-500' },
+              { label: 'Lifestyle', value: totalLifestyleValue || 0, color: 'bg-rose-500' }
+            ].map((item, index) => (
+              <div key={index} className="flex items-center space-x-1">
+                <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
+                <div className="flex justify-between w-full text-xs">
+                  <span>{item.label}</span>
+                  <span className="font-medium">
+                    {total > 0 
+                      ? formatPercentage(item.value / total)
+                      : '0%'}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
         
         {/* Financial health indicators */}
