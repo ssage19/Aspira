@@ -1977,6 +1977,11 @@ export const useCharacter = create<CharacterState>()(
           lifestyleCount: assetTracker.lifestyleItems?.length || 0
         });
         
+        // BIDIRECTIONAL SYNC FIRST:
+        // Before pushing character state to asset tracker, update character state with latest prices
+        // from asset tracker. This ensures latest market prices are reflected in the character store.
+        get().syncPricesFromAssetTracker();
+        
         // Check if we're in a reset state
         // Only consider 'game_reset_in_progress' flag to be truly indicative of a reset
         // The other flags can be set during normal game operation and shouldn't trigger asset reset
@@ -2601,6 +2606,104 @@ export const useCharacter = create<CharacterState>()(
       },
       
       // Daily/weekly/monthly updates
+      // New function to sync prices from asset tracker to character store
+      // This ensures that the character store has the latest market prices
+      syncPricesFromAssetTracker: () => {
+        const state = get();
+        
+        // Safeguard: Ensure the AssetTracker is accessible
+        if (!useAssetTracker) {
+          console.error("CRITICAL ERROR: AssetTracker module not available");
+          return;
+        }
+        
+        // Get the asset tracker state
+        const assetTracker = useAssetTracker.getState();
+        if (!assetTracker) {
+          console.error("CRITICAL ERROR: AssetTracker state not available");
+          return;
+        }
+        
+        console.log("PRICE SYNC: Updating character store with latest prices from asset tracker");
+        
+        // PHASE 1: STOCK PRICE SYNCING
+        try {
+          // For each stock in asset tracker, update the price in the character store
+          assetTracker.stocks.forEach(trackerStock => {
+            // Find the corresponding stock in character assets
+            const characterAssetIndex = state.assets.findIndex(
+              asset => asset.type === 'stock' && asset.id === trackerStock.id
+            );
+            
+            if (characterAssetIndex >= 0) {
+              const currentPrice = trackerStock.currentPrice;
+              const currentAsset = state.assets[characterAssetIndex];
+              
+              // Only update if the price is different and valid
+              if (currentPrice > 0 && currentPrice !== currentAsset.currentPrice) {
+                // Create an updated asset with the new price
+                set(state => {
+                  const updatedAssets = [...state.assets];
+                  const updatedAsset = {...updatedAssets[characterAssetIndex]};
+                  updatedAsset.currentPrice = currentPrice;
+                  // Calculate and update total value (may not have a totalValue property directly)
+                  updatedAssets[characterAssetIndex] = updatedAsset;
+                  
+                  console.log(`PRICE SYNC: Updated ${updatedAsset.name} price in character store from ${currentAsset.currentPrice} to ${currentPrice}`);
+                  
+                  return { assets: updatedAssets };
+                });
+              }
+            }
+          });
+          
+          console.log("PRICE SYNC: Stock price sync complete");
+        } catch (stockPriceSyncError) {
+          console.error("Error during stock price syncing:", stockPriceSyncError);
+        }
+        
+        // PHASE 2: PROPERTY VALUE SYNCING
+        try {
+          // For each property in asset tracker, update the value in character store
+          assetTracker.properties.forEach(trackerProperty => {
+            // Find the corresponding property in character properties
+            const characterPropertyIndex = state.properties.findIndex(
+              property => property.id === trackerProperty.id
+            );
+            
+            if (characterPropertyIndex >= 0) {
+              const currentValue = trackerProperty.currentValue;
+              const currentProperty = state.properties[characterPropertyIndex];
+              
+              // Only update if the value is different and valid
+              if (currentValue > 0 && currentValue !== currentProperty.currentValue) {
+                // Create an updated property with the new value
+                set(state => {
+                  const updatedProperties = [...state.properties];
+                  const updatedProperty = {...updatedProperties[characterPropertyIndex]};
+                  updatedProperty.currentValue = currentValue;
+                  // Property might not have equity/mortgage directly, but we can calculate it
+                  // In our system, properties typically use loanAmount instead of mortgage
+                  const loanAmount = updatedProperty.loanAmount || 0;
+                  // Manually calculate equity (we don't need to store it directly)
+                  updatedProperties[characterPropertyIndex] = updatedProperty;
+                  
+                  console.log(`PRICE SYNC: Updated ${updatedProperty.name} value in character store from ${currentProperty.currentValue} to ${currentValue}`);
+                  
+                  return { properties: updatedProperties };
+                });
+              }
+            }
+          });
+          
+          console.log("PRICE SYNC: Property value sync complete");
+        } catch (propertyValueSyncError) {
+          console.error("Error during property value syncing:", propertyValueSyncError);
+        }
+        
+        console.log("PRICE SYNC: Price synchronization from asset tracker to character complete");
+      },
+      
       processDailyUpdate: () => {
         set((state) => {
           // Update days since promotion if employed
