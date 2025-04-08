@@ -69,29 +69,17 @@ export default function ReliableDashboard() {
   
   // ------------------- DATA REFRESH LOGIC -----------------
   
-  // Function to refresh all dashboard data
+  // Lightweight function to refresh dashboard data without triggering excessive refreshes
   const refreshDashboardData = useCallback(async () => {
-    console.log("🔄 RELIABLE DASHBOARD: Refreshing all data...");
+    // Skip if we're already loading data
+    if (isLoading) return;
+    
     setIsLoading(true);
     
     try {
-      // First, trigger global asset refresh to get values updated everywhere
-      await triggerRefresh();
-      
-      // Get fresh data directly from stores
+      // Get data directly from stores instead of triggering additional refreshes
       const character = useCharacter.getState();
       const assetTracker = useAssetTracker.getState();
-      
-      // Log the data we're getting
-      console.log("📊 RELIABLE DASHBOARD DATA:", {
-        characterWealth: character.wealth,
-        characterName: character.name,
-        netWorth: assetTracker.totalNetWorth,
-        stockValue: assetTracker.totalStocks,
-        propertyValue: assetTracker.totalPropertyValue,
-        lifestyleValue: assetTracker.totalLifestyleValue,
-        timestamp: new Date().toISOString()
-      });
       
       // Update local state with fresh data
       setStats({
@@ -107,29 +95,30 @@ export default function ReliableDashboard() {
         propertyValue: assetTracker.totalPropertyValue,
         lifestyleValue: assetTracker.totalLifestyleValue
       });
-      
-      console.log("✅ RELIABLE DASHBOARD: Refresh complete");
     } catch (error) {
-      console.error("❌ RELIABLE DASHBOARD: Refresh failed", error);
+      console.error("Error updating dashboard data:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [triggerRefresh]);
+  }, [isLoading]);
   
-  // Refresh data on component mount
+  // Simplified refresh strategy to avoid freezing
   useEffect(() => {
     console.log("🚀 RELIABLE DASHBOARD: Component mounted");
     
-    // Initial data load
-    refreshDashboardData();
+    // One-time initial data load with a small delay to ensure state is ready
+    const initialTimeout = setTimeout(() => {
+      refreshDashboardData();
+    }, 100);
     
-    // Setup periodic refresh
+    // Reduced frequency interval to prevent performance issues
     const refreshInterval = setInterval(() => {
       refreshDashboardData();
-    }, 2000);
+    }, 5000); // Reduced to every 5 seconds to prevent freezing
     
     return () => {
       clearInterval(refreshInterval);
+      clearTimeout(initialTimeout);
       console.log("👋 RELIABLE DASHBOARD: Component unmounting");
     };
   }, [refreshDashboardData]);
