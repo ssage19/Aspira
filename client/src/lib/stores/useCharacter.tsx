@@ -1637,18 +1637,24 @@ export const useCharacter = create<CharacterState>()(
         if (resetInProgress || gameResetCompleted || characterResetCompleted) {
           console.log('NetWorth calculation: Reset condition detected, using simplified calculation');
           
-          // Create a basic breakdown with just cash and version info
+          // First sync with asset tracker to ensure latest values
+          get().syncAssetsWithAssetTracker();
+          
+          // Get fresh values from the asset tracker
+          const assetTracker = useAssetTracker.getState();
+          
+          // Create a breakdown with asset tracker values
           const resetBreakdown = {
-            cash: state.wealth,
-            stocks: 0,
-            crypto: 0,
-            bonds: 0,
-            otherInvestments: 0,
-            propertyEquity: 0,
-            propertyValue: 0,
-            propertyDebt: 0,
-            lifestyleItems: 0,
-            total: state.wealth,
+            cash: assetTracker.totalCash,
+            stocks: assetTracker.totalStocks,
+            crypto: assetTracker.totalCrypto,
+            bonds: assetTracker.totalBonds,
+            otherInvestments: assetTracker.totalOtherInvestments,
+            propertyEquity: assetTracker.totalPropertyEquity,
+            propertyValue: assetTracker.totalPropertyValue,
+            propertyDebt: assetTracker.totalPropertyDebt,
+            lifestyleItems: assetTracker.totalLifestyleValue,
+            total: assetTracker.totalNetWorth,
             version: Date.now() // Add a version timestamp
           };
           
@@ -1685,103 +1691,42 @@ export const useCharacter = create<CharacterState>()(
         
         // Normal calculation path for non-reset situations
         
-        // Start with cash (liquid assets)
-        let netWorth = state.wealth;
+        // Sync with asset tracker first to ensure latest values
+        get().syncAssetsWithAssetTracker();
         
-        // Map containing detailed breakdown of assets for logging
+        // Get fresh values from the asset tracker
+        const assetTracker = useAssetTracker.getState();
+        
+        // Get all totals directly from asset tracker (single source of truth)
         const breakdown = {
-          cash: state.wealth,
-          stocks: 0,
-          crypto: 0,
-          bonds: 0,
-          otherInvestments: 0,
-          propertyEquity: 0,
-          propertyValue: 0,
-          propertyDebt: 0,
-          lifestyleItems: 0, // Add lifestyle items to the breakdown
-          total: 0,
+          cash: assetTracker.totalCash,
+          stocks: assetTracker.totalStocks,
+          crypto: assetTracker.totalCrypto,
+          bonds: assetTracker.totalBonds,
+          otherInvestments: assetTracker.totalOtherInvestments,
+          propertyEquity: assetTracker.totalPropertyEquity,
+          propertyValue: assetTracker.totalPropertyValue,
+          propertyDebt: assetTracker.totalPropertyDebt,
+          lifestyleItems: assetTracker.totalLifestyleValue,
+          total: assetTracker.totalNetWorth,
           version: Date.now() // Add version timestamp
         };
         
-        // Add investment assets
-        state.assets.forEach(asset => {
-          const assetValue = asset.currentPrice * asset.quantity;
-          netWorth += assetValue;
-          
-          // Track by investment type for breakdown
-          switch(asset.type) {
-            case 'stock':
-              breakdown.stocks += assetValue;
-              break;
-            case 'crypto':
-              breakdown.crypto += assetValue;
-              break;
-            case 'bond':
-              breakdown.bonds += assetValue;
-              break;
-            default:
-              breakdown.otherInvestments += assetValue;
-          }
-        });
+        // Use the asset tracker's total net worth
+        let netWorth = assetTracker.totalNetWorth;
         
-        // Add property values and subtract outstanding loans
-        state.properties.forEach(property => {
-          // Get current property value
-          const propertyValue = property.currentValue;
-          breakdown.propertyValue += propertyValue;
-          
-          // Get outstanding loan amount
-          const loanAmount = property.loanAmount || 0;
-          breakdown.propertyDebt += loanAmount;
-          
-          // Property equity is value minus debt
-          const equity = propertyValue - loanAmount;
-          breakdown.propertyEquity += equity;
-          
-          // Add equity to net worth (value minus debt)
-          netWorth += equity;
-        });
-        
-        // Add lifestyle item values to net worth
-        // These should be considered depreciating assets but still have some value
-        state.lifestyleItems.forEach(item => {
-          // Skip vacations and experiences as they're temporary and shouldn't contribute to net worth
-          if (item.type === 'vacations' || item.type === 'experiences') {
-            return; // Skip this item
-          }
-          
-          // For permanent lifestyle items, use purchase price with depreciation 
-          // or a fixed value based on their monthly cost
-          const purchasePrice = item.purchasePrice || 0;
-          let itemValue = 0;
-          
-          if (purchasePrice > 0) {
-            // Calculate time since purchase to apply depreciation
-            const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
-            // Use game time for consistent depreciation
-            const currentDate = useTime.getState().currentGameDate;
-            const monthsSincePurchase = Math.max(0, 
-              (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
-              (currentDate.getMonth() - purchaseDate.getMonth())
-            );
-            
-            // Apply depreciation based on months owned
-            // Lifestyle items lose value over time but retain some residual value
-            const depreciation = Math.min(0.75, monthsSincePurchase * 0.05); // Max 75% depreciation
-            itemValue = purchasePrice * (1 - depreciation);
-          } else {
-            // If no purchase price, estimate value based on monthly cost or maintenanceCost
-            // This is for subscriptions and other recurring items
-            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-            itemValue = monthlyCost * 3; // Value as 3 months of payments
-          }
-          
-          breakdown.lifestyleItems += itemValue;
-          netWorth += itemValue;
-        });
-        
-        // Calculate total for percentage calculation
-        breakdown.total = netWorth;
+        // Detailed logging for debugging
+        console.log("Calculating net worth using asset tracker values:");
+        console.log(`Cash: ${breakdown.cash}`);
+        console.log(`Stocks: ${breakdown.stocks}`);
+        console.log(`Crypto: ${breakdown.crypto}`);
+        console.log(`Bonds: ${breakdown.bonds}`);
+        console.log(`Other investments: ${breakdown.otherInvestments}`);
+        console.log(`Property equity: ${breakdown.propertyEquity}`);
+        console.log(`Property value: ${breakdown.propertyValue}`);
+        console.log(`Property debt: ${breakdown.propertyDebt}`);
+        console.log(`Lifestyle items: ${breakdown.lifestyleItems}`);
+        console.log(`Total net worth: ${breakdown.total}`);
         
         // Log the breakdown for debugging
         console.log('Net worth breakdown:');
@@ -1861,17 +1806,24 @@ export const useCharacter = create<CharacterState>()(
           }
           
           // 3. Create a fresh breakdown with version information
+          // First sync with the asset tracker
+          get().syncAssetsWithAssetTracker();
+          
+          // Then get data from asset tracker
+          const assetTracker = useAssetTracker.getState();
+          
+          // Use asset tracker values for the breakdown
           const defaultBreakdown = {
-            cash: state.wealth,
-            stocks: 0,
-            crypto: 0,
-            bonds: 0,
-            otherInvestments: 0,
-            propertyEquity: 0,
-            propertyValue: 0,
-            propertyDebt: 0,
-            lifestyleItems: 0,
-            total: state.wealth,
+            cash: assetTracker.totalCash,
+            stocks: assetTracker.totalStocks,
+            crypto: assetTracker.totalCrypto,
+            bonds: assetTracker.totalBonds,
+            otherInvestments: assetTracker.totalOtherInvestments,
+            propertyEquity: assetTracker.totalPropertyEquity,
+            propertyValue: assetTracker.totalPropertyValue,
+            propertyDebt: assetTracker.totalPropertyDebt,
+            lifestyleItems: assetTracker.totalLifestyleValue,
+            total: assetTracker.totalNetWorth,
             version: Date.now() // Add version timestamp
           };
           
@@ -1956,20 +1908,30 @@ export const useCharacter = create<CharacterState>()(
           return memoryBreakdown;
         }
         
-        // Final fallback if all else fails
-        return {
-          cash: state.wealth,
-          stocks: 0,
-          crypto: 0,
-          bonds: 0,
-          otherInvestments: 0,
-          propertyEquity: 0,
-          propertyValue: 0,
-          propertyDebt: 0,
-          lifestyleItems: 0,
-          total: state.wealth,
+        // Final fallback - use asset tracker as source of truth
+        // Sync assets with asset tracker first
+        get().syncAssetsWithAssetTracker();
+        
+        // Get fresh values from the asset tracker
+        const assetTracker = useAssetTracker.getState();
+        
+        // Create breakdown with asset tracker values
+        const fallbackBreakdown = {
+          cash: assetTracker.totalCash,
+          stocks: assetTracker.totalStocks,
+          crypto: assetTracker.totalCrypto,
+          bonds: assetTracker.totalBonds,
+          otherInvestments: assetTracker.totalOtherInvestments,
+          propertyEquity: assetTracker.totalPropertyEquity,
+          propertyValue: assetTracker.totalPropertyValue,
+          propertyDebt: assetTracker.totalPropertyDebt,
+          lifestyleItems: assetTracker.totalLifestyleValue,
+          total: assetTracker.totalNetWorth,
           version: Date.now()
         };
+        
+        console.log("Using fallback breakdown with asset tracker values:", fallbackBreakdown);
+        return fallbackBreakdown;
       },
       
       // Helper function to sync all assets with the AssetTracker store
