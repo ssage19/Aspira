@@ -5,10 +5,11 @@ import { getLocalStorage, setLocalStorage } from "../utils";
 export type GameTimeSpeed = 'paused' | 'normal' | 'fast' | 'superfast';
 
 interface TimeState {
-  // Current date
+  // Current date and time
   currentDay: number;
   currentMonth: number;
   currentYear: number;
+  currentHour: number; // 0-23 hour of the day
   
   // Start date (for tracking game duration)
   startDay: number;
@@ -34,7 +35,7 @@ interface TimeState {
   
   // Actions
   advanceTime: () => void;
-  setDate: (day: number, month: number, year: number) => void;
+  setDate: (day: number, month: number, year: number, hour?: number) => void;
   resetGameStart: () => void; // Reset start date to current date
   resetTime: () => void; // Reset all time values to real-world current date
   setTimeSpeed: (speed: GameTimeSpeed) => void; // Set the time speed
@@ -66,7 +67,16 @@ const loadSavedTime = () => {
           saved.currentMonth >= 1 && saved.currentMonth <= 12 &&
           saved.currentYear >= 2020 && saved.currentYear <= 2050) {
         
-        console.log(`Loaded valid saved time: ${saved.currentMonth}/${saved.currentDay}/${saved.currentYear}`);
+        // Validate hour if present, otherwise we'll initialize it later
+        if (saved.currentHour !== undefined && 
+            typeof saved.currentHour === 'number' && 
+            (saved.currentHour < 0 || saved.currentHour > 23)) {
+          // Correct invalid hour values
+          saved.currentHour = 0;
+          console.warn("Corrected invalid hour value in saved time data");
+        }
+        
+        console.log(`Loaded valid saved time: ${saved.currentMonth}/${saved.currentDay}/${saved.currentYear} ${saved.currentHour !== undefined ? saved.currentHour + ':00' : 'time not set'}`);
         return saved;
       } else {
         console.warn("Saved time data contains invalid date values, using current device date instead");
@@ -83,14 +93,15 @@ const loadSavedTime = () => {
 };
 
 // Get the current real device date
-// Get current device date, always returning a fresh date to ensure accuracy
+// Get current device date and time, always returning a fresh date to ensure accuracy
 const getCurrentDeviceDate = (forceRefresh: boolean = false) => {
   // Always get a fresh date to avoid stale data issues
   const now = new Date();
   return {
     day: now.getDate(),
     month: now.getMonth() + 1, // JavaScript months are 0-indexed
-    year: now.getFullYear()
+    year: now.getFullYear(),
+    hour: now.getHours() // 0-23 hour of the day
   };
 };
 
@@ -102,10 +113,11 @@ export const useTime = create<TimeState>()(
     // Get current real-world date
     const realDate = getCurrentDeviceDate();
     
-    // Set initial values for day, month, year
+    // Set initial values for day, month, year, hour
     const initialDay = savedTime?.currentDay || realDate.day;
     const initialMonth = savedTime?.currentMonth || realDate.month;
     const initialYear = savedTime?.currentYear || realDate.year;
+    const initialHour = savedTime?.currentHour || realDate.hour;
     
     // Create the initial Date object
     const initialGameDate = new Date(initialYear, initialMonth - 1, initialDay);
@@ -140,6 +152,7 @@ export const useTime = create<TimeState>()(
       currentDay: initialDay,
       currentMonth: initialMonth,
       currentYear: initialYear,
+      currentHour: initialHour,
       
       // Current game date as a JavaScript Date object
       currentGameDate: initialGameDate,
@@ -164,39 +177,47 @@ export const useTime = create<TimeState>()(
       dayCounter: savedTime?.dayCounter || 0,
       
       advanceTime: () => set((state) => {
-        let newDay = state.currentDay + 1;
+        // First, advance the hour
+        let newHour = (state.currentHour + 1) % 24; // 0-23 hours
+        let newDay = state.currentDay;
         let newMonth = state.currentMonth;
         let newYear = state.currentYear;
         
-        // Determine days in current month
-        const daysInMonth = new Date(state.currentYear, state.currentMonth, 0).getDate();
-        
-        // Check if we need to advance to next month
-        if (newDay > daysInMonth) {
-          newDay = 1;
-          newMonth += 1;
+        // If we complete a full 24-hour cycle, advance the day
+        if (newHour === 0) {
+          newDay = state.currentDay + 1;
           
-          // Check if we need to advance to next year
-          if (newMonth > 12) {
-            newMonth = 1;
-            newYear += 1;
+          // Determine days in current month
+          const daysInMonth = new Date(state.currentYear, state.currentMonth, 0).getDate();
+          
+          // Check if we need to advance to next month
+          if (newDay > daysInMonth) {
+            newDay = 1;
+            newMonth += 1;
+            
+            // Check if we need to advance to next year
+            if (newMonth > 12) {
+              newMonth = 1;
+              newYear += 1;
+            }
           }
+          
+          // Increment the day counter for tracking weekly/biweekly updates
+          // With new time scale, 14 days (2 weeks) will pass every 5 minutes of real time
+          const newDayCounter = (state.dayCounter + 1) % 14;
+          state.dayCounter = newDayCounter;
         }
         
         // Create a new Date object for the updated date
         const newGameDate = new Date(newYear, newMonth - 1, newDay);
         
-        // Increment the day counter for tracking weekly/biweekly updates
-        // With new time scale, 14 days (2 weeks) will pass every 5 minutes of real time
-        const newDayCounter = (state.dayCounter + 1) % 14;
-        
         const newState = {
           ...state, // Keep other values like start date
+          currentHour: newHour,
           currentDay: newDay,
           currentMonth: newMonth,
           currentYear: newYear,
-          currentGameDate: newGameDate,
-          dayCounter: newDayCounter
+          currentGameDate: newGameDate
         };
         
         // Save to local storage
@@ -205,7 +226,7 @@ export const useTime = create<TimeState>()(
         return newState;
       }),
       
-      setDate: (day, month, year) => set((state) => {
+      setDate: (day, month, year, hour = 0) => set((state) => {
         // Create a new Date object for the updated date
         const newGameDate = new Date(year, month - 1, day);
         
@@ -214,6 +235,7 @@ export const useTime = create<TimeState>()(
           currentDay: day,
           currentMonth: month,
           currentYear: year,
+          currentHour: hour,
           currentGameDate: newGameDate
         };
         
@@ -243,8 +265,9 @@ export const useTime = create<TimeState>()(
         const currentDay = now.getDate();
         const currentMonth = now.getMonth() + 1; // JavaScript months are 0-indexed
         const currentYear = now.getFullYear();
+        const currentHour = now.getHours();
         
-        console.log(`Resetting time to fresh device date: ${currentMonth}/${currentDay}/${currentYear}`);
+        console.log(`Resetting time to fresh device date: ${currentMonth}/${currentDay}/${currentYear} ${currentHour}:00`);
         
         // Create a new Date object for the reset time
         const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
@@ -254,6 +277,7 @@ export const useTime = create<TimeState>()(
           currentDay,
           currentMonth,
           currentYear,
+          currentHour,
           startDay: currentDay,
           startMonth: currentMonth,
           startYear: currentYear,

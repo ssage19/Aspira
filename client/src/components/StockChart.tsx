@@ -58,7 +58,7 @@ interface CandlestickData {
 }
 
 export function StockChart({ stockId, currentPrice, basePrice, volatility }: StockChartProps) {
-  const { currentDay, currentMonth, currentYear } = useTime();
+  const { currentDay, currentMonth, currentYear, currentHour } = useTime();
   const { marketTrend } = useEconomy();
   
   // State for different timeframes
@@ -107,9 +107,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
    * This effect sets up the initial state and handles day transitions
    */
   useEffect(() => {
-    // Check if current day is a weekday
+    // Check if current day is a weekday and within market hours
     const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
-    const isMarketOpenToday = isWeekday(currentGameDate);
+    const isWeekdayToday = isWeekday(currentGameDate);
+    const isMarketHourNow = isWithinMarketHours(currentHour);
+    const isMarketOpenToday = isWeekdayToday && isMarketHourNow;
     
     // Track the previous market state for weekend-weekday transitions
     let previousMarketState = null;
@@ -157,7 +159,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         lastUpdatedYear: currentYear
       };
     }
-  }, [stockId, currentDay, currentMonth, currentYear]);
+  }, [stockId, currentDay, currentMonth, currentYear, currentHour]);
   
   // Format a day number to different formats based on timeframe
   const formatDate = (targetDate: Date, timeframe: TimeFrame) => {
@@ -374,6 +376,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return day >= 1 && day <= 5; // Monday is 1, Friday is 5
   };
   
+  // Helper to check if an hour is within market hours (9AM-4PM)
+  const isWithinMarketHours = (hour: number): boolean => {
+    return hour >= 9 && hour < 16; // 9AM to 4PM
+  };
+  
   // Generate historical stock data
   useEffect(() => {
     console.log(`Updating chart for stock: ${stockId} at price: ${currentPrice}`);
@@ -391,9 +398,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
       previousDataRef.current.lastUpdatedMonth !== currentMonth || 
       previousDataRef.current.lastUpdatedYear !== currentYear;
     
-    // Check if current day is a weekday
+    // Check if current day is a weekday and within market hours
     const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
-    const isMarketOpenToday = isWeekday(currentGameDate);
+    const isWeekdayToday = isWeekday(currentGameDate);
+    const isMarketHourNow = isWithinMarketHours(currentHour);
+    const isMarketOpenToday = isWeekdayToday && isMarketHourNow;
     
     // Calculate the previous date - we need to accurately track day-to-day transitions
     const prevUpdatedYear = previousDataRef.current.lastUpdatedYear || currentYear;
@@ -576,7 +585,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
       };
       
     }
-  }, [currentDay, stockId, currentPrice, basePrice, volatility, marketTrend, currentMonth, currentYear]);
+  }, [currentDay, stockId, currentPrice, basePrice, volatility, marketTrend, currentMonth, currentYear, currentHour, isWithinMarketHours]);
   
   // Format Y-axis values with proper precision based on stock price
   const formatYAxis = (value: number) => {
@@ -791,12 +800,14 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
             gameDate.setMonth(currentMonth - 1); // JS months are 0-indexed
             gameDate.setDate(currentDay);
             
+            // Check if it's a weekday (Mon-Fri) using the isWeekday helper 
             const dayOfWeek = gameDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0 = Sunday, 6 = Saturday
-            const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+            const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5; // Monday is 1, Friday is 5
+            const isWeekend = !isWeekday;
+            const isWithinTradingHours = isWithinMarketHours(currentHour);
             
             // Weekday but outside trading hours
-            const isWeekdayClosed = !isWeekend && !isWithinTradingHours;
+            const isWeekdayClosed = isWeekday && !isWithinTradingHours;
             
             // Styling classes based on status
             let statusClasses = '';
@@ -807,14 +818,14 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
               statusClasses = 'bg-slate-900/30 text-slate-400 border border-slate-800';
               dotColor = 'bg-slate-500';
               statusText = 'WEEKEND';
-            } else if (isWithinTradingHours) {
+            } else if (isWeekday && isWithinTradingHours) {
               statusClasses = 'bg-green-900/30 text-green-400 border border-green-800';
               dotColor = 'bg-green-500';
               statusText = 'OPEN';
             } else {
               statusClasses = 'bg-red-900/30 text-red-400 border border-red-800';
               dotColor = 'bg-red-500';
-              statusText = 'CLOSED';
+              statusText = isWeekday ? `CLOSED (${currentHour < 9 ? 'Pre-Market' : 'After-Hours'})` : 'CLOSED';
             }
             
             return (

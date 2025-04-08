@@ -47,6 +47,7 @@ export function GameUI() {
     currentDay, 
     currentMonth, 
     currentYear, 
+    currentHour,
     advanceTime, 
     timeSpeed, 
     timeMultiplier, 
@@ -662,6 +663,13 @@ export function GameUI() {
                   day: 'numeric',
                   year: 'numeric'
                 })}
+                {' '}
+                <span className="text-primary/80">
+                  {currentHour === 0 ? '12:00 AM' : 
+                   currentHour < 12 ? `${currentHour}:00 AM` : 
+                   currentHour === 12 ? '12:00 PM' : 
+                   `${currentHour - 12}:00 PM`}
+                </span>
               </p>
             </div>
           </div>
