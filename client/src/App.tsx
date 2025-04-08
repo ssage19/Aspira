@@ -9,6 +9,7 @@ import { useEconomy } from "./lib/stores/useEconomy";
 import { ThemeProvider } from "./lib/ThemeProvider";
 import Dashboard from "./pages/Dashboard";
 import SimpleDashboard from "./pages/SimpleDashboard";
+import ReliableDashboard from "./pages/ReliableDashboard";
 import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
@@ -269,8 +270,10 @@ function App() {
             {/* Asset Refresh Provider - maintains consistent asset values across the app */}
             <AssetRefreshProvider refreshInterval={2000}>
               <Routes>
-                {/* Use the optimized SimpleDashboard to avoid infinite render loops */}
-                <Route path="/" element={<SimpleDashboard />} />
+                {/* Use our new ReliableDashboard for better data consistency */}
+                <Route path="/" element={<ReliableDashboard />} />
+                <Route path="/classic-dashboard" element={<Dashboard />} />
+                <Route path="/simple-dashboard" element={<SimpleDashboard />} />
                 <Route path="/create" element={<CharacterCreation />} />
                 <Route path="/job" element={<JobScreen />} />
                 <Route path="/investments" element={<InvestmentScreen />} />

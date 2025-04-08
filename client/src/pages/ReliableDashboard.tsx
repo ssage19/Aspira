@@ -1,0 +1,419 @@
+/**
+ * Reliable Dashboard Component
+ * 
+ * A completely rebuilt dashboard component that uses direct store access
+ * and explicit refresh triggers to ensure values are always up-to-date.
+ */
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import refreshAllAssets from '../lib/services/assetRefresh';
+import { useAssetRefresh } from '../components/AssetRefreshProvider';
+
+// Import UI components
+import { GameUI } from '../components/GameUI';
+import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
+import { CharacterAttributes } from '../components/CharacterAttributes';
+import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
+import { AchievementsWidget } from '../components/AchievementsWidget';
+
+// Import UI elements
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { Button } from '../components/ui/button';
+import { Progress } from '../components/ui/progress';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
+  AlertDialogTrigger } from '../components/ui/alert-dialog';
+
+// Import icons
+import { Calendar, Settings, DollarSign, Crown, ChartBar, 
+  Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
+  Upload, Trash2, RotateCcw, HeartPulse } from 'lucide-react';
+
+// Import data stores directly (for direct access)
+import useAssetTracker from '../lib/stores/useAssetTracker';
+import { useCharacter } from '../lib/stores/useCharacter';
+import { useTime } from '../lib/stores/useTime';
+import { useEconomy } from '../lib/stores/useEconomy';
+import { formatCurrency, formatPercentage } from '../lib/utils';
+
+export default function ReliableDashboard() {
+  const navigate = useNavigate();
+  
+  // Get global asset refresh functionality
+  const { triggerRefresh } = useAssetRefresh();
+  
+  // ------------------- LOCAL STATE -----------------
+  // State for UI refresh
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  
+  // Dashboard values
+  const [stats, setStats] = useState({
+    wealth: 0,
+    name: "",
+    netWorth: 0,
+    happiness: 0,
+    prestige: 0, 
+    energy: 0,
+    health: 0,
+    stress: 0,
+    stockValue: 0,
+    propertyValue: 0,
+    lifestyleValue: 0
+  });
+  
+  // Tab state
+  const [activeTab, setActiveTab] = useState('overview');
+  
+  // ------------------- DATA REFRESH LOGIC -----------------
+  
+  // Function to refresh all dashboard data
+  const refreshDashboardData = useCallback(async () => {
+    console.log("🔄 RELIABLE DASHBOARD: Refreshing all data...");
+    setIsLoading(true);
+    
+    try {
+      // First, trigger global asset refresh to get values updated everywhere
+      await triggerRefresh();
+      
+      // Get fresh data directly from stores
+      const character = useCharacter.getState();
+      const assetTracker = useAssetTracker.getState();
+      
+      // Log the data we're getting
+      console.log("📊 RELIABLE DASHBOARD DATA:", {
+        characterWealth: character.wealth,
+        characterName: character.name,
+        netWorth: assetTracker.totalNetWorth,
+        stockValue: assetTracker.totalStocks,
+        propertyValue: assetTracker.totalPropertyValue,
+        lifestyleValue: assetTracker.totalLifestyleValue,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Update local state with fresh data
+      setStats({
+        wealth: character.wealth,
+        name: character.name,
+        netWorth: assetTracker.totalNetWorth,
+        happiness: character.happiness,
+        prestige: character.prestige,
+        energy: character.energy,
+        health: character.health,
+        stress: character.stress,
+        stockValue: assetTracker.totalStocks,
+        propertyValue: assetTracker.totalPropertyValue,
+        lifestyleValue: assetTracker.totalLifestyleValue
+      });
+      
+      console.log("✅ RELIABLE DASHBOARD: Refresh complete");
+    } catch (error) {
+      console.error("❌ RELIABLE DASHBOARD: Refresh failed", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [triggerRefresh]);
+  
+  // Refresh data on component mount
+  useEffect(() => {
+    console.log("🚀 RELIABLE DASHBOARD: Component mounted");
+    
+    // Initial data load
+    refreshDashboardData();
+    
+    // Setup periodic refresh
+    const refreshInterval = setInterval(() => {
+      refreshDashboardData();
+    }, 2000);
+    
+    return () => {
+      clearInterval(refreshInterval);
+      console.log("👋 RELIABLE DASHBOARD: Component unmounting");
+    };
+  }, [refreshDashboardData]);
+  
+  // Refresh when triggering a manual refresh
+  const handleManualRefresh = () => {
+    toast.info("Refreshing dashboard data...");
+    refreshDashboardData();
+    // Also increment refresh trigger to force child components to refresh
+    setRefreshTrigger(prev => prev + 1);
+  };
+  
+  // ------------------- DATE FORMATTING -----------------
+  // Get current date
+  const { currentDay, currentMonth, currentYear } = useTime();
+  
+  // Format the date
+  const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)
+    .toLocaleDateString('en-US', { 
+      month: 'long', 
+      day: 'numeric', 
+      year: 'numeric' 
+    });
+  
+  // Get economy state
+  const { economyState } = useEconomy();
+  
+  // ------------------- UI RENDERING -----------------
+  return (
+    <div className="w-full min-h-screen pt-2 pb-24">
+      {/* Dashboard UI - outside of normal flow */}
+      <GameUI />
+        
+      {/* Central Dashboard - scrollable */}
+      <div className="relative z-10 w-full max-w-5xl mx-auto p-6 mt-14">
+        <Card className="backdrop-blur-md border-primary/20 bg-background/30 card-hover shadow-lg rounded-xl overflow-hidden">
+          {/* Soft glow elements using our new theme colors */}
+          <div className="absolute -bottom-2 -right-2 h-32 w-32 bg-primary/20 blur-3xl rounded-full"></div>
+          <div className="absolute -top-2 -left-2 h-24 w-24 bg-secondary/20 blur-3xl rounded-full"></div>
+          
+          <CardHeader className="pb-2 border-b border-primary/10">
+            <CardTitle className="text-3xl flex justify-between items-center font-bold">
+              <span className="gradient-text">Welcome, {stats.name}</span>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="flex items-center gap-1 text-xs"
+                  onClick={handleManualRefresh}
+                  disabled={isLoading}
+                >
+                  <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh Data
+                </Button>
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
+                  <TabsList className="bg-background/50 backdrop-blur-md border border-primary/20">
+                    <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+                    <TabsTrigger value="settings" className="text-sm flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      <Settings className="h-3.5 w-3.5 mr-1" />
+                      Settings
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </CardTitle>
+            <CardDescription className="text-muted-foreground flex items-center space-x-2 flex-wrap">
+              <Calendar className="h-4 w-4 text-primary" />
+              <span>{formattedDate}</span>
+              <span className="px-2 text-primary/60">•</span>
+              <span className={`px-2 py-1 rounded-full text-xs ${
+                economyState === 'boom' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
+                economyState === 'recession' ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 
+                'bg-blue-500/20 text-blue-500 border border-blue-500/30'
+              }`}>
+                {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
+              </span>
+              <span className="px-2 text-primary/60">•</span>
+              <ActiveEventsIndicator />
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsContent value="overview" className="mt-0 p-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {/* Wealth Overview */}
+                  <Card className="futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effect */}
+                    <div className="absolute -bottom-2 -right-2 h-16 w-16 bg-green-500/30 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
+                      <CardTitle className="text-lg flex items-center">
+                        <div className="mr-3 p-2 rounded-full bg-green-400/10 border border-green-400/20">
+                          <DollarSign className="h-5 w-5 text-green-400" />
+                        </div>
+                        <span className="text-primary font-medium">Wealth Overview</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-4">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Cash:</span>
+                          <span className="font-semibold text-lg">{formatCurrency(stats.wealth)}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-muted-foreground">Net Worth:</span>
+                          <span className="font-semibold text-lg">{formatCurrency(stats.netWorth)}</span>
+                        </div>
+                        <div className="flex justify-between items-center backdrop-blur-sm p-3 rounded-lg border border-primary/20 bg-primary/5">
+                          <span className="text-sm text-muted-foreground">Portfolio Growth:</span>
+                          <span className={`text-sm font-medium px-2 py-1 rounded-full ${
+                            stats.netWorth > stats.wealth 
+                              ? "bg-green-500/20 text-green-500 border border-green-500/30" 
+                              : "bg-red-500/20 text-red-500 border border-red-500/30"
+                          }`}>
+                            {((stats.netWorth / Math.max(stats.wealth, 1) - 1) * 100).toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Status Overview */}
+                  <Card className="futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                    {/* Glow effect */}
+                    <div className="absolute -bottom-2 -left-2 h-16 w-16 bg-amber-500/30 blur-2xl rounded-full"></div>
+                    
+                    <CardHeader className="py-3 border-b border-primary/10">
+                      <CardTitle className="text-lg flex items-center">
+                        <div className="mr-3 p-2 rounded-full bg-amber-400/10 border border-amber-400/20">
+                          <Crown className="h-5 w-5 text-amber-400" />
+                        </div>
+                        <span className="text-primary font-medium">Status Overview</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="py-4">
+                      <div className="space-y-5">
+                        <div>
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm flex items-center text-muted-foreground">
+                              <HeartPulse className="h-4 w-4 mr-2 text-pink-400" />
+                              Happiness
+                            </span>
+                            <span className="text-sm font-medium bg-pink-500/10 text-pink-400 px-2 py-1 rounded-full border border-pink-500/20">{stats.happiness}%</span>
+                          </div>
+                          <div className="relative pt-1">
+                            <div className="overflow-hidden h-2 text-xs flex rounded backdrop-blur-sm bg-secondary/20 border border-primary/10">
+                              <div style={{ width: `${stats.happiness}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-pink-400 to-pink-600 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex justify-between mb-2">
+                            <span className="text-sm flex items-center text-muted-foreground">
+                              <Crown className="h-4 w-4 mr-2 text-amber-400" />
+                              Prestige
+                            </span>
+                            <span className="text-sm font-medium bg-amber-500/10 text-amber-400 px-2 py-1 rounded-full border border-amber-500/20">{stats.prestige} points</span>
+                          </div>
+                          <div className="relative pt-1">
+                            <div className="overflow-hidden h-2 text-xs flex rounded backdrop-blur-sm bg-secondary/20 border border-primary/10">
+                              <div style={{ width: `${Math.min(stats.prestige, 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-400 to-amber-600 rounded"></div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+                
+                {/* Character Attributes Section */}
+                <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                  {/* Glow effects */}
+                  <div className="absolute -top-6 right-1/4 h-16 w-16 bg-primary/30 blur-2xl rounded-full"></div>
+                  <div className="absolute bottom-6 left-1/4 h-16 w-16 bg-tertiary/30 blur-2xl rounded-full"></div>
+                  <CharacterAttributes />
+                </Card>
+                
+                {/* Portfolio Breakdown */}
+                <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                  {/* Glow effects */}
+                  <div className="absolute -top-4 left-1/3 h-16 w-16 bg-blue-500/30 blur-2xl rounded-full"></div>
+                  <div className="absolute bottom-4 right-1/3 h-16 w-16 bg-purple-500/30 blur-2xl rounded-full"></div>
+                  
+                  {/* Use our completely rewritten component for better reliability */}
+                  <SimplePortfolioBreakdown key={`portfolio-${refreshTrigger}`} />
+                </Card>
+                
+                {/* Achievements Widget */}
+                <AchievementsWidget key={`achievements-${refreshTrigger}`} />
+                
+                {/* Quick Action Buttons */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-primary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/job')}
+                  >
+                    <Briefcase className="h-5 w-5 mb-2 text-primary" />
+                    Career
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-secondary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/investments')}
+                  >
+                    <ChartBar className="h-5 w-5 mb-2 text-secondary" />
+                    Investments
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-tertiary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/properties')}
+                  >
+                    <Home className="h-5 w-5 mb-2 text-tertiary" />
+                    Properties
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/lifestyle')}
+                  >
+                    <Crown className="h-5 w-5 mb-2" />
+                    Lifestyle
+                  </Button>
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="settings" className="mt-0 p-0">
+                <div className="space-y-6">
+                  <Card className="border-primary/30 shadow-lg relative overflow-hidden">
+                    <div className="absolute -top-4 right-1/3 h-16 w-16 bg-primary/20 blur-2xl rounded-full"></div>
+                    <CardHeader>
+                      <CardTitle className="text-xl">Game Settings</CardTitle>
+                      <CardDescription>Adjust your game preferences and manage your data</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      {/* Game Data Management */}
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-medium flex items-center">
+                          <HardDrive className="mr-2 h-5 w-5 text-primary" />
+                          Game Data Management
+                        </h3>
+                        <div className="flex flex-col space-y-2">
+                          {/* Save Game Data */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start">
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Refresh Game Data
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>Refresh Game Data</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will force a full refresh of all game data, ensuring everything is up-to-date.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={handleManualRefresh}>
+                                  Refresh
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
