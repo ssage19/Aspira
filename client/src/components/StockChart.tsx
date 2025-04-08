@@ -597,23 +597,23 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
       const data = payload[0].payload;
       const priceDiff = data.close - data.open;
       const percentChange = ((data.close - data.open) / data.open * 100).toFixed(2);
-      const changeColor = priceDiff >= 0 ? 'text-green-600' : 'text-red-600';
+      const changeColor = priceDiff >= 0 ? 'text-green-500' : 'text-red-500';
       
       return (
-        <div className="bg-white p-2 border border-gray-200 rounded shadow-md text-xs text-gray-800">
-          <p className="font-semibold">{data.date}</p>
+        <div className="bg-gray-900 p-2 border border-gray-700 rounded shadow-md text-xs text-gray-200">
+          <p className="font-semibold">{data.date || data.time || data.displayTime}</p>
           <div className="grid grid-cols-2 gap-1 mt-1">
-            <span className="text-gray-600">Open:</span>
+            <span className="text-gray-400">Open:</span>
             <span className="font-medium">${data.open.toFixed(2)}</span>
-            <span className="text-gray-600">Close:</span>
+            <span className="text-gray-400">Close:</span>
             <span className={`font-medium ${changeColor}`}>${data.close.toFixed(2)}</span>
-            <span className="text-gray-600">Change:</span>
+            <span className="text-gray-400">Change:</span>
             <span className={`font-medium ${changeColor}`}>
               {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({percentChange}%)
             </span>
-            <span className="text-gray-600">High:</span>
+            <span className="text-gray-400">High:</span>
             <span className="font-medium">${data.high.toFixed(2)}</span>
-            <span className="text-gray-600">Low:</span>
+            <span className="text-gray-400">Low:</span>
             <span className="font-medium">${data.low.toFixed(2)}</span>
           </div>
         </div>
@@ -654,8 +654,8 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   
   // Determine colors based on stock performance
   const isPositive = (d: CandlestickData) => d.close >= d.open;
-  const positiveColor = '#16a34a'; // green from image (slightly darker than before)
-  const negativeColor = '#dc2626'; // red from image (slightly darker than before)
+  const positiveColor = '#10b981'; // bright green from the reference image
+  const negativeColor = '#ef4444'; // bright red from the reference image
   
   // Calculate Y-axis domain for proper scaling based on stock price range
   const calculateYDomain = () => {
@@ -711,11 +711,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   
   const timeframeButtonClass = (tf: TimeFrame) => 
     `px-2 py-1 text-xs font-medium ${selectedTimeframe === tf 
-      ? 'bg-gray-800 text-white' 
-      : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`;
+      ? 'bg-blue-600 text-white' 
+      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
   
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full bg-gray-900 rounded-md p-2">
       {/* Timeframe selector */}
       <div className="flex justify-end mb-1 gap-1">
         <button 
@@ -745,32 +745,32 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
             data={getDisplayData()}
             margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
           >
-            <CartesianGrid strokeDasharray="3 3" opacity={0.1} /> 
+            <CartesianGrid strokeDasharray="3 3" opacity={0.2} stroke="#475569" /> 
             <XAxis 
               dataKey="displayTime" 
-              tick={{fontSize: 10}}
+              tick={{fontSize: 10, fill: '#cbd5e1'}}
               tickLine={false}
-              axisLine={false}
+              axisLine={{stroke: '#334155'}}
               interval="preserveStartEnd"
             />
             <YAxis 
-              tick={{fontSize: 10}} 
+              tick={{fontSize: 10, fill: '#cbd5e1'}} 
               tickFormatter={formatYAxis}
               domain={calculateYDomain()}
               tickLine={false}
-              axisLine={false}
+              axisLine={{stroke: '#334155'}}
             />
             <Tooltip content={<CustomTooltip />} />
             
-            {/* Reference line for base price */}
+            {/* Reference line for base price (hidden in dark theme) */}
             <ReferenceLine 
               y={basePrice} 
-              stroke="#9ca3af" 
+              stroke="#64748b" 
               strokeDasharray="3 3" 
               label={{ 
                 value: `Base: $${basePrice.toFixed(2)}`, 
                 position: 'right',
-                fill: '#6b7280',
+                fill: '#94a3b8',
                 fontSize: 10
               }} 
             />
