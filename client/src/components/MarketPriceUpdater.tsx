@@ -294,6 +294,14 @@ export function MarketPriceUpdater() {
     return day >= 1 && day <= 5; // Monday is 1, Friday is 5
   }, []);
   
+  // Export this function to the global window object for use in other components
+  useEffect(() => {
+    (window as any).isMarketOpen = isWeekday;
+    return () => {
+      delete (window as any).isMarketOpen;
+    };
+  }, [isWeekday]);
+  
   // Create a stable reference to the update function that doesn't change on renders
   const updateAllPrices = useCallback(() => {
     const now = Date.now();

@@ -583,19 +583,40 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   // Format data for each specific timeframe view
   const formatDailyData = (data: CandlestickData[]) => {
     // For daily view, we'll use market hours from 9:00 AM to 4:00 PM
+    
+    // Create an evenly distributed set of market hours
+    const marketHours = [9, 10, 11, 12, 13, 14, 15, 16]; // 9AM to 4PM
+    
+    // If we have less data points than hours, use a subset of hours
+    const hoursToUse = data.length < marketHours.length 
+      ? marketHours.slice(0, data.length) 
+      : marketHours;
+    
     return data.map((point, index) => {
-      // Calculate hour between 9AM and 4PM (7 hour trading window)
-      // We want a fixed distribution of time points
-      const marketHours = 7; // 9:00 AM to 4:00 PM
-      const hour = 9 + Math.floor(index * marketHours / (data.length - 1));
-      const cappedHour = Math.min(16, Math.max(9, hour)); // Ensure between 9 and 16 (4PM)
+      // Calculate the hour based on position in the array
+      // This distributes time labels evenly without duplicates
+      const hourIndex = Math.min(
+        Math.floor(index * hoursToUse.length / data.length),
+        hoursToUse.length - 1
+      );
       
-      // Create fixed market hours timeline
+      const hour = hoursToUse[hourIndex];
+      
+      // Format AM/PM
+      let displayTime = '';
+      if (hour === 12) {
+        displayTime = '12PM';
+      } else if (hour > 12) {
+        displayTime = `${hour - 12}PM`;
+      } else {
+        displayTime = `${hour}AM`;
+      }
+      
+      // Create formatted data point
       return {
         ...point,
-        hour: cappedHour,
-        // Format time as HH:MM with AM/PM
-        displayTime: `${cappedHour === 12 ? 12 : cappedHour % 12}${cappedHour < 12 ? 'AM' : 'PM'}`,
+        hour: hour,
+        displayTime: displayTime,
         value: point.close, // For line chart
       };
     });
