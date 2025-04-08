@@ -713,40 +713,43 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
               }} 
             />
             
-            {/* Calculate values for candlesticks */}
+            {/* High/low wicks */}
             {getDisplayData().map((entry, index) => {
-              // Pre-calculate values needed for rendering
+              // Calculate color directly within the mapping function
               const isUp = entry.close >= entry.open;
               const color = isUp ? positiveColor : negativeColor;
-              entry.color = color;
-              return null;
+              
+              return (
+                <ReferenceLine
+                  key={`wick-${index}`}
+                  segment={[
+                    { x: index, y: entry.low },
+                    { x: index, y: entry.high }
+                  ]}
+                  stroke={color}
+                  strokeWidth={1}
+                />
+              );
             })}
             
-            {/* High/low wicks */}
-            {getDisplayData().map((entry, index) => (
-              <ReferenceLine
-                key={`wick-${index}`}
-                segment={[
-                  { x: index, y: entry.low },
-                  { x: index, y: entry.high }
-                ]}
-                stroke={entry.color}
-                strokeWidth={1}
-              />
-            ))}
-            
             {/* Candle bodies as thick lines */}
-            {getDisplayData().map((entry, index) => (
-              <ReferenceLine
-                key={`body-${index}`}
-                segment={[
-                  { x: index, y: entry.open },
-                  { x: index, y: entry.close }
-                ]}
-                stroke={entry.color}
-                strokeWidth={6}
-              />
-            ))}
+            {getDisplayData().map((entry, index) => {
+              // Calculate color directly within the mapping function
+              const isUp = entry.close >= entry.open;
+              const color = isUp ? positiveColor : negativeColor;
+              
+              return (
+                <ReferenceLine
+                  key={`body-${index}`}
+                  segment={[
+                    { x: index, y: entry.open },
+                    { x: index, y: entry.close }
+                  ]}
+                  stroke={color}
+                  strokeWidth={6}
+                />
+              );
+            })}
           </ComposedChart>
         </ResponsiveContainer>
       </div>
