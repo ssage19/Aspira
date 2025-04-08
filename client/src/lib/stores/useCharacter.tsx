@@ -40,6 +40,10 @@ export interface Asset {
   currentPrice: number;
   quantity: number;
   purchaseDate: string;
+  // Additional properties for different asset types
+  maturityValue?: number;      // For bonds
+  maturityDate?: string | Date;  // For bonds
+  otherType?: string;          // For categorizing other investments
 }
 
 export interface Property {
@@ -2096,10 +2100,51 @@ export const useCharacter = create<CharacterState>()(
           
           // 4. Update/add existing stocks
           const stockAssets = state.assets.filter(asset => asset && asset.type === 'stock');
+          
+          // Print detailed info about stocks we're trying to sync
+          console.log("Stocks from character state being synced:", 
+            stockAssets.map(s => ({
+              id: s.id, 
+              name: s.name, 
+              qty: s.quantity, 
+              price: s.currentPrice
+            }))
+          );
+          
+          // Track counts for better error reporting
+          let updatedCount = 0;
+          let addedCount = 0;
+          let errorCount = 0;
+          
           stockAssets.forEach(stock => {
-            assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+            try {
+              // Check if this stock already exists in the asset tracker
+              const existingStockIndex = assetTracker.stocks.findIndex(s => s.id === stock.id);
+              
+              if (existingStockIndex >= 0) {
+                // Update the existing stock
+                console.log(`Updating existing stock in tracker: ${stock.name} (${stock.id}) with ${stock.quantity} shares at ${stock.currentPrice}`);
+                assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+                updatedCount++;
+              } else {
+                // Add as a new stock
+                console.log(`Adding new stock to tracker: ${stock.name} (${stock.id}) with ${stock.quantity} shares at ${stock.currentPrice}`);
+                assetTracker.addStock({
+                  id: stock.id,
+                  name: stock.name,
+                  shares: stock.quantity,
+                  purchasePrice: stock.purchasePrice || stock.currentPrice,
+                  currentPrice: stock.currentPrice
+                });
+                addedCount++;
+              }
+            } catch (e) {
+              console.error(`Error syncing stock ${stock.id}:`, e);
+              errorCount++;
+            }
           });
-          console.log(`Updated ${stockAssets.length} stocks in asset tracker`);
+          
+          console.log(`Stock sync complete: ${updatedCount} updated, ${addedCount} added, ${errorCount} errors`);
         } catch (stockSyncError) {
           console.error("Error during stock syncing:", stockSyncError);
         }
@@ -2131,10 +2176,51 @@ export const useCharacter = create<CharacterState>()(
           
           // 4. Update/add existing crypto
           const cryptoAssets = state.assets.filter(asset => asset && asset.type === 'crypto');
+          
+          // Print detailed info about crypto we're trying to sync
+          console.log("Crypto from character state being synced:", 
+            cryptoAssets.map(c => ({
+              id: c.id, 
+              name: c.name, 
+              qty: c.quantity, 
+              price: c.currentPrice
+            }))
+          );
+          
+          // Track counts for better error reporting
+          let cryptoUpdatedCount = 0;
+          let cryptoAddedCount = 0;
+          let cryptoErrorCount = 0;
+          
           cryptoAssets.forEach(crypto => {
-            assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+            try {
+              // Check if this crypto already exists in the asset tracker
+              const existingCryptoIndex = assetTracker.cryptoAssets.findIndex(c => c.id === crypto.id);
+              
+              if (existingCryptoIndex >= 0) {
+                // Update the existing crypto
+                console.log(`Updating existing crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+                cryptoUpdatedCount++;
+              } else {
+                // Add as a new crypto
+                console.log(`Adding new crypto to tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                assetTracker.addCrypto({
+                  id: crypto.id,
+                  name: crypto.name,
+                  amount: crypto.quantity,
+                  purchasePrice: crypto.purchasePrice || crypto.currentPrice,
+                  currentPrice: crypto.currentPrice
+                });
+                cryptoAddedCount++;
+              }
+            } catch (e) {
+              console.error(`Error syncing crypto ${crypto.id}:`, e);
+              cryptoErrorCount++;
+            }
           });
-          console.log(`Updated ${cryptoAssets.length} crypto assets in tracker`);
+          
+          console.log(`Crypto sync complete: ${cryptoUpdatedCount} updated, ${cryptoAddedCount} added, ${cryptoErrorCount} errors`);
         } catch (cryptoSyncError) {
           console.error("Error during crypto syncing:", cryptoSyncError);
         }
@@ -2166,10 +2252,65 @@ export const useCharacter = create<CharacterState>()(
           
           // 4. Update/add existing bonds
           const bondAssets = state.assets.filter(asset => asset && asset.type === 'bond');
+          
+          // Print detailed info about bonds we're trying to sync
+          console.log("Bonds from character state being synced:", 
+            bondAssets.map(b => ({
+              id: b.id, 
+              name: b.name, 
+              qty: b.quantity, 
+              price: b.currentPrice
+            }))
+          );
+          
+          // Track counts for better error reporting
+          let bondUpdatedCount = 0;
+          let bondAddedCount = 0;
+          let bondErrorCount = 0;
+          
           bondAssets.forEach(bond => {
-            assetTracker.updateBond(bond.id, bond.quantity, bond.currentPrice);
+            try {
+              // Check if this bond already exists in the asset tracker
+              const existingBondIndex = assetTracker.bonds.findIndex(b => b.id === bond.id);
+              
+              if (existingBondIndex >= 0) {
+                // Update the existing bond
+                console.log(`Updating existing bond in tracker: ${bond.name} (${bond.id}) with ${bond.quantity} units at ${bond.currentPrice}`);
+                assetTracker.updateBond(bond.id, bond.quantity, bond.currentPrice);
+                bondUpdatedCount++;
+              } else {
+                // Add as a new bond
+                console.log(`Adding new bond to tracker: ${bond.name} (${bond.id}) with ${bond.quantity} units at ${bond.currentPrice}`);
+                // Add as a new bond - bonds need maturity info
+                // First extract any additional properties we need
+                // Use type assertions to handle properties not defined in the Asset type
+                const maturityValue = (bond as any).maturityValue !== undefined 
+                  ? (bond as any).maturityValue 
+                  : bond.currentPrice * 1.05;
+                  
+                const maturityDate = (bond as any).maturityDate !== undefined
+                  ? (bond as any).maturityDate 
+                  : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+                  
+                // Now create the properly typed bond data
+                const bondData = {
+                  id: bond.id,
+                  name: bond.name,
+                  amount: bond.quantity,
+                  purchasePrice: bond.purchasePrice || bond.currentPrice,
+                  maturityValue: maturityValue,
+                  maturityDate: maturityDate
+                };
+                assetTracker.addBond(bondData);
+                bondAddedCount++;
+              }
+            } catch (e) {
+              console.error(`Error syncing bond ${bond.id}:`, e);
+              bondErrorCount++;
+            }
           });
-          console.log(`Updated ${bondAssets.length} bonds in tracker`);
+          
+          console.log(`Bond sync complete: ${bondUpdatedCount} updated, ${bondAddedCount} added, ${bondErrorCount} errors`);
         } catch (bondSyncError) {
           console.error("Error during bond syncing:", bondSyncError);
         }
@@ -2201,10 +2342,57 @@ export const useCharacter = create<CharacterState>()(
           
           // 4. Update/add existing other investments
           const otherAssets = state.assets.filter(asset => asset && asset.type === 'other');
+          
+          // Print detailed info about other investments we're trying to sync
+          console.log("Other investments from character state being synced:", 
+            otherAssets.map(o => ({
+              id: o.id, 
+              name: o.name, 
+              qty: o.quantity, 
+              price: o.currentPrice,
+              total: o.currentPrice * o.quantity
+            }))
+          );
+          
+          // Track counts for better error reporting
+          let otherUpdatedCount = 0;
+          let otherAddedCount = 0;
+          let otherErrorCount = 0;
+          
           otherAssets.forEach(other => {
-            assetTracker.updateOtherInvestment(other.id, other.currentPrice * other.quantity);
+            try {
+              // Calculate total value
+              const totalValue = other.currentPrice * other.quantity;
+              
+              // Check if this investment already exists in the asset tracker
+              const existingOtherIndex = assetTracker.otherInvestments.findIndex(o => o.id === other.id);
+              
+              if (existingOtherIndex >= 0) {
+                // Update the existing investment
+                console.log(`Updating existing other investment in tracker: ${other.name} (${other.id}) with total value ${totalValue}`);
+                assetTracker.updateOtherInvestment(other.id, totalValue);
+                otherUpdatedCount++;
+              } else {
+                // Add as a new investment
+                console.log(`Adding new other investment to tracker: ${other.name} (${other.id}) with total value ${totalValue}`);
+                // Add as a new "other" investment
+                const otherInvestmentData = {
+                  id: other.id,
+                  name: other.name,
+                  amount: 1, // Use amount of 1 as we're storing total value
+                  purchasePrice: totalValue,
+                  currentValue: totalValue
+                };
+                assetTracker.addOtherInvestment(otherInvestmentData);
+                otherAddedCount++;
+              }
+            } catch (e) {
+              console.error(`Error syncing other investment ${other.id}:`, e);
+              otherErrorCount++;
+            }
           });
-          console.log(`Updated ${otherAssets.length} other investments in tracker`);
+          
+          console.log(`Other investment sync complete: ${otherUpdatedCount} updated, ${otherAddedCount} added, ${otherErrorCount} errors`);
         } catch (otherSyncError) {
           console.error("Error during other investment syncing:", otherSyncError);
         }
