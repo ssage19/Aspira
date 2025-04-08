@@ -58,7 +58,8 @@ export function GameUI() {
     setTimeProgress,
     updateLastTickTime
   } = useTime();
-  const { isMuted, setMuted, playSuccess } = useAudio();
+  const audioState = useAudio();
+  const isMuted = audioState.isMuted;
   const [showTooltip, setShowTooltip] = useState('');
   // Track which months we've already deducted expenses for to prevent double-charging
   const [lastExpenseMonth, setLastExpenseMonth] = useState<string | null>(null);
@@ -241,218 +242,234 @@ export function GameUI() {
     // For accurate hour tracking (1 second real time = 1 hour game time)
     // We'll update once per 100ms to keep the animation smooth
     const intervalId = setInterval(() => {
-      const currentTime = Date.now();
-      
-      // Calculate elapsed time since last tick in milliseconds
-      const elapsedMs = currentTime - lastTickTime;
-      
-      // Apply time multiplier
-      const adjustedElapsedMs = elapsedMs * timeMultiplier;
-      
-      // Each second (1000ms) equals 1 hour (1/24 of a day)
-      // So we convert to a fraction of a day
-      const hoursElapsed = adjustedElapsedMs / 1000;
-      const fractionOfDay = hoursElapsed / 24;
-      
-      // Calculate progress percentage (0-100)
-      const newProgress = (timeProgress + (fractionOfDay * 100)) % 100;
-      
-      // Count how many full days have passed
-      const fullDaysPassed = Math.floor((timeProgress + (fractionOfDay * 100)) / 100);
-      
-      // Update the time progress
-      setTimeProgress(newProgress);
-      
-      // Update the last tick time for next calculation
-      updateLastTickTime(currentTime);
-      
-      // If any full days have passed, process them
-      if (fullDaysPassed > 0) {
-        // Process daily finances
-        processDailyFinances();
+      try {
+        const currentTime = Date.now();
         
-        // Process daily character update (including salary)
-        useCharacter.getState().processDailyUpdate();
+        // Prevent negative elapsed time which can happen due to system time adjustments
+        let elapsedMs = Math.max(0, currentTime - lastTickTime);
         
-        // Advance the day
-        advanceTime();
-        playSuccess();
-        
-        // Get the updated dayCounter after advancing time
-        const { dayCounter } = useTime.getState();
-        
-        // Check for weekly updates (every 7 days)
-        if (dayCounter % 7 === 0) {
-          useEconomy.getState().processWeeklyUpdate();
-          console.log("Weekly update processed on day counter:", dayCounter);
+        // If elapsed time seems unreasonable (more than 10 seconds), cap it
+        // This prevents huge jumps if the browser tab is inactive for a while
+        if (elapsedMs > 10000) {
+          console.log(`Capping unreasonably large elapsed time: ${elapsedMs}ms -> 5000ms`);
+          elapsedMs = 5000;
         }
         
-        // Get the current date and state
-        const { currentDay, currentMonth, currentYear } = useTime.getState();
-        const isLastDayOfMonth = isEndOfMonth(currentDay, currentMonth, currentYear);
+        // Apply time multiplier
+        const adjustedElapsedMs = elapsedMs * timeMultiplier;
         
-        // Check for monthly updates on the last day of each month
-        if (isLastDayOfMonth) {
-          useEconomy.getState().processMonthlyUpdate();
-          console.log("Monthly update processed on day counter:", dayCounter);
+        // Each second (1000ms) equals 1 hour (1/24 of a day)
+        // So we convert to a fraction of a day
+        const hoursElapsed = adjustedElapsedMs / 1000;
+        const fractionOfDay = hoursElapsed / 24;
+        
+        // Calculate progress percentage (0-100)
+        // Keep track of how much progress we've made including potential day completions
+        const totalProgressPct = timeProgress + (fractionOfDay * 100);
+        
+        // Count how many full days have passed
+        const fullDaysPassed = Math.floor(totalProgressPct / 100);
+        
+        // New progress is just the remainder after completing days
+        const newProgress = totalProgressPct % 100;
+        
+        // Update the time progress
+        setTimeProgress(newProgress);
+        
+        // Update the last tick time for next calculation
+        updateLastTickTime(currentTime);
+        
+        // If any full days have passed, process them
+        if (fullDaysPassed > 0) {
+          // Process daily finances
+          processDailyFinances();
           
-          // Create a month ID string (e.g., "4-2025" for April 2025)
-          const monthId = `${currentMonth}-${currentYear}`;
+          // Process daily character update (including salary)
+          useCharacter.getState().processDailyUpdate();
           
-          // Get character state for calculations
-          const characterState = useCharacter.getState();
-          
-          // Calculate summary information for the toast
-          const propertyIncome = characterState.properties.reduce((total, property) => 
-            total + property.income, 0);
-          const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
-            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-            return total + monthlyCost;
-          }, 0);
-          const job = characterState.job;
-          const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-          // Calculate financial data for the monthly report
-          const housingExp = characterState.housingType === 'rental' ? 1800 : 
-                            characterState.housingType === 'shared' ? 900 : 0;
-          
-          const transportExp = characterState.vehicleType === 'economy' ? 300 :
-                             characterState.vehicleType === 'standard' ? 450 :
-                             characterState.vehicleType === 'luxury' ? 1000 :
-                             characterState.vehicleType === 'premium' ? 1500 :
-                             characterState.vehicleType === 'bicycle' ? 50 : 0;
-          
-          const foodExp = 600; // Standard food expense
-          
-          const totalExp = lifestyleExpenses + housingExp + transportExp + foodExp;
-          const totalInc = propertyIncome + monthlySalary;
-          const netChange = totalInc - totalExp;
-          
-          // Check if we've already processed expenses for this month
-          if (lastExpenseMonth !== monthId) {
-            // Call the character store's monthly update method to handle expense deduction
-            // This includes deducting lifestyle expenses and showing visual feedback
-            characterState.monthlyUpdate();
-            
-            // Update the last expense month to prevent double-charging
-            setLastExpenseMonth(monthId);
-            console.log(`Set last expense month to: ${monthId}`);
-          } else {
-            console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+          // Advance the day
+          advanceTime();
+          if (audioState.playSuccess) {
+            audioState.playSuccess();
           }
           
-          // Calculate total monthly expenses
-          const housingExpense = characterState.housingType === 'rental' ? 1800 : 
+          // Get the updated dayCounter after advancing time
+          const { dayCounter } = useTime.getState();
+          
+          // Check for weekly updates (every 7 days)
+          if (dayCounter % 7 === 0) {
+            useEconomy.getState().processWeeklyUpdate();
+            console.log("Weekly update processed on day counter:", dayCounter);
+          }
+          
+          // Get the current date and state
+          const { currentDay, currentMonth, currentYear } = useTime.getState();
+          const isLastDayOfMonth = isEndOfMonth(currentDay, currentMonth, currentYear);
+          
+          // Check for monthly updates on the last day of each month
+          if (isLastDayOfMonth) {
+            useEconomy.getState().processMonthlyUpdate();
+            console.log("Monthly update processed on day counter:", dayCounter);
+            
+            // Create a month ID string (e.g., "4-2025" for April 2025)
+            const monthId = `${currentMonth}-${currentYear}`;
+            
+            // Get character state for calculations
+            const characterState = useCharacter.getState();
+            
+            // Calculate summary information for the toast
+            const propertyIncome = characterState.properties.reduce((total, property) => 
+              total + property.income, 0);
+            const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
+              const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+              return total + monthlyCost;
+            }, 0);
+            const job = characterState.job;
+            const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+            // Calculate financial data for the monthly report
+            const housingExp = characterState.housingType === 'rental' ? 1800 : 
                               characterState.housingType === 'shared' ? 900 : 0;
-          
-          const transportationExpense = characterState.vehicleType === 'economy' ? 300 :
-                                     characterState.vehicleType === 'standard' ? 450 :
-                                     characterState.vehicleType === 'luxury' ? 1000 :
-                                     characterState.vehicleType === 'premium' ? 1500 :
-                                     characterState.vehicleType === 'bicycle' ? 50 : 0;
-          
-          const foodExpense = 600; // Standard food expense
-          
-          const totalExpenses = lifestyleExpenses + housingExpense + transportationExpense + foodExpense;
-          
-          // Show the end-of-month summary toast with a more comprehensive breakdown
-          toast(
-            <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
-              <div className="p-4">
-                <div className="flex flex-col space-y-2 text-xs">
-                  <div className="flex justify-between items-center mb-2">
-                    <div className="flex items-center">
-                      <Calendar className="h-5 w-5 text-primary mr-2" />
-                      <span className="font-medium">End of Month Financial Summary</span>
+            
+            const transportExp = characterState.vehicleType === 'economy' ? 300 :
+                               characterState.vehicleType === 'standard' ? 450 :
+                               characterState.vehicleType === 'luxury' ? 1000 :
+                               characterState.vehicleType === 'premium' ? 1500 :
+                               characterState.vehicleType === 'bicycle' ? 50 : 0;
+            
+            const foodExp = 600; // Standard food expense
+            
+            const totalExp = lifestyleExpenses + housingExp + transportExp + foodExp;
+            const totalInc = propertyIncome + monthlySalary;
+            const netChange = totalInc - totalExp;
+            
+            // Check if we've already processed expenses for this month
+            if (lastExpenseMonth !== monthId) {
+              // Call the character store's monthly update method to handle expense deduction
+              // This includes deducting lifestyle expenses and showing visual feedback
+              characterState.monthlyUpdate();
+              
+              // Update the last expense month to prevent double-charging
+              setLastExpenseMonth(monthId);
+              console.log(`Set last expense month to: ${monthId}`);
+            } else {
+              console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+            }
+            
+            // Calculate total monthly expenses
+            const housingExpense = characterState.housingType === 'rental' ? 1800 : 
+                                characterState.housingType === 'shared' ? 900 : 0;
+            
+            const transportationExpense = characterState.vehicleType === 'economy' ? 300 :
+                                       characterState.vehicleType === 'standard' ? 450 :
+                                       characterState.vehicleType === 'luxury' ? 1000 :
+                                       characterState.vehicleType === 'premium' ? 1500 :
+                                       characterState.vehicleType === 'bicycle' ? 50 : 0;
+            
+            const foodExpense = 600; // Standard food expense
+            
+            const totalExpenses = lifestyleExpenses + housingExpense + transportationExpense + foodExpense;
+            
+            // Show the end-of-month summary toast with a more comprehensive breakdown
+            toast(
+              <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
+                <div className="p-4">
+                  <div className="flex flex-col space-y-2 text-xs">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center">
+                        <Calendar className="h-5 w-5 text-primary mr-2" />
+                        <span className="font-medium">End of Month Financial Summary</span>
+                      </div>
                     </div>
-                  </div>
-                  
-                  {/* Income section */}
-                  <div className="bg-green-500/10 rounded-md p-2 mb-1">
-                    <div className="text-green-600 dark:text-green-400 font-medium mb-1">Monthly Income</div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Salary:</span>
-                      <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary)}</span>
+                    
+                    {/* Income section */}
+                    <div className="bg-green-500/10 rounded-md p-2 mb-1">
+                      <div className="text-green-600 dark:text-green-400 font-medium mb-1">Monthly Income</div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Salary:</span>
+                        <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Property Income:</span>
+                        <span className="font-semibold text-green-500">+{formatCurrency(propertyIncome)}</span>
+                      </div>
+                      <div className="border-t border-green-500/20 mt-1 pt-1 flex justify-between">
+                        <span className="font-medium">Total Income:</span>
+                        <span className="font-semibold text-green-500">+{formatCurrency(totalInc)}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Property Income:</span>
-                      <span className="font-semibold text-green-500">+{formatCurrency(propertyIncome)}</span>
+                    
+                    {/* Expenses section */}
+                    <div className="bg-red-500/10 rounded-md p-2 mb-1">
+                      <div className="text-red-600 dark:text-red-400 font-medium mb-1">Monthly Expenses</div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Housing:</span>
+                        <span className="font-semibold text-red-500">-{formatCurrency(housingExpense)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Transportation:</span>
+                        <span className="font-semibold text-red-500">-{formatCurrency(transportationExpense)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Food & Groceries:</span>
+                        <span className="font-semibold text-red-500">-{formatCurrency(foodExpense)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-foreground/70">Lifestyle:</span>
+                        <span className="font-semibold text-red-500">-{formatCurrency(lifestyleExpenses)}</span>
+                      </div>
+                      <div className="border-t border-red-500/20 mt-1 pt-1 flex justify-between">
+                        <span className="font-medium">Total Expenses:</span>
+                        <span className="font-semibold text-red-500">-{formatCurrency(totalExpenses)}</span>
+                      </div>
                     </div>
-                    <div className="border-t border-green-500/20 mt-1 pt-1 flex justify-between">
-                      <span className="font-medium">Total Income:</span>
-                      <span className="font-semibold text-green-500">+{formatCurrency(totalInc)}</span>
+                    
+                    {/* Final summary section */}
+                    <div className="border-t border-border pt-2 mt-1 flex justify-between">
+                      <span className="font-medium">Monthly Net Change:</span>
+                      <span className={`font-semibold ${netChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                        {netChange >= 0 ? '+' : ''}{formatCurrency(netChange)}
+                      </span>
                     </div>
-                  </div>
-                  
-                  {/* Expenses section */}
-                  <div className="bg-red-500/10 rounded-md p-2 mb-1">
-                    <div className="text-red-600 dark:text-red-400 font-medium mb-1">Monthly Expenses</div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Housing:</span>
-                      <span className="font-semibold text-red-500">-{formatCurrency(housingExpense)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Transportation:</span>
-                      <span className="font-semibold text-red-500">-{formatCurrency(transportationExpense)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Food & Groceries:</span>
-                      <span className="font-semibold text-red-500">-{formatCurrency(foodExpense)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-foreground/70">Lifestyle:</span>
-                      <span className="font-semibold text-red-500">-{formatCurrency(lifestyleExpenses)}</span>
-                    </div>
-                    <div className="border-t border-red-500/20 mt-1 pt-1 flex justify-between">
-                      <span className="font-medium">Total Expenses:</span>
-                      <span className="font-semibold text-red-500">-{formatCurrency(totalExpenses)}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Final summary section */}
-                  <div className="border-t border-border pt-2 mt-1 flex justify-between">
-                    <span className="font-medium">Monthly Net Change:</span>
-                    <span className={`font-semibold ${netChange >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {netChange >= 0 ? '+' : ''}{formatCurrency(netChange)}
-                    </span>
                   </div>
                 </div>
-              </div>
-            </div>,
-            { 
-              duration: 15000, // Show for 15 seconds since there's more information
-              position: 'bottom-right',
-              icon: null,
-              style: {
-                backgroundColor: 'transparent',
-                boxShadow: 'none',
-                padding: 0,
-                width: 'auto',
-                border: 'none',
+              </div>,
+              { 
+                duration: 15000, // Show for 15 seconds since there's more information
+                position: 'bottom-right',
+                icon: null,
+                style: {
+                  backgroundColor: 'transparent',
+                  boxShadow: 'none',
+                  padding: 0,
+                  width: 'auto',
+                  border: 'none',
+                }
               }
-            }
-          );
+            );
+          }
+          
+          // Check for unlockable achievements
+          checkAllAchievements();
         }
-        
-        // Check for unlockable achievements
-        checkAllAchievements();
-        
-        // Reset timer
-        updateLastTickTime(currentTime);
-        setTimeProgress(0);
+      } catch (error) {
+        console.error("Error in time advancement timer:", error);
       }
     }, 100); // Update progress every 100ms for smoother animation
     
-    return () => clearInterval(intervalId);
+    return () => {
+      console.log("Cleaning up time advancement timer");
+      clearInterval(intervalId);
+    };
   }, [
     autoAdvanceEnabled, 
     lastTickTime, 
     timeMultiplier, 
-    advanceTime, 
-    playSuccess, 
+    advanceTime,
     setTimeProgress, 
     updateLastTickTime, 
     lastExpenseMonth, 
-    setLastExpenseMonth
+    setLastExpenseMonth,
+    timeProgress // Add timeProgress to the dependency array to ensure we always have the latest value
   ]);
   
   // Handle manual time advance
@@ -465,7 +482,9 @@ export function GameUI() {
     
     // Advance the day
     advanceTime();
-    playSuccess();
+    if (audioState.playSuccess) {
+      audioState.playSuccess();
+    }
     
     // Get the updated dayCounter after advancing time
     const { dayCounter } = useTime.getState();
@@ -918,7 +937,7 @@ export function GameUI() {
         <Button 
           variant="ghost" 
           size="sm" 
-          onClick={() => setMuted(!isMuted)}
+          onClick={() => audioState.setMuted && audioState.setMuted(!isMuted)}
           onMouseEnter={() => setShowTooltip('sound')}
           onMouseLeave={() => setShowTooltip('')}
           className="relative glass-effect h-14 w-14 rounded-full p-0"

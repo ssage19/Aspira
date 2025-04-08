@@ -110,6 +110,31 @@ export const useTime = create<TimeState>()(
     // Create the initial Date object
     const initialGameDate = new Date(initialYear, initialMonth - 1, initialDay);
     
+    // Setup a heartbeat to detect potential time freezes
+    // This runs outside React to ensure time keeps ticking even if components re-render
+    let lastHeartbeatTime = Date.now();
+    const heartbeatInterval = setInterval(() => {
+      const currentTime = Date.now();
+      const elapsedMs = currentTime - lastHeartbeatTime;
+      
+      // Check if time hasn't updated in a while (over 5 seconds) and auto-advance is on
+      if (savedTime?.autoAdvanceEnabled && elapsedMs > 5000) {
+        console.warn(`Time freeze detected! ${elapsedMs}ms since last heartbeat. Attempting auto-recovery...`);
+        
+        try {
+          // Force update the last tick time to now to resume time progression
+          const newState = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+          newState.lastTickTime = currentTime;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(newState));
+          console.log('Time auto-recovery: Updated lastTickTime in storage');
+        } catch (err) {
+          console.error('Time auto-recovery failed:', err);
+        }
+      }
+      
+      lastHeartbeatTime = currentTime;
+    }, 2500);
+    
     return {
       // Default state uses real device time if no saved data exists
       currentDay: initialDay,
