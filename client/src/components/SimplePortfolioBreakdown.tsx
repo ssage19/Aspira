@@ -188,9 +188,8 @@ export function SimplePortfolioBreakdown() {
       ].filter(item => item.value > 0)
     };
     
-    // Filter out empty categories and update state
-    const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets]
-      .filter(category => category.totalValue > 0 || category.title === "Liquid Assets"); // Always show cash
+    // Always show all categories, even if empty
+    const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets];
     
     setAssetCategories(categories);
   };
@@ -233,8 +232,8 @@ export function SimplePortfolioBreakdown() {
             </div>
             
             {/* Category Items */}
-            {category.items.length > 0 && (
-              <div className="pl-6">
+            <div className="pl-6">
+              {category.items.length > 0 ? (
                 <table className="w-full border-separate border-spacing-y-1">
                   <tbody>
                     {category.items.map((asset, index) => (
@@ -253,8 +252,18 @@ export function SimplePortfolioBreakdown() {
                     ))}
                   </tbody>
                 </table>
-              </div>
-            )}
+              ) : (
+                <p className="text-xs text-gray-500 italic py-1">
+                  {category.title === "Liquid Assets" 
+                    ? "No additional liquid assets"
+                    : category.title === "Investments" 
+                    ? "No investment assets yet"
+                    : category.title === "Properties" 
+                    ? "No properties owned yet"
+                    : "No lifestyle assets owned yet"}
+                </p>
+              )}
+            </div>
           </div>
         ))}
         
@@ -277,8 +286,12 @@ export function SimplePortfolioBreakdown() {
             {/* Investment Diversification */}
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">Diversification</span>
-              <span className="font-medium">
-                {assetCategories.filter(category => category.title !== "Liquid Assets").length} categories
+              <span className={`font-medium ${
+                assetCategories.filter(category => category.totalValue > 0 && category.title !== "Liquid Assets").length > 1 
+                ? 'text-green-600' 
+                : 'text-amber-600'
+              }`}>
+                {assetCategories.filter(category => category.totalValue > 0 && category.title !== "Liquid Assets").length || 0} active
               </span>
             </div>
           </div>
