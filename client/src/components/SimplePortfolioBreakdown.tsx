@@ -6,7 +6,6 @@ import { Button } from './ui/button';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag } from 'lucide-react';
-import { shallow } from 'zustand/shallow';
 
 // Types for grouped assets
 interface AssetItem {
@@ -30,246 +29,116 @@ interface AssetCategory {
 export function SimplePortfolioBreakdown() {
   const [isLoading, setIsLoading] = useState(false);
   
-  // Get character data for consistency
-  const { wealth, netWorth, calculateNetWorth } = useCharacter();
-  const [displayTotal, setDisplayTotal] = useState(netWorth);
+  // Get character wealth directly for the cash ratio calculation
+  const characterCash = useCharacter(state => state.wealth);
   
-  // Source of truth for character cash (defined early to avoid reference errors)
-  const characterCash = useCharacter.getState().wealth || 0;
-  
-  // Get asset tracker data
-  const { 
+  // Get all the values we need from the asset tracker
+  const {
+    totalCash,
     totalStocks,
-    totalCrypto,
+    totalCrypto, 
     totalBonds,
     totalOtherInvestments,
     totalPropertyEquity,
-    totalLifestyleValue
+    totalPropertyValue,
+    totalPropertyDebt,
+    totalLifestyleValue,
+    totalNetWorth
   } = useAssetTracker();
   
-  // For real-time totals
-  const [calculatedTotal, setCalculatedTotal] = useState(netWorth || 1);
-  
-  // State for asset categories
+  // Local state for UI rendering
+  const [displayTotal, setDisplayTotal] = useState(totalNetWorth || 0);
   const [assetCategories, setAssetCategories] = useState<AssetCategory[]>([]);
   
-  // Get the breakdown from character store
-  const getCharacterBreakdown = () => {
-    // Force recalculation of net worth in useCharacter
-    const characterNetWorth = useCharacter.getState().calculateNetWorth();
-    
-    // Get the detailed breakdown
-    const breakdown = useCharacter.getState().getNetWorthBreakdown();
-    
-    return {
-      characterNetWorth,
-      breakdown
-    };
-  };
-  
-  // Update asset categories based on the breakdown
-  const updateAssetCategories = (breakdown: any) => {
-    // Cash assets
+  // Function to update the asset categories based on the latest data
+  const updateAssetCategories = useCallback(() => {
+    // Cash assets category
     const cashAssets: AssetCategory = {
       title: "Liquid Assets",
       icon: <Banknote size={16} />,
       color: "bg-blue-500",
-      totalValue: breakdown.cash || 0,
+      totalValue: totalCash,
       items: [
-        { label: 'Cash', value: breakdown.cash || 0, color: 'bg-blue-500' }
+        { label: 'Cash', value: totalCash, color: 'bg-blue-500' }
       ]
     };
     
-    // Investment assets
-    const investmentValue = (breakdown.stocks || 0) + 
-                           (breakdown.crypto || 0) + 
-                           (breakdown.bonds || 0) + 
-                           (breakdown.otherInvestments || 0);
-    
+    // Investment assets category
+    const investmentValue = totalStocks + totalCrypto + totalBonds + totalOtherInvestments;
     const investmentAssets: AssetCategory = {
       title: "Investments",
       icon: <BarChart3 size={16} />,
       color: "bg-green-500",
       totalValue: investmentValue,
       items: [
-        { label: 'Stocks', value: breakdown.stocks || 0, color: 'bg-green-500' },
-        { label: 'Crypto', value: breakdown.crypto || 0, color: 'bg-amber-500' },
-        { label: 'Bonds', value: breakdown.bonds || 0, color: 'bg-indigo-500' },
-        { label: 'Other', value: breakdown.otherInvestments || 0, color: 'bg-purple-500' }
-      ] // Show all investment types, even with zero value
+        { label: 'Stocks', value: totalStocks, color: 'bg-green-500' },
+        { label: 'Crypto', value: totalCrypto, color: 'bg-amber-500' },
+        { label: 'Bonds', value: totalBonds, color: 'bg-indigo-500' },
+        { label: 'Other', value: totalOtherInvestments, color: 'bg-purple-500' }
+      ]
     };
     
-    // Property assets
+    // Property assets category
     const propertyAssets: AssetCategory = {
       title: "Properties",
       icon: <Home size={16} />,
       color: "bg-pink-500",
-      totalValue: breakdown.propertyEquity || 0,
+      totalValue: totalPropertyEquity,
       items: [
-        { label: 'Property Equity', value: breakdown.propertyEquity || 0, color: 'bg-pink-500' }
-      ] // Show property equity even if zero
+        { label: 'Property Equity', value: totalPropertyEquity, color: 'bg-pink-500' }
+      ]
     };
     
-    // Lifestyle assets
+    // Lifestyle assets category
     const lifestyleAssets: AssetCategory = {
       title: "Lifestyle Assets",
       icon: <ShoppingBag size={16} />,
       color: "bg-rose-500",
-      totalValue: breakdown.lifestyleItems || 0,
+      totalValue: totalLifestyleValue,
       items: [
-        { label: 'Lifestyle Items', value: breakdown.lifestyleItems || 0, color: 'bg-rose-500' }
-      ] // Show lifestyle items even if zero
+        { label: 'Lifestyle Items', value: totalLifestyleValue, color: 'bg-rose-500' }
+      ]
     };
     
-    // Always show all categories, even if empty
+    // Combine all categories
     const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets];
-    
     setAssetCategories(categories);
-  };
+    
+    // Also update the display total
+    setDisplayTotal(totalNetWorth);
+    
+  }, [totalCash, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, 
+      totalPropertyEquity, totalLifestyleValue, totalNetWorth]);
   
-  // Create a function for data updates that can be reused across effects
-  const updatePortfolioData = useCallback(() => {
-    console.log("Portfolio breakdown refreshing asset data...");
-    
-    // IMPROVED SYNC SEQUENCE:
-    // 1. First refresh the asset tracker totals to ensure they're up-to-date
-    useAssetTracker.getState().recalculateTotals();
-    
-    // 2. Then ensure character assets are synced with asset tracker
-    useCharacter.getState().syncAssetsWithAssetTracker();
-    
-    // 3. Then recalculate the asset tracker totals again (in case sync updated anything)
-    useAssetTracker.getState().recalculateTotals();
-    
-    // 4. Finally recalculate net worth to reflect the current state
-    const recalculatedNetWorth = useCharacter.getState().calculateNetWorth();
-    
-    // Get the current asset tracker state directly - this is our source of truth
-    const assetTracker = useAssetTracker.getState();
-    
-    // Get character breakdown for debugging comparison
-    const { characterNetWorth, breakdown } = getCharacterBreakdown();
-    
-    // If there's a mismatch between the sources, log it for debugging
-    if (Math.abs(characterNetWorth - assetTracker.totalNetWorth) > 0.01) {
-      console.warn("Net worth mismatch detected between character and asset tracker:", {
-        characterNetWorth,
-        assetTrackerNetWorth: assetTracker.totalNetWorth,
-        difference: characterNetWorth - assetTracker.totalNetWorth
-      });
-    }
-    
-    // Log asset tracker values for debugging/comparison
-    console.log("Portfolio breakdown using ASSET TRACKER values:", {
-      cash: assetTracker.totalCash,
-      stocks: assetTracker.totalStocks,
-      crypto: assetTracker.totalCrypto,
-      bonds: assetTracker.totalBonds,
-      otherInvestments: assetTracker.totalOtherInvestments,
-      propertyEquity: assetTracker.totalPropertyEquity,
-      lifestyleItems: assetTracker.totalLifestyleValue,
-      total: assetTracker.totalNetWorth
-    });
-    
-    // Always use asset tracker values for consistency with the Investment tab
-    setDisplayTotal(assetTracker.totalNetWorth);
-    setCalculatedTotal(assetTracker.totalNetWorth || 1);
-    
-    // Create breakdown directly from asset tracker (single source of truth)
-    const trackerBasedBreakdown = {
-      cash: assetTracker.totalCash,
-      stocks: assetTracker.totalStocks,
-      crypto: assetTracker.totalCrypto,
-      bonds: assetTracker.totalBonds,
-      otherInvestments: assetTracker.totalOtherInvestments,
-      propertyEquity: assetTracker.totalPropertyEquity,
-      propertyValue: assetTracker.totalPropertyValue,
-      propertyDebt: assetTracker.totalPropertyDebt,
-      lifestyleItems: assetTracker.totalLifestyleValue,
-      total: assetTracker.totalNetWorth
-    };
-    
-    // Update asset categories using the tracker-based breakdown
-    updateAssetCategories(trackerBasedBreakdown);
-  }, []);
-  
-  // Set up interval for updates
+  // Update the display when any of the asset values change
   useEffect(() => {
-    // Update immediately
-    updatePortfolioData();
-    
-    // Set up refresh every 250ms (more frequent than before to catch updates faster)
-    const intervalId = setInterval(updatePortfolioData, 250);
-    
-    console.log("Setting up portfolio updates with interval");
-    
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [updatePortfolioData]);
+    updateAssetCategories();
+  }, [updateAssetCategories]);
   
-  // Set up a watch for asset tracker changes
-  useEffect(() => {
-    // This is a simple polling mechanism to watch for asset tracker changes
-    let lastStocksTotal = useAssetTracker.getState().totalStocks;
-    let lastNetWorth = useAssetTracker.getState().totalNetWorth;
-    let lastUpdated = useAssetTracker.getState().lastUpdated;
-    
-    const checkForChanges = () => {
-      const currentState = useAssetTracker.getState();
-      
-      if (
-        currentState.totalStocks !== lastStocksTotal ||
-        currentState.totalNetWorth !== lastNetWorth ||
-        currentState.lastUpdated !== lastUpdated
-      ) {
-        console.log("Portfolio breakdown detected asset tracker change");
-        
-        // Update our tracking values
-        lastStocksTotal = currentState.totalStocks;
-        lastNetWorth = currentState.totalNetWorth;
-        lastUpdated = currentState.lastUpdated;
-        
-        // Force an immediate update
-        updatePortfolioData();
-      }
-    };
-    
-    // Check for changes more frequently than the main interval
-    const watcherId = setInterval(checkForChanges, 100);
-    
-    console.log("Setting up asset tracker change detection");
-    
-    return () => {
-      clearInterval(watcherId);
-    };
-  }, [updatePortfolioData]);
-  
-  // Handle manual refresh - now uses the global update function
+  // Handle manual refresh
   const handleRefresh = () => {
     setIsLoading(true);
     
     try {
-      console.log("Manual refresh - Performing global synchronization...");
-      
       // Use the global update function if available
       if ((window as any).globalUpdateAllPrices) {
         console.log("SimplePortfolioBreakdown: Using global price update function");
         (window as any).globalUpdateAllPrices();
       } else {
-        // Fallback to local updates if global function not available
-        console.log("Global update function not available, using fallback");
-        useAssetTracker.getState().forceUpdate();
-        updatePortfolioData();
+        // Fallback to direct recalculation
+        useAssetTracker.getState().recalculateTotals();
+        useCharacter.getState().syncAssetsWithAssetTracker();
       }
-      
-      console.log("Manual refresh completed successfully");
     } catch (error) {
       console.error("Error during manual refresh:", error);
     } finally {
       setTimeout(() => setIsLoading(false), 500);
     }
   };
+  
+  // Calculate the actual total to use for percentage calculations
+  // (with a fallback to 1 to avoid division by zero)
+  const calculatedTotal = totalNetWorth || 1;
   
   return (
     <Card className="w-full shadow-sm">
