@@ -345,6 +345,12 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     });
   };
   
+  // Helper to check if a date is a weekday (Monday-Friday)
+  const isWeekday = (date: Date): boolean => {
+    const day = date.getDay();
+    return day >= 1 && day <= 5; // Monday is 1, Friday is 5
+  };
+  
   // Generate historical stock data
   useEffect(() => {
     console.log(`Updating chart for stock: ${stockId} at price: ${currentPrice}`);
@@ -365,6 +371,12 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     const needsNewData = 
       previousDataRef.current.dailyData.length === 0 || 
       previousDataRef.current.id !== stockId;
+    
+    // Check if current day is a weekday
+    const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+    const isMarketOpenToday = isWeekday(currentGameDate);
+    
+    console.log(`Market status: ${isMarketOpenToday ? 'OPEN (weekday)' : 'CLOSED (weekend)'}`);
     
     if (needsNewData) {
       // Generate more days of data for better historical context
@@ -387,6 +399,34 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         const targetMonth = targetDate.getMonth() + 1;
         const targetYear = targetDate.getFullYear();
         const weekNumber = getWeekNumber(targetDate);
+        
+        // Check if target date is a weekday
+        const targetIsWeekday = isWeekday(targetDate);
+        
+        // For weekend days, keep previous price
+        if (!targetIsWeekday) {
+          // On weekends, market is closed. No price changes.
+          // Format date for weekends based on current timeframe
+          const targetDateObj = new Date(targetYear, targetMonth - 1, targetDay);
+          const formattedDate = formatDate(targetDateObj, 'daily');
+          
+          // Add a marker for closed market on weekends
+          newDailyData.push({
+            day: targetDay, 
+            date: formattedDate + " (Closed)",
+            open: prevPrice,
+            close: prevPrice,
+            high: prevPrice,
+            low: prevPrice,
+            volume: 0, // No trading volume on weekends
+            month: targetMonth,
+            year: targetYear,
+            weekNumber: weekNumber
+          });
+          
+          // Skip further processing for weekend days
+          continue;
+        }
         
         // Use a seeded random based on stock ID and day to ensure consistency
         const seed = stockId.split('').reduce((a, b) => a + b.charCodeAt(0), 0) + i + (targetMonth * 100) + (targetYear * 10000);
@@ -498,18 +538,20 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   
   // Format data for each specific timeframe view
   const formatDailyData = (data: CandlestickData[]) => {
-    // For daily view, we'll use the raw data points but update the display format
+    // For daily view, we'll use market hours from 9:00 AM to 4:00 PM
     return data.map((point, index) => {
-      // For daily view, format time as hours
-      const date = new Date();
-      date.setHours(9 + Math.floor(index * 8 / data.length)); // Spread across trading hours (9am-5pm)
-      date.setMinutes(0);
+      // Calculate hour between 9AM and 4PM (7 hour trading window)
+      // We want a fixed distribution of time points
+      const marketHours = 7; // 9:00 AM to 4:00 PM
+      const hour = 9 + Math.floor(index * marketHours / (data.length - 1));
+      const cappedHour = Math.min(16, Math.max(9, hour)); // Ensure between 9 and 16 (4PM)
       
+      // Create fixed market hours timeline
       return {
         ...point,
-        hour: date.getHours(),
-        // Format time as HH:MM
-        displayTime: `${date.getHours()}:00`,
+        hour: cappedHour,
+        // Format time as HH:MM with AM/PM
+        displayTime: `${cappedHour === 12 ? 12 : cappedHour % 12}${cappedHour < 12 ? 'AM' : 'PM'}`,
         value: point.close, // For line chart
       };
     });
@@ -518,10 +560,17 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   const formatWeeklyData = (data: CandlestickData[]) => {
     // For weekly, use weekday labels (Mon-Fri)
     return data.map(point => {
-      // Use day of week
-      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
-      // Assign a weekday name based on position in the array
-      const dayName = dayNames[data.indexOf(point) % 5];
+      // Create a proper date object for this point
+      const dateObj = new Date(point.year || currentYear, (point.month || currentMonth) - 1, point.day);
+      
+      // Get day of week (0-6, 0 is Sunday)
+      const dayOfWeek = dateObj.getDay();
+      
+      // Map to proper weekday name
+      const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      // Use actual day of week, but ensure we only show business days
+      const dayIndex = dayOfWeek >= 1 && dayOfWeek <= 5 ? dayOfWeek : 5; // Default to Friday for weekends
+      const dayName = dayNames[dayIndex];
       
       return {
         ...point,

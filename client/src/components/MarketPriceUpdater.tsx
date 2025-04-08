@@ -288,6 +288,12 @@ export function MarketPriceUpdater() {
     });
   }, [assets, assetTracker]);
 
+  // Helper to check if a date is a weekday (Monday-Friday)
+  const isWeekday = useCallback((date: Date): boolean => {
+    const day = date.getDay();
+    return day >= 1 && day <= 5; // Monday is 1, Friday is 5
+  }, []);
+  
   // Create a stable reference to the update function that doesn't change on renders
   const updateAllPrices = useCallback(() => {
     const now = Date.now();
@@ -298,33 +304,47 @@ export function MarketPriceUpdater() {
       return;
     }
     
+    // Get current game date to check if it's a weekday
+    const gameDate = new Date();
+    gameDate.setFullYear(useTime.getState().currentYear);
+    gameDate.setMonth(useTime.getState().currentMonth - 1);
+    gameDate.setDate(useTime.getState().currentDay);
+    
+    // Check if current game date is a weekday for stock market updates
+    const marketOpen = isWeekday(gameDate);
+    
     // Update the last update time
     lastUpdateTimeRef.current = now;
     
-    console.log("MarketPriceUpdater: Running global price update");
+    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} today.`);
     
     // 1. Calculate updated stock prices based on market conditions
     const updatedStockPrices: Record<string, number> = {};
     
-    expandedStockMarket.forEach(stock => {
-      // Base price influenced by market health and stock volatility
-      const volatilityFactor = getVolatilityFactor(stock.volatility);
-      const marketFactor = getMarketFactor(marketTrend);
-      const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
+    // Only update stock prices on weekdays when the market is open
+    if (marketOpen) {
+      expandedStockMarket.forEach(stock => {
+        // Base price influenced by market health and stock volatility
+        const volatilityFactor = getVolatilityFactor(stock.volatility);
+        const marketFactor = getMarketFactor(marketTrend);
+        const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
+        
+        // Calculate new price with some randomness
+        let newPrice = stock.basePrice * marketFactor;
+        newPrice += newPrice * timeFactor;
+        newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
+        
+        // Ensure price doesn't go too low
+        newPrice = Math.max(newPrice, stock.basePrice * 0.1);
+        
+        updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
+      });
       
-      // Calculate new price with some randomness
-      let newPrice = stock.basePrice * marketFactor;
-      newPrice += newPrice * timeFactor;
-      newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
-      
-      // Ensure price doesn't go too low
-      newPrice = Math.max(newPrice, stock.basePrice * 0.1);
-      
-      updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
-    });
-    
-    // 2. Update asset tracker with the new prices for owned assets
-    syncAssetTrackerStockPrices(updatedStockPrices);
+      // 2. Update asset tracker with the new prices for owned assets
+      syncAssetTrackerStockPrices(updatedStockPrices);
+    } else {
+      console.log("MarketPriceUpdater: Stock market closed today (weekend)");
+    }
     
     // 3. Update other asset types
     updateOtherAssetPrices();
@@ -347,7 +367,8 @@ export function MarketPriceUpdater() {
     getVolatilityFactor, 
     getMarketFactor,
     syncAssetTrackerStockPrices,
-    updateOtherAssetPrices
+    updateOtherAssetPrices,
+    isWeekday
   ]);
 
   // Add this function to global window object so it can be called from anywhere
