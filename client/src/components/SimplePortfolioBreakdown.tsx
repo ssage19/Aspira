@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag } from 'lucide-react';
+import { shallow } from 'zustand/shallow';
 
 // Types for grouped assets
 interface AssetItem {
@@ -72,11 +73,27 @@ export function SimplePortfolioBreakdown() {
     const updateData = () => {
       console.log("Portfolio breakdown refreshing asset data...");
       
-      // Force sync with asset tracker to ensure data consistency
+      // First, make sure assets are in sync with asset tracker
+      // This is crucial to maintain consistency between dashboard and investment tabs
       useCharacter.getState().syncAssetsWithAssetTracker();
       
-      // Get character breakdown
+      // Then recalculate net worth to ensure it reflects the current state
+      const recalculatedNetWorth = useCharacter.getState().calculateNetWorth();
+      
+      // Get character breakdown after syncing
       const { characterNetWorth, breakdown } = getCharacterBreakdown();
+      
+      // Get the current asset tracker state directly
+      const assetTracker = useAssetTracker.getState();
+      
+      // If there's a mismatch between the sources, log it for debugging
+      if (Math.abs(characterNetWorth - assetTracker.totalNetWorth) > 0.01) {
+        console.warn("Net worth mismatch detected between character and asset tracker:", {
+          characterNetWorth,
+          assetTrackerNetWorth: assetTracker.totalNetWorth,
+          difference: characterNetWorth - assetTracker.totalNetWorth
+        });
+      }
       
       // Log detailed asset breakdown for debugging
       console.log("Portfolio breakdown totals from useCharacter:", {
@@ -92,24 +109,39 @@ export function SimplePortfolioBreakdown() {
       
       // Log asset tracker totals for comparison
       console.log("Asset tracker totals:", {
-        cash: useAssetTracker.getState().totalCash,
-        stocks: useAssetTracker.getState().totalStocks,
-        crypto: useAssetTracker.getState().totalCrypto,
-        bonds: useAssetTracker.getState().totalBonds,
-        otherInvestments: useAssetTracker.getState().totalOtherInvestments,
-        propertyEquity: useAssetTracker.getState().totalPropertyEquity,
-        lifestyleItems: useAssetTracker.getState().totalLifestyleValue,
-        total: useAssetTracker.getState().totalNetWorth
+        cash: assetTracker.totalCash,
+        stocks: assetTracker.totalStocks,
+        crypto: assetTracker.totalCrypto,
+        bonds: assetTracker.totalBonds,
+        otherInvestments: assetTracker.totalOtherInvestments,
+        propertyEquity: assetTracker.totalPropertyEquity,
+        lifestyleItems: assetTracker.totalLifestyleValue,
+        total: assetTracker.totalNetWorth
       });
       
-      // Set display total to match dashboard
-      setDisplayTotal(characterNetWorth);
+      // Set display total using asset tracker value for consistency
+      // We're making sure the displayed value aligns with what's seen in the investment tab
+      setDisplayTotal(assetTracker.totalNetWorth);
       
       // Update calculated total for percentage calculations
-      setCalculatedTotal(characterNetWorth || 1);
+      setCalculatedTotal(assetTracker.totalNetWorth || 1);
       
-      // Update asset categories
-      updateAssetCategories(breakdown);
+      // For complete accuracy, create a new breakdown that matches the asset tracker
+      const trackerBasedBreakdown = {
+        cash: assetTracker.totalCash,
+        stocks: assetTracker.totalStocks,
+        crypto: assetTracker.totalCrypto,
+        bonds: assetTracker.totalBonds,
+        otherInvestments: assetTracker.totalOtherInvestments,
+        propertyEquity: assetTracker.totalPropertyEquity,
+        propertyValue: assetTracker.totalPropertyValue,
+        propertyDebt: assetTracker.totalPropertyDebt,
+        lifestyleItems: assetTracker.totalLifestyleValue,
+        total: assetTracker.totalNetWorth
+      };
+      
+      // Update asset categories using the tracker-based breakdown
+      updateAssetCategories(trackerBasedBreakdown);
     };
     
     // Update immediately
@@ -118,18 +150,12 @@ export function SimplePortfolioBreakdown() {
     // Set up refresh every 1 second
     const intervalId = setInterval(updateData, 1000);
     
-    // Subscribe to changes in the character store for wealth changes
-    const unsubscribeCharacter = useCharacter.subscribe(
-      (state) => [state.wealth, state.netWorth],
-      () => {
-        console.log("Character wealth or net worth changed, updating portfolio");
-        updateData();
-      }
-    );
+    // Use interval-based updates only and avoid subscriptions
+    // This avoids potential errors with the Zustand subscription API
+    console.log("Setting up interval-based portfolio updates");
     
     return () => {
       clearInterval(intervalId);
-      unsubscribeCharacter();
     };
   }, [netWorth, wealth]);
   
@@ -137,23 +163,49 @@ export function SimplePortfolioBreakdown() {
   const handleRefresh = () => {
     setIsLoading(true);
     
-    // Force sync with asset tracker first
-    useCharacter.getState().syncAssetsWithAssetTracker();
-    
-    // Then force recalculation of net worth in useCharacter
-    const characterNetWorth = useCharacter.getState().calculateNetWorth();
-    
-    console.log("Manual refresh - Net worth:", characterNetWorth);
-    
-    setDisplayTotal(characterNetWorth);
-    setCalculatedTotal(characterNetWorth);
-    
-    // Update asset categories
-    const breakdown = useCharacter.getState().getNetWorthBreakdown();
-    console.log("Manual refresh - Breakdown:", breakdown);
-    updateAssetCategories(breakdown);
-    
-    setTimeout(() => setIsLoading(false), 500);
+    try {
+      // Force sync with asset tracker first 
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
+      // Then force recalculation of net worth in useCharacter
+      const characterNetWorth = useCharacter.getState().calculateNetWorth();
+      
+      // Get the asset tracker state directly
+      const assetTracker = useAssetTracker.getState();
+      
+      console.log("Manual refresh - Net worth comparison:", {
+        characterNetWorth,
+        assetTrackerNetWorth: assetTracker.totalNetWorth,
+        difference: characterNetWorth - assetTracker.totalNetWorth
+      });
+      
+      // Use asset tracker values for consistency with auto-update
+      setDisplayTotal(assetTracker.totalNetWorth);
+      setCalculatedTotal(assetTracker.totalNetWorth || 1);
+      
+      // Create breakdown directly from asset tracker
+      const trackerBasedBreakdown = {
+        cash: assetTracker.totalCash,
+        stocks: assetTracker.totalStocks,
+        crypto: assetTracker.totalCrypto,
+        bonds: assetTracker.totalBonds,
+        otherInvestments: assetTracker.totalOtherInvestments,
+        propertyEquity: assetTracker.totalPropertyEquity,
+        propertyValue: assetTracker.totalPropertyValue,
+        propertyDebt: assetTracker.totalPropertyDebt,
+        lifestyleItems: assetTracker.totalLifestyleValue,
+        total: assetTracker.totalNetWorth
+      };
+      
+      console.log("Manual refresh - Using asset tracker breakdown:", trackerBasedBreakdown);
+      
+      // Update asset categories with tracker-based breakdown
+      updateAssetCategories(trackerBasedBreakdown);
+    } catch (error) {
+      console.error("Error during manual refresh:", error);
+    } finally {
+      setTimeout(() => setIsLoading(false), 500);
+    }
   };
   
   // Update asset categories based on the breakdown
