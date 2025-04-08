@@ -3,11 +3,13 @@ import {
   ResponsiveContainer,
   ComposedChart,
   Bar,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
   Tooltip,
-  ReferenceLine
+  ReferenceLine,
+  Area
 } from 'recharts';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
@@ -89,8 +91,44 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     }
   }, [stockId, currentMonth, currentYear]);
   
-  // Format a day number to an MM/DD date string based on the current date
-  const formatDateFromDay = (dayNumber: number) => {
+  // Format a day number to different formats based on timeframe
+  const formatDate = (targetDate: Date, timeframe: TimeFrame) => {
+    const day = targetDate.getDate();
+    const month = targetDate.getMonth() + 1; // 0-indexed months
+    const dayOfWeek = targetDate.getDay(); // 0-6, 0 = Sunday
+    const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    
+    switch (timeframe) {
+      case 'daily':
+        // Include hours for daily view
+        const hours = Math.floor(Math.random() * 8) + 9; // Simulate market hours (9am-5pm)
+        return `${month}/${day} ${hours}:00`;
+      
+      case 'weekly':
+        // Use day of week for weekly view (Mon-Fri only)
+        // Skip weekend days in simulation
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          // Move to Friday for weekend days
+          return `${weekdays[5]}`;
+        }
+        return `${weekdays[dayOfWeek]}`;
+      
+      case 'monthly':
+        // Use month name with year if different from current
+        const year = targetDate.getFullYear();
+        if (year !== currentYear) {
+          return `${monthNames[month-1]} '${year.toString().substr(2)}`;
+        }
+        return monthNames[month-1];
+        
+      default:
+        return `${month}/${day}`;
+    }
+  };
+  
+  // Format a day number relative to the current date
+  const formatDateFromDay = (dayNumber: number, timeframe: TimeFrame = 'daily') => {
     // Create a new date from the current game date
     const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
     
@@ -99,10 +137,8 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     const targetDate = new Date(currentDate);
     targetDate.setDate(targetDate.getDate() - dayDiff);
     
-    // Format as MM/DD
-    const month = targetDate.getMonth() + 1; // 0-indexed months
-    const day = targetDate.getDate();
-    return `${month}/${day}`;
+    // Use the right format based on timeframe
+    return formatDate(targetDate, timeframe);
   };
   
   // Get the week number for a specific date
@@ -358,8 +394,10 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         // Ensure prices don't go too low (floor at 50% of base price)
         prevPrice = Math.max(closePrice, basePrice * 0.5);
         
-        // Format date for display
-        const formattedDate = `${targetMonth}/${targetDay}`;
+        // Format date based on current timeframe
+        // Store the actual date object reference for easy formatting later
+        const targetDateObj = new Date(targetYear, targetMonth - 1, targetDay);
+        const formattedDate = formatDate(targetDateObj, 'daily');
         
         newDailyData.push({
           day: targetDay, 
@@ -444,9 +482,10 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         const high = Math.max(openPrice, currentPrice) * (1 + dailyRange * 0.5);
         const low = Math.min(openPrice, currentPrice) * (1 - dailyRange * 0.5);
         
-        // Format date
-        const formattedDate = `${currentMonth}/${currentDay}`;
-        const weekNumber = getWeekNumber(new Date(currentYear, currentMonth - 1, currentDay));
+        // Format date based on current timeframe
+        const currentDateObj = new Date(currentYear, currentMonth - 1, currentDay);
+        const formattedDate = formatDate(currentDateObj, 'daily');
+        const weekNumber = getWeekNumber(currentDateObj);
         
         cachedDailyData.push({
           day: currentDay,
@@ -492,11 +531,20 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     }
   }, [currentDay, stockId, currentPrice, basePrice, volatility, marketTrend, currentMonth, currentYear]);
   
-  // Format Y-axis values
+  // Format Y-axis values with proper precision based on stock price
   const formatYAxis = (value: number) => {
-    if (value >= 1000) {
+    // Show more decimal places for low-priced stocks
+    if (basePrice < 10) {
+      // For very cheap stocks (penny stocks), show 3 decimal places
+      return `$${value.toFixed(3)}`;
+    } else if (basePrice < 100) {
+      // For stocks under $100, show 2 decimal places
+      return `$${value.toFixed(2)}`;
+    } else if (value >= 1000) {
+      // For stocks over $1000, condense with k
       return `$${(value / 1000).toFixed(1)}k`;
     }
+    // Otherwise show whole dollars
     return `$${value.toFixed(0)}`;
   };
   
@@ -555,18 +603,56 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   const positiveColor = '#16a34a'; // green from image (slightly darker than before)
   const negativeColor = '#dc2626'; // red from image (slightly darker than before)
   
-  // Calculate Y-axis domain for proper scaling
+  // Calculate Y-axis domain for proper scaling based on stock price range
   const calculateYDomain = () => {
     const data = getDisplayData();
     if (data.length === 0) return ['auto', 'auto'];
     
     // Find min and max values
-    let min = Math.min(...data.map(d => d.low));
-    let max = Math.max(...data.map(d => d.high));
+    const min = Math.min(...data.map(d => d.low));
+    const max = Math.max(...data.map(d => d.high));
     
-    // Add some padding (5%)
-    const padding = (max - min) * 0.05;
-    return [Math.floor(min - padding), Math.ceil(max + padding)];
+    // Calculate appropriate padding based on price magnitude
+    let paddingPercentage;
+    
+    if (basePrice < 10) {
+      // For penny stocks, use tighter padding
+      paddingPercentage = 0.02; // 2%
+    } else if (basePrice < 100) {
+      // For stocks under $100, use moderate padding
+      paddingPercentage = 0.03; // 3%
+    } else if (basePrice < 1000) {
+      // For stocks between $100-$1000
+      paddingPercentage = 0.04; // 4%
+    } else {
+      // For very expensive stocks
+      paddingPercentage = 0.05; // 5% 
+    }
+    
+    const padding = (max - min) * paddingPercentage;
+    
+    // For nicer visuals, we'll round to appropriate precision based on price range
+    let roundedMin, roundedMax;
+    
+    if (basePrice < 1) {
+      // Round to 3 decimal places for sub-dollar stocks
+      roundedMin = Math.floor(min * 1000 - padding * 1000) / 1000;
+      roundedMax = Math.ceil(max * 1000 + padding * 1000) / 1000;
+    } else if (basePrice < 10) {
+      // Round to 2 decimal places
+      roundedMin = Math.floor(min * 100 - padding * 100) / 100;
+      roundedMax = Math.ceil(max * 100 + padding * 100) / 100;
+    } else if (basePrice < 100) {
+      // Round to 1 decimal place
+      roundedMin = Math.floor(min * 10 - padding * 10) / 10;
+      roundedMax = Math.ceil(max * 10 + padding * 10) / 10;
+    } else {
+      // Round to whole dollars
+      roundedMin = Math.floor(min - padding);
+      roundedMax = Math.ceil(max + padding);
+    }
+    
+    return [roundedMin, roundedMax];
   };
   
   const timeframeButtonClass = (tf: TimeFrame) => 
@@ -635,44 +721,52 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
               }} 
             />
             
-            {/* Candlestick bodies */}
-            {/* Prepare data with calculated values first */}
+            {/* Create separate arrays for up/down candles */}
             {(() => {
-              // Process data with calculated fields for display
               const data = getDisplayData();
+              
+              // Pre-calculate values and add them to the entries
               data.forEach(entry => {
-                // Pre-calculate values for display
                 entry.height = Math.abs(entry.close - entry.open);
                 entry.y0 = Math.min(entry.open, entry.close);
                 entry.color = isPositive(entry) ? positiveColor : negativeColor;
               });
-              return null;
+            
+              // Split into up and down candles
+              const upCandles = data.filter(entry => isPositive(entry));
+              const downCandles = data.filter(entry => !isPositive(entry));
+              
+              // Return a fragment with both candle types
+              return (
+                <>
+                  {/* Positive candles (green) */}
+                  {upCandles.map((entry, index) => (
+                    <ReferenceLine
+                      key={`candle-body-up-${index}`}
+                      segment={[
+                        { x: data.indexOf(entry), y: entry.open },
+                        { x: data.indexOf(entry), y: entry.close }
+                      ]}
+                      stroke={positiveColor}
+                      strokeWidth={selectedTimeframe === 'daily' ? 5 : selectedTimeframe === 'weekly' ? 7 : 9}
+                    />
+                  ))}
+                  
+                  {/* Negative candles (red) */}
+                  {downCandles.map((entry, index) => (
+                    <ReferenceLine
+                      key={`candle-body-down-${index}`}
+                      segment={[
+                        { x: data.indexOf(entry), y: entry.open },
+                        { x: data.indexOf(entry), y: entry.close }
+                      ]}
+                      stroke={negativeColor}
+                      strokeWidth={selectedTimeframe === 'daily' ? 5 : selectedTimeframe === 'weekly' ? 7 : 9}
+                    />
+                  ))}
+                </>
+              );
             })()}
-            
-            {/* Two separate bar series for up/down days */}
-            <Bar
-              dataKey="height"
-              barSize={selectedTimeframe === 'daily' ? 6 : selectedTimeframe === 'weekly' ? 8 : 10}
-              fill={positiveColor}
-              name="candleUp"
-              stackId="candles"
-              // Only show for positive days
-              fillOpacity={(entry) => isPositive(entry) ? 1 : 0}
-              // Use y0 for proper positioning
-              baseValue={(entry) => entry.y0 || 0}
-            />
-            
-            <Bar
-              dataKey="height"
-              barSize={selectedTimeframe === 'daily' ? 6 : selectedTimeframe === 'weekly' ? 8 : 10}
-              fill={negativeColor}
-              name="candleDown"
-              stackId="candles"
-              // Only show for negative days
-              fillOpacity={(entry) => isPositive(entry) ? 0 : 1}
-              // Use y0 for proper positioning
-              baseValue={(entry) => entry.y0 || 0}
-            />
             
             {/* High/low wicks */}
             {getDisplayData().map((entry, index) => (
