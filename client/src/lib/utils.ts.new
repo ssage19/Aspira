@@ -271,13 +271,12 @@ export const performCompleteGameReset = () => {
   // 6. Now reset all stores, after localStorage is properly set up
   try {
     // RESET SEQUENCE IS CRITICAL:
-    // 1. Asset tracker & net worth breakdown MUST be reset first (to prevent stale investment data)
-    // 2. Time store reset second
-    // 3. Character store reset third (after verifying asset tracker has been reset)
+    // 1. Asset tracker MUST be reset first (to prevent stale asset data)
+    // 2. Time store MUST be reset second
+    // 3. Character store third
     // 4. Other stores after
     // This order ensures proper data handling
     
-    // Now reset all stores in the proper sequence
     console.log("STEP 3: Resetting store states...");
     
     // FIRST - Reset asset tracker store explicitly

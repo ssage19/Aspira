@@ -1,0 +1,266 @@
+  } catch (e) {
+    console.error("Error setting fresh time state:", e);
+  }
+  
+  // 6. Now reset all stores, after localStorage is properly set up
+  try {
+    // RESET SEQUENCE IS CRITICAL:
+    // 1. Asset tracker MUST be reset first (to prevent stale asset data)
+    // 2. Time store MUST be reset second
+    // 3. Character store third
+    // 4. Other stores after
+    // This order ensures proper data handling
+    
+    // Reset time store FIRST
+    console.log("STEP 3: Resetting store states...");
+    
+    // FIRST - Reset asset tracker store explicitly
+    try {
+      console.log("STEP 3.1: Reset asset tracker first to prevent stale investment data");
+      
+      // First, clear related localStorage entries
+      localStorage.removeItem('business-empire-networth-breakdown');
+      localStorage.removeItem('business-empire-asset-tracker');
+      console.log("Removed asset tracking data from localStorage");
+      
+      // Set flags to indicate reset has occurred
+      sessionStorage.setItem('asset_tracker_reset', 'true');
+      sessionStorage.setItem('asset_tracker_reset_timestamp', Date.now().toString());
+      
+      // Now explicitly reset the asset tracker store
+      try {
+        const assetTracker = require('./stores/useAssetTracker').useAssetTracker;
+        if (assetTracker && assetTracker.getState() && assetTracker.getState().resetAssetTracker) {
+          console.log("Executing asset tracker reset");
+          assetTracker.getState().resetAssetTracker();
+          console.log("Asset tracker successfully reset");
+        } else {
+          console.error("Asset tracker store exists but resetAssetTracker function not found!");
+        }
+      } catch (trackerErr) {
+        console.error("Error while resetting asset tracker:", trackerErr);
+      }
+      
+      // SECOND - Reset net worth breakdown
+      // Set flags to indicate breakdown data has been reset
+      sessionStorage.setItem('networth_breakdown_reset', 'true');
+      sessionStorage.setItem('networth_breakdown_reset_timestamp', Date.now().toString());
+      
+      // Check if there's a dedicated net worth breakdown store
+      try {
+        const netWorthStore = require('./stores/useNetWorthBreakdown').useNetWorthBreakdown;
+        if (netWorthStore && netWorthStore.getState()) {
+          console.log("Found dedicated netWorthBreakdown store, resetting it");
+          if (netWorthStore.getState().reset) {
+            netWorthStore.getState().reset();
+          } else {
+            // If no reset function, nullify the state directly
+            Object.keys(netWorthStore.getState()).forEach(key => {
+              if (typeof netWorthStore.getState()[key] !== 'function') {
+                netWorthStore.getState()[key] = null;
+              }
+            });
+          }
+        }
+      } catch (storeErr) {
+        // No dedicated store exists, which is expected
+        console.log("No dedicated netWorthBreakdown store found (expected)");
+      }
+    } catch (e) {
+      console.error("Error during initial asset tracker/breakdown reset:", e);
+    }
+    
+    // THIRD - Reset time store
+    const timeStore = require('./stores/useTime').useTime;
+    if (timeStore.getState().resetTime) {
+      timeStore.getState().resetTime();
+      console.log("Time store state reset");
+    } else {
+      console.error("Time store reset function not found!");
+    }
+    
+    // Reset character store THIRD
+    console.log("Resetting character store...");
+    const characterStore = require('./stores/useCharacter').useCharacter;
+    if (characterStore.getState().resetCharacter) {
+      // Step 1: Verify asset tracker storage is cleared (should be done already in earlier steps)
+      try {
+        const breakdownExists = localStorage.getItem('business-empire-networth-breakdown');
+        const trackerExists = localStorage.getItem('business-empire-asset-tracker');
+        
+        if (breakdownExists || trackerExists) {
+          console.log("WARNING: Asset tracking localStorage entries still exist, removing again");
+          localStorage.removeItem('business-empire-networth-breakdown');
+          localStorage.removeItem('business-empire-asset-tracker');
+        }
+      } catch (storageError) {
+        console.error("Error checking asset tracker localStorage entries:", storageError);
+      }
+      
+      // Step 2: Clear in-memory breakdown in character store
+      try {
+        if (characterStore.getState()) {
+          if ((characterStore.getState() as any).netWorthBreakdown) {
+            console.log("Explicitly clearing cached netWorthBreakdown data in character store");
+            (characterStore.getState() as any).netWorthBreakdown = null;
+          }
+          
+          // Also clear any flags related to netWorthBreakdown calculations
+          if ((characterStore.getState() as any)._netWorthRecalculated) {
+            console.log("Clearing netWorthRecalculated flag");
+            (characterStore.getState() as any)._netWorthRecalculated = false;
+          }
+          
+          // Force a clean default breakdown to be set in character state
+          if (characterStore.getState().wealth !== undefined) {
+            const defaultBreakdown = {
+              cash: characterStore.getState().wealth || 0,
+              stocks: 0,
+              crypto: 0,
+              bonds: 0,
+              otherInvestments: 0,
+              propertyEquity: 0,
+              propertyValue: 0,
+              propertyDebt: 0,
+              lifestyleItems: 0,
+              total: characterStore.getState().wealth || 0
+            };
+            
+            console.log("Setting clean default breakdown in character store:", defaultBreakdown);
+            (characterStore.getState() as any).netWorthBreakdown = defaultBreakdown;
+          }
+        }
+      } catch (err) {
+        console.error("Error handling in-memory breakdown:", err);
+      }
+      
+      // Now perform the full character reset
+      characterStore.getState().resetCharacter();
+      console.log("Character store state reset");
+    } else {
+      console.error("Character store reset function not found!");
+    }
+    
+    // Reset game store
+    console.log("Resetting game store...");
+    const gameStore = require('./stores/useGame').useGame;
+    if (gameStore.getState().reset) {
+      gameStore.getState().reset();
+      console.log("Game store state reset");
+    } else {
+      console.error("Game store reset function not found!");
+    }
+    
+    // Reset economy store
+    console.log("Resetting economy store...");
+    const economyStore = require('./stores/useEconomy').useEconomy;
+    if (economyStore.getState().resetEconomy) {
+      economyStore.getState().resetEconomy();
+      console.log("Economy store state reset");
+    } else {
+      console.error("Economy store reset function not found!");
+    }
+    
+    // Reset events store
+    console.log("Resetting events store...");
+    const eventsStore = require('./stores/useRandomEvents').default;
+    if (eventsStore.getState().resetEvents) {
+      eventsStore.getState().resetEvents();
+      console.log("Events store state reset");
+    } else {
+      console.error("Events store reset function not found!");
+    }
+    
+    // Reset achievements store
+    console.log("Resetting achievements store...");
+    const achievementsStore = require('./stores/useAchievements').useAchievements;
+    if (achievementsStore.getState().resetAchievements) {
+      achievementsStore.getState().resetAchievements();
+      console.log("Achievements store state reset");
+    } else {
+      console.error("Achievements store reset function not found!");
+    }
+    
+    console.log("All stores have been reset");
+  } catch (error) {
+    console.error("Error during store resets:", error);
+  }
+  
+  // 7. Final verification
+  console.log("STEP 4: Final verification of date in localStorage");
+  try {
+    const finalTimeCheck = localStorage.getItem('luxury_lifestyle_time');
+    if (finalTimeCheck) {
+      const parsedTime = JSON.parse(finalTimeCheck);
+      console.log(`FINAL VERIFICATION - Date in localStorage: ${parsedTime.currentMonth}/${parsedTime.currentDay}/${parsedTime.currentYear}`);
+    } else {
+      console.error("CRITICAL ERROR: No time data in localStorage after reset!");
+    }
+  } catch (e) {
+    console.error("Error during final verification:", e);
+  }
+  
+  console.log("All steps completed, reloading page to complete reset process...");
+  
+  // 8. Set flags to ensure correct time usage
+  // These flags will be checked by various components to ensure the correct date is used
+  sessionStorage.setItem('force_current_date', 'true');
+  sessionStorage.setItem('block_time_loads', 'true');
+  sessionStorage.setItem('smooth_navigation', 'true');
+
+  // 9. Add a cache-busting parameter to the URL to ensure we get a fresh page
+  // This is crucial for avoiding cached data during navigation
+  const timestamp = Date.now();
+  window.location.href = `/create?reset=${timestamp}`;
+};
+
+/**
+ * Format a number as currency with no decimal places
+ * @param amount The amount to format
+ * @param currency The currency code (default: USD)
+ * @returns Formatted currency string with no decimal places
+ */
+export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    maximumFractionDigits: 0
+  }).format(Math.round(amount));
+};
+
+/**
+ * Format a stock price with exactly 2 decimal places
+ * @param amount The amount to format
+ * @param currency The currency code (default: USD)
+ * @returns Formatted currency string with 2 decimal places
+ */
+export const formatStockPrice = (amount: number, currency: string = 'USD'): string => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(amount);
+};
+
+/**
+ * Format a number as an integer (no decimal places)
+ * @param num The number to format
+ * @returns Formatted integer string
+ */
+export const formatInteger = (num: number): string => {
+  return Math.round(num).toString();
+};
+
+/**
+ * Format a number as a percentage with specified decimal places
+ * @param value The number to format (e.g., 0.1234 for 12.34%)
+ * @param fixed The number of decimal places (default: 1)
+ * @returns Formatted percentage string (e.g., "12.3%")
+ */
+export const formatPercentage = (value: number, fixed: number = 1): string => {
+  return (value * 100).toFixed(fixed) + '%';
+};
+
+// Export local storage helpers
+export { getLocalStorage, setLocalStorage };
