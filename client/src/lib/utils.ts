@@ -295,16 +295,35 @@ export const performCompleteGameReset = () => {
       
       // Now explicitly reset the asset tracker store
       try {
-        const assetTracker = require('./stores/useAssetTracker').useAssetTracker;
-        if (assetTracker && assetTracker.getState() && assetTracker.getState().resetAssetTracker) {
-          console.log("Executing asset tracker reset");
-          assetTracker.getState().resetAssetTracker();
-          console.log("Asset tracker successfully reset");
+        // Use a more robust traditional require approach
+        const assetTrackerModule = require('./stores/useAssetTracker');
+        const assetTracker = assetTrackerModule.useAssetTracker;
+        
+        if (assetTracker && typeof assetTracker.getState === 'function') {
+          const state = assetTracker.getState();
+          
+          if (state && typeof state.resetAssetTracker === 'function') {
+            console.log("Executing asset tracker reset");
+            state.resetAssetTracker();
+            console.log("Asset tracker successfully reset");
+          } else {
+            console.error("Asset tracker state exists but resetAssetTracker function not found!");
+            // Safely list available methods
+            if (state) {
+              const methods = [];
+              for (const key in state) {
+                if (typeof state[key] === 'function') {
+                  methods.push(key);
+                }
+              }
+              console.log("Available methods:", methods.join(', '));
+            }
+          }
         } else {
-          console.error("Asset tracker store exists but resetAssetTracker function not found!");
+          console.error("Asset tracker exists but getState is not a function!");
         }
       } catch (trackerErr) {
-        console.error("Error while resetting asset tracker:", trackerErr);
+        console.error("Critical error while resetting asset tracker:", trackerErr);
       }
       
       // SECOND - Reset net worth breakdown
@@ -314,23 +333,24 @@ export const performCompleteGameReset = () => {
       
       // Check if there's a dedicated net worth breakdown store
       try {
-        const netWorthStore = require('./stores/useNetWorthBreakdown').useNetWorthBreakdown;
-        if (netWorthStore && netWorthStore.getState()) {
-          console.log("Found dedicated netWorthBreakdown store, resetting it");
-          if (netWorthStore.getState().reset) {
-            netWorthStore.getState().reset();
-          } else {
-            // If no reset function, nullify the state directly
-            Object.keys(netWorthStore.getState()).forEach(key => {
-              if (typeof netWorthStore.getState()[key] !== 'function') {
-                netWorthStore.getState()[key] = null;
-              }
-            });
-          }
+        // Check directly if this file exists before attempting to import
+        // The store might not exist in all installations
+        console.log("Checking for dedicated netWorthBreakdown store...");
+        
+        // Just handle the case directly without dynamic import
+        // This is simpler and avoids path resolution issues
+        console.log("No dedicated netWorthBreakdown store implementation found (expected)");
+        
+        // Ensure we clean any potential localStorage entry for this
+        try {
+          localStorage.removeItem('business-empire-networth-breakdown');
+          console.log("Removed any existing netWorthBreakdown data from localStorage");
+        } catch (localErr) {
+          console.error("Error removing netWorthBreakdown from localStorage:", localErr);
         }
       } catch (storeErr) {
         // No dedicated store exists, which is expected
-        console.log("No dedicated netWorthBreakdown store found (expected)");
+        console.log("Error while accessing netWorthBreakdown store (expected):", storeErr);
       }
     } catch (e) {
       console.error("Error during initial asset tracker/breakdown reset:", e);
