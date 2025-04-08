@@ -782,11 +782,18 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           <div className="text-xs text-gray-400">NYSE Hours (9AM-4PM)</div>
           {/* Enhanced market status indicator - detects weekends separately */}
           {(() => {
-            const now = new Date();
-            const dayOfWeek = now.getDay();
+            // Use game time instead of real time
+            const { currentDay, currentMonth, currentYear, currentHour } = useTime();
+            
+            // Create a date object from game time
+            const gameDate = new Date();
+            gameDate.setFullYear(currentYear);
+            gameDate.setMonth(currentMonth - 1); // JS months are 0-indexed
+            gameDate.setDate(currentDay);
+            
+            const dayOfWeek = gameDate.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0 = Sunday, 6 = Saturday
-            const hour = now.getHours();
-            const isWithinTradingHours = hour >= 9 && hour < 16;
+            const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
             
             // Weekday but outside trading hours
             const isWeekdayClosed = !isWeekend && !isWithinTradingHours;
