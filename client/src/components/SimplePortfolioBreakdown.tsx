@@ -72,9 +72,13 @@ export function SimplePortfolioBreakdown() {
     const updateData = () => {
       console.log("Portfolio breakdown refreshing asset data...");
       
+      // Force sync with asset tracker to ensure data consistency
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
       // Get character breakdown
       const { characterNetWorth, breakdown } = getCharacterBreakdown();
       
+      // Log detailed asset breakdown for debugging
       console.log("Portfolio breakdown totals from useCharacter:", {
         cash: breakdown.cash,
         stocks: breakdown.stocks,
@@ -84,6 +88,18 @@ export function SimplePortfolioBreakdown() {
         propertyEquity: breakdown.propertyEquity,
         lifestyleItems: breakdown.lifestyleItems,
         total: breakdown.total
+      });
+      
+      // Log asset tracker totals for comparison
+      console.log("Asset tracker totals:", {
+        cash: useAssetTracker.getState().totalCash,
+        stocks: useAssetTracker.getState().totalStocks,
+        crypto: useAssetTracker.getState().totalCrypto,
+        bonds: useAssetTracker.getState().totalBonds,
+        otherInvestments: useAssetTracker.getState().totalOtherInvestments,
+        propertyEquity: useAssetTracker.getState().totalPropertyEquity,
+        lifestyleItems: useAssetTracker.getState().totalLifestyleValue,
+        total: useAssetTracker.getState().totalNetWorth
       });
       
       // Set display total to match dashboard
@@ -121,14 +137,20 @@ export function SimplePortfolioBreakdown() {
   const handleRefresh = () => {
     setIsLoading(true);
     
-    // Force recalculation of net worth in useCharacter
+    // Force sync with asset tracker first
+    useCharacter.getState().syncAssetsWithAssetTracker();
+    
+    // Then force recalculation of net worth in useCharacter
     const characterNetWorth = useCharacter.getState().calculateNetWorth();
+    
+    console.log("Manual refresh - Net worth:", characterNetWorth);
     
     setDisplayTotal(characterNetWorth);
     setCalculatedTotal(characterNetWorth);
     
     // Update asset categories
     const breakdown = useCharacter.getState().getNetWorthBreakdown();
+    console.log("Manual refresh - Breakdown:", breakdown);
     updateAssetCategories(breakdown);
     
     setTimeout(() => setIsLoading(false), 500);
@@ -163,7 +185,7 @@ export function SimplePortfolioBreakdown() {
         { label: 'Crypto', value: breakdown.crypto || 0, color: 'bg-amber-500' },
         { label: 'Bonds', value: breakdown.bonds || 0, color: 'bg-indigo-500' },
         { label: 'Other', value: breakdown.otherInvestments || 0, color: 'bg-purple-500' }
-      ].filter(item => item.value > 0) // Only show if there's value
+      ] // Show all investment types, even with zero value
     };
     
     // Property assets
@@ -174,7 +196,7 @@ export function SimplePortfolioBreakdown() {
       totalValue: breakdown.propertyEquity || 0,
       items: [
         { label: 'Property Equity', value: breakdown.propertyEquity || 0, color: 'bg-pink-500' }
-      ].filter(item => item.value > 0)
+      ] // Show property equity even if zero
     };
     
     // Lifestyle assets
@@ -185,7 +207,7 @@ export function SimplePortfolioBreakdown() {
       totalValue: breakdown.lifestyleItems || 0,
       items: [
         { label: 'Lifestyle Items', value: breakdown.lifestyleItems || 0, color: 'bg-rose-500' }
-      ].filter(item => item.value > 0)
+      ] // Show lifestyle items even if zero
     };
     
     // Always show all categories, even if empty
