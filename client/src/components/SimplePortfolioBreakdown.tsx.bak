@@ -266,6 +266,66 @@ export function SimplePortfolioBreakdown() {
     }
   };
   
+  // Update asset categories based on the breakdown
+  const updateAssetCategories = (breakdown: any) => {
+    // Cash assets
+    const cashAssets: AssetCategory = {
+      title: "Liquid Assets",
+      icon: <Banknote size={16} />,
+      color: "bg-blue-500",
+      totalValue: breakdown.cash || 0,
+      items: [
+        { label: 'Cash', value: breakdown.cash || 0, color: 'bg-blue-500' }
+      ]
+    };
+    
+    // Investment assets
+    const investmentValue = (breakdown.stocks || 0) + 
+                           (breakdown.crypto || 0) + 
+                           (breakdown.bonds || 0) + 
+                           (breakdown.otherInvestments || 0);
+    
+    const investmentAssets: AssetCategory = {
+      title: "Investments",
+      icon: <BarChart3 size={16} />,
+      color: "bg-green-500",
+      totalValue: investmentValue,
+      items: [
+        { label: 'Stocks', value: breakdown.stocks || 0, color: 'bg-green-500' },
+        { label: 'Crypto', value: breakdown.crypto || 0, color: 'bg-amber-500' },
+        { label: 'Bonds', value: breakdown.bonds || 0, color: 'bg-indigo-500' },
+        { label: 'Other', value: breakdown.otherInvestments || 0, color: 'bg-purple-500' }
+      ] // Show all investment types, even with zero value
+    };
+    
+    // Property assets
+    const propertyAssets: AssetCategory = {
+      title: "Properties",
+      icon: <Home size={16} />,
+      color: "bg-pink-500",
+      totalValue: breakdown.propertyEquity || 0,
+      items: [
+        { label: 'Property Equity', value: breakdown.propertyEquity || 0, color: 'bg-pink-500' }
+      ] // Show property equity even if zero
+    };
+    
+    // Lifestyle assets
+    const lifestyleAssets: AssetCategory = {
+      title: "Lifestyle Assets",
+      icon: <ShoppingBag size={16} />,
+      color: "bg-rose-500",
+      totalValue: breakdown.lifestyleItems || 0,
+      items: [
+        { label: 'Lifestyle Items', value: breakdown.lifestyleItems || 0, color: 'bg-rose-500' }
+      ] // Show lifestyle items even if zero
+    };
+    
+    // Always show all categories, even if empty
+    const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets];
+    
+    setAssetCategories(categories);
+  };
+    
   return (
     <Card className="w-full shadow-sm">
       <CardHeader className="pb-1">
