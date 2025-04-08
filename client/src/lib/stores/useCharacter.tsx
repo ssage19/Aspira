@@ -1938,81 +1938,447 @@ export const useCharacter = create<CharacterState>()(
       // This ensures that the assets in the Character store are properly
       // reflected in the AssetTracker, which is used by other components
       syncAssetsWithAssetTracker: () => {
-        console.log("Syncing assets with AssetTracker...");
+        console.log("=== BEGINNING ASSET SYNC WITH ASSET TRACKER ===");
         const state = get();
+        
+        // Safeguard: Ensure the AssetTracker is accessible
+        if (!useAssetTracker) {
+          console.error("CRITICAL ERROR: AssetTracker module not available");
+          return;
+        }
+        
         const assetTracker = useAssetTracker.getState();
+        if (!assetTracker) {
+          console.error("CRITICAL ERROR: AssetTracker state not available");
+          return;
+        }
         
-        // First, update cash
-        assetTracker.updateCash(state.wealth);
-        
-        // Then, sync all stocks
-        const stockAssets = state.assets.filter(asset => asset.type === 'stock');
-        stockAssets.forEach(stock => {
-          assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+        console.log("Character state snapshot:", {
+          wealth: state.wealth,
+          stockCount: state.assets?.filter(a => a.type === 'stock')?.length || 0,
+          cryptoCount: state.assets?.filter(a => a.type === 'crypto')?.length || 0,
+          bondCount: state.assets?.filter(a => a.type === 'bond')?.length || 0,
+          otherInvestmentCount: state.assets?.filter(a => a.type === 'other')?.length || 0,
+          propertyCount: state.properties?.length || 0,
+          lifestyleItemCount: state.lifestyleItems?.length || 0
         });
         
-        // Sync crypto assets
-        const cryptoAssets = state.assets.filter(asset => asset.type === 'crypto');
-        cryptoAssets.forEach(crypto => {
-          assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+        console.log("Asset tracker snapshot:", {
+          cash: assetTracker.totalCash,
+          stockCount: assetTracker.stocks?.length || 0,
+          cryptoCount: assetTracker.cryptoAssets?.length || 0,
+          bondCount: assetTracker.bonds?.length || 0,
+          otherCount: assetTracker.otherInvestments?.length || 0,
+          propertyCount: assetTracker.properties?.length || 0,
+          lifestyleCount: assetTracker.lifestyleItems?.length || 0
         });
         
-        // Sync bonds
-        const bondAssets = state.assets.filter(asset => asset.type === 'bond');
-        bondAssets.forEach(bond => {
-          assetTracker.updateBond(bond.id, bond.quantity, bond.currentPrice);
-        });
+        // Check if we're in a reset state
+        const resetInProgress = typeof window !== 'undefined' && 
+                               window.sessionStorage && 
+                               (window.sessionStorage.getItem('game_reset_in_progress') === 'true' ||
+                                window.sessionStorage.getItem('character_reset_completed') === 'true' ||
+                                window.sessionStorage.getItem('force_current_date') === 'true');
         
-        // Sync other investment assets
-        const otherAssets = state.assets.filter(asset => asset.type === 'other');
-        otherAssets.forEach(other => {
-          assetTracker.updateOtherInvestment(other.id, other.currentPrice * other.quantity);
-        });
-        
-        // Sync properties
-        state.properties.forEach(property => {
-          assetTracker.updateProperty(
-            property.id, 
-            property.currentValue, 
-            property.loanAmount
-          );
-        });
-        
-        // Sync lifestyle items
-        state.lifestyleItems.forEach(item => {
-          // Calculate item value based on purchase price or monthly cost
-          let itemValue = 0;
-          
-          if (item.purchasePrice) {
-            // Skip vacations and experiences (they're temporary)
-            if (item.type === 'vacations' || item.type === 'experiences') {
-              return;
+        // If a reset is happening, we should reset the asset tracker completely first
+        if (resetInProgress) {
+          console.log("RESET MODE DETECTED: Performing deep asset tracker reset first");
+          try {
+            // Reset the asset tracker completely
+            assetTracker.resetAssetTracker();
+            
+            // Update cash to current character wealth (should be the starting amount)
+            assetTracker.updateCash(state.wealth);
+            
+            // Force a recalculation with clean data
+            assetTracker.recalculateTotals();
+            assetTracker.forceUpdate();
+            
+            // Verify the reset was successful
+            const verifiedState = useAssetTracker.getState();
+            const resetSuccess = 
+              verifiedState.stocks.length === 0 &&
+              verifiedState.cryptoAssets.length === 0 &&
+              verifiedState.bonds.length === 0 &&
+              verifiedState.otherInvestments.length === 0 &&
+              verifiedState.properties.length === 0 &&
+              verifiedState.lifestyleItems.length === 0;
+              
+            console.log(`Deep asset tracker reset: ${resetSuccess ? 'SUCCESS ✓' : 'FAILED ✗'}`);
+            
+            if (!resetSuccess) {
+              console.error("CRITICAL: Asset tracker reset failed! Items still exist in tracker");
+              console.log("Attempting force removeAll one more time...");
+              
+              // Force remove all items in each category
+              try {
+                // Get fresh state after reset
+                const freshState = useAssetTracker.getState();
+                
+                // Force remove each stock
+                freshState.stocks.forEach(item => freshState.removeStock(item.id));
+                
+                // Force remove each crypto
+                freshState.cryptoAssets.forEach(item => freshState.removeCrypto(item.id));
+                
+                // Force remove each bond
+                freshState.bonds.forEach(item => freshState.removeBond(item.id));
+                
+                // Force remove each other investment
+                freshState.otherInvestments.forEach(item => freshState.removeOtherInvestment(item.id));
+                
+                // Force remove each property
+                freshState.properties.forEach(item => freshState.removeProperty(item.id));
+                
+                // Force remove each lifestyle item
+                freshState.lifestyleItems.forEach(item => freshState.removeLifestyleItem(item.id));
+                
+                // Force a recalculation
+                freshState.recalculateTotals();
+                freshState.forceUpdate();
+                
+                console.log("Force removeAll complete - asset tracker should now be clean");
+              } catch (forceRemoveError) {
+                console.error("Force removeAll failed:", forceRemoveError);
+              }
             }
             
-            // For permanent items, use purchase price with simple depreciation
-            const purchasePrice = item.purchasePrice;
-            const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
-            const currentDate = useTime.getState().currentGameDate;
-            const monthsSincePurchase = Math.max(0, 
-              (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
-              (currentDate.getMonth() - purchaseDate.getMonth())
-            );
+            // Early return - we've reset everything to initial state
+            console.log("=== ASSET SYNC COMPLETE (RESET MODE) ===");
+            return;
+          } catch (resetError) {
+            console.error("Error during deep reset in syncAssetsWithAssetTracker:", resetError);
+          }
+        }
+        
+        console.log("NORMAL MODE: Syncing individual assets between character and asset tracker");
+        
+        // PHASE 1: UPDATE CASH AND SETUP
+        try {
+          // First, update cash
+          assetTracker.updateCash(state.wealth);
+          console.log(`Updated cash to: ${state.wealth}`);
+          
+          // Safeguard arrays
+          if (!state.assets) state.assets = [];
+          if (!state.properties) state.properties = [];
+          if (!state.lifestyleItems) state.lifestyleItems = [];
+          
+        } catch (phase1Error) {
+          console.error("Error in Phase 1 (cash update):", phase1Error);
+        }
+        
+        // PHASE 2: STOCK SYNCING
+        try {
+          console.log("Phase 2: Syncing stocks");
+          
+          // 1. Get all existing stocks in tracker with validation
+          const existingStocks = [...(assetTracker.stocks || [])];
+          console.log(`Found ${existingStocks.length} stocks in asset tracker`);
+          
+          // 2. Get the IDs of stocks that should be in the tracker now
+          const currentStockIds = state.assets
+            .filter(asset => asset && asset.type === 'stock')
+            .map(stock => stock.id);
             
-            // Apply depreciation (max 75%)
-            const depreciation = Math.min(0.75, monthsSincePurchase * 0.05);
-            itemValue = purchasePrice * (1 - depreciation);
-          } else if (item.monthlyCost || item.maintenanceCost) {
-            // For recurring cost items
-            const monthlyCost = item.monthlyCost || item.maintenanceCost || 0;
-            itemValue = monthlyCost * 3; // Value as 3 months of payments
+          console.log(`Found ${currentStockIds.length} stocks in character state`);
+          
+          // 3. Remove stocks that aren't in the character state
+          let removedStocksCount = 0;
+          existingStocks.forEach(stock => {
+            if (!currentStockIds.includes(stock.id)) {
+              console.log(`Removing stock ${stock.id} from asset tracker (not in character state)`);
+              assetTracker.removeStock(stock.id);
+              removedStocksCount++;
+            }
+          });
+          console.log(`Removed ${removedStocksCount} stocks from asset tracker`);
+          
+          // 4. Update/add existing stocks
+          const stockAssets = state.assets.filter(asset => asset && asset.type === 'stock');
+          stockAssets.forEach(stock => {
+            assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+          });
+          console.log(`Updated ${stockAssets.length} stocks in asset tracker`);
+        } catch (stockSyncError) {
+          console.error("Error during stock syncing:", stockSyncError);
+        }
+        
+        // PHASE 3: CRYPTO SYNCING
+        try {
+          console.log("Phase 3: Syncing crypto assets");
+          
+          // 1. Get all existing crypto in tracker
+          const existingCrypto = [...(assetTracker.cryptoAssets || [])];
+          console.log(`Found ${existingCrypto.length} crypto assets in tracker`);
+          
+          // 2. Get the IDs of crypto that should be in the tracker now
+          const currentCryptoIds = state.assets
+            .filter(asset => asset && asset.type === 'crypto')
+            .map(crypto => crypto.id);
+          console.log(`Found ${currentCryptoIds.length} crypto assets in character state`);
+          
+          // 3. Remove crypto that aren't in the character state
+          let removedCryptoCount = 0;
+          existingCrypto.forEach(crypto => {
+            if (!currentCryptoIds.includes(crypto.id)) {
+              console.log(`Removing crypto ${crypto.id} from asset tracker (not in character state)`);
+              assetTracker.removeCrypto(crypto.id);
+              removedCryptoCount++;
+            }
+          });
+          console.log(`Removed ${removedCryptoCount} crypto assets from tracker`);
+          
+          // 4. Update/add existing crypto
+          const cryptoAssets = state.assets.filter(asset => asset && asset.type === 'crypto');
+          cryptoAssets.forEach(crypto => {
+            assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+          });
+          console.log(`Updated ${cryptoAssets.length} crypto assets in tracker`);
+        } catch (cryptoSyncError) {
+          console.error("Error during crypto syncing:", cryptoSyncError);
+        }
+        
+        // PHASE 4: BOND SYNCING
+        try {
+          console.log("Phase 4: Syncing bonds");
+          
+          // 1. Get all existing bonds in tracker
+          const existingBonds = [...(assetTracker.bonds || [])];
+          console.log(`Found ${existingBonds.length} bonds in tracker`);
+          
+          // 2. Get the IDs of bonds that should be in the tracker now
+          const currentBondIds = state.assets
+            .filter(asset => asset && asset.type === 'bond')
+            .map(bond => bond.id);
+          console.log(`Found ${currentBondIds.length} bonds in character state`);
+          
+          // 3. Remove bonds that aren't in the character state
+          let removedBondCount = 0;
+          existingBonds.forEach(bond => {
+            if (!currentBondIds.includes(bond.id)) {
+              console.log(`Removing bond ${bond.id} from asset tracker (not in character state)`);
+              assetTracker.removeBond(bond.id);
+              removedBondCount++;
+            }
+          });
+          console.log(`Removed ${removedBondCount} bonds from tracker`);
+          
+          // 4. Update/add existing bonds
+          const bondAssets = state.assets.filter(asset => asset && asset.type === 'bond');
+          bondAssets.forEach(bond => {
+            assetTracker.updateBond(bond.id, bond.quantity, bond.currentPrice);
+          });
+          console.log(`Updated ${bondAssets.length} bonds in tracker`);
+        } catch (bondSyncError) {
+          console.error("Error during bond syncing:", bondSyncError);
+        }
+        
+        // PHASE 5: OTHER INVESTMENTS SYNCING
+        try {
+          console.log("Phase 5: Syncing other investments");
+          
+          // 1. Get all existing other investments in tracker
+          const existingOther = [...(assetTracker.otherInvestments || [])];
+          console.log(`Found ${existingOther.length} other investments in tracker`);
+          
+          // 2. Get the IDs of other investments that should be in the tracker now
+          const currentOtherIds = state.assets
+            .filter(asset => asset && asset.type === 'other')
+            .map(other => other.id);
+          console.log(`Found ${currentOtherIds.length} other investments in character state`);
+          
+          // 3. Remove other investments that aren't in the character state
+          let removedOtherCount = 0;
+          existingOther.forEach(other => {
+            if (!currentOtherIds.includes(other.id)) {
+              console.log(`Removing other investment ${other.id} from asset tracker (not in character state)`);
+              assetTracker.removeOtherInvestment(other.id);
+              removedOtherCount++;
+            }
+          });
+          console.log(`Removed ${removedOtherCount} other investments from tracker`);
+          
+          // 4. Update/add existing other investments
+          const otherAssets = state.assets.filter(asset => asset && asset.type === 'other');
+          otherAssets.forEach(other => {
+            assetTracker.updateOtherInvestment(other.id, other.currentPrice * other.quantity);
+          });
+          console.log(`Updated ${otherAssets.length} other investments in tracker`);
+        } catch (otherSyncError) {
+          console.error("Error during other investment syncing:", otherSyncError);
+        }
+        
+        // PHASE 6: PROPERTIES SYNCING
+        try {
+          console.log("Phase 6: Syncing properties");
+          
+          // 1. Get all existing properties in tracker
+          const existingProperties = [...(assetTracker.properties || [])];
+          console.log(`Found ${existingProperties.length} properties in tracker`);
+          
+          // 2. Get the IDs of properties that should be in the tracker now
+          const currentPropertyIds = (state.properties || []).map(property => property.id);
+          console.log(`Found ${currentPropertyIds.length} properties in character state`);
+          
+          // 3. Remove properties that aren't in the character state
+          let removedPropertyCount = 0;
+          existingProperties.forEach(property => {
+            if (!currentPropertyIds.includes(property.id)) {
+              console.log(`Removing property ${property.id} from asset tracker (not in character state)`);
+              assetTracker.removeProperty(property.id);
+              removedPropertyCount++;
+            }
+          });
+          console.log(`Removed ${removedPropertyCount} properties from tracker`);
+          
+          // 4. Update/add existing properties
+          (state.properties || []).forEach(property => {
+            if (property && property.id) {
+              assetTracker.updateProperty(
+                property.id, 
+                property.currentValue, 
+                property.loanAmount
+              );
+            }
+          });
+          console.log(`Updated ${state.properties?.length || 0} properties in tracker`);
+        } catch (propertySyncError) {
+          console.error("Error during property syncing:", propertySyncError);
+        }
+        
+        // PHASE 7: LIFESTYLE ITEMS SYNCING
+        try {
+          console.log("Phase 7: Syncing lifestyle items");
+          
+          // 1. Get all existing lifestyle items in tracker
+          const existingLifestyleItems = [...(assetTracker.lifestyleItems || [])];
+          console.log(`Found ${existingLifestyleItems.length} lifestyle items in tracker`);
+          
+          // 2. Get the IDs of lifestyle items that should be in the tracker now
+          const currentLifestyleItemIds = (state.lifestyleItems || []).map(item => item.id);
+          console.log(`Found ${currentLifestyleItemIds.length} lifestyle items in character state`);
+          
+          // 3. Remove lifestyle items that aren't in the character state
+          let removedLifestyleCount = 0;
+          existingLifestyleItems.forEach(item => {
+            if (!currentLifestyleItemIds.includes(item.id)) {
+              console.log(`Removing lifestyle item ${item.id} from asset tracker (not in character state)`);
+              assetTracker.removeLifestyleItem(item.id);
+              removedLifestyleCount++;
+            }
+          });
+          console.log(`Removed ${removedLifestyleCount} lifestyle items from tracker`);
+          
+          // 4. Update/add existing lifestyle items
+          (state.lifestyleItems || []).forEach(item => {
+            if (!item || !item.id) return;
+            
+            // Calculate item value based on purchase price or monthly cost
+            let itemValue = 0;
+            
+            try {
+              if (item.purchasePrice) {
+                // Skip vacations and experiences (they're temporary)
+                if (item.type === 'vacations' || item.type === 'experiences') {
+                  return;
+                }
+                
+                // For permanent items, use purchase price with simple depreciation
+                const purchasePrice = item.purchasePrice;
+                const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
+                
+                // Safe access to useTime
+                let currentDate = new Date();
+                try {
+                  if (useTime && useTime.getState) {
+                    currentDate = useTime.getState().currentGameDate || new Date();
+                  }
+                } catch (timeError) {
+                  console.warn("Failed to get game date, using current date:", timeError);
+                }
+                
+                // Calculate months since purchase
+                const monthsSincePurchase = Math.max(0, 
+                  (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+                  (currentDate.getMonth() - purchaseDate.getMonth())
+                );
+                
+                // Apply depreciation (max 75%)
+                const depreciation = Math.min(0.75, monthsSincePurchase * 0.05);
+                itemValue = purchasePrice * (1 - depreciation);
+              } else if (item.monthlyCost || item.maintenanceCost) {
+                // For recurring cost items
+                const monthlyCost = item.monthlyCost || item.maintenanceCost || 0;
+                itemValue = monthlyCost * 3; // Value as 3 months of payments
+              }
+              
+              // Update the item in the asset tracker
+              assetTracker.updateLifestyleItem(item.id, itemValue);
+            } catch (itemValueError) {
+              console.error(`Error calculating value for lifestyle item ${item.id}:`, itemValueError);
+            }
+          });
+          console.log(`Updated ${state.lifestyleItems?.length || 0} lifestyle items in tracker`);
+        } catch (lifestyleSyncError) {
+          console.error("Error during lifestyle item syncing:", lifestyleSyncError);
+        }
+        
+        // PHASE 8: FINAL CALCULATIONS AND VERIFICATION
+        try {
+          console.log("Phase 8: Final recalculation and verification");
+          
+          // Force a recalculation of totals
+          assetTracker.recalculateTotals();
+          
+          // Verify asset counts in the tracker
+          const finalState = useAssetTracker.getState();
+          const finalCounts = {
+            stocks: finalState.stocks.length,
+            crypto: finalState.cryptoAssets.length,
+            bonds: finalState.bonds.length,
+            otherInvestments: finalState.otherInvestments.length,
+            properties: finalState.properties.length,
+            lifestyleItems: finalState.lifestyleItems.length,
+            totalNetWorth: finalState.totalNetWorth
+          };
+          
+          console.log("Final asset counts in tracker:", finalCounts);
+          
+          // Log unexpected discrepancies
+          const characterStockCount = state.assets?.filter(a => a?.type === 'stock')?.length || 0;
+          const characterCryptoCount = state.assets?.filter(a => a?.type === 'crypto')?.length || 0;
+          const characterBondCount = state.assets?.filter(a => a?.type === 'bond')?.length || 0;
+          const characterOtherCount = state.assets?.filter(a => a?.type === 'other')?.length || 0;
+          
+          if (finalCounts.stocks !== characterStockCount) {
+            console.warn(`Stock count discrepancy: Character=${characterStockCount}, Tracker=${finalCounts.stocks}`);
           }
           
-          assetTracker.updateLifestyleItem(item.id, itemValue);
-        });
+          if (finalCounts.crypto !== characterCryptoCount) {
+            console.warn(`Crypto count discrepancy: Character=${characterCryptoCount}, Tracker=${finalCounts.crypto}`);
+          }
+          
+          if (finalCounts.bonds !== characterBondCount) {
+            console.warn(`Bond count discrepancy: Character=${characterBondCount}, Tracker=${finalCounts.bonds}`);
+          }
+          
+          if (finalCounts.otherInvestments !== characterOtherCount) {
+            console.warn(`Other investment count discrepancy: Character=${characterOtherCount}, Tracker=${finalCounts.otherInvestments}`);
+          }
+          
+          if (finalCounts.properties !== (state.properties?.length || 0)) {
+            console.warn(`Property count discrepancy: Character=${state.properties?.length || 0}, Tracker=${finalCounts.properties}`);
+          }
+          
+          if (finalCounts.lifestyleItems !== (state.lifestyleItems?.length || 0)) {
+            console.warn(`Lifestyle item count discrepancy: Character=${state.lifestyleItems?.length || 0}, Tracker=${finalCounts.lifestyleItems}`);
+          }
+        } catch (finalPhaseError) {
+          console.error("Error during final recalculation and verification:", finalPhaseError);
+        }
         
-        // Force a recalculation of totals in the asset tracker
-        assetTracker.recalculateTotals();
-        console.log("Asset sync complete");
+        console.log("=== ASSET SYNC COMPLETE (NORMAL MODE) ===");
       },
       
       // Daily/weekly/monthly updates
@@ -2354,16 +2720,40 @@ export const useCharacter = create<CharacterState>()(
       },
       
       resetCharacter: () => {
-        // Start with explicit cleanup of any existing portfolio data
+        console.log("=== STARTING COMPLETE CHARACTER RESET ===");
+        
+        // Set a flag to indicate reset in progress
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem('game_reset_in_progress', 'true');
+          console.log("Set game_reset_in_progress flag in sessionStorage");
+        }
+        
         try {
-          console.log("Starting character reset with NetWorthBreakdown cleanup");
+          // PHASE 1: RESET ASSET TRACKER FIRST
+          // This is critical - AssetTracker must be reset BEFORE character state
+          console.log("PHASE 1: Resetting asset tracker store (CRITICAL)");
           
-          // 1. First, reset the asset tracker store (must happen BEFORE character reset)
           try {
-            console.log("CRITICAL: Resetting asset tracker store first");
             const assetTracker = useAssetTracker.getState();
             if (assetTracker && typeof assetTracker.resetAssetTracker === 'function') {
+              // Reset the asset tracker completely
               assetTracker.resetAssetTracker();
+              
+              // Force a recalculation to ensure clean totals
+              assetTracker.recalculateTotals();
+              
+              // Verify the reset worked - log the state of the asset tracker
+              const verifyState = useAssetTracker.getState();
+              console.log("Asset tracker reset verification:", {
+                stocks: verifyState.stocks.length,
+                crypto: verifyState.cryptoAssets.length,
+                bonds: verifyState.bonds.length,
+                otherInvestments: verifyState.otherInvestments.length,
+                properties: verifyState.properties.length,
+                lifestyleItems: verifyState.lifestyleItems.length,
+                totalNetWorth: verifyState.totalNetWorth
+              });
+              
               console.log("Successfully reset asset tracker store");
             } else {
               console.error("Failed to access asset tracker's reset function!");
@@ -2372,26 +2762,51 @@ export const useCharacter = create<CharacterState>()(
             console.error("Error resetting asset tracker:", assetTrackerError);
           }
           
-          // 2. Clear the specific localStorage entry for portfolio
-          const BREAKDOWN_STORAGE_KEY = 'business-empire-networth-breakdown';
+          // PHASE 2: CLEAR LOCALSTORAGE
+          console.log("PHASE 2: Clearing all related localStorage entries");
+          
+          // Clear all related localStorage entries
+          const keysToRemove = [
+            'business-empire-networth-breakdown',
+            'business-empire-asset-tracker',
+            'business-empire-character',
+            'business-empire-assets'
+          ];
+          
           if (typeof window !== 'undefined') {
-            localStorage.removeItem(BREAKDOWN_STORAGE_KEY);
-            localStorage.removeItem('business-empire-asset-tracker');
-            console.log(`Removed breakdown and asset tracker storage`);
+            // Remove each key and report success/failure
+            keysToRemove.forEach(key => {
+              try {
+                localStorage.removeItem(key);
+                console.log(`Successfully removed ${key} from localStorage`);
+                
+                // Verify it's really gone
+                const itemStillExists = localStorage.getItem(key);
+                if (itemStillExists) {
+                  console.error(`WARNING: Failed to remove ${key} from localStorage!`);
+                }
+              } catch (storageError) {
+                console.error(`Error removing ${key} from localStorage:`, storageError);
+              }
+            });
             
             // Also set a flag in sessionStorage to indicate character reset is in progress
             sessionStorage.setItem('character_reset_completed', 'true');
             console.log("Set character_reset_completed flag in sessionStorage");
           }
           
-          // 3. Clear any in-memory breakdown data
+          // PHASE 3: CLEAR IN-MEMORY DATA
+          console.log("PHASE 3: Clearing in-memory data");
+          
           const state = get();
+          
+          // Clear any in-memory breakdown data
           if ((state as any).netWorthBreakdown) {
             console.log("Nullifying existing netWorthBreakdown in memory");
             (state as any).netWorthBreakdown = null;
           }
           
-          // 4. Explicitly clear investment arrays
+          // Log existing asset counts for verification
           if (state.assets && state.assets.length > 0) {
             console.log(`Resetting ${state.assets.length} assets to empty array`);
           }

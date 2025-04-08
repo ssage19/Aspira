@@ -630,37 +630,125 @@ export const useAssetTracker = create<AssetTrackerState>()(
         console.log(`- Properties: ${get().properties.length} items being reset`);
         console.log(`- Lifestyle Items: ${get().lifestyleItems.length} items being reset`);
         
-        // Manually clear localStorage entries to ensure clean reset
+        // 1. First, explicitly clear all asset arrays to ensure we have clean slates
+        // Even before setting the initial state, we want to guarantee these arrays are emptied
+        try {
+          // Direct state updates to clear arrays (won't trigger renders but ensures empty arrays)
+          set(state => {
+            // Create a fresh state with empty arrays
+            return {
+              ...state,
+              stocks: [],
+              cryptoAssets: [],
+              bonds: [],
+              otherInvestments: [],
+              properties: [],
+              lifestyleItems: []
+            };
+          });
+          console.log('AssetTracker: Explicitly cleared all asset arrays');
+        } catch (arrayClearError) {
+          console.error('AssetTracker: Error clearing arrays:', arrayClearError);
+        }
+        
+        // 2. Reset all totals to zero (except cash which should be starting amount)
+        try {
+          set(state => ({
+            ...state,
+            totalStocks: 0,
+            totalCrypto: 0,
+            totalBonds: 0,
+            totalOtherInvestments: 0,
+            totalPropertyValue: 0,
+            totalPropertyDebt: 0,
+            totalPropertyEquity: 0,
+            totalLifestyleValue: 0
+          }));
+          console.log('AssetTracker: Reset all total values to zero');
+        } catch (totalsError) {
+          console.error('AssetTracker: Error resetting totals:', totalsError);
+        }
+        
+        // 3. Manually clear localStorage entries to ensure clean reset
         try {
           console.log('AssetTracker: Clearing localStorage entries');
-          localStorage.removeItem(ASSET_TRACKER_STORAGE_KEY);
-          localStorage.removeItem('business-empire-networth-breakdown');
+          
+          // Clear all possible related localStorage entries
+          const keysToRemove = [
+            ASSET_TRACKER_STORAGE_KEY,
+            'business-empire-networth-breakdown',
+            'business-empire-asset-tracker',
+            'business-empire-assets'
+          ];
+          
+          keysToRemove.forEach(key => {
+            try {
+              localStorage.removeItem(key);
+              console.log(`AssetTracker: Removed ${key} from localStorage`);
+            } catch (e) {
+              console.error(`AssetTracker: Failed to remove ${key} from localStorage:`, e);
+            }
+          });
+          
           console.log('AssetTracker: localStorage entries cleared');
         } catch (storageError) {
           console.error('AssetTracker: Failed to clear localStorage:', storageError);
         }
         
-        // Reset to initial state
+        // 4. Reset to initial state (the complete reset)
         set({ 
           ...initialState, 
           cash: 10000, // Reset to starting cash value
           totalCash: 10000,
           totalNetWorth: 10000,
-          lastUpdated: Date.now() 
+          lastUpdated: Date.now(),
+          // Explicitly set empty arrays again to be absolutely certain
+          stocks: [],
+          cryptoAssets: [],
+          bonds: [],
+          otherInvestments: [],
+          properties: [],
+          lifestyleItems: []
         });
         
-        // Clear the breakdown in localStorage
+        // 5. Force a double verification that everything is cleared
         try {
-          localStorage.removeItem('business-empire-networth-breakdown');
-          localStorage.removeItem(ASSET_TRACKER_STORAGE_KEY);
-          console.log('AssetTracker: Removed net worth breakdown from localStorage');
-          
-          // Double check it's gone
+          // Double check localStorage is clear
           const checkBreakdown = localStorage.getItem('business-empire-networth-breakdown');
           const checkTracker = localStorage.getItem(ASSET_TRACKER_STORAGE_KEY);
           console.log(`AssetTracker: Verified removal - breakdown exists: ${!!checkBreakdown}, tracker exists: ${!!checkTracker}`);
+          
+          // Double check state is clean
+          const state = get();
+          const assetCounts = {
+            stocks: state.stocks.length,
+            crypto: state.cryptoAssets.length,
+            bonds: state.bonds.length,
+            other: state.otherInvestments.length,
+            properties: state.properties.length,
+            lifestyle: state.lifestyleItems.length
+          };
+          
+          // Log the verification
+          console.log('AssetTracker: Final verification of reset:', assetCounts);
+          const allEmpty = Object.values(assetCounts).every(count => count === 0);
+          console.log(`AssetTracker: Reset verification ${allEmpty ? 'PASSED ✓' : 'FAILED ✗'}`);
+          
+          if (!allEmpty) {
+            console.error('AssetTracker: CRITICAL ERROR - Reset did not clear all assets!');
+            // One final attempt to force-clear everything
+            set(state => ({
+              ...state,
+              stocks: [],
+              cryptoAssets: [],
+              bonds: [],
+              otherInvestments: [],
+              properties: [],
+              lifestyleItems: []
+            }));
+          }
         } catch (e) {
-          console.error('Error removing net worth breakdown from localStorage:', e);
+          console.error('AssetTracker: Error during verification:', e);
         }
       },
       
