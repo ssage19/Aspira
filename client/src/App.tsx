@@ -23,6 +23,7 @@ import AchievementNotification from "./components/AchievementNotification";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
+import { MarketPriceUpdater } from "./components/MarketPriceUpdater";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 import TimeResetHack from "./TimeResetHack";
@@ -283,6 +284,7 @@ function App() {
             
             {/* Global systems */}
             <GlobalAutoMaintenance />
+            <MarketPriceUpdater />
             
             {/* Emergency hack to reset time if needed */}
             <TimeResetHack />
