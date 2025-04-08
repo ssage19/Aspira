@@ -14,29 +14,39 @@ export function SimplePortfolioBreakdown() {
   const [isLoading, setIsLoading] = useState(false);
   
   // Get character data for consistency
-  const { wealth, netWorth } = useCharacter();
-  const [displayTotal, setDisplayTotal] = useState(netWorth || wealth || 0);
+  const { wealth, netWorth, calculateNetWorth } = useCharacter();
+  const [displayTotal, setDisplayTotal] = useState(netWorth);
   
   // Source of truth for character cash (defined early to avoid reference errors)
   const characterCash = useCharacter.getState().wealth || 0;
   
   // Get asset tracker data
   const { 
-    totalCash,
     totalStocks,
     totalCrypto,
     totalBonds,
     totalOtherInvestments,
     totalPropertyEquity,
     totalLifestyleValue,
-    recalculateTotals,
-    forceUpdate
+    getNetWorthBreakdown
   } = useAssetTracker();
   
   // For real-time totals
-  const [calculatedTotal, setCalculatedTotal] = useState(
-    useAssetTracker.getState().totalNetWorth || useCharacter.getState().netWorth || characterCash || 1
-  );
+  const [calculatedTotal, setCalculatedTotal] = useState(netWorth || 1);
+  
+  // Get the breakdown from character store
+  const getCharacterBreakdown = () => {
+    // Force recalculation of net worth in useCharacter
+    const characterNetWorth = useCharacter.getState().calculateNetWorth();
+    
+    // Get the detailed breakdown
+    const breakdown = useCharacter.getState().getNetWorthBreakdown();
+    
+    return {
+      characterNetWorth,
+      breakdown
+    };
+  };
   
   // Force an update when the component mounts
   useEffect(() => {
@@ -44,38 +54,25 @@ export function SimplePortfolioBreakdown() {
     const updateData = () => {
       console.log("Portfolio breakdown refreshing asset data...");
       
-      // Get the latest character wealth
-      const currentWealth = useCharacter.getState().wealth || 0;
+      // Get character breakdown
+      const { characterNetWorth, breakdown } = getCharacterBreakdown();
       
-      // Force recalculation before grabbing net worth
-      recalculateTotals();
-      forceUpdate();
-      
-      // Get the latest character data AFTER recalculation
-      const { netWorth: characterNetWorth } = useCharacter.getState();
-      
-      // Use totalNetWorth directly from the asset tracker first
-      const { 
-        totalNetWorth: calculatedNetWorth,
-        totalStocks: latestStocks,
-        totalPropertyEquity: latestProperty,
-        totalLifestyleValue: latestLifestyle 
-      } = useAssetTracker.getState(); 
-      
-      console.log("Portfolio breakdown totals:", {
-        cash: currentWealth,
-        stocks: latestStocks,
-        property: latestProperty,
-        lifestyle: latestLifestyle,
-        calculatedTotal: calculatedNetWorth,
-        characterTotal: characterNetWorth
+      console.log("Portfolio breakdown totals from useCharacter:", {
+        cash: breakdown.cash,
+        stocks: breakdown.stocks,
+        crypto: breakdown.crypto,
+        bonds: breakdown.bonds,
+        otherInvestments: breakdown.otherInvestments,
+        propertyEquity: breakdown.propertyEquity,
+        lifestyleItems: breakdown.lifestyleItems,
+        total: breakdown.total
       });
       
-      // Set display total
-      setDisplayTotal(calculatedNetWorth || characterNetWorth || wealth || 0);
+      // Set display total to match dashboard
+      setDisplayTotal(characterNetWorth);
       
       // Update calculated total for percentage calculations
-      setCalculatedTotal(calculatedNetWorth || characterNetWorth || currentWealth || 1);
+      setCalculatedTotal(characterNetWorth || 1);
     };
     
     // Update immediately
@@ -86,9 +83,9 @@ export function SimplePortfolioBreakdown() {
     
     // Subscribe to changes in the character store for wealth changes
     const unsubscribeCharacter = useCharacter.subscribe(
-      (state) => state.wealth,
+      (state) => [state.wealth, state.netWorth],
       () => {
-        console.log("Character wealth changed, updating portfolio");
+        console.log("Character wealth or net worth changed, updating portfolio");
         updateData();
       }
     );
@@ -97,24 +94,17 @@ export function SimplePortfolioBreakdown() {
       clearInterval(intervalId);
       unsubscribeCharacter();
     };
-  }, [recalculateTotals, forceUpdate, wealth]);
+  }, [netWorth, wealth]);
   
   // Handle manual refresh
   const handleRefresh = () => {
     setIsLoading(true);
     
-    // Get the latest character data
-    const { netWorth: characterNetWorth } = useCharacter.getState();
+    // Force recalculation of net worth in useCharacter
+    const characterNetWorth = useCharacter.getState().calculateNetWorth();
     
-    // Get the latest net worth from asset tracker
-    const { totalNetWorth: latestNetWorth } = useAssetTracker.getState();
-    
-    setDisplayTotal(latestNetWorth || characterNetWorth || wealth || 0);
-    setCalculatedTotal(latestNetWorth || characterNetWorth || characterCash || 1);
-    
-    // Force recalculation
-    recalculateTotals();
-    forceUpdate();
+    setDisplayTotal(characterNetWorth);
+    setCalculatedTotal(characterNetWorth);
     
     setTimeout(() => setIsLoading(false), 500);
   };
@@ -132,17 +122,20 @@ export function SimplePortfolioBreakdown() {
   
   // Update asset values when any of the totals change
   useEffect(() => {
+    // Get breakdown from character store
+    const breakdown = useCharacter.getState().getNetWorthBreakdown();
+    
     const newAssets = [
-      { label: 'Cash', value: useCharacter.getState().wealth || 0, color: 'bg-blue-500' },
-      { label: 'Stocks', value: totalStocks || 0, color: 'bg-green-500' },
-      { label: 'Crypto', value: totalCrypto || 0, color: 'bg-amber-500' },
-      { label: 'Bonds', value: totalBonds || 0, color: 'bg-indigo-500' },
-      { label: 'Other', value: totalOtherInvestments || 0, color: 'bg-purple-500' },
-      { label: 'Property', value: totalPropertyEquity || 0, color: 'bg-pink-500' },
-      { label: 'Lifestyle', value: totalLifestyleValue || 0, color: 'bg-rose-500' }
+      { label: 'Cash', value: breakdown.cash || 0, color: 'bg-blue-500' },
+      { label: 'Stocks', value: breakdown.stocks || 0, color: 'bg-green-500' },
+      { label: 'Crypto', value: breakdown.crypto || 0, color: 'bg-amber-500' },
+      { label: 'Bonds', value: breakdown.bonds || 0, color: 'bg-indigo-500' },
+      { label: 'Other', value: breakdown.otherInvestments || 0, color: 'bg-purple-500' },
+      { label: 'Property', value: breakdown.propertyEquity || 0, color: 'bg-pink-500' },
+      { label: 'Lifestyle', value: breakdown.lifestyleItems || 0, color: 'bg-rose-500' }
     ];
     setAssetValues(newAssets);
-  }, [totalStocks, totalCrypto, totalBonds, totalOtherInvestments, totalPropertyEquity, totalLifestyleValue]);
+  }, [netWorth, wealth, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, totalPropertyEquity, totalLifestyleValue]);
   
   // Filter to only show assets with value
   const assets = assetValues.filter(item => item.value > 0);
