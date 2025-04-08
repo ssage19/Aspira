@@ -7,6 +7,7 @@ import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAssetRefresh } from './AssetRefreshProvider';
 
 // Types for grouped assets
 interface AssetItem {
@@ -29,6 +30,7 @@ interface AssetCategory {
  */
 export function SimplePortfolioBreakdown() {
   const [isLoading, setIsLoading] = useState(false);
+  const { triggerRefresh, isRefreshing } = useAssetRefresh();
   
   // Get character wealth directly for the cash ratio calculation
   const characterCash = useCharacter(state => state.wealth);
@@ -142,31 +144,45 @@ export function SimplePortfolioBreakdown() {
   }, [updateAssetCategories, totalCash, totalStocks, totalNetWorth]);
   
   // Handle manual refresh - also show a toast message
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsLoading(true);
     
+    // Log the values before refresh for debugging
+    console.log("🔄 PORTFOLIO REFRESH INITIATED", {
+      currentStocks: totalStocks,
+      currentNetWorth: totalNetWorth,
+      currentCash: totalCash,
+      timestamp: new Date().toISOString()
+    });
+    
     try {
-      // Use the global update function if available
-      if ((window as any).globalUpdateAllPrices) {
-        console.log("SimplePortfolioBreakdown: Using global price update function");
-        (window as any).globalUpdateAllPrices();
-        // Show visual feedback
-        toast.success("Portfolio values refreshed with latest market data", { 
-          duration: 2000,
-          position: "bottom-center"
-        });
-      } else {
-        // Fallback to direct recalculation
-        useAssetTracker.getState().recalculateTotals();
-        useCharacter.getState().syncAssetsWithAssetTracker();
-        // Show visual feedback
-        toast.success("Portfolio values refreshed", { 
-          duration: 2000,
-          position: "bottom-center"
-        });
-      }
+      // Use the global asset refresh context to trigger a comprehensive refresh
+      // This is the most reliable way to refresh all values
+      await triggerRefresh();
+      
+      // Force a UI update by setting local state directly
+      // Take a snapshot of the refreshed values
+      const updated = useAssetTracker.getState();
+      setDisplayTotal(updated.totalNetWorth);
+      
+      // Update our local categories with latest data
+      updateAssetCategories();
+      
+      // Log the values after refresh
+      console.log("✅ PORTFOLIO REFRESH COMPLETE", {
+        updatedStocks: updated.totalStocks,
+        updatedNetWorth: updated.totalNetWorth,
+        updatedCash: updated.totalCash,
+        timestamp: new Date().toISOString()
+      });
+      
+      // Show visual feedback with the new value
+      toast.success(`Portfolio refreshed: ${formatCurrency(updated.totalNetWorth)}`, {
+        duration: 3000,
+        position: "bottom-center"
+      });
     } catch (error) {
-      console.error("Error during manual refresh:", error);
+      console.error("❌ ERROR DURING PORTFOLIO REFRESH:", error);
       toast.error("Unable to refresh portfolio values", {
         duration: 2000,
         position: "bottom-center"

@@ -68,37 +68,76 @@ export default function SimpleDashboard() {
   
   // Update character values without causing re-renders
   const updateValues = useCallback(() => {
-    // Get latest values from stores
-    const character = useCharacter.getState();
-    const assetTracker = useAssetTracker.getState();
+    // First do a deep refresh of all assets to ensure everything is up to date
+    console.log("⚡️ SimpleDashboard: Requesting comprehensive asset refresh");
+    refreshAllAssets();
     
-    setCharacterValues({
-      wealth: character.wealth,
-      name: character.name,
-      happiness: character.happiness,
-      prestige: character.prestige,
-      stress: character.stress,
-      energy: character.energy,
-      health: character.health
-    });
-    
-    setNetWorth(assetTracker.totalNetWorth);
+    // IMPORTANT: Wait for the refresh to complete before reading values
+    setTimeout(() => {
+      // Get latest values from stores
+      const character = useCharacter.getState();
+      const assetTracker = useAssetTracker.getState();
+      
+      // DEBUG: Log what we're getting from both stores
+      console.log("📊 SimpleDashboard - Current values:", {
+        characterWealth: character.wealth,
+        assetTrackerNetWorth: assetTracker.totalNetWorth,
+        assetTrackerCash: assetTracker.totalCash,
+        assetTrackerStocks: assetTracker.totalStocks
+      });
+      
+      // Update the component state
+      setCharacterValues({
+        wealth: character.wealth,
+        name: character.name,
+        happiness: character.happiness,
+        prestige: character.prestige,
+        stress: character.stress,
+        energy: character.energy,
+        health: character.health
+      });
+      
+      setNetWorth(assetTracker.totalNetWorth);
+      
+      console.log("✅ SimpleDashboard - Values updated with latest data");
+    }, 100); // Small delay to ensure refresh completes
   }, []);
   
   // Set up update interval
   useEffect(() => {
-    // Update values immediately
+    console.log("🚀 SimpleDashboard: Component mounted, setting up refresh cycle");
+    
+    // MULTI-STAGE REFRESH STRATEGY:
+    // 1. Immediate refresh on mount
     updateValues();
     
-    // Force an asset refresh on mount
-    refreshAllAssets();
-    
-    // Set up interval to keep values fresh
-    const interval = setInterval(() => {
+    // 2. Secondary refresh after a short delay (in case the first one misses anything)
+    const initialRefreshTimeout = setTimeout(() => {
+      console.log("🔄 SimpleDashboard: Performing secondary refresh");
       updateValues();
-    }, 1000);
+    }, 800);
     
-    return () => clearInterval(interval);
+    // 3. Regular interval for continuous updates
+    const interval = setInterval(() => {
+      console.log("🔄 SimpleDashboard: Performing scheduled refresh");
+      updateValues();
+    }, 2000); // More frequent updates
+    
+    // 4. Extra refresh whenever the tab becomes visible again
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("👁️ SimpleDashboard: Tab became visible, refreshing data");
+        updateValues();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      clearInterval(interval);
+      clearTimeout(initialRefreshTimeout);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      console.log("👋 SimpleDashboard: Component unmounting, cleanup complete");
+    };
   }, [updateValues]);
   
   // Format the date
