@@ -3,6 +3,7 @@ import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage, formatCurrency } from "../utils";
 import { toast } from "sonner";
 import { useTime } from "./useTime";
+import useAssetTracker from "./useAssetTracker";
 
 // Expense rate constants
 const EXPENSE_RATES = {
@@ -250,6 +251,7 @@ interface CharacterState {
   calculateNetWorth: () => number;
   calculateNetWorthInternal: (wealth: number, assets: any[], properties: any[], lifestyleItems: any[]) => number;
   getNetWorthBreakdown: () => NetWorthBreakdown;
+  syncAssetsWithAssetTracker: () => void;
   
   // Daily/weekly updates
   processDailyUpdate: () => void;
@@ -409,12 +411,16 @@ export const useCharacter = create<CharacterState>()(
           spendEarnedSkillPoint: state.spendEarnedSkillPoint,
           calculateNetWorth: state.calculateNetWorth,
           calculateNetWorthInternal: state.calculateNetWorthInternal,
+          syncAssetsWithAssetTracker: state.syncAssetsWithAssetTracker,
           processDailyUpdate: state.processDailyUpdate,
           weeklyUpdate: state.weeklyUpdate,
           monthlyUpdate: state.monthlyUpdate,
           saveState: state.saveState,
           resetCharacter: state.resetCharacter
         }));
+        
+        // Sync the assets with AssetTracker store after character creation
+        get().syncAssetsWithAssetTracker();
         
         saveState();
       },
@@ -1884,6 +1890,9 @@ export const useCharacter = create<CharacterState>()(
           return defaultBreakdown;
         }
         
+        // We're not in a reset state, so let's ensure our assets are properly synced with the AssetTracker
+        get().syncAssetsWithAssetTracker();
+        
         // Check localStorage first for a cached breakdown
         let storedBreakdown = null;
         if (typeof window !== 'undefined') {
@@ -1961,6 +1970,87 @@ export const useCharacter = create<CharacterState>()(
           total: state.wealth,
           version: Date.now()
         };
+      },
+      
+      // Helper function to sync all assets with the AssetTracker store
+      // This ensures that the assets in the Character store are properly
+      // reflected in the AssetTracker, which is used by other components
+      syncAssetsWithAssetTracker: () => {
+        console.log("Syncing assets with AssetTracker...");
+        const state = get();
+        const assetTracker = useAssetTracker.getState();
+        
+        // First, update cash
+        assetTracker.updateCash(state.wealth);
+        
+        // Then, sync all stocks
+        const stockAssets = state.assets.filter(asset => asset.type === 'stock');
+        stockAssets.forEach(stock => {
+          assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+        });
+        
+        // Sync crypto assets
+        const cryptoAssets = state.assets.filter(asset => asset.type === 'crypto');
+        cryptoAssets.forEach(crypto => {
+          assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+        });
+        
+        // Sync bonds
+        const bondAssets = state.assets.filter(asset => asset.type === 'bond');
+        bondAssets.forEach(bond => {
+          assetTracker.updateBond(bond.id, bond.quantity, bond.currentPrice);
+        });
+        
+        // Sync other investment assets
+        const otherAssets = state.assets.filter(asset => asset.type === 'other');
+        otherAssets.forEach(other => {
+          assetTracker.updateOtherInvestment(other.id, other.currentPrice * other.quantity);
+        });
+        
+        // Sync properties
+        state.properties.forEach(property => {
+          assetTracker.updateProperty(
+            property.id, 
+            property.currentValue, 
+            property.loanAmount
+          );
+        });
+        
+        // Sync lifestyle items
+        state.lifestyleItems.forEach(item => {
+          // Calculate item value based on purchase price or monthly cost
+          let itemValue = 0;
+          
+          if (item.purchasePrice) {
+            // Skip vacations and experiences (they're temporary)
+            if (item.type === 'vacations' || item.type === 'experiences') {
+              return;
+            }
+            
+            // For permanent items, use purchase price with simple depreciation
+            const purchasePrice = item.purchasePrice;
+            const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
+            const currentDate = useTime.getState().currentGameDate;
+            const monthsSincePurchase = Math.max(0, 
+              (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
+              (currentDate.getMonth() - purchaseDate.getMonth())
+            );
+            
+            // Apply depreciation (max 75%)
+            const depreciation = Math.min(0.75, monthsSincePurchase * 0.05);
+            itemValue = purchasePrice * (1 - depreciation);
+          } else if (item.monthlyCost || item.maintenanceCost) {
+            // For recurring cost items
+            const monthlyCost = item.monthlyCost || item.maintenanceCost || 0;
+            itemValue = monthlyCost * 3; // Value as 3 months of payments
+          }
+          
+          assetTracker.updateLifestyleItem(item.id, itemValue);
+        });
+        
+        // Force a recalculation of totals in the asset tracker
+        assetTracker.recalculateTotals();
+        console.log("Asset sync complete");
       },
       
       // Daily/weekly/monthly updates
@@ -2390,6 +2480,7 @@ export const useCharacter = create<CharacterState>()(
             calculateNetWorth: state.calculateNetWorth,
             calculateNetWorthInternal: state.calculateNetWorthInternal,
             getNetWorthBreakdown: state.getNetWorthBreakdown,
+            syncAssetsWithAssetTracker: state.syncAssetsWithAssetTracker,
             processDailyUpdate: state.processDailyUpdate,
             weeklyUpdate: state.weeklyUpdate,
             monthlyUpdate: state.monthlyUpdate,
