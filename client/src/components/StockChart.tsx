@@ -87,18 +87,48 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     lastUpdatedYear: -1
   });
   
-  // Reset data when stock changes or day changes
+  /**
+   * Reset data when stock changes or day changes
+   * This effect sets up the initial state and handles day transitions
+   */
   useEffect(() => {
-    // Reset on stock change or day change
+    // Check if current day is a weekday
+    const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+    const isMarketOpenToday = isWeekday(currentGameDate);
+    
+    // Track the previous market state for weekend-weekday transitions
+    let previousMarketState = null;
+    if (previousDataRef.current.lastUpdatedDay) {
+      const previousDate = new Date(
+        previousDataRef.current.lastUpdatedYear || currentYear,
+        (previousDataRef.current.lastUpdatedMonth || currentMonth) - 1,
+        previousDataRef.current.lastUpdatedDay
+      );
+      previousMarketState = isWeekday(previousDate) ? 'open' : 'closed';
+    }
+    
+    // Current market state
+    const currentMarketState = isMarketOpenToday ? 'open' : 'closed';
+    
+    // Detect weekend to weekday transition
+    const weekendToWeekdayTransition = 
+      previousMarketState === 'closed' && currentMarketState === 'open';
+      
+    if (weekendToWeekdayTransition) {
+      console.log(`Market opened after weekend. Refreshing data for ${stockId}`);
+    }
+    
+    // Reset on stock change, day change, or market state change
     const shouldReset = 
       previousDataRef.current.id !== stockId || 
       !previousDataRef.current.lastUpdatedDay || 
       previousDataRef.current.lastUpdatedDay !== currentDay ||
       previousDataRef.current.lastUpdatedMonth !== currentMonth ||
-      previousDataRef.current.lastUpdatedYear !== currentYear;
+      previousDataRef.current.lastUpdatedYear !== currentYear ||
+      weekendToWeekdayTransition;
     
     if (shouldReset) {
-      console.log(`Resetting chart data for ${stockId} due to day/stock change. Current day: ${currentDay}`);
+      console.log(`Resetting chart data for ${stockId} due to day/stock/market change. Current day: ${currentDay}, Market: ${currentMarketState}`);
       setDailyData([]);
       setWeeklyData([]);
       setMonthlyData([]);
@@ -333,6 +363,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   useEffect(() => {
     console.log(`Updating chart for stock: ${stockId} at price: ${currentPrice}`);
     
+    // Get the volatility factor based on the stock and market conditions
     const volatilityFactor = getRealisticVolatilityFactor(volatility, marketTrend);
     
     // Market trend affects the baseline direction
@@ -345,16 +376,51 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
       previousDataRef.current.lastUpdatedMonth !== currentMonth || 
       previousDataRef.current.lastUpdatedYear !== currentYear;
     
-    // Generate new historical data if needed
-    const needsNewData = 
-      previousDataRef.current.dailyData.length === 0 || 
-      previousDataRef.current.id !== stockId;
-    
     // Check if current day is a weekday
     const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
     const isMarketOpenToday = isWeekday(currentGameDate);
     
+    // Calculate the previous date - we need to accurately track day-to-day transitions
+    const prevUpdatedYear = previousDataRef.current.lastUpdatedYear || currentYear;
+    const prevUpdatedMonth = previousDataRef.current.lastUpdatedMonth || currentMonth;
+    const prevUpdatedDay = previousDataRef.current.lastUpdatedDay || currentDay;
+    
+    // Create complete date objects for reliable comparisons
+    const previousDate = new Date(prevUpdatedYear, prevUpdatedMonth - 1, prevUpdatedDay);
+    const wasPreviouslyWeekend = !isWeekday(previousDate);
+    
+    // Track weekend/weekday transitions
+    const weekendToWeekdayTransition = wasPreviouslyWeekend && isMarketOpenToday;
+    const weekdayToWeekendTransition = !wasPreviouslyWeekend && !isMarketOpenToday;
+    
+    // Special case: day changed and at least one of the days is a weekday 
+    // (we don't want to refresh when going from Saturday to Sunday)
+    const dayChanged = 
+      previousDataRef.current.lastUpdatedDay !== currentDay ||
+      previousDataRef.current.lastUpdatedMonth !== currentMonth ||
+      previousDataRef.current.lastUpdatedYear !== currentYear;
+    const significantDayChange = dayChanged && (isMarketOpenToday || !wasPreviouslyWeekend);
+    
+    // Generate new historical data if needed
+    const needsNewData = 
+      previousDataRef.current.dailyData.length === 0 || 
+      previousDataRef.current.id !== stockId ||
+      weekendToWeekdayTransition ||
+      significantDayChange;
+    
+    // Log the market status for debugging
     console.log(`Market status: ${isMarketOpenToday ? 'OPEN (weekday)' : 'CLOSED (weekend)'}`);
+    
+    // Log transitions for debugging
+    if (weekendToWeekdayTransition) {
+      console.log('Refreshing chart data due to weekend-to-weekday transition');
+    }
+    if (weekdayToWeekendTransition) {
+      console.log('Market closed for the weekend');
+    }
+    if (significantDayChange && !weekendToWeekdayTransition && !weekdayToWeekendTransition) {
+      console.log('Refreshing chart data due to day change during market hours');
+    }
     
     if (needsNewData) {
       // Generate more days of data for better historical context
@@ -668,11 +734,29 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return [roundedMin, roundedMax];
   };
   
+  // Check if the market is currently open
+  const currentMarketDate = new Date(currentYear, currentMonth - 1, currentDay);
+  const isMarketCurrentlyOpen = isWeekday(currentMarketDate);
+
   return (
     <div className="flex flex-col h-full bg-gray-900 dark:bg-gray-900 rounded-md p-2">
-      {/* Chart title - NYSE trading hours */}
+      {/* Chart title with market status indicator */}
       <div className="flex justify-between items-center mb-1 px-1">
-        <div className="text-xs text-gray-400">NYSE Hours (9AM-4PM)</div>
+        <div className="flex items-center gap-2">
+          <div className="text-xs text-gray-400">NYSE Hours (9AM-4PM)</div>
+          <div className={`text-xs px-1.5 py-0.5 rounded-full flex items-center gap-1 ${
+            isMarketCurrentlyOpen 
+              ? 'bg-green-900/30 text-green-400 border border-green-800' 
+              : 'bg-red-900/30 text-red-400 border border-red-800'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${
+              isMarketCurrentlyOpen ? 'bg-green-500' : 'bg-red-500'
+            }`}></span>
+            <span className="text-[10px] font-medium">
+              {isMarketCurrentlyOpen ? 'OPEN' : 'CLOSED'}
+            </span>
+          </div>
+        </div>
         <div className="text-xs font-medium px-2 py-1 bg-blue-600 text-white rounded">Daily</div>
       </div>
       
