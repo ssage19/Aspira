@@ -65,46 +65,99 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return `${month}/${day}`;
   };
   
+  // Set more realistic volatility factors based on risk level
+  const getRealisticVolatilityFactor = (volatilityLevel: VolatilityLevel, marketTrend: string) => {
+    // Base volatility factors - much more realistic than previous values
+    // Blue chip stocks typically change by 0.5-1% per day
+    // Volatile stocks might change 2-3% per day
+    let factor = 0;
+    
+    switch (volatilityLevel) {
+      case 'very_low':
+        // Very stable blue chip stocks (0.2-0.5% daily change)
+        factor = 0.003; 
+        break;
+      case 'low':
+        // Stable blue chip stocks (0.3-0.7% daily change)
+        factor = 0.005; 
+        break;
+      case 'medium':
+        // Average volatility stocks (0.5-1.5% daily change)
+        factor = 0.01; 
+        break;
+      case 'high':
+        // Growth stocks (0.8-2.0% daily change)
+        factor = 0.015; 
+        break;
+      case 'very_high':
+        // Tech growth stocks (1.0-2.5% daily change)
+        factor = 0.02; 
+        break;
+      case 'extreme':
+        // Small caps, volatile companies (1.5-4.0% daily change)
+        factor = 0.03; 
+        break;
+      default:
+        factor = 0.01;
+    }
+    
+    // Market trend slightly adjusts volatility
+    if (marketTrend === 'bull') {
+      factor *= 1.1; // Slightly higher volatility in bull markets
+    } else if (marketTrend === 'bear') {
+      factor *= 1.2; // Even higher volatility in bear markets
+    }
+    
+    return factor;
+  };
+  
   // Generate historical stock data
   useEffect(() => {
     console.log(`Updating chart for stock: ${stockId} at price: ${currentPrice}`);
     
-    const volatilityFactor = volatility === 'extreme' ? 0.20 :
-                            volatility === 'very_high' ? 0.12 :
-                            volatility === 'high' ? 0.08 : 
-                            volatility === 'medium' ? 0.05 : 
-                            volatility === 'low' ? 0.02 : 0.01; // very_low
-    const trendFactor = marketTrend === 'bull' ? 0.01 : 
-                        marketTrend === 'bear' ? -0.01 : 0;
+    const volatilityFactor = getRealisticVolatilityFactor(volatility, marketTrend);
+    
+    // Market trend affects the baseline direction
+    // Much smaller trend factors to avoid unrealistic gains/losses
+    const trendFactor = marketTrend === 'bull' ? 0.0015 : 
+                        marketTrend === 'bear' ? -0.0015 : 0.0005;
     
     // Generate new historical data if it's a new stock
     if (previousDataRef.current.data.length === 0 || previousDataRef.current.id !== stockId) {
       const newData: CandlestickData[] = [];
       let prevPrice = basePrice;
       
-      // Generate last 14 days of data for cleaner candlestick view
-      for (let i = Math.max(1, currentDay - 14); i <= currentDay; i++) {
+      // Generate last 20 days of data for more history
+      for (let i = Math.max(1, currentDay - 20); i <= currentDay; i++) {
         // Use a seeded random based on stock ID and day to ensure consistency
         const seed = stockId.split('').reduce((a, b) => a + b.charCodeAt(0), 0) + i;
         const pseudoRandom = Math.sin(seed) * 10000 - Math.floor(Math.sin(seed) * 10000);
         
+        // Normalized pseudo-random between -1 and 1
+        const normalizedRandom = (pseudoRandom - 0.5) * 2;
+        
         // Create some randomness with trend influence
-        const randomFactor = (pseudoRandom - 0.5) * volatilityFactor;
-        const dayTrendFactor = trendFactor * (1 + Math.sin(i / 10) * 0.5);
+        // This creates more realistic day-to-day changes
+        const randomFactor = normalizedRandom * volatilityFactor;
+        
+        // Add a small trend influence (less impact than volatility)
+        const dayTrendFactor = trendFactor * (1 + Math.sin(i / 15) * 0.5);
         
         // Calculate price changes for the day
         const openPrice = prevPrice;
         const closePrice = prevPrice * (1 + randomFactor + dayTrendFactor);
         
-        // Generate intraday high and low values
-        const dayVolatility = volatilityFactor * Math.abs(pseudoRandom);
-        const highPrice = Math.max(openPrice, closePrice) * (1 + dayVolatility / 2);
-        const lowPrice = Math.min(openPrice, closePrice) * (1 - dayVolatility / 2);
+        // Generate intraday high and low values with realistic ranges
+        // High is at most 0.5% above the higher of open/close
+        // Low is at most 0.5% below the lower of open/close
+        const dailyRange = volatilityFactor * 0.5;
+        const highPrice = Math.max(openPrice, closePrice) * (1 + (Math.abs(normalizedRandom) * dailyRange));
+        const lowPrice = Math.min(openPrice, closePrice) * (1 - (Math.abs(normalizedRandom) * dailyRange));
         
         // Calculate simulated volume (higher on more volatile days)
-        const volume = Math.floor(10000 + 50000 * dayVolatility * Math.abs(pseudoRandom));
+        const volume = Math.floor(50000 + 200000 * Math.abs(normalizedRandom));
         
-        // Ensure prices don't go too low
+        // Ensure prices don't go too low (floor at 50% of base price)
         prevPrice = Math.max(closePrice, basePrice * 0.5);
         
         newData.push({
@@ -123,9 +176,10 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         const lastIndex = newData.length - 1;
         const lastPoint = newData[lastIndex];
         
-        // Calculate reasonable high/low based on the open and close prices
-        const high = Math.max(lastPoint.open, currentPrice) * 1.01;
-        const low = Math.min(lastPoint.open, currentPrice) * 0.99;
+        // Create realistic high/low for current day
+        const dailyRange = volatilityFactor * 0.5;
+        const high = Math.max(lastPoint.open, currentPrice) * (1 + dailyRange * 0.5);
+        const low = Math.min(lastPoint.open, currentPrice) * (1 - dailyRange * 0.5);
         
         newData[lastIndex] = {
           ...lastPoint,
@@ -161,9 +215,10 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         const lastPoint = mergedData[mergedData.length - 1];
         const openPrice = lastPoint ? lastPoint.close : basePrice;
         
-        // Calculate reasonable high/low based on the open and close prices
-        const high = Math.max(openPrice, currentPrice) * 1.01;
-        const low = Math.min(openPrice, currentPrice) * 0.99;
+        // Create realistic high/low for new day
+        const dailyRange = volatilityFactor * 0.5;
+        const high = Math.max(openPrice, currentPrice) * (1 + dailyRange * 0.5);
+        const low = Math.min(openPrice, currentPrice) * (1 - dailyRange * 0.5);
         
         mergedData.push({
           day: currentDay,
@@ -172,13 +227,13 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           close: currentPrice,
           high: parseFloat(high.toFixed(2)),
           low: parseFloat(low.toFixed(2)),
-          volume: Math.floor(10000 + 50000 * Math.random())
+          volume: Math.floor(50000 + 200000 * Math.random() * 0.8)
         });
       }
       
-      // Keep only the last 14 days for cleaner candlestick view
+      // Keep only the last 20 days for more historical context
       const finalData = mergedData
-        .slice(-14)
+        .slice(-20)
         .sort((a, b) => a.day - b.day);
       
       setData(finalData);
@@ -196,6 +251,10 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
+      const priceDiff = data.close - data.open;
+      const percentChange = ((data.close - data.open) / data.open * 100).toFixed(2);
+      const changeColor = priceDiff >= 0 ? 'text-green-600' : 'text-red-600';
+      
       return (
         <div className="bg-white p-2 border border-gray-200 rounded shadow-md text-xs text-gray-800">
           <p className="font-semibold">{data.date}</p>
@@ -203,7 +262,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
             <span className="text-gray-600">Open:</span>
             <span className="font-medium">${data.open.toFixed(2)}</span>
             <span className="text-gray-600">Close:</span>
-            <span className="font-medium">${data.close.toFixed(2)}</span>
+            <span className={`font-medium ${changeColor}`}>${data.close.toFixed(2)}</span>
+            <span className="text-gray-600">Change:</span>
+            <span className={`font-medium ${changeColor}`}>
+              {priceDiff >= 0 ? '+' : ''}{priceDiff.toFixed(2)} ({percentChange}%)
+            </span>
             <span className="text-gray-600">High:</span>
             <span className="font-medium">${data.high.toFixed(2)}</span>
             <span className="text-gray-600">Low:</span>
@@ -217,8 +280,8 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
   
   // Determine colors based on stock performance
   const isPositive = (d: CandlestickData) => d.close >= d.open;
-  const positiveColor = '#10b981'; // green
-  const negativeColor = '#ef4444'; // red
+  const positiveColor = '#16a34a'; // green from image (slightly darker than before)
+  const negativeColor = '#dc2626'; // red from image (slightly darker than before);
   
   return (
     <ResponsiveContainer width="100%" height="100%">
@@ -226,12 +289,13 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         data={data}
         margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
       >
-        <CartesianGrid strokeDasharray="3 3" opacity={0.2} />
+        <CartesianGrid strokeDasharray="3 3" opacity={0.1} /> 
         <XAxis 
           dataKey="date" 
           tick={{fontSize: 10}}
           tickLine={false}
           axisLine={false}
+          interval="preserveStartEnd"
         />
         <YAxis 
           tick={{fontSize: 10}} 
@@ -241,35 +305,41 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           axisLine={false}
         />
         <Tooltip content={<CustomTooltip />} />
-        <ReferenceLine y={basePrice} stroke="#9ca3af" strokeDasharray="3 3" />
         
         {/* Candlestick body */}
-        <Bar
-          dataKey="low" 
-          fill="transparent" 
-          stroke="transparent" 
-          yAxisId={0}
-        />
-        <Bar
-          dataKey={(datum) => Math.abs(datum.open - datum.close)}
-          barSize={8}
-          fill={(datum) => isPositive(datum) ? positiveColor : negativeColor}
-          stroke={(datum) => isPositive(datum) ? positiveColor : negativeColor}
-          yAxisId={0}
-          // Offset to place the bar at the correct position
-          stackId="stack"
-          baseValue={(datum) => Math.min(datum.open, datum.close)}
-        />
-        
-        {/* Price line connecting closes */}
-        <Line
-          type="monotone"
-          dataKey="close"
-          stroke="#4b5563"
-          dot={false}
-          strokeWidth={1.5}
-          animationDuration={500}
-        />
+        {/* Generate separate bars for up and down days to solve the styling issue */}
+        {data.map((entry, index) => (
+          <Bar
+            key={`candle-${index}`}
+            dataKey={() => Math.abs(entry.open - entry.close)}
+            barSize={6}
+            fill={isPositive(entry) ? positiveColor : negativeColor}
+            stroke={isPositive(entry) ? positiveColor : negativeColor}
+            stackId="stack"
+            baseValue={Math.min(entry.open, entry.close)}
+            // Only render at specific index positions
+            minPointSize={1}
+            isAnimationActive={false}
+            name={`candle-${index}`}
+            legendType="none"
+            hide={false}
+            xAxisId={undefined}
+            yAxisId={undefined}
+            // Use specific x-coordinate
+            shape={(props) => {
+              // Only draw at the right index position
+              if (props.index !== index) return null;
+              return <rect 
+                x={props.x} 
+                y={props.y} 
+                width={props.width} 
+                height={props.height} 
+                fill={isPositive(entry) ? positiveColor : negativeColor}
+                stroke={isPositive(entry) ? positiveColor : negativeColor}
+              />;
+            }}
+          />
+        ))}
         
         {/* High/low wicks */}
         {data.map((entry, index) => (
