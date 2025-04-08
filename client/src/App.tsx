@@ -8,6 +8,7 @@ import { useGame } from "./lib/stores/useGame";
 import { useEconomy } from "./lib/stores/useEconomy";
 import { ThemeProvider } from "./lib/ThemeProvider";
 import Dashboard from "./pages/Dashboard";
+import SimpleDashboard from "./pages/SimpleDashboard";
 import CharacterCreation from "./pages/CharacterCreation";
 import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
@@ -27,6 +28,7 @@ import { MarketPriceUpdater } from "./components/MarketPriceUpdater";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 import TimeResetHack from "./TimeResetHack";
+import AssetRefreshProvider from "./components/AssetRefreshProvider";
 
 import "@fontsource/inter";
 
@@ -264,30 +266,34 @@ function App() {
             {/* Background with gradient based on theme */}
             <AppBackground />
             
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/create" element={<CharacterCreation />} />
-              <Route path="/job" element={<JobScreen />} />
-              <Route path="/investments" element={<InvestmentScreen />} />
-              <Route path="/lifestyle" element={<LifestyleScreen />} />
-              <Route path="/properties" element={<PropertyScreen />} />
-              <Route path="/achievements" element={<AchievementsScreen />} />
-              <Route path="/test" element={<TestPage />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            
-            {/* Overlays and notifications */}
-            <RandomEventModal />
-            <ActiveEventsIndicator />
-            <AchievementNotification />
-            <EventDebugger />
-            
-            {/* Global systems */}
-            <GlobalAutoMaintenance />
-            <MarketPriceUpdater />
-            
-            {/* Emergency hack to reset time if needed */}
-            <TimeResetHack />
+            {/* Asset Refresh Provider - maintains consistent asset values across the app */}
+            <AssetRefreshProvider refreshInterval={2000}>
+              <Routes>
+                {/* Use the optimized SimpleDashboard to avoid infinite render loops */}
+                <Route path="/" element={<SimpleDashboard />} />
+                <Route path="/create" element={<CharacterCreation />} />
+                <Route path="/job" element={<JobScreen />} />
+                <Route path="/investments" element={<InvestmentScreen />} />
+                <Route path="/lifestyle" element={<LifestyleScreen />} />
+                <Route path="/properties" element={<PropertyScreen />} />
+                <Route path="/achievements" element={<AchievementsScreen />} />
+                <Route path="/test" element={<TestPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+              
+              {/* Overlays and notifications */}
+              <RandomEventModal />
+              <ActiveEventsIndicator />
+              <AchievementNotification />
+              <EventDebugger />
+              
+              {/* Global systems */}
+              <GlobalAutoMaintenance />
+              <MarketPriceUpdater />
+              
+              {/* Emergency hack to reset time if needed */}
+              <TimeResetHack />
+            </AssetRefreshProvider>
           </Suspense>
         </Router>
         <Toaster position="top-right" richColors />

@@ -1,323 +1,105 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * Simplified Dashboard Component
+ * 
+ * This is a more optimized version of the Dashboard component
+ * that doesn't cause infinite update loops by using stable state references
+ */
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useCharacter from '../lib/stores/useCharacter';
+import { useCharacter } from '../lib/stores/useCharacter';
+import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
-import { useAchievements } from '../lib/stores/useAchievements';
-import useRandomEvents from '../lib/stores/useRandomEvents';
-import useAssetTracker from '../lib/stores/useAssetTracker';
-import { toast } from 'sonner';
+import { useRandomEvents } from '../lib/stores/useRandomEvents';
+import { useIsMobile } from '../hooks/use-is-mobile';
+import { formatCurrency, formatPercentage } from '../lib/utils';
+import refreshAllAssets from '../lib/services/assetRefresh';
 
+// Import UI components
+import { GameUI } from '../components/GameUI';
+import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
-// Temporarily disabled due to rendering issues
-import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
-import { 
-  DollarSign, 
-  TrendingUp, 
-  ChartBar, 
-  Calendar, 
-  Home,
-  Briefcase,
-  HeartPulse,
-  Crown,
-  ArrowRight,
-  Settings,
-  AlertTriangle,
-  RefreshCw,
-  HardDrive,
-  Trophy,
-  Award,
-  Play,
-  Clock,
-  Building,
-  Building2,
-  ShoppingBag,
-  ShoppingCart,
-  Wrench
-} from 'lucide-react';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
-import { Progress } from '../components/ui/progress';
+import { AchievementsWidget } from '../components/AchievementsWidget';
+
+// Import UI elements
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "../components/ui/alert-dialog";
-import { Separator } from '../components/ui/separator';
-import GameUI from '../components/GameUI';
-import MainScene from '../components/MainScene';
-import { formatCurrency, performCompleteGameReset } from '../lib/utils';
+import { Button } from '../components/ui/button';
+import { Progress } from '../components/ui/progress';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, 
+  AlertDialogTrigger } from '../components/ui/alert-dialog';
 
-import { useEffect as useInitAchievements } from 'react';
-import { checkAllAchievements } from '../lib/services/achievementTracker';
+// Import icons
+import { Calendar, Settings, DollarSign, Crown, ChartBar, 
+  Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
+  Upload, Trash2, RotateCcw, HeartPulse } from 'lucide-react';
 
-// Achievement Widget component
-const AchievementsWidget = () => {
-  const { achievements, getCompletedAchievements, getInProgressAchievements } = useAchievements();
+export default function SimpleDashboard() {
   const navigate = useNavigate();
   
-  // Check all achievements when dashboard loads
-  useInitAchievements(() => {
-    // Check for achievements on component mount
-    checkAllAchievements();
-    // Set up interval to periodically check achievements (every 10 seconds)
-    const interval = setInterval(() => {
-      checkAllAchievements();
-    }, 10000);
-    
-    return () => clearInterval(interval);
-  }, []);
+  // Use refs to keep stable state references
+  const [characterValues, setCharacterValues] = useState({
+    wealth: 0,
+    name: "",
+    happiness: 0,
+    prestige: 0,
+    stress: 0,
+    energy: 0,
+    health: 0
+  });
   
-  // Get the most recent 3 completed achievements
-  const recentCompletedAchievements = getCompletedAchievements()
-    .sort((a, b) => {
-      if (!a.unlockedDate) return 1;
-      if (!b.unlockedDate) return -1;
-      return new Date(b.unlockedDate).getTime() - new Date(a.unlockedDate).getTime();
-    })
-    .slice(0, 3);
-    
-  // Get 3 achievements that are in progress but not completed
-  const inProgressAchievements = getInProgressAchievements()
-    .sort((a, b) => b.progress - a.progress)
-    .slice(0, 3);
-    
-  // Combine them, showing completed ones first
-  const displayAchievements = [...recentCompletedAchievements, ...inProgressAchievements].slice(0, 4);
+  // Get netWorth directly
+  const [netWorth, setNetWorth] = useState(0);
   
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'wealth': return 'text-quinary';
-      case 'property': return 'text-tertiary';
-      case 'investment': return 'text-secondary';
-      case 'lifestyle': return 'text-purple-500';
-      case 'general': return 'text-primary';
-      default: return 'text-primary';
-    }
-  };
-  
-  if (displayAchievements.length === 0) {
-    return null;
-  }
-  
-  return (
-    <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
-      {/* Glow effects */}
-      <div className="absolute -top-4 left-1/4 h-16 w-16 bg-yellow-500/30 blur-2xl rounded-full"></div>
-      <div className="absolute bottom-4 right-1/4 h-16 w-16 bg-primary/20 blur-2xl rounded-full"></div>
-      
-      <CardHeader className="py-3 border-b border-primary/10">
-        <CardTitle className="text-lg flex items-center">
-          <div className="mr-3 p-2 rounded-full bg-yellow-400/10 border border-yellow-400/20">
-            <Trophy className="h-5 w-5 text-yellow-400" />
-          </div>
-          <span className="text-primary font-medium">Achievements</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="py-4">
-        <div className="grid grid-cols-1 gap-4">
-          {displayAchievements.map((achievement) => (
-            <div 
-              key={achievement.id} 
-              className={`flex justify-between items-center p-3 rounded-lg border backdrop-blur-sm ${
-                achievement.isUnlocked 
-                  ? 'bg-background/30 border-yellow-400/30' 
-                  : 'bg-background/10 border-primary/20'
-              }`}
-            >
-              <div className="flex items-center">
-                <div className={`p-2 rounded-full mr-3 ${
-                  achievement.isUnlocked 
-                    ? 'bg-yellow-400/10 border border-yellow-400/20' 
-                    : 'bg-secondary/10 border border-secondary/20'
-                }`}>
-                  {achievement.isUnlocked 
-                    ? <Trophy className="h-5 w-5 text-yellow-400" /> 
-                    : <span className={`h-5 w-5 ${getCategoryColor(achievement.category)}`}>
-                        {achievement.category === 'wealth' ? <DollarSign className="h-5 w-5" /> :
-                         achievement.category === 'property' ? <Home className="h-5 w-5" /> :
-                         achievement.category === 'investment' ? <TrendingUp className="h-5 w-5" /> :
-                         achievement.category === 'lifestyle' ? <Crown className="h-5 w-5" /> :
-                         <Award className="h-5 w-5" />}
-                      </span>
-                  }
-                </div>
-                <div>
-                  <p className="font-medium">{achievement.title}</p>
-                  <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                </div>
-              </div>
-              
-              {achievement.isUnlocked ? (
-                <div className="flex items-center gap-1 bg-yellow-400/10 px-2 py-1 rounded-full text-xs text-yellow-400 border border-yellow-400/20">
-                  <Award className="h-3 w-3" />
-                  <span>Completed</span>
-                </div>
-              ) : (
-                <div className="w-24">
-                  <div className="flex justify-between text-xs mb-1">
-                    <span>{Math.floor(achievement.progress)}%</span>
-                    <span>100%</span>
-                  </div>
-                  <Progress 
-                    value={achievement.progress} 
-                    className="h-1.5 bg-primary/10" 
-                    indicatorClassName="bg-gradient-to-r from-secondary to-primary"
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </CardContent>
-      <CardFooter className="pt-0">
-        <Button 
-          variant="link" 
-          className="w-full text-primary/80 hover:text-primary"
-          onClick={() => navigate('/achievements')}
-        >
-          View All Achievements <ArrowRight className="ml-2 h-4 w-4" />
-        </Button>
-      </CardFooter>
-    </Card>
-  );
-};
-
-// Create a global update function that can be called from anywhere
-// This is defined outside the component to avoid re-creation on renders
-if (!(window as any).globalUpdateAllPrices) {
-  console.log("Setting up global price update function");
-  (window as any).globalUpdateAllPrices = () => {
-    // First update character assets with latest prices
-    const characterState = useCharacter.getState();
-    const assetTrackerState = useAssetTracker.getState();
-    
-    // Sync in both directions to ensure consistency
-    characterState.syncAssetsWithAssetTracker();
-    assetTrackerState.recalculateTotals();
-    
-    // Log for debugging
-    console.log('Global price update complete');
-  };
-}
-
-export default function Dashboard() {
-  const navigate = useNavigate();
-  
-  // Get character state directly from the store as a stable reference
-  // Using memoized selectors to avoid infinite loops
-  const character = useCharacter(
-    React.useCallback(state => ({
-      wealth: state.wealth,
-      name: state.name, 
-      happiness: state.happiness,
-      prestige: state.prestige,
-      stress: state.stress,
-      energy: state.energy,
-      health: state.health
-    }), [])
-  );
-  
-  // Destructure for convenience
-  const { wealth, name, happiness, prestige, stress, energy, health } = character;
-  
-  // Get netWorth directly from useAssetTracker with stable selector
-  const netWorth = useAssetTracker(
-    React.useCallback(state => state.totalNetWorth, [])
-  );
-  
-  // Force reload of date from localStorage when dashboard mounts
-  const timeStore = useTime();
-  const { currentDay, currentMonth, currentYear } = timeStore;
-  
-  // Refresh time data on component mount to make sure we have the latest
-  useEffect(() => {
-    // Check if there's a discrepancy between localStorage and state
-    try {
-      // Check if we've already checked for discrepancies this session
-      if (sessionStorage.getItem('dashboard_already_checked_consistency') === 'true') {
-        console.log('Already checked time consistency in this session');
-        return;
-      }
-      
-      // Mark as checked to prevent reload loops
-      sessionStorage.setItem('dashboard_already_checked_consistency', 'true');
-      
-      const timeData = localStorage.getItem('luxury_lifestyle_time');
-      if (timeData) {
-        const parsedTime = JSON.parse(timeData);
-        
-        // Log the values for debugging
-        console.log(`Dashboard checking time: State(${currentMonth}/${currentDay}/${currentYear}) vs Storage(${parsedTime.currentMonth}/${parsedTime.currentDay}/${parsedTime.currentYear})`);
-        
-        // Only reload if there's a significant discrepancy (more than 30 days)
-        const stateDate = new Date(currentYear, currentMonth - 1, currentDay);
-        const storageDate = new Date(parsedTime.currentYear, parsedTime.currentMonth - 1, parsedTime.currentDay);
-        const diffTime = Math.abs(stateDate.getTime() - storageDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
-        if (diffDays > 30) { // Only reload for significant differences
-          console.log(`Major date discrepancy detected (${diffDays} days difference), manually updating time store...`);
-          // Instead of reloading, manually update the time store
-          timeStore.setDate(parsedTime.currentDay, parsedTime.currentMonth, parsedTime.currentYear);
-        }
-      }
-    } catch (e) {
-      console.error('Error checking time consistency in Dashboard:', e);
-    }
-  }, []);
-  
-  const { economyState } = useEconomy();
-  const audio = useAudio();
-  const game = useGame();
-  const randomEvents = useRandomEvents();
-  
-  // Get specific asset tracker methods only (not the whole state)
-  // This prevents infinite rendering loops from state changes
-  const recalculateTotals = useAssetTracker(state => state.recalculateTotals);
-  const forceUpdate = useAssetTracker(state => state.forceUpdate);
-  
-  // Fixed dependency array and optimized refresh logic
-  useEffect(() => {
-    // Log for debugging
-    console.log("Dashboard: Syncing assets with tracker on mount");
-    
-    // Run once on mount
-    const syncAssetsOnce = () => {
-      // Access state directly to avoid component re-renders
-      if ((window as any).globalUpdateAllPrices) {
-        (window as any).globalUpdateAllPrices();
-      } else {
-        useCharacter.getState().syncAssetsWithAssetTracker();
-        recalculateTotals();
-      }
-    };
-    
-    // Sync immediately on mount
-    syncAssetsOnce();
-    
-    // Set up interval with stabilized functions
-    const refreshInterval = setInterval(syncAssetsOnce, 2000);
-    
-    // Cleanup on unmount
-    return () => {
-      clearInterval(refreshInterval);
-    };
-  }, []); // Empty dependency array to run only on mount/unmount
+  // Get date information
+  const { currentDay, currentMonth, currentYear } = useTime();
   
   // Simple state variables
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
+  
+  // Other game systems
+  const { economyState } = useEconomy();
+  const audio = useAudio();
+  
+  // Update character values without causing re-renders
+  const updateValues = useCallback(() => {
+    // Get latest values from stores
+    const character = useCharacter.getState();
+    const assetTracker = useAssetTracker.getState();
+    
+    setCharacterValues({
+      wealth: character.wealth,
+      name: character.name,
+      happiness: character.happiness,
+      prestige: character.prestige,
+      stress: character.stress,
+      energy: character.energy,
+      health: character.health
+    });
+    
+    setNetWorth(assetTracker.totalNetWorth);
+  }, []);
+  
+  // Set up update interval
+  useEffect(() => {
+    // Update values immediately
+    updateValues();
+    
+    // Force an asset refresh on mount
+    refreshAllAssets();
+    
+    // Set up interval to keep values fresh
+    const interval = setInterval(() => {
+      updateValues();
+    }, 1000);
+    
+    return () => clearInterval(interval);
+  }, [updateValues]);
   
   // Format the date
   const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)
@@ -327,10 +109,11 @@ export default function Dashboard() {
       year: 'numeric' 
     });
   
+  // Extract values from state
+  const { wealth, name, happiness, prestige, stress, energy, health } = characterValues;
+  
   return (
     <div className="w-full min-h-screen pt-2 pb-24">
-      {/* The MainScene component is no longer needed as we now use AppBackground */}
-      
       {/* Dashboard UI - outside of normal flow */}
       <GameUI />
         
@@ -560,7 +343,6 @@ export default function Dashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
                                   // Handle backup logic here
-                                  audio.playSuccess();
                                   setShowBackupDialog(true);
                                 }}>
                                   Create Backup
@@ -568,56 +350,23 @@ export default function Dashboard() {
                               </AlertDialogFooter>
                             </AlertDialogContent>
                           </AlertDialog>
-                          
-                          {/* Reset Game Data */}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start border-red-500/30 text-red-500">
-                                <AlertTriangle className="mr-2 h-4 w-4" />
-                                Reset Game
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-red-500">Reset Game Data</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete all your game progress. This action cannot be undone.
-                                  Are you sure you want to start fresh?
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => {
-                                  // Use our centralized reset function that ensures complete reset
-                                  performCompleteGameReset();
-                                  
-                                  // Display a toast message
-                                  toast.success("Game data has been completely reset");
-                                }} className="bg-red-500 hover:bg-red-600">
-                                  Reset Game
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       </div>
                       
-                      <Separator />
-                      
-                      {/* Game Credits */}
-                      <div className="pt-4">
-                        <h3 className="text-lg font-medium mb-2 flex items-center">
-                          <Award className="mr-2 h-5 w-5 text-yellow-400" />
-                          About This Game
-                        </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Business Empire: RichMan is a financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.
-                        </p>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <p>Version: 1.0.0</p>
-                          <p>Created with 💖 by Replit</p>
-                          <p>© 2024 All Rights Reserved</p>
-                        </div>
+                      {/* Refresh Game Data */}
+                      <div className="mt-6 pt-6 border-t border-primary/10">
+                        <Button 
+                          variant="secondary" 
+                          className="w-full" 
+                          onClick={() => {
+                            // Force refresh of all game data
+                            refreshAllAssets();
+                            updateValues();
+                          }}
+                        >
+                          <RefreshCw className="mr-2 h-4 w-4" />
+                          Refresh Game Data
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>
