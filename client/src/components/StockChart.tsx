@@ -77,6 +77,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     dailyData: CandlestickData[],
     weeklyData: CandlestickData[],
     monthlyData: CandlestickData[],
+    lastUpdatedDay?: number,
     lastUpdatedMonth: number,
     lastUpdatedYear: number
   }>({ 
@@ -88,9 +89,18 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     lastUpdatedYear: -1
   });
   
-  // Reset data when stock changes
+  // Reset data when stock changes or day changes
   useEffect(() => {
-    if (previousDataRef.current.id !== stockId) {
+    // Reset on stock change or day change
+    const shouldReset = 
+      previousDataRef.current.id !== stockId || 
+      !previousDataRef.current.lastUpdatedDay || 
+      previousDataRef.current.lastUpdatedDay !== currentDay ||
+      previousDataRef.current.lastUpdatedMonth !== currentMonth ||
+      previousDataRef.current.lastUpdatedYear !== currentYear;
+    
+    if (shouldReset) {
+      console.log(`Resetting chart data for ${stockId} due to day/stock change. Current day: ${currentDay}`);
       setDailyData([]);
       setWeeklyData([]);
       setMonthlyData([]);
@@ -99,11 +109,12 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         dailyData: [], 
         weeklyData: [],
         monthlyData: [],
+        lastUpdatedDay: currentDay,
         lastUpdatedMonth: currentMonth,
         lastUpdatedYear: currentYear
       };
     }
-  }, [stockId, currentMonth, currentYear]);
+  }, [stockId, currentDay, currentMonth, currentYear]);
   
   // Format a day number to different formats based on timeframe
   const formatDate = (targetDate: Date, timeframe: TimeFrame) => {
@@ -460,6 +471,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         dailyData: newDailyData,
         weeklyData: newWeeklyData,
         monthlyData: newMonthlyData,
+        lastUpdatedDay: currentDay,
         lastUpdatedMonth: currentMonth,
         lastUpdatedYear: currentYear
       };
