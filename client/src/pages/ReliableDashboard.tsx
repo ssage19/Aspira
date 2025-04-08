@@ -36,7 +36,7 @@ import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
-import { formatCurrency, formatPercentage } from '../lib/utils';
+import { formatCurrency, formatPercentage, performCompleteGameReset } from '../lib/utils';
 
 export default function ReliableDashboard() {
   const navigate = useNavigate();
@@ -404,7 +404,7 @@ export default function ReliableDashboard() {
                           Game Data Management
                         </h3>
                         <div className="flex flex-col space-y-2">
-                          {/* Save Game Data */}
+                          {/* Refresh Game Data */}
                           <AlertDialog>
                             <AlertDialogTrigger asChild>
                               <Button variant="outline" className="w-full justify-start">
@@ -423,6 +423,37 @@ export default function ReliableDashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={handleManualRefresh}>
                                   Refresh
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                          
+                          {/* Reset Game */}
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50">
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Reset Game Data
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle className="text-red-500">Reset Game Data</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  This will permanently delete all your game progress. This action cannot be undone.
+                                  Are you sure you want to start fresh?
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                <AlertDialogAction onClick={() => {
+                                  // Call the game reset function from utils
+                                  performCompleteGameReset();
+                                  
+                                  // Display success toast
+                                  toast.success("Game data has been reset. Redirecting...");
+                                }} className="bg-red-500 hover:bg-red-600">
+                                  Reset Game
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
