@@ -111,6 +111,12 @@ export default function ReliableDashboard() {
     useCharacter.getState().syncAssetsWithAssetTracker();
     useAssetTracker.getState().recalculateTotals();
     
+    // Force market price update on component mount
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("ReliableDashboard: Triggering global price update on mount");
+      (window as any).globalUpdateAllPrices();
+    }
+    
     // One-time initial data load with a small delay to ensure state is ready
     const initialTimeout = setTimeout(() => {
       // Force another sync before loading data
@@ -123,11 +129,16 @@ export default function ReliableDashboard() {
     
     // Reduced frequency interval to prevent performance issues
     const refreshInterval = setInterval(() => {
-      // Sync data before each refresh
+      // First trigger market price updates to keep investment values fresh
+      if ((window as any).globalUpdateAllPrices) {
+        (window as any).globalUpdateAllPrices();
+      }
+      
+      // Then sync data before each refresh
       useCharacter.getState().syncAssetsWithAssetTracker();
       useAssetTracker.getState().recalculateTotals();
       
-      // Then update the UI
+      // Finally update the UI
       refreshDashboardData();
     }, 5000); // Reduced to every 5 seconds to prevent freezing
     
@@ -143,7 +154,16 @@ export default function ReliableDashboard() {
     toast.info("Performing deep data refresh...");
     
     try {
-      // First sync character assets with asset tracker
+      // First trigger a market price update to get fresh investment prices
+      if ((window as any).globalUpdateAllPrices) {
+        console.log("ReliableDashboard: Triggering global price update");
+        (window as any).globalUpdateAllPrices();
+      }
+      
+      // Wait a short moment for price updates to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Sync character assets with asset tracker
       useCharacter.getState().syncAssetsWithAssetTracker();
       
       // Force asset tracker to recalculate totals
@@ -158,7 +178,7 @@ export default function ReliableDashboard() {
       // Increment refresh trigger to force child components to refresh
       setRefreshTrigger(prev => prev + 1);
       
-      toast.success("Dashboard refreshed with latest data");
+      toast.success("Dashboard refreshed with latest market data");
     } catch (error) {
       console.error("Error during manual refresh:", error);
       toast.error("Refresh failed. Please try again.");

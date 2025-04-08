@@ -117,10 +117,16 @@ export function SimplePortfolioBreakdown() {
   useEffect(() => {
     console.log("SimplePortfolioBreakdown: Component mounted");
     
-    // First sync character assets with asset tracker (investments, properties, etc.)
+    // First trigger market price update on component mount
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("SimplePortfolioBreakdown: Triggering global price update on mount");
+      (window as any).globalUpdateAllPrices();
+    }
+    
+    // Then sync character assets with asset tracker (investments, properties, etc.)
     useCharacter.getState().syncAssetsWithAssetTracker();
     
-    // Then force a refresh of asset values from the source of truth
+    // Force a refresh of asset values from the source of truth
     useAssetTracker.getState().recalculateTotals();
     
     // Update the categories with fresh data
@@ -146,10 +152,15 @@ export function SimplePortfolioBreakdown() {
     
     // Set up a refresh timer but at a reduced frequency to avoid performance issues
     const intervalId = setInterval(() => {
-      // First sync assets
+      // First trigger market price updates to keep investment values fresh
+      if ((window as any).globalUpdateAllPrices) {
+        (window as any).globalUpdateAllPrices();
+      }
+      
+      // Then sync assets
       useCharacter.getState().syncAssetsWithAssetTracker();
       
-      // Then recalculate totals 
+      // Recalculate totals 
       useAssetTracker.getState().recalculateTotals();
       
       // Finally, update the local UI
@@ -177,10 +188,19 @@ export function SimplePortfolioBreakdown() {
     });
     
     try {
-      // First, ensure character assets are synced with asset tracker
+      // First trigger the global market price update to ensure investment values are current
+      if ((window as any).globalUpdateAllPrices) {
+        console.log("SimplePortfolioBreakdown: Triggering global price update");
+        (window as any).globalUpdateAllPrices();
+      }
+      
+      // Add a slight delay for price updates to complete
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Then ensure character assets are synced with asset tracker
       useCharacter.getState().syncAssetsWithAssetTracker();
       
-      // Then, force asset tracker to recalculate everything
+      // Force asset tracker to recalculate everything
       useAssetTracker.getState().recalculateTotals();
       
       // Use the global refresh to make sure all components update
