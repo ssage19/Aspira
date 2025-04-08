@@ -6,6 +6,7 @@ import {
   Line,
   BarChart,
   Bar,
+  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -713,74 +714,38 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
               }} 
             />
             
-            {/* Create separate arrays for up/down candles */}
-            {(() => {
-              const data = getDisplayData();
-              
-              // Pre-calculate values and add them to the entries
-              data.forEach(entry => {
-                entry.height = Math.abs(entry.close - entry.open);
-                entry.y0 = Math.min(entry.open, entry.close);
-                entry.color = isPositive(entry) ? positiveColor : negativeColor;
-              });
-            
-              // Split into up and down candles
-              const upCandles = data.filter(entry => isPositive(entry));
-              const downCandles = data.filter(entry => !isPositive(entry));
-              
-              // Return a fragment with both candle types
-              return (
-                <>
-                  {/* Positive candles (green) */}
-                  {upCandles.map((entry, index) => (
-                    <ReferenceLine
-                      key={`candle-body-up-${index}`}
-                      segment={[
-                        { x: data.indexOf(entry), y: entry.open },
-                        { x: data.indexOf(entry), y: entry.close }
-                      ]}
-                      stroke={positiveColor}
-                      strokeWidth={selectedTimeframe === 'daily' ? 5 : selectedTimeframe === 'weekly' ? 7 : 9}
-                    />
-                  ))}
-                  
-                  {/* Negative candles (red) */}
-                  {downCandles.map((entry, index) => (
-                    <ReferenceLine
-                      key={`candle-body-down-${index}`}
-                      segment={[
-                        { x: data.indexOf(entry), y: entry.open },
-                        { x: data.indexOf(entry), y: entry.close }
-                      ]}
-                      stroke={negativeColor}
-                      strokeWidth={selectedTimeframe === 'daily' ? 5 : selectedTimeframe === 'weekly' ? 7 : 9}
-                    />
-                  ))}
-                </>
-              );
-            })()}
+            {/* Calculate values for candlesticks */}
+            {getDisplayData().map((entry, index) => {
+              // Pre-calculate values needed for rendering
+              const isUp = entry.close >= entry.open;
+              const color = isUp ? positiveColor : negativeColor;
+              entry.color = color;
+              return null;
+            })}
             
             {/* High/low wicks */}
             {getDisplayData().map((entry, index) => (
               <ReferenceLine
-                key={`high-${index}`}
+                key={`wick-${index}`}
                 segment={[
-                  { x: index, y: entry.high },
-                  { x: index, y: Math.max(entry.open, entry.close) }
+                  { x: index, y: entry.low },
+                  { x: index, y: entry.high }
                 ]}
-                stroke={isPositive(entry) ? positiveColor : negativeColor}
+                stroke={entry.color}
                 strokeWidth={1}
               />
             ))}
+            
+            {/* Candle bodies as thick lines */}
             {getDisplayData().map((entry, index) => (
               <ReferenceLine
-                key={`low-${index}`}
+                key={`body-${index}`}
                 segment={[
-                  { x: index, y: entry.low },
-                  { x: index, y: Math.min(entry.open, entry.close) }
+                  { x: index, y: entry.open },
+                  { x: index, y: entry.close }
                 ]}
-                stroke={isPositive(entry) ? positiveColor : negativeColor}
-                strokeWidth={1}
+                stroke={entry.color}
+                strokeWidth={selectedTimeframe === 'daily' ? 6 : selectedTimeframe === 'weekly' ? 8 : 10}
               />
             ))}
           </ComposedChart>
