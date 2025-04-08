@@ -271,11 +271,13 @@ export const performCompleteGameReset = () => {
   // 6. Now reset all stores, after localStorage is properly set up
   try {
     // RESET SEQUENCE IS CRITICAL:
-    // 1. Asset tracker & net worth breakdown MUST be reset first (to prevent stale investment data)
-    // 2. Time store reset second
-    // 3. Character store reset third (after verifying asset tracker has been reset)
-    // 4. Other stores after
-    // This order ensures proper data handling
+    // 1. First, manually clear localStorage for all stores to prevent stale data
+    // 2. Then reset the stores in the correct sequence:
+    //    a. Asset tracker first
+    //    b. Time store second
+    //    c. Character store third
+    //    d. Other stores last
+    // 3. Finally, verify all localStorage entries are cleared
     
     // Now reset all stores in the proper sequence
     console.log("STEP 3: Resetting store states...");
@@ -284,46 +286,66 @@ export const performCompleteGameReset = () => {
     try {
       console.log("STEP 3.1: Reset asset tracker first to prevent stale investment data");
       
-      // First, clear related localStorage entries
-      localStorage.removeItem('business-empire-networth-breakdown');
-      localStorage.removeItem('business-empire-asset-tracker');
-      console.log("Removed asset tracking data from localStorage");
+      // First, clear related localStorage entries directly
+      try {
+        localStorage.removeItem('business-empire-networth-breakdown');
+        localStorage.removeItem('business-empire-asset-tracker');
+        console.log("Manually removed asset tracking data from localStorage");
+      } catch (lsError) {
+        console.error("Error manually clearing asset data from localStorage:", lsError);
+      }
       
       // Set flags to indicate reset has occurred
       sessionStorage.setItem('asset_tracker_reset', 'true');
       sessionStorage.setItem('asset_tracker_reset_timestamp', Date.now().toString());
       
-      // Now explicitly reset the asset tracker store
+      // Import the module properly
       try {
-        // Use a more robust traditional require approach
-        const assetTrackerModule = require('./stores/useAssetTracker');
-        const assetTracker = assetTrackerModule.useAssetTracker;
-        
-        if (assetTracker && typeof assetTracker.getState === 'function') {
-          const state = assetTracker.getState();
+        // Use dynamic import for a cleaner solution
+        import('./stores/useAssetTracker').then(assetTrackerModule => {
+          const assetTracker = assetTrackerModule.default;
           
-          if (state && typeof state.resetAssetTracker === 'function') {
-            console.log("Executing asset tracker reset");
-            state.resetAssetTracker();
-            console.log("Asset tracker successfully reset");
-          } else {
-            console.error("Asset tracker state exists but resetAssetTracker function not found!");
-            // Safely list available methods
-            if (state) {
-              const methods = [];
-              for (const key in state) {
-                if (typeof state[key] === 'function') {
-                  methods.push(key);
-                }
-              }
-              console.log("Available methods:", methods.join(', '));
+          if (assetTracker && typeof assetTracker.getState === 'function') {
+            const state = assetTracker.getState();
+            
+            if (state && typeof state.resetAssetTracker === 'function') {
+              console.log("Executing asset tracker reset via dynamic import");
+              state.resetAssetTracker();
+              console.log("Asset tracker successfully reset");
+            } else {
+              console.error("Asset tracker state exists but resetAssetTracker function not found!");
             }
+          } else {
+            console.error("Asset tracker exists but getState is not a function!");
           }
-        } else {
-          console.error("Asset tracker exists but getState is not a function!");
+        }).catch(importErr => {
+          console.error("Failed to dynamically import asset tracker:", importErr);
+        });
+      } catch (importErr) {
+        console.error("Error during dynamic import of asset tracker:", importErr);
+        
+        // Fallback to traditional require
+        try {
+          // Traditional require as fallback
+          const assetTrackerModule = require('./stores/useAssetTracker');
+          const assetTracker = assetTrackerModule.default || assetTrackerModule.useAssetTracker;
+          
+          if (assetTracker && typeof assetTracker.getState === 'function') {
+            const state = assetTracker.getState();
+            
+            if (state && typeof state.resetAssetTracker === 'function') {
+              console.log("Executing asset tracker reset via require fallback");
+              state.resetAssetTracker();
+              console.log("Asset tracker successfully reset via fallback");
+            } else {
+              console.error("Asset tracker state exists but resetAssetTracker function not found in fallback!");
+            }
+          } else {
+            console.error("Asset tracker exists but getState is not a function in fallback!");
+          }
+        } catch (requireErr) {
+          console.error("Critical error using require fallback for asset tracker:", requireErr);
         }
-      } catch (trackerErr) {
-        console.error("Critical error while resetting asset tracker:", trackerErr);
       }
       
       // SECOND - Reset net worth breakdown

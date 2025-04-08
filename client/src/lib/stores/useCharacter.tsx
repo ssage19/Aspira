@@ -2358,25 +2358,40 @@ export const useCharacter = create<CharacterState>()(
         try {
           console.log("Starting character reset with NetWorthBreakdown cleanup");
           
-          // 1. First clear the specific localStorage entry for portfolio
+          // 1. First, reset the asset tracker store (must happen BEFORE character reset)
+          try {
+            console.log("CRITICAL: Resetting asset tracker store first");
+            const assetTracker = useAssetTracker.getState();
+            if (assetTracker && typeof assetTracker.resetAssetTracker === 'function') {
+              assetTracker.resetAssetTracker();
+              console.log("Successfully reset asset tracker store");
+            } else {
+              console.error("Failed to access asset tracker's reset function!");
+            }
+          } catch (assetTrackerError) {
+            console.error("Error resetting asset tracker:", assetTrackerError);
+          }
+          
+          // 2. Clear the specific localStorage entry for portfolio
           const BREAKDOWN_STORAGE_KEY = 'business-empire-networth-breakdown';
           if (typeof window !== 'undefined') {
             localStorage.removeItem(BREAKDOWN_STORAGE_KEY);
-            console.log(`Removed breakdown storage at key: ${BREAKDOWN_STORAGE_KEY}`);
+            localStorage.removeItem('business-empire-asset-tracker');
+            console.log(`Removed breakdown and asset tracker storage`);
             
             // Also set a flag in sessionStorage to indicate character reset is in progress
             sessionStorage.setItem('character_reset_completed', 'true');
             console.log("Set character_reset_completed flag in sessionStorage");
           }
           
-          // 2. Clear any in-memory breakdown data
+          // 3. Clear any in-memory breakdown data
           const state = get();
           if ((state as any).netWorthBreakdown) {
             console.log("Nullifying existing netWorthBreakdown in memory");
             (state as any).netWorthBreakdown = null;
           }
           
-          // 3. Explicitly clear investment arrays
+          // 4. Explicitly clear investment arrays
           if (state.assets && state.assets.length > 0) {
             console.log(`Resetting ${state.assets.length} assets to empty array`);
           }
@@ -2490,6 +2505,23 @@ export const useCharacter = create<CharacterState>()(
           } catch (e) {
             console.error("Error clearing localStorage during character reset:", e);
           }
+        }
+        
+        // Make sure to sync with asset tracker after reset
+        try {
+          console.log("Final step: syncing reset character state with asset tracker");
+          
+          // Wait a moment to ensure asset tracker has finished its own reset
+          setTimeout(() => {
+            try {
+              get().syncAssetsWithAssetTracker();
+              console.log("Successfully synced reset character with asset tracker");
+            } catch (syncError) {
+              console.error("Error syncing with asset tracker after reset:", syncError);
+            }
+          }, 100);
+        } catch (finalSyncError) {
+          console.error("Failed during final asset tracker sync:", finalSyncError);
         }
         
         // Set a session flag to indicate reset was completed

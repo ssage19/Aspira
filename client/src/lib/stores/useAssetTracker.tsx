@@ -630,6 +630,16 @@ export const useAssetTracker = create<AssetTrackerState>()(
         console.log(`- Properties: ${get().properties.length} items being reset`);
         console.log(`- Lifestyle Items: ${get().lifestyleItems.length} items being reset`);
         
+        // Manually clear localStorage entries to ensure clean reset
+        try {
+          console.log('AssetTracker: Clearing localStorage entries');
+          localStorage.removeItem(ASSET_TRACKER_STORAGE_KEY);
+          localStorage.removeItem('business-empire-networth-breakdown');
+          console.log('AssetTracker: localStorage entries cleared');
+        } catch (storageError) {
+          console.error('AssetTracker: Failed to clear localStorage:', storageError);
+        }
+        
         // Reset to initial state
         set({ 
           ...initialState, 
