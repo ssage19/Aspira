@@ -1978,11 +1978,11 @@ export const useCharacter = create<CharacterState>()(
         });
         
         // Check if we're in a reset state
+        // Only consider 'game_reset_in_progress' flag to be truly indicative of a reset
+        // The other flags can be set during normal game operation and shouldn't trigger asset reset
         const resetInProgress = typeof window !== 'undefined' && 
                                window.sessionStorage && 
-                               (window.sessionStorage.getItem('game_reset_in_progress') === 'true' ||
-                                window.sessionStorage.getItem('character_reset_completed') === 'true' ||
-                                window.sessionStorage.getItem('force_current_date') === 'true');
+                               window.sessionStorage.getItem('game_reset_in_progress') === 'true';
         
         // If a reset is happening, we should reset the asset tracker completely first
         if (resetInProgress) {

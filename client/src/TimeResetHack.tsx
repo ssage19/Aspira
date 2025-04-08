@@ -15,8 +15,15 @@ const TimeResetHack: React.FC = () => {
     
     if (forceCurrentDate || blockTimeLoads) {
       console.log('⚠️ TimeResetHack: Force current date flag detected, ensuring we use today\'s date');
+      // Remove these flags to prevent them from triggering asset resets in other components
       sessionStorage.removeItem('force_current_date');
       sessionStorage.removeItem('block_time_loads');
+      
+      // Clear any reset flags that might be present
+      if (sessionStorage.getItem('game_reset_in_progress') === 'true') {
+        console.log('⚠️ TimeResetHack: Clearing game_reset_in_progress flag');
+        sessionStorage.removeItem('game_reset_in_progress');
+      }
       
       // Force the use of today's date
       const now = new Date();
@@ -86,6 +93,18 @@ const TimeResetHack: React.FC = () => {
     
     // Mark as run to prevent future executions
     sessionStorage.setItem('time_reset_already_run', 'true');
+    
+    // Clear any reset flags that might be present
+    if (sessionStorage.getItem('game_reset_in_progress') === 'true') {
+      console.log('⚠️ TimeResetHack: Clearing game_reset_in_progress flag');
+      sessionStorage.removeItem('game_reset_in_progress');
+    }
+    
+    // Also clear force_current_date flag if it exists (to be extra safe)
+    if (sessionStorage.getItem('force_current_date') === 'true') {
+      console.log('⚠️ TimeResetHack: Clearing force_current_date flag');
+      sessionStorage.removeItem('force_current_date');
+    }
     
     // Get the current real date
     const now = new Date();
