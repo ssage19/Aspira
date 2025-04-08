@@ -63,6 +63,8 @@ export interface AssetTrackerState {
     id: string;
     name: string;
     category: string;
+    type?: string;
+    purchaseDate?: string;
     purchasePrice: number;
     currentValue: number;
   }[];

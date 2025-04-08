@@ -2423,11 +2423,26 @@ export const useCharacter = create<CharacterState>()(
           // 4. Update/add existing properties
           (state.properties || []).forEach(property => {
             if (property && property.id) {
-              assetTracker.updateProperty(
-                property.id, 
-                property.currentValue, 
-                property.loanAmount
-              );
+              // Check if property exists in the tracker
+              const existingProperty = assetTracker.properties.find(p => p.id === property.id);
+              
+              if (existingProperty) {
+                // Update existing property
+                assetTracker.updateProperty(
+                  property.id, 
+                  property.currentValue, 
+                  property.loanAmount
+                );
+              } else {
+                // Add new property to tracker
+                assetTracker.addProperty({
+                  id: property.id,
+                  name: property.name,
+                  purchasePrice: property.purchasePrice,
+                  currentValue: property.currentValue,
+                  mortgage: property.loanAmount,
+                });
+              }
             }
           });
           console.log(`Updated ${state.properties?.length || 0} properties in tracker`);
@@ -2501,8 +2516,24 @@ export const useCharacter = create<CharacterState>()(
                 itemValue = monthlyCost * 3; // Value as 3 months of payments
               }
               
-              // Update the item in the asset tracker
-              assetTracker.updateLifestyleItem(item.id, itemValue);
+              // Check if the item exists in the tracker
+              const existingItem = assetTracker.lifestyleItems.find(trackerItem => trackerItem.id === item.id);
+              
+              if (existingItem) {
+                // Update existing item
+                assetTracker.updateLifestyleItem(item.id, itemValue);
+              } else {
+                // Add new item to tracker
+                assetTracker.addLifestyleItem({
+                  id: item.id,
+                  name: item.name,
+                  category: item.category || "other",
+                  type: item.type,
+                  purchaseDate: item.purchaseDate,
+                  purchasePrice: item.purchasePrice || 0,
+                  currentValue: itemValue
+                });
+              }
             } catch (itemValueError) {
               console.error(`Error calculating value for lifestyle item ${item.id}:`, itemValueError);
             }
