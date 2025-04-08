@@ -6,6 +6,7 @@ import { Button } from './ui/button';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Types for grouped assets
 interface AssetItem {
@@ -112,10 +113,35 @@ export function SimplePortfolioBreakdown() {
   
   // Update the display when any of the asset values change
   useEffect(() => {
+    // Force a refresh of asset values from the source of truth
+    useAssetTracker.getState().recalculateTotals();
+    
+    // Then update the categories with fresh data
     updateAssetCategories();
-  }, [updateAssetCategories]);
+    
+    console.log("Portfolio breakdown updated with latest asset values:", {
+      cash: totalCash,
+      stocks: totalStocks,
+      netWorth: totalNetWorth
+    });
+    
+    // Set up a frequent refresh timer to keep values updated
+    const intervalId = setInterval(() => {
+      // Force recalculation of asset values
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Then sync character assets with asset tracker
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
+      // Finally, update the display with the latest values
+      updateAssetCategories();
+    }, 500); // Update twice per second
+    
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [updateAssetCategories, totalCash, totalStocks, totalNetWorth]);
   
-  // Handle manual refresh
+  // Handle manual refresh - also show a toast message
   const handleRefresh = () => {
     setIsLoading(true);
     
@@ -124,13 +150,27 @@ export function SimplePortfolioBreakdown() {
       if ((window as any).globalUpdateAllPrices) {
         console.log("SimplePortfolioBreakdown: Using global price update function");
         (window as any).globalUpdateAllPrices();
+        // Show visual feedback
+        toast.success("Portfolio values refreshed with latest market data", { 
+          duration: 2000,
+          position: "bottom-center"
+        });
       } else {
         // Fallback to direct recalculation
         useAssetTracker.getState().recalculateTotals();
         useCharacter.getState().syncAssetsWithAssetTracker();
+        // Show visual feedback
+        toast.success("Portfolio values refreshed", { 
+          duration: 2000,
+          position: "bottom-center"
+        });
       }
     } catch (error) {
       console.error("Error during manual refresh:", error);
+      toast.error("Unable to refresh portfolio values", {
+        duration: 2000,
+        position: "bottom-center"
+      });
     } finally {
       setTimeout(() => setIsLoading(false), 500);
     }

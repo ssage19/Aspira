@@ -256,6 +256,29 @@ export default function Dashboard() {
   // Get asset tracker to update with character data
   const assetTracker = useAssetTracker();
   
+  // Ensure assets are synchronized when the dashboard loads and stay in sync
+  useEffect(() => {
+    console.log("Dashboard: Syncing assets with tracker on mount");
+    // Force asset calculations and updates when dashboard is viewed
+    if ((window as any).globalUpdateAllPrices) {
+      (window as any).globalUpdateAllPrices();
+    } else {
+      // Fallback if global function not available
+      character.syncAssetsWithAssetTracker();
+      assetTracker.recalculateTotals();
+    }
+    
+    // Set up interval to keep values updated while dashboard is visible
+    const refreshInterval = setInterval(() => {
+      character.syncAssetsWithAssetTracker();
+      assetTracker.recalculateTotals();
+    }, 2000); // Update every 2 seconds
+    
+    return () => {
+      clearInterval(refreshInterval);
+    };
+  }, []);
+  
   // Simple state variables
   const [activeTab, setActiveTab] = useState('overview');
   const [showBackupDialog, setShowBackupDialog] = useState(false);
