@@ -296,9 +296,21 @@ export function MarketPriceUpdater() {
   
   // Export this function to the global window object for use in other components
   useEffect(() => {
+    // Save a reference to check if market is open
     (window as any).isMarketOpen = isWeekday;
+    
+    // Also save the current market status to a global variable for other components to access
+    (window as any).isStockMarketOpen = () => {
+      const gameDate = new Date();
+      gameDate.setFullYear(useTime.getState().currentYear);
+      gameDate.setMonth(useTime.getState().currentMonth - 1);
+      gameDate.setDate(useTime.getState().currentDay);
+      return isWeekday(gameDate);
+    };
+    
     return () => {
       delete (window as any).isMarketOpen;
+      delete (window as any).isStockMarketOpen;
     };
   }, [isWeekday]);
   

@@ -241,24 +241,54 @@ export const useAssetTracker = create<AssetTrackerState>()(
       },
       
       updateStock: (id, shares, currentPrice) => {
-        set((state) => {
-          const updatedStocks = state.stocks.map(stock => {
-            if (stock.id === id) {
-              return {
-                ...stock,
-                shares,
-                currentPrice,
-                totalValue: shares * currentPrice,
-              };
-            }
-            return stock;
-          });
+        // Check if market is open (weekday) before updating prices
+        const now = new Date();
+        const dayOfWeek = now.getDay();
+        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5; // 1-5 is Monday-Friday
+        
+        // If it's a weekend, we shouldn't update the stock price
+        if (!isWeekday) {
+          console.log(`Market closed (weekend) - Not updating price for stock ${id}`);
           
-          return {
-            stocks: updatedStocks,
-            lastUpdated: Date.now(),
-          };
-        });
+          // Only update share count if needed, don't change the price
+          set((state) => {
+            const updatedStocks = state.stocks.map(stock => {
+              if (stock.id === id) {
+                return {
+                  ...stock,
+                  shares, // Update shares only
+                  totalValue: shares * stock.currentPrice, // Keep existing price
+                };
+              }
+              return stock;
+            });
+            
+            return {
+              stocks: updatedStocks,
+              lastUpdated: Date.now(),
+            };
+          });
+        } else {
+          // Normal weekday update - update both shares and price
+          set((state) => {
+            const updatedStocks = state.stocks.map(stock => {
+              if (stock.id === id) {
+                return {
+                  ...stock,
+                  shares,
+                  currentPrice,
+                  totalValue: shares * currentPrice,
+                };
+              }
+              return stock;
+            });
+            
+            return {
+              stocks: updatedStocks,
+              lastUpdated: Date.now(),
+            };
+          });
+        }
         
         // Recalculate totals after update
         get().recalculateTotals();
