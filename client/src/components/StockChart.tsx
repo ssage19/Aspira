@@ -715,7 +715,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
       : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
   
   return (
-    <div className="flex flex-col h-full bg-gray-900 rounded-md p-2">
+    <div className="flex flex-col h-full bg-gray-900 dark:bg-gray-900 rounded-md p-2">
       {/* Timeframe selector */}
       <div className="flex justify-end mb-1 gap-1">
         <button 

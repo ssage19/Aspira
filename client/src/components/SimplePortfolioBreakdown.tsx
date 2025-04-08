@@ -265,14 +265,14 @@ export function SimplePortfolioBreakdown() {
             >
               <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
             </Button>
-            <span className="text-base font-normal text-gray-600">{formatCurrency(displayTotal)}</span>
+            <span className="text-base font-normal text-foreground-muted">{formatCurrency(displayTotal)}</span>
           </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-4">
         {/* Asset Categories Breakdown */}
         {assetCategories.map((category, catIndex) => (
-          <div key={catIndex} className={catIndex > 0 ? "mt-4 pt-3 border-t border-gray-200" : ""}>
+          <div key={catIndex} className={catIndex > 0 ? "mt-4 pt-3 border-t border-border" : ""}>
             {/* Category Header */}
             <div className="flex items-center gap-2 mb-2">
               <div className={`p-1 rounded ${category.color} bg-opacity-20`}>
@@ -293,7 +293,7 @@ export function SimplePortfolioBreakdown() {
                 <table className="w-full border-separate border-spacing-y-1">
                   <tbody>
                     {category.items.map((asset, index) => (
-                      <tr key={index} className="border-b border-gray-100 last:border-0">
+                      <tr key={index} className="border-b border-border/50 last:border-0">
                         <td className="py-1">
                           <div className="flex items-center">
                             <div className={`w-2 h-2 rounded-full ${asset.color} mr-2`}></div>
@@ -309,7 +309,7 @@ export function SimplePortfolioBreakdown() {
                   </tbody>
                 </table>
               ) : (
-                <p className="text-xs text-gray-500 italic py-1">
+                <p className="text-xs text-foreground-muted italic py-1">
                   {category.title === "Liquid Assets" 
                     ? "No additional liquid assets"
                     : category.title === "Investments" 
@@ -324,13 +324,13 @@ export function SimplePortfolioBreakdown() {
         ))}
         
         {/* Financial health indicators */}
-        <div className="mt-4 pt-3 border-t border-gray-200">
-          <h4 className="text-sm font-medium text-gray-700 mb-2">Financial Health</h4>
+        <div className="mt-4 pt-3 border-t border-border">
+          <h4 className="text-sm font-medium text-foreground mb-2">Financial Health</h4>
           
           <div className="grid grid-cols-2 gap-4">
             {/* Cash Ratio */}
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Cash Ratio</span>
+              <span className="text-foreground-muted">Cash Ratio</span>
               <span className={`font-medium ${
                 ((characterCash) / calculatedTotal) > 0.15 ? 'text-green-600' : 
                 ((characterCash) / calculatedTotal) > 0.05 ? 'text-amber-600' : 
@@ -341,7 +341,7 @@ export function SimplePortfolioBreakdown() {
             
             {/* Investment Diversification */}
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">Diversification</span>
+              <span className="text-foreground-muted">Diversification</span>
               <span className={`font-medium ${
                 assetCategories.filter(category => category.totalValue > 0 && category.title !== "Liquid Assets").length > 1 
                 ? 'text-green-600' 

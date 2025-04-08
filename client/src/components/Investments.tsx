@@ -472,12 +472,12 @@ export function Investments() {
                     ? 'bg-accessible-green/10 text-accessible-green' 
                     : priceChangePercent < 0 
                       ? 'bg-accessible-red/10 text-accessible-red' 
-                      : 'bg-gray-100'
+                      : 'bg-accent-muted'
                 }`}>
                   {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
                 </span>
               </h3>
-              <div className="h-40 mb-3 border p-1 rounded-md bg-white">
+              <div className="h-40 mb-3 border p-1 rounded-md bg-background">
                 <StockChart 
                   stockId={selectedStock.id}
                   currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
@@ -485,13 +485,13 @@ export function Investments() {
                   volatility={selectedStock.volatility}
                 />
               </div>
-              <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
+              <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
               <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="bg-gray-50 p-2 rounded">
+                <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500">Current Price</p>
                   <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
                 </div>
-                <div className="bg-gray-50 p-2 rounded">
+                <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500">Owned Value</p>
                   <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
                 </div>
@@ -507,7 +507,7 @@ export function Investments() {
               <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>
               
               {/* Portfolio Summary */}
-              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+              <div className="bg-muted p-3 rounded-md mb-3 border">
                 <div className="flex justify-between items-center">
                   <p className="text-sm font-medium">Total Stocks:</p>
                   <p className="font-semibold">{assets.filter(a => a.type === 'stock').length}</p>
@@ -596,7 +596,7 @@ export function Investments() {
                       );
                     })
                 ) : (
-                  <div className="p-4 text-center bg-gray-50 rounded-md">
+                  <div className="p-4 text-center bg-muted rounded-md">
                     <p className="text-gray-500">You don't own any stocks yet</p>
                     <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
                   </div>
@@ -612,12 +612,12 @@ export function Investments() {
                     ? 'bg-accessible-green/10 text-accessible-green' 
                     : priceChangePercent < 0 
                       ? 'bg-accessible-red/10 text-accessible-red' 
-                      : 'bg-gray-100'
+                      : 'bg-accent-muted'
                 }`}>
                   {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
                 </span>
               </h3>
-              <div className="h-40 mb-3 border p-1 rounded-md bg-white">
+              <div className="h-40 mb-3 border p-1 rounded-md bg-background">
                 <StockChart 
                   stockId={selectedStock.id}
                   currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
@@ -625,13 +625,13 @@ export function Investments() {
                   volatility={selectedStock.volatility}
                 />
               </div>
-              <p className="text-sm mb-3 bg-gray-50 p-2 rounded">{selectedStock.description}</p>
+              <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
               <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="bg-gray-50 p-2 rounded">
+                <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500">Current Price</p>
                   <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
                 </div>
-                <div className="bg-gray-50 p-2 rounded">
+                <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500">Owned Value</p>
                   <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
                 </div>
@@ -645,7 +645,7 @@ export function Investments() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <h3 className="font-semibold mb-2 text-lg">Performance Analysis</h3>
-              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+              <div className="bg-muted p-3 rounded-md mb-3 border">
                 <h4 className="font-medium mb-2">Top Performers</h4>
                 {assets.filter(a => a.type === 'stock').length > 0 ? (
                   <div className="space-y-2">
@@ -670,7 +670,7 @@ export function Investments() {
                       .map(item => {
                         if (!item) return null;
                         return (
-                          <div key={`top-${item.asset.id}`} className="flex justify-between items-center p-2 bg-white rounded border">
+                          <div key={`top-${item.asset.id}`} className="flex justify-between items-center p-2 bg-background rounded border">
                             <span className="font-medium">{item.stock.name}</span>
                             <span className={`text-sm font-semibold ${
                               item.profitLossPercent > 0 ? 'text-accessible-green' : 'text-accessible-red'
@@ -686,7 +686,7 @@ export function Investments() {
                 )}
               </div>
               
-              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+              <div className="bg-muted p-3 rounded-md mb-3 border">
                 <h4 className="font-medium mb-2">Sector Distribution</h4>
                 {assets.filter(a => a.type === 'stock').length > 0 ? (
                   <div className="space-y-2">
@@ -763,9 +763,9 @@ export function Investments() {
                   <div className="mt-2 space-y-1">
                     <p className="text-xs font-medium">Recommended Sectors:</p>
                     <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Technology</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Consumer Discretionary</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Communication Services</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Technology</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Consumer Discretionary</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Communication Services</span>
                     </div>
                   </div>
                 </div>
@@ -783,16 +783,16 @@ export function Investments() {
                   <div className="mt-2 space-y-1">
                     <p className="text-xs font-medium">Recommended Sectors:</p>
                     <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Utilities</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Consumer Staples</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Healthcare</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Utilities</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Consumer Staples</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Healthcare</span>
                     </div>
                   </div>
                 </div>
               )}
               
               {marketTrend === 'stable' && (
-                <div className="p-3 bg-gray-100 rounded-md border border-gray-200 mb-3">
+                <div className="p-3 bg-muted rounded-md border border-gray-200 mb-3">
                   <h4 className="font-medium flex items-center">
                     <ChartBar className="h-4 w-4 mr-1" />
                     Stable Market Strategy
@@ -803,15 +803,15 @@ export function Investments() {
                   <div className="mt-2 space-y-1">
                     <p className="text-xs font-medium">Recommended Approach:</p>
                     <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Diversification</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Value Investing</span>
-                      <span className="px-2 py-0.5 bg-gray-100 rounded-full text-xs">Mixed Portfolio</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Diversification</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Value Investing</span>
+                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Mixed Portfolio</span>
                     </div>
                   </div>
                 </div>
               )}
               
-              <div className="bg-gray-50 p-3 rounded-md mb-3 border">
+              <div className="bg-muted p-3 rounded-md mb-3 border">
                 <h4 className="font-medium mb-2">Volatility Spectrum</h4>
                 <div className="flex items-center mb-1">
                   <span className="text-xs w-24">Low Risk</span>
@@ -874,7 +874,7 @@ export function Investments() {
               className={`px-4 py-2 rounded-l-md border text-center w-1/2 cursor-pointer ${
                 buyMode === 'amount' 
                   ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
-                  : 'bg-gray-50 border-gray-200'
+                  : 'bg-muted border-gray-200'
               }`}
             >
               By Amount
@@ -884,7 +884,7 @@ export function Investments() {
               className={`px-4 py-2 rounded-r-md border text-center w-1/2 cursor-pointer ${
                 buyMode === 'shares' 
                   ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
-                  : 'bg-gray-50 border-gray-200'
+                  : 'bg-muted border-gray-200'
               }`}
             >
               By Shares
@@ -892,7 +892,7 @@ export function Investments() {
           </div>
           
           {buyMode === 'amount' ? (
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-muted p-3 rounded-md">
               <label className="block text-sm font-medium mb-2" id="investment-amount-label">
                 Investment Amount: <span className="font-semibold">{formatCurrency(investmentAmount)}</span>
               </label>
@@ -926,7 +926,7 @@ export function Investments() {
               </div>
             </div>
           ) : (
-            <div className="bg-gray-50 p-3 rounded-md">
+            <div className="bg-muted p-3 rounded-md">
               <label className="block text-sm font-medium mb-2" id="shares-quantity-label">
                 Number of Shares: <span className="font-semibold">{shareQuantity.toFixed(2)}</span>
               </label>
