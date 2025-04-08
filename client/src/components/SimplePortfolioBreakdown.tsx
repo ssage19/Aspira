@@ -113,72 +113,106 @@ export function SimplePortfolioBreakdown() {
   }, [totalCash, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, 
       totalPropertyEquity, totalLifestyleValue, totalNetWorth]);
   
-  // Update the display when any of the asset values change
+  // Immediately refresh values when component mounts
   useEffect(() => {
-    // Force a refresh of asset values from the source of truth
+    console.log("SimplePortfolioBreakdown: Component mounted");
+    
+    // First sync character assets with asset tracker (investments, properties, etc.)
+    useCharacter.getState().syncAssetsWithAssetTracker();
+    
+    // Then force a refresh of asset values from the source of truth
     useAssetTracker.getState().recalculateTotals();
     
-    // Then update the categories with fresh data
+    // Update the categories with fresh data
     updateAssetCategories();
     
-    console.log("Portfolio breakdown updated with latest asset values:", {
+    console.log("Portfolio breakdown initial update:", {
+      cash: totalCash,
+      stocks: totalStocks,
+      netWorth: totalNetWorth
+    });
+  }, []);
+  
+  // Update the display when any of the asset values change
+  useEffect(() => {
+    console.log("Portfolio breakdown detected value changes:", {
       cash: totalCash,
       stocks: totalStocks,
       netWorth: totalNetWorth
     });
     
-    // Set up a frequent refresh timer to keep values updated
+    // Update categories whenever values change
+    updateAssetCategories();
+    
+    // Set up a refresh timer but at a reduced frequency to avoid performance issues
     const intervalId = setInterval(() => {
-      // Force recalculation of asset values
-      useAssetTracker.getState().recalculateTotals();
-      
-      // Then sync character assets with asset tracker
+      // First sync assets
       useCharacter.getState().syncAssetsWithAssetTracker();
       
-      // Finally, update the display with the latest values
+      // Then recalculate totals 
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Finally, update the local UI
       updateAssetCategories();
-    }, 500); // Update twice per second
+      
+      console.log("Portfolio breakdown periodic update:", {
+        stocks: useAssetTracker.getState().totalStocks,
+        netWorth: useAssetTracker.getState().totalNetWorth
+      });
+    }, 3000); // Update every 3 seconds (reduced from 500ms)
     
     // Clean up the interval when the component unmounts
     return () => clearInterval(intervalId);
-  }, [updateAssetCategories, totalCash, totalStocks, totalNetWorth]);
+  }, [updateAssetCategories, totalCash, totalStocks, totalCrypto, totalBonds, 
+      totalOtherInvestments, totalPropertyEquity, totalPropertyValue, totalLifestyleValue, totalNetWorth]);
   
-  // Handle manual refresh - also show a toast message
+  // Enhanced manual refresh - more aggressive about getting fresh data
   const handleRefresh = async () => {
     setIsLoading(true);
     
-    // Log the values before refresh for debugging
     console.log("🔄 PORTFOLIO REFRESH INITIATED", {
       currentStocks: totalStocks,
       currentNetWorth: totalNetWorth,
-      currentCash: totalCash,
-      timestamp: new Date().toISOString()
+      currentCash: totalCash
     });
     
     try {
-      // Use the global asset refresh context to trigger a comprehensive refresh
-      // This is the most reliable way to refresh all values
+      // First, ensure character assets are synced with asset tracker
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
+      // Then, force asset tracker to recalculate everything
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Use the global refresh to make sure all components update
       await triggerRefresh();
       
-      // Force a UI update by setting local state directly
-      // Take a snapshot of the refreshed values
-      const updated = useAssetTracker.getState();
-      setDisplayTotal(updated.totalNetWorth);
+      // Add a slight delay to ensure updates are processed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      // Force another sync from character to asset tracker (important after investments change)
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
+      // Recalculate totals again after syncing
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Get the latest values
+      const assetTracker = useAssetTracker.getState();
+      
+      // Force a UI update with the very latest values
+      setDisplayTotal(assetTracker.totalNetWorth);
       
       // Update our local categories with latest data
       updateAssetCategories();
       
-      // Log the values after refresh
-      console.log("✅ PORTFOLIO REFRESH COMPLETE", {
-        updatedStocks: updated.totalStocks,
-        updatedNetWorth: updated.totalNetWorth,
-        updatedCash: updated.totalCash,
-        timestamp: new Date().toISOString()
+      console.log("✅ PORTFOLIO REFRESH COMPLETE - LATEST VALUES:", {
+        stocks: assetTracker.totalStocks,
+        netWorth: assetTracker.totalNetWorth,
+        cash: assetTracker.totalCash
       });
       
-      // Show visual feedback with the new value
-      toast.success(`Portfolio refreshed: ${formatCurrency(updated.totalNetWorth)}`, {
-        duration: 3000,
+      // Show visual feedback
+      toast.success(`Portfolio refreshed: ${formatCurrency(assetTracker.totalNetWorth)}`, {
+        duration: 2000,
         position: "bottom-center"
       });
     } catch (error) {
@@ -188,7 +222,7 @@ export function SimplePortfolioBreakdown() {
         position: "bottom-center"
       });
     } finally {
-      setTimeout(() => setIsLoading(false), 500);
+      setTimeout(() => setIsLoading(false), 300);
     }
   };
   

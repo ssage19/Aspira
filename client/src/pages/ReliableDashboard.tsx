@@ -106,13 +106,28 @@ export default function ReliableDashboard() {
   useEffect(() => {
     console.log("🚀 RELIABLE DASHBOARD: Component mounted");
     
+    // Force sync between character and asset tracker on dashboard load
+    // This is critical when returning from the investments screen
+    useCharacter.getState().syncAssetsWithAssetTracker();
+    useAssetTracker.getState().recalculateTotals();
+    
     // One-time initial data load with a small delay to ensure state is ready
     const initialTimeout = setTimeout(() => {
+      // Force another sync before loading data
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Update dashboard with fresh data
       refreshDashboardData();
     }, 100);
     
     // Reduced frequency interval to prevent performance issues
     const refreshInterval = setInterval(() => {
+      // Sync data before each refresh
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Then update the UI
       refreshDashboardData();
     }, 5000); // Reduced to every 5 seconds to prevent freezing
     
@@ -123,12 +138,31 @@ export default function ReliableDashboard() {
     };
   }, [refreshDashboardData]);
   
-  // Refresh when triggering a manual refresh
-  const handleManualRefresh = () => {
-    toast.info("Refreshing dashboard data...");
-    refreshDashboardData();
-    // Also increment refresh trigger to force child components to refresh
-    setRefreshTrigger(prev => prev + 1);
+  // Enhanced manual refresh - performs a thorough refresh of all data
+  const handleManualRefresh = async () => {
+    toast.info("Performing deep data refresh...");
+    
+    try {
+      // First sync character assets with asset tracker
+      useCharacter.getState().syncAssetsWithAssetTracker();
+      
+      // Force asset tracker to recalculate totals
+      useAssetTracker.getState().recalculateTotals();
+      
+      // Perform global refresh via the asset refresh provider
+      await triggerRefresh();
+      
+      // Update the dashboard UI with fresh data
+      refreshDashboardData();
+      
+      // Increment refresh trigger to force child components to refresh
+      setRefreshTrigger(prev => prev + 1);
+      
+      toast.success("Dashboard refreshed with latest data");
+    } catch (error) {
+      console.error("Error during manual refresh:", error);
+      toast.error("Refresh failed. Please try again.");
+    }
   };
   
   // ------------------- DATE FORMATTING -----------------
