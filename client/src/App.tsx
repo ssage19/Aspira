@@ -15,7 +15,6 @@ import PropertyScreen from "./pages/PropertyScreen";
 import AchievementsScreen from "./pages/AchievementsScreen";
 import JobScreen from "./pages/JobScreen";
 import TestPage from "./pages/TestPage";
-import GamePage from "./pages/GamePage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
 import { EventDebugger } from "./components/EventDebugger";
@@ -273,7 +272,6 @@ function App() {
               <Route path="/lifestyle" element={<LifestyleScreen />} />
               <Route path="/properties" element={<PropertyScreen />} />
               <Route path="/achievements" element={<AchievementsScreen />} />
-              <Route path="/game" element={<GamePage />} />
               <Route path="/test" element={<TestPage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
