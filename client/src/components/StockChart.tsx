@@ -2,8 +2,10 @@ import { useState, useEffect, useRef } from 'react';
 import { 
   ResponsiveContainer,
   ComposedChart,
+  LineChart,
+  Line,
+  BarChart,
   Bar,
-  Cell,
   XAxis, 
   YAxis, 
   CartesianGrid, 
@@ -14,6 +16,14 @@ import {
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { VolatilityLevel } from '../lib/data/investments';
+
+/**
+ * Stock Chart Component
+ * Displays stock price information in three different timeframes:
+ * - Daily: Shows price fluctuations throughout a single day
+ * - Weekly: Shows prices for Monday-Friday of each week
+ * - Monthly: Shows end-of-month prices for a longer time period
+ */
 
 // Chart timeframe options
 type TimeFrame = 'daily' | 'weekly' | 'monthly';
@@ -43,6 +53,9 @@ interface CandlestickData {
   height?: number;
   color?: string;
   y0?: number;
+  // Display formatting
+  displayTime?: string;
+  value?: number;
 }
 
 export function StockChart({ stockId, currentPrice, basePrice, volatility }: StockChartProps) {
@@ -450,84 +463,6 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
         lastUpdatedYear: currentYear
       };
       
-    } else {
-      // Just update the current day's data
-      const cachedDailyData = [...previousDataRef.current.dailyData];
-      
-      // Update or add the current day's price
-      const currentDayIndex = cachedDailyData.findIndex(d => 
-        d.day === currentDay && d.month === currentMonth && d.year === currentYear
-      );
-      
-      if (currentDayIndex >= 0) {
-        const existingPoint = cachedDailyData[currentDayIndex];
-        // Keep the open price, update close to current
-        // Adjust high/low if needed
-        const high = Math.max(existingPoint.high, currentPrice);
-        const low = Math.min(existingPoint.low, currentPrice);
-        
-        cachedDailyData[currentDayIndex] = {
-          ...existingPoint,
-          close: currentPrice,
-          high,
-          low
-        };
-      } else {
-        // If this is a new day, use the last close as today's open
-        const lastPoint = cachedDailyData[cachedDailyData.length - 1];
-        const openPrice = lastPoint ? lastPoint.close : basePrice;
-        
-        // Create realistic high/low for new day
-        const dailyRange = volatilityFactor * 0.5;
-        const high = Math.max(openPrice, currentPrice) * (1 + dailyRange * 0.5);
-        const low = Math.min(openPrice, currentPrice) * (1 - dailyRange * 0.5);
-        
-        // Format date based on current timeframe
-        const currentDateObj = new Date(currentYear, currentMonth - 1, currentDay);
-        const formattedDate = formatDate(currentDateObj, 'daily');
-        const weekNumber = getWeekNumber(currentDateObj);
-        
-        cachedDailyData.push({
-          day: currentDay,
-          date: formattedDate,
-          open: openPrice,
-          close: currentPrice,
-          high: parseFloat(high.toFixed(2)),
-          low: parseFloat(low.toFixed(2)),
-          volume: Math.floor(50000 + 200000 * Math.random() * 0.8),
-          month: currentMonth,
-          year: currentYear,
-          weekNumber: weekNumber
-        });
-      }
-      
-      // Only keep the last 90 days of data
-      const finalDailyData = cachedDailyData
-        .slice(-90)
-        .sort((a, b) => {
-          if (a.year !== b.year) return a.year! - b.year!;
-          if (a.month !== b.month) return a.month! - b.month!;
-          return a.day - b.day;
-        });
-      
-      // Update weekly and monthly views
-      const updatedWeeklyData = aggregateToWeekly(finalDailyData);
-      const updatedMonthlyData = aggregateToMonthly(finalDailyData);
-      
-      // Update state
-      setDailyData(finalDailyData.slice(-20)); // Last 20 days for daily view
-      setWeeklyData(updatedWeeklyData.slice(-12)); // Last 12 weeks
-      setMonthlyData(updatedMonthlyData.slice(-6)); // Last 6 months
-      
-      // Cache updated data
-      previousDataRef.current = {
-        ...previousDataRef.current,
-        dailyData: finalDailyData,
-        weeklyData: updatedWeeklyData,
-        monthlyData: updatedMonthlyData,
-        lastUpdatedMonth: currentMonth,
-        lastUpdatedYear: currentYear
-      };
     }
   }, [currentDay, stockId, currentPrice, basePrice, volatility, marketTrend, currentMonth, currentYear]);
   
@@ -546,6 +481,52 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     }
     // Otherwise show whole dollars
     return `$${value.toFixed(0)}`;
+  };
+  
+  // Format data for each specific timeframe view
+  const formatDailyData = (data: CandlestickData[]) => {
+    // For daily view, we'll use the raw data points but update the display format
+    return data.map((point, index) => {
+      // For daily view, format time as hours
+      const date = new Date();
+      date.setHours(9 + Math.floor(index * 8 / data.length)); // Spread across trading hours (9am-5pm)
+      date.setMinutes(0);
+      
+      return {
+        ...point,
+        hour: date.getHours(),
+        // Format time as HH:MM
+        displayTime: `${date.getHours()}:00`,
+        value: point.close, // For line chart
+      };
+    });
+  };
+  
+  const formatWeeklyData = (data: CandlestickData[]) => {
+    // For weekly, use weekday labels (Mon-Fri)
+    return data.map(point => {
+      // Use day of week
+      const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+      // Assign a weekday name based on position in the array
+      const dayName = dayNames[data.indexOf(point) % 5];
+      
+      return {
+        ...point,
+        displayTime: dayName,
+        value: point.close, // For line chart
+      };
+    });
+  };
+  
+  const formatMonthlyData = (data: CandlestickData[]) => {
+    // For monthly, use month names
+    return data.map(point => {
+      return {
+        ...point,
+        displayTime: point.date, // Already formatted as month name
+        value: point.close, // For line chart
+      };
+    });
   };
   
   // Custom tooltip
@@ -579,24 +560,35 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return null;
   };
   
-  // Determine which data to display based on selected timeframe
+  // Get and format data for the current selected timeframe
   const getDisplayData = () => {
     switch(selectedTimeframe) {
       case 'daily':
-        return dailyData;
+        return formatDailyData(dailyData);
       case 'weekly':
-        return weeklyData;
+        return formatWeeklyData(weeklyData);
       case 'monthly':
-        return monthlyData;
+        return formatMonthlyData(monthlyData);
       default:
-        return dailyData;
+        return formatDailyData(dailyData);
     }
   };
   
   // Handle timeframe selection
   const handleTimeframeChange = (timeframe: TimeFrame) => {
+    console.log(`Switching to ${timeframe} timeframe view`);
     setSelectedTimeframe(timeframe);
   };
+  
+  // Debug our timeframe data when it changes
+  useEffect(() => {
+    console.log(`Current timeframe: ${selectedTimeframe}`);
+    console.log(`Data points for ${selectedTimeframe}:`, 
+      selectedTimeframe === 'daily' ? dailyData.length : 
+      selectedTimeframe === 'weekly' ? weeklyData.length : 
+      monthlyData.length
+    );
+  }, [selectedTimeframe, dailyData, weeklyData, monthlyData]);
   
   // Determine colors based on stock performance
   const isPositive = (d: CandlestickData) => d.close >= d.open;
@@ -693,7 +685,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           >
             <CartesianGrid strokeDasharray="3 3" opacity={0.1} /> 
             <XAxis 
-              dataKey="date" 
+              dataKey="displayTime" 
               tick={{fontSize: 10}}
               tickLine={false}
               axisLine={false}
@@ -797,5 +789,3 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     </div>
   );
 }
-
-export default StockChart;
