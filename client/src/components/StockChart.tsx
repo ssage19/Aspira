@@ -20,14 +20,12 @@ import { VolatilityLevel } from '../lib/data/investments';
 
 /**
  * Stock Chart Component
- * Displays stock price information in three different timeframes:
- * - Daily: Shows price fluctuations throughout a single day
- * - Weekly: Shows prices for Monday-Friday of each week
- * - Monthly: Shows end-of-month prices for a longer time period
+ * Displays stock price information in a daily timeframe:
+ * - Daily: Shows price fluctuations throughout a single trading day (9am-4pm)
  */
 
-// Chart timeframe options
-type TimeFrame = 'daily' | 'weekly' | 'monthly';
+// Chart timeframe options (simplified to only daily)
+type TimeFrame = 'daily';
 
 // Chart type component props
 interface StockChartProps {
@@ -124,32 +122,12 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     
-    switch (timeframe) {
-      case 'daily':
-        // Include hours for daily view
-        const hours = Math.floor(Math.random() * 8) + 9; // Simulate market hours (9am-5pm)
-        return `${month}/${day} ${hours}:00`;
-      
-      case 'weekly':
-        // Use day of week for weekly view (Mon-Fri only)
-        // Skip weekend days in simulation
-        if (dayOfWeek === 0 || dayOfWeek === 6) {
-          // Move to Friday for weekend days
-          return `${weekdays[5]}`;
-        }
-        return `${weekdays[dayOfWeek]}`;
-      
-      case 'monthly':
-        // Use month name with year if different from current
-        const year = targetDate.getFullYear();
-        if (year !== currentYear) {
-          return `${monthNames[month-1]} '${year.toString().substr(2)}`;
-        }
-        return monthNames[month-1];
-        
-      default:
-        return `${month}/${day}`;
-    }
+    // For daily view only: include market hours (9am-4pm)
+    const hour = 9 + Math.floor(Math.random() * 8); // Hours between 9am-4pm
+    const minute = Math.floor(Math.random() * 60).toString().padStart(2, '0');
+    return `${month}/${day} ${hour}:${minute}`;
+    
+    // Note: We've removed weekly and monthly cases since we're only using daily view now
   };
   
   // Format a day number relative to the current date
@@ -622,35 +600,16 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return null;
   };
   
-  // Get and format data for the current selected timeframe
+  // Get and format data for the daily timeframe (only option now)
   const getDisplayData = () => {
-    switch(selectedTimeframe) {
-      case 'daily':
-        return formatDailyData(dailyData);
-      case 'weekly':
-        return formatWeeklyData(weeklyData);
-      case 'monthly':
-        return formatMonthlyData(monthlyData);
-      default:
-        return formatDailyData(dailyData);
-    }
-  };
-  
-  // Handle timeframe selection
-  const handleTimeframeChange = (timeframe: TimeFrame) => {
-    console.log(`Switching to ${timeframe} timeframe view`);
-    setSelectedTimeframe(timeframe);
+    return formatDailyData(dailyData);
   };
   
   // Debug our timeframe data when it changes
   useEffect(() => {
-    console.log(`Current timeframe: ${selectedTimeframe}`);
-    console.log(`Data points for ${selectedTimeframe}:`, 
-      selectedTimeframe === 'daily' ? dailyData.length : 
-      selectedTimeframe === 'weekly' ? weeklyData.length : 
-      monthlyData.length
-    );
-  }, [selectedTimeframe, dailyData, weeklyData, monthlyData]);
+    console.log(`Current timeframe: daily`);
+    console.log(`Data points: ${dailyData.length}`);
+  }, [dailyData]);
   
   // Determine colors based on stock performance
   const isPositive = (d: CandlestickData) => d.close >= d.open;
@@ -709,33 +668,12 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     return [roundedMin, roundedMax];
   };
   
-  const timeframeButtonClass = (tf: TimeFrame) => 
-    `px-2 py-1 text-xs font-medium ${selectedTimeframe === tf 
-      ? 'bg-blue-600 text-white' 
-      : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`;
-  
   return (
     <div className="flex flex-col h-full bg-gray-900 dark:bg-gray-900 rounded-md p-2">
-      {/* Timeframe selector */}
-      <div className="flex justify-end mb-1 gap-1">
-        <button 
-          className={timeframeButtonClass('daily')}
-          onClick={() => handleTimeframeChange('daily')}
-        >
-          1D
-        </button>
-        <button 
-          className={timeframeButtonClass('weekly')}
-          onClick={() => handleTimeframeChange('weekly')}
-        >
-          1W
-        </button>
-        <button 
-          className={timeframeButtonClass('monthly')}
-          onClick={() => handleTimeframeChange('monthly')}
-        >
-          1M
-        </button>
+      {/* Chart title - NYSE trading hours */}
+      <div className="flex justify-between items-center mb-1 px-1">
+        <div className="text-xs text-gray-400">NYSE Hours (9AM-4PM)</div>
+        <div className="text-xs font-medium px-2 py-1 bg-blue-600 text-white rounded">Daily</div>
       </div>
       
       {/* Chart */}
@@ -806,7 +744,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
                   { x: index, y: entry.close }
                 ]}
                 stroke={entry.color}
-                strokeWidth={selectedTimeframe === 'daily' ? 6 : selectedTimeframe === 'weekly' ? 8 : 10}
+                strokeWidth={6}
               />
             ))}
           </ComposedChart>
