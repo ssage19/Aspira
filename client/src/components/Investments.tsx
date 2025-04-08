@@ -19,8 +19,12 @@ export function Investments() {
   const { wealth, addWealth, addAsset, sellAsset, assets } = useCharacter();
   const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
   const { currentDay } = useTime();
-  const { playSuccess, playHit } = useAudio();
+  const audio = useAudio();
   const assetTracker = useAssetTracker();
+  
+  // Handle audio functions safely
+  const playSuccess = () => audio.playSound && audio.playSound('success');
+  const playHit = () => audio.playSound && audio.playSound('hit');
   
   const [selectedStock, setSelectedStock] = useState<Stock>(expandedStockMarket[0]);
   const [investmentAmount, setInvestmentAmount] = useState(1000);
@@ -191,6 +195,13 @@ export function Investments() {
     // subtracts the cost from wealth. Adding it here would subtract it twice.
     playSuccess();
     toast.success(`Purchased ${quantity.toFixed(2)} shares of ${selectedStock.name}`);
+    
+    // Critical: Use the global update function to ensure all components
+    // have the latest data immediately after purchase
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after purchase");
+      (window as any).globalUpdateAllPrices();
+    }
   };
 
   const handleSell = () => {
@@ -236,6 +247,13 @@ export function Investments() {
       toast.success(`Sold ${quantityToSell.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(sellValue)}`);
     } else {
       toast.success(`Sold all ${ownedQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(sellValue)}`);
+    }
+    
+    // Critical: Use the global update function to ensure all components
+    // have the latest data immediately after sale
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after sale");
+      (window as any).globalUpdateAllPrices();
     }
   };
 

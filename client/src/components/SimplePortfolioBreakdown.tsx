@@ -245,18 +245,23 @@ export function SimplePortfolioBreakdown() {
     };
   }, [updatePortfolioData]);
   
-  // Handle manual refresh - uses our unified updatePortfolioData function
+  // Handle manual refresh - now uses the global update function
   const handleRefresh = () => {
     setIsLoading(true);
     
     try {
-      console.log("Manual refresh - Performing full synchronization...");
+      console.log("Manual refresh - Performing global synchronization...");
       
-      // Force asset tracker to update its own totals first
-      useAssetTracker.getState().forceUpdate();
-      
-      // Use the same update function as our automatic updates for consistency
-      updatePortfolioData();
+      // Use the global update function if available
+      if ((window as any).globalUpdateAllPrices) {
+        console.log("SimplePortfolioBreakdown: Using global price update function");
+        (window as any).globalUpdateAllPrices();
+      } else {
+        // Fallback to local updates if global function not available
+        console.log("Global update function not available, using fallback");
+        useAssetTracker.getState().forceUpdate();
+        updatePortfolioData();
+      }
       
       console.log("Manual refresh completed successfully");
     } catch (error) {

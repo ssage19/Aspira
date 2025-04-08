@@ -610,7 +610,20 @@ export const useAssetTracker = create<AssetTrackerState>()(
         
         // Also update the breakdown in localStorage directly
         try {
-          const breakdown = get().getNetWorthBreakdown();
+          // Create the breakdown directly instead of calling getNetWorthBreakdown to avoid circular dependencies
+          const breakdown = {
+            cash: state.totalCash,
+            stocks: totalStocks,
+            crypto: totalCrypto,
+            bonds: totalBonds,
+            otherInvestments: totalOtherInvestments,
+            propertyEquity: totalPropertyEquity,
+            propertyValue: totalPropertyValue,
+            propertyDebt: totalPropertyDebt,
+            lifestyleItems: totalLifestyleValue,
+            total: totalNetWorth,
+            version: Date.now(),
+          };
           localStorage.setItem('business-empire-networth-breakdown', JSON.stringify(breakdown));
         } catch (e) {
           console.error('Error saving net worth breakdown to localStorage:', e);
@@ -761,12 +774,9 @@ export const useAssetTracker = create<AssetTrackerState>()(
       getNetWorthBreakdown: () => {
         const state = get();
         
-        // First ensure totals are calculated
-        if (state.lastUpdated < Date.now() - 1000) {
-          // If data is older than 1 second, recalculate
-          state.recalculateTotals();
-        }
-        
+        // Return the current state values without recalculating
+        // This prevents infinite update loops when multiple components
+        // access the breakdown simultaneously
         return {
           cash: state.totalCash,
           stocks: state.totalStocks,

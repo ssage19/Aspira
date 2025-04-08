@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useCallback, useRef } from 'react';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import useAssetTracker from '../lib/stores/useAssetTracker';
@@ -30,58 +30,13 @@ export function MarketPriceUpdater() {
   const { marketTrend, stockMarketHealth } = useEconomy();
   const { currentDay } = useTime();
   const assetTracker = useAssetTracker();
-  const { assets } = useCharacter();
-
-  // Update all market prices on a regular interval
-  useEffect(() => {
-    console.log("Market price updater initializing...");
-    
-    // Function to update all asset prices
-    const updateAllPrices = () => {
-      console.log("MarketPriceUpdater: Running periodic price update");
-      
-      // 1. Calculate updated stock prices based on market conditions
-      const updatedStockPrices: Record<string, number> = {};
-      
-      expandedStockMarket.forEach(stock => {
-        // Base price influenced by market health and stock volatility
-        const volatilityFactor = getVolatilityFactor(stock.volatility);
-        const marketFactor = getMarketFactor(marketTrend);
-        const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
-        
-        // Calculate new price with some randomness
-        let newPrice = stock.basePrice * marketFactor;
-        newPrice += newPrice * timeFactor;
-        newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
-        
-        // Ensure price doesn't go too low
-        newPrice = Math.max(newPrice, stock.basePrice * 0.1);
-        
-        updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
-      });
-      
-      // 2. Update asset tracker with the new prices for owned assets
-      syncAssetTrackerStockPrices(updatedStockPrices);
-      
-      // 3. Update other asset types (future enhancement)
-      updateOtherAssetPrices();
-    };
-    
-    // Run the update immediately
-    updateAllPrices();
-    
-    // Then set up an interval to run updates periodically (every 5 seconds)
-    const updateInterval = setInterval(updateAllPrices, 5000);
-    
-    // Clean up the interval when component unmounts
-    return () => {
-      console.log("MarketPriceUpdater: Cleaning up price update interval");
-      clearInterval(updateInterval);
-    };
-  }, [currentDay, marketTrend, stockMarketHealth, assets]);
+  const { assets, syncAssetsWithAssetTracker } = useCharacter();
   
-  // Helper function to get volatility factor based on volatility level
-  const getVolatilityFactor = (volatility: string): number => {
+  // Ref to prevent too frequent updates
+  const lastUpdateTimeRef = useRef<number>(Date.now());
+
+  // Helper functions (memoized to avoid recreation)
+  const getVolatilityFactor = useCallback((volatility: string): number => {
     switch (volatility as VolatilityLevel) {
       case 'extreme': return 0.7;
       case 'very_high': return 0.5;
@@ -91,60 +46,17 @@ export function MarketPriceUpdater() {
       case 'very_low': return 0.05;
       default: return 0.05; // Default for unknown volatility
     }
-  };
+  }, []);
   
   // Helper function to get market factor based on market trend
-  const getMarketFactor = (trend: string): number => {
+  const getMarketFactor = useCallback((trend: string): number => {
     if (trend === 'bull') return 1.05;
     if (trend === 'bear') return 0.95;
     return 1.0; // stable
-  };
-  
-  // Function to update asset tracker stock prices
-  const syncAssetTrackerStockPrices = (prices: Record<string, number>) => {
-    // Get all owned stocks from character assets
-    const ownedStocks = assets.filter(asset => asset.type === 'stock');
-    
-    // Debug log the stocks and prices being updated
-    console.log("MarketPriceUpdater: Syncing prices for", ownedStocks.length, "stocks");
-    
-    // For each owned stock, update its price in the asset tracker
-    ownedStocks.forEach(stock => {
-      const currentPrice = prices[stock.id] || stock.currentPrice || stock.purchasePrice;
-      
-      // Only update if we have a valid price and quantity
-      if (currentPrice > 0 && stock.quantity > 0) {
-        // Update the stock's current price in the asset tracker
-        assetTracker.updateStock(stock.id, stock.quantity, currentPrice);
-        
-        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)}`);
-      }
-    });
-  };
-  
-  // Function to update other asset types (crypto, property values, etc.)
-  const updateOtherAssetPrices = () => {
-    // Update crypto assets
-    updateCryptoAssets();
-    
-    // Update bonds
-    updateBonds();
-    
-    // Update other investments
-    updateOtherInvestments();
-    
-    // Update property values (occasional small adjustments)
-    updatePropertyValues();
-    
-    // Update lifestyle items (rarely changes in value)
-    updateLifestyleItems();
-    
-    // After updating all assets, force a recalculation of totals
-    assetTracker.recalculateTotals();
-  };
-  
+  }, []);
+
   // Occasional updates to lifestyle item values (very low volatility)
-  const updateLifestyleItems = () => {
+  const updateLifestyleItems = useCallback(() => {
     // Only update very rarely (5% chance per update)
     if (Math.random() > 0.05) return;
     
@@ -190,10 +102,10 @@ export function MarketPriceUpdater() {
         console.log(`MarketPriceUpdater: Updated ${item.name} value to $${formattedValue.toFixed(2)}`);
       }
     });
-  };
+  }, [assetTracker, marketTrend]);
   
   // Update crypto asset prices
-  const updateCryptoAssets = () => {
+  const updateCryptoAssets = useCallback(() => {
     // Get all owned crypto from character assets
     const ownedCrypto = assets.filter(asset => asset.type === 'crypto');
     
@@ -222,10 +134,10 @@ export function MarketPriceUpdater() {
       
       console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${finalPrice.toFixed(2)}`);
     });
-  };
+  }, [assets, assetTracker, marketTrend]);
   
   // Update bond prices (bonds are more stable but still affected by interest rates)
-  const updateBonds = () => {
+  const updateBonds = useCallback(() => {
     // Get all owned bonds
     const ownedBonds = assets.filter(asset => asset.type === 'bond');
     
@@ -253,10 +165,10 @@ export function MarketPriceUpdater() {
       
       console.log(`MarketPriceUpdater: Updated ${bond.name} price to $${newPrice.toFixed(2)}`);
     });
-  };
+  }, [assets, assetTracker, marketTrend]);
   
   // Update other investment types
-  const updateOtherInvestments = () => {
+  const updateOtherInvestments = useCallback(() => {
     // Get all other investments - only those of type "other"
     const otherInvestments = assets.filter(asset => asset.type === 'other');
     
@@ -288,10 +200,10 @@ export function MarketPriceUpdater() {
         console.log(`MarketPriceUpdater: Updated ${investment.name} price to $${newPrice.toFixed(2)}`);
       }
     });
-  };
+  }, [assets, assetTracker, marketTrend]);
   
   // Occasionally update property values (real estate changes more slowly)
-  const updatePropertyValues = () => {
+  const updatePropertyValues = useCallback(() => {
     // Only update property values occasionally (10% chance per update)
     if (Math.random() > 0.1) return;
     
@@ -331,7 +243,141 @@ export function MarketPriceUpdater() {
         console.log(`MarketPriceUpdater: Updated ${property.name} value to $${formattedValue.toFixed(2)}`);
       }
     });
-  };
+  }, [assetTracker, marketTrend]);
+
+  // Function to update other asset types (crypto, property values, etc.)
+  const updateOtherAssetPrices = useCallback(() => {
+    // Update crypto assets
+    updateCryptoAssets();
+    
+    // Update bonds
+    updateBonds();
+    
+    // Update other investments
+    updateOtherInvestments();
+    
+    // Update property values (occasional small adjustments)
+    updatePropertyValues();
+    
+    // Update lifestyle items (rarely changes in value)
+    updateLifestyleItems();
+    
+    // After updating all assets, force a recalculation of totals
+    assetTracker.recalculateTotals();
+  }, [updateCryptoAssets, updateBonds, updateOtherInvestments, updatePropertyValues, updateLifestyleItems, assetTracker]);
+  
+  // Function to update asset tracker stock prices
+  const syncAssetTrackerStockPrices = useCallback((prices: Record<string, number>) => {
+    // Get all owned stocks from character assets
+    const ownedStocks = assets.filter(asset => asset.type === 'stock');
+    
+    // Debug log the stocks and prices being updated
+    console.log("MarketPriceUpdater: Syncing prices for", ownedStocks.length, "stocks");
+    
+    // For each owned stock, update its price in the asset tracker
+    ownedStocks.forEach(stock => {
+      const currentPrice = prices[stock.id] || stock.currentPrice || stock.purchasePrice;
+      
+      // Only update if we have a valid price and quantity
+      if (currentPrice > 0 && stock.quantity > 0) {
+        // Update the stock's current price in the asset tracker
+        assetTracker.updateStock(stock.id, stock.quantity, currentPrice);
+        
+        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)}`);
+      }
+    });
+  }, [assets, assetTracker]);
+
+  // Create a stable reference to the update function that doesn't change on renders
+  const updateAllPrices = useCallback(() => {
+    const now = Date.now();
+    
+    // Prevent updates that happen too frequently (minimum 1 second between updates)
+    if (now - lastUpdateTimeRef.current < 1000) {
+      console.log("MarketPriceUpdater: Skipping update - too soon since last update");
+      return;
+    }
+    
+    // Update the last update time
+    lastUpdateTimeRef.current = now;
+    
+    console.log("MarketPriceUpdater: Running global price update");
+    
+    // 1. Calculate updated stock prices based on market conditions
+    const updatedStockPrices: Record<string, number> = {};
+    
+    expandedStockMarket.forEach(stock => {
+      // Base price influenced by market health and stock volatility
+      const volatilityFactor = getVolatilityFactor(stock.volatility);
+      const marketFactor = getMarketFactor(marketTrend);
+      const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
+      
+      // Calculate new price with some randomness
+      let newPrice = stock.basePrice * marketFactor;
+      newPrice += newPrice * timeFactor;
+      newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
+      
+      // Ensure price doesn't go too low
+      newPrice = Math.max(newPrice, stock.basePrice * 0.1);
+      
+      updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
+    });
+    
+    // 2. Update asset tracker with the new prices for owned assets
+    syncAssetTrackerStockPrices(updatedStockPrices);
+    
+    // 3. Update other asset types
+    updateOtherAssetPrices();
+    
+    // 4. Critical: Make sure character state is synced with asset tracker
+    // This ensures Dashboard and Investment pages show the same values
+    syncAssetsWithAssetTracker();
+    
+    // 5. Final step: Force a recalculation of all totals
+    // We don't need to immediately call forceUpdate after recalculateTotals
+    // as the recalculateTotals function already updates the lastUpdated timestamp
+    assetTracker.recalculateTotals();
+    
+  }, [
+    currentDay, 
+    marketTrend, 
+    stockMarketHealth, 
+    assetTracker, 
+    syncAssetsWithAssetTracker, 
+    getVolatilityFactor, 
+    getMarketFactor,
+    syncAssetTrackerStockPrices,
+    updateOtherAssetPrices
+  ]);
+
+  // Add this function to global window object so it can be called from anywhere
+  // This creates a consistent way to refresh prices across components
+  useEffect(() => {
+    // Add the function to window for global access
+    (window as any).globalUpdateAllPrices = updateAllPrices;
+    
+    return () => {
+      // Clean up when component unmounts
+      delete (window as any).globalUpdateAllPrices;
+    };
+  }, [updateAllPrices]);
+
+  // Update all market prices on a regular interval
+  useEffect(() => {
+    console.log("Market price updater initializing...");
+    
+    // Run the update immediately
+    updateAllPrices();
+    
+    // Then set up an interval to run updates periodically (every 5 seconds)
+    const updateInterval = setInterval(updateAllPrices, 5000);
+    
+    // Clean up the interval when component unmounts
+    return () => {
+      console.log("MarketPriceUpdater: Cleaning up price update interval");
+      clearInterval(updateInterval);
+    };
+  }, [updateAllPrices]);
   
   // This component doesn't render anything - it just runs in the background
   return null;
