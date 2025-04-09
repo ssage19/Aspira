@@ -1066,6 +1066,349 @@ export const professions: Profession[] = [
     ]
   },
   
+  // Additional Technology Professions
+  {
+    id: 'ui-ux-designer',
+    name: 'UI/UX Designer',
+    category: 'technology',
+    description: 'Design user interfaces and create optimal user experiences for websites, applications, and digital products.',
+    careerPath: [
+      {
+        id: 'junior-ui-ux-designer',
+        title: 'Junior UI/UX Designer',
+        level: 'entry',
+        salary: 58000,
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        id: 'ui-ux-designer',
+        title: 'UI/UX Designer',
+        level: 'mid',
+        salary: 78000,
+        skillRequirements: { creativity: 300, intelligence: 250 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        id: 'senior-ui-ux-designer',
+        title: 'Senior UI/UX Designer',
+        level: 'senior',
+        salary: 105000,
+        skillRequirements: { creativity: 500, intelligence: 400 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        id: 'ux-director',
+        title: 'UX Director',
+        level: 'executive',
+        salary: 145000,
+        skillRequirements: { creativity: 700, intelligence: 600, charisma: 500 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 72
+      }
+    ]
+  },
+  
+  {
+    id: 'network-engineer',
+    name: 'Network Engineer',
+    category: 'technology',
+    description: 'Design, implement, and maintain computer networks, ensuring optimal performance and security.',
+    careerPath: [
+      {
+        id: 'network-technician',
+        title: 'Network Technician',
+        level: 'entry',
+        salary: 55000,
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        id: 'network-administrator',
+        title: 'Network Administrator',
+        level: 'mid',
+        salary: 75000,
+        skillRequirements: { intelligence: 300, technical: 300 },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        id: 'network-engineer',
+        title: 'Network Engineer',
+        level: 'senior',
+        salary: 98000,
+        skillRequirements: { intelligence: 500, technical: 500 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        id: 'network-architect',
+        title: 'Network Architect',
+        level: 'executive',
+        salary: 130000,
+        skillRequirements: { intelligence: 700, technical: 700 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 72
+      }
+    ]
+  },
+  
+  {
+    id: 'devops-engineer',
+    name: 'DevOps Engineer',
+    category: 'technology',
+    description: 'Bridge development and operations, automating infrastructure and streamlining software delivery processes.',
+    careerPath: [
+      {
+        id: 'junior-devops',
+        title: 'Junior DevOps Engineer',
+        level: 'entry',
+        salary: 65000,
+        skillRequirements: { },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        id: 'devops-engineer',
+        title: 'DevOps Engineer',
+        level: 'mid',
+        salary: 92000,
+        skillRequirements: { intelligence: 350, technical: 350 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        id: 'senior-devops-engineer',
+        title: 'Senior DevOps Engineer',
+        level: 'senior',
+        salary: 120000,
+        skillRequirements: { intelligence: 550, technical: 550 },
+        healthImpact: -20,
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        id: 'devops-architect',
+        title: 'DevOps Architect',
+        level: 'executive',
+        salary: 150000,
+        skillRequirements: { intelligence: 750, technical: 750 },
+        healthImpact: -25,
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 72
+      }
+    ]
+  },
+  
+  {
+    id: 'system-administrator',
+    name: 'System Administrator',
+    category: 'technology',
+    description: 'Install, configure, and maintain computer systems and servers to ensure optimal performance.',
+    careerPath: [
+      {
+        id: 'it-support-specialist',
+        title: 'IT Support Specialist',
+        level: 'entry',
+        salary: 48000,
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        id: 'system-administrator',
+        title: 'System Administrator',
+        level: 'mid',
+        salary: 70000,
+        skillRequirements: { intelligence: 300, technical: 250 },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        id: 'senior-system-administrator',
+        title: 'Senior System Administrator',
+        level: 'senior',
+        salary: 90000,
+        skillRequirements: { intelligence: 500, technical: 450 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        id: 'it-operations-manager',
+        title: 'IT Operations Manager',
+        level: 'executive',
+        salary: 120000,
+        skillRequirements: { intelligence: 650, technical: 600, charisma: 400 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 72
+      }
+    ]
+  },
+  
+  {
+    id: 'database-administrator',
+    name: 'Database Administrator',
+    category: 'technology',
+    description: 'Design, implement, maintain, and optimize database systems to ensure data integrity and performance.',
+    careerPath: [
+      {
+        id: 'database-technician',
+        title: 'Database Technician',
+        level: 'entry',
+        salary: 58000,
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        id: 'database-administrator',
+        title: 'Database Administrator',
+        level: 'mid',
+        salary: 82000,
+        skillRequirements: { intelligence: 350, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        id: 'senior-database-administrator',
+        title: 'Senior Database Administrator',
+        level: 'senior',
+        salary: 105000,
+        skillRequirements: { intelligence: 550, technical: 550 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        id: 'database-architect',
+        title: 'Database Architect',
+        level: 'executive',
+        salary: 135000,
+        skillRequirements: { intelligence: 750, technical: 750 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 72
+      }
+    ]
+  },
+  
+  {
+    id: 'qa-engineer',
+    name: 'QA Engineer',
+    category: 'technology',
+    description: 'Develop and execute test plans to ensure software quality and identify bugs before product release.',
+    careerPath: [
+      {
+        id: 'qa-tester',
+        title: 'QA Tester',
+        level: 'entry',
+        salary: 52000,
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        id: 'qa-engineer',
+        title: 'QA Engineer',
+        level: 'mid',
+        salary: 72000,
+        skillRequirements: { intelligence: 250, technical: 300 },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        id: 'senior-qa-engineer',
+        title: 'Senior QA Engineer',
+        level: 'senior',
+        salary: 95000,
+        skillRequirements: { intelligence: 450, technical: 500 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        id: 'qa-manager',
+        title: 'QA Manager',
+        level: 'executive',
+        salary: 125000,
+        skillRequirements: { intelligence: 600, technical: 650, charisma: 400 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 72
+      }
+    ]
+  },
+  
   // Additional Finance Professions
   {
     id: 'investment-banker',
@@ -2304,8 +2647,8 @@ export const professions: Profession[] = [
         description: 'Run a plumbing business handling residential and commercial contracts.',
         skillRequirements: {
           technical: 750,
-          management: 650,
-          business: 500,
+          leadership: 650,
+          charisma: 500,
           physical: 600
         },
         happinessImpact: 15,
