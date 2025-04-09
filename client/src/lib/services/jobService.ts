@@ -141,6 +141,18 @@ export function careerPathToJob(
   const companyName = company || getRandomCompany(profession.category);
   const stress = calculateJobStress(careerPath);
   
+  // Use explicit skill gains if defined in the career path
+  // Otherwise, calculate them based on skill requirements
+  let skillGains: Partial<CharacterSkills>;
+  if (careerPath.skillGains && Object.keys(careerPath.skillGains).length > 0) {
+    skillGains = careerPath.skillGains;
+  } else {
+    skillGains = calculateSkillGains(careerPath.skillRequirements);
+  }
+  
+  // Always cap skill gains at maximum value (25 points per skill)
+  const cappedSkillGains = capSkillGains(skillGains);
+  
   return {
     id: `${professionId}-${careerPath.level}`,
     title: careerPath.title,
@@ -150,7 +162,7 @@ export function careerPathToJob(
     happinessImpact: careerPath.happinessImpact,
     prestigeImpact: careerPath.prestigeImpact,
     timeCommitment: careerPath.timeCommitment,
-    skillGains: calculateSkillGains(careerPath.skillRequirements),
+    skillGains: cappedSkillGains,
     skillRequirements: careerPath.skillRequirements,
     professionId: professionId,
     jobLevel: careerPath.level,
@@ -173,6 +185,21 @@ function calculateSkillGains(skillRequirements: Partial<CharacterSkills>): Parti
   }
   
   return gains;
+}
+
+// Cap skill gains at the maximum allowed value (25 points per skill)
+function capSkillGains(skillGains: Partial<CharacterSkills>, maxGain = 25): Partial<CharacterSkills> {
+  const capped: Partial<CharacterSkills> = {};
+  
+  for (const skill in skillGains) {
+    const typedSkill = skill as keyof CharacterSkills;
+    const gain = skillGains[typedSkill] || 0;
+    
+    // Cap gain at 25 points per skill
+    capped[typedSkill] = Math.min(gain, maxGain);
+  }
+  
+  return capped;
 }
 
 // Calculate job stress based on level, time commitment, and requirements
