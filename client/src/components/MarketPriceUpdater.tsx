@@ -296,21 +296,27 @@ export function MarketPriceUpdater() {
   
   // Check if the market is open (both weekday and within trading hours)
   const isMarketOpen = useCallback((): boolean => {
+    // Get the current game time state
+    const timeState = useTime.getState();
+    
     // Check day of week first (most important)
     const gameDate = new Date();
-    gameDate.setFullYear(useTime.getState().currentYear);
-    gameDate.setMonth(useTime.getState().currentMonth - 1);
-    gameDate.setDate(useTime.getState().currentDay);
+    gameDate.setFullYear(timeState.currentYear);
+    gameDate.setMonth(timeState.currentMonth - 1); // JS months are 0-indexed
+    gameDate.setDate(timeState.currentDay);
     
     // First check if it's a weekday
-    if (!isWeekday(gameDate)) {
-      console.log("Market closed: Weekend");
+    const dayOfWeek = gameDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    if (isWeekend) {
+      console.log(`Market closed: Weekend (${dayOfWeek === 0 ? 'Sunday' : 'Saturday'})`);
       return false;
     }
     
     // Calculate current hour from timeProgress (0-23 range)
-    const timeProgress = useTime.getState().timeProgress;
-    const currentHour = Math.floor((timeProgress / 100) * 24);
+    const hoursFraction = (timeState.timeProgress / 100) * 24;
+    const currentHour = Math.floor(hoursFraction);
     const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
     
     if (!isWithinTradingHours) {
@@ -318,9 +324,9 @@ export function MarketPriceUpdater() {
       return false;
     }
     
-    console.log(`Market open: Weekday during trading hours (${currentHour}:00)`);
+    console.log(`Market open: Weekday during trading hours (${dayOfWeek}, ${currentHour}:00)`);
     return true;
-  }, [isWeekday]);
+  }, []);
   
   // Export this function to the global window object for use in other components
   useEffect(() => {
@@ -382,17 +388,21 @@ export function MarketPriceUpdater() {
       syncAssetTrackerStockPrices(updatedStockPrices);
     } else {
       // More specific message based on the reason for being closed
+      const timeState = useTime.getState();
       const gameDate = new Date();
-      gameDate.setFullYear(useTime.getState().currentYear);
-      gameDate.setMonth(useTime.getState().currentMonth - 1);
-      gameDate.setDate(useTime.getState().currentDay);
+      gameDate.setFullYear(timeState.currentYear);
+      gameDate.setMonth(timeState.currentMonth - 1);
+      gameDate.setDate(timeState.currentDay);
       
-      if (!isWeekday(gameDate)) {
-        console.log("MarketPriceUpdater: Stock market closed (weekend)");
+      const dayOfWeek = gameDate.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      
+      if (isWeekend) {
+        console.log(`MarketPriceUpdater: Stock market closed (weekend - ${dayOfWeek === 0 ? 'Sunday' : 'Saturday'})`);
       } else {
         // It must be a weekday outside of trading hours
-        const timeProgress = useTime.getState().timeProgress;
-        const currentHour = Math.floor((timeProgress / 100) * 24);
+        const hoursFraction = (timeState.timeProgress / 100) * 24;
+        const currentHour = Math.floor(hoursFraction);
         console.log(`MarketPriceUpdater: Stock market closed (outside trading hours - ${currentHour}:00)`);
       }
     }
@@ -434,20 +444,52 @@ export function MarketPriceUpdater() {
     };
   }, [updateAllPrices]);
 
-  // Update all market prices on a regular interval
+  // Update all market prices on a regular interval 
+  // AND whenever game time changes significantly
   useEffect(() => {
     console.log("Market price updater initializing...");
     
     // Run the update immediately
     updateAllPrices();
     
-    // Then set up an interval to run updates periodically (every 5 seconds)
+    // Set up an interval to run updates periodically (every 5 seconds)
     const updateInterval = setInterval(updateAllPrices, 5000);
     
-    // Clean up the interval when component unmounts
+    // Additionally, subscribe to game time changes to update prices 
+    // when crossing from before market hours to during, or during to after
+    const unsubscribeTimeProgress = useTime.subscribe(
+      (state) => state.timeProgress,
+      (newProgress, prevProgress) => {
+        // Calculate hours from progress
+        const newHour = Math.floor((newProgress / 100) * 24);
+        const prevHour = Math.floor((prevProgress / 100) * 24);
+        
+        // Check if we've crossed any market hour boundaries
+        if (
+          (newHour >= 9 && prevHour < 9) || // Market opening
+          (newHour >= 16 && prevHour < 16)   // Market closing
+        ) {
+          console.log(`MarketPriceUpdater: Time boundary crossed (${prevHour}:00 -> ${newHour}:00), updating prices`);
+          updateAllPrices();
+        }
+      }
+    );
+    
+    // Also subscribe to date changes to handle weekend transitions
+    const unsubscribeDay = useTime.subscribe(
+      (state) => state.currentDay,
+      () => {
+        console.log("MarketPriceUpdater: Day changed, updating prices");
+        updateAllPrices();
+      }
+    );
+    
+    // Clean up the interval and subscriptions when component unmounts
     return () => {
-      console.log("MarketPriceUpdater: Cleaning up price update interval");
+      console.log("MarketPriceUpdater: Cleaning up price update interval and subscriptions");
       clearInterval(updateInterval);
+      unsubscribeTimeProgress();
+      unsubscribeDay();
     };
   }, [updateAllPrices]);
   

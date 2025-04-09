@@ -783,7 +783,11 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
           {/* Enhanced market status indicator - detects weekends separately */}
           {(() => {
             // Use game time instead of real time
-            const { currentDay, currentMonth, currentYear, currentHour } = useTime();
+            const { currentDay, currentMonth, currentYear, timeProgress } = useTime();
+            
+            // Calculate current hour from timeProgress (0-23 range)
+            const hoursFraction = (timeProgress / 100) * 24;
+            const currentHour = Math.floor(hoursFraction);
             
             // Create a date object from game time
             const gameDate = new Date();
@@ -794,6 +798,9 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
             const dayOfWeek = gameDate.getDay();
             const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0 = Sunday, 6 = Saturday
             const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+            
+            // Log for debugging
+            console.log(`Market status: ${isWeekend ? 'WEEKEND' : (isWithinTradingHours ? 'OPEN' : 'CLOSED')} (Day: ${dayOfWeek}, Hour: ${currentHour})`)
             
             // Weekday but outside trading hours
             const isWeekdayClosed = !isWeekend && !isWithinTradingHours;
