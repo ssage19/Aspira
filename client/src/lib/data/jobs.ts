@@ -2234,6 +2234,801 @@ export const professions: Profession[] = [
         experience: 84
       }
     ]
+  },
+  // Additional Skilled Trades Professions
+  {
+    id: 'plumber',
+    name: 'Plumber',
+    category: 'trade',
+    description: 'Install, repair, and maintain plumbing systems in residential and commercial buildings.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Plumber Helper',
+        salary: 38000,
+        description: 'Learn plumbing skills by assisting experienced plumbers on various jobs.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Apprentice Plumber',
+        salary: 55000,
+        description: 'Perform routine plumbing installation and repair work with supervision.',
+        skillRequirements: {
+          technical: 250,
+          physical: 300
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Licensed Plumber',
+        salary: 75000,
+        description: 'Handle complex plumbing projects independently and mentor apprentices.',
+        skillRequirements: {
+          technical: 450,
+          physical: 450,
+          management: 150
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Master Plumber',
+        salary: 95000,
+        description: 'Design plumbing systems for buildings and oversee large installation projects.',
+        skillRequirements: {
+          technical: 700,
+          management: 350,
+          physical: 600
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Plumbing Contractor',
+        salary: 120000,
+        description: 'Run a plumbing business handling residential and commercial contracts.',
+        skillRequirements: {
+          technical: 750,
+          management: 650,
+          business: 500,
+          physical: 600
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'carpenter',
+    name: 'Carpenter',
+    category: 'trade',
+    description: 'Construct, install, and repair structures made of wood and other materials.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Carpenter Helper',
+        salary: 35000,
+        description: 'Assist experienced carpenters by preparing work sites and materials.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Apprentice Carpenter',
+        salary: 50000,
+        description: 'Build basic structures and perform routine carpentry tasks with guidance.',
+        skillRequirements: {
+          technical: 250,
+          physical: 350
+        },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Journeyman Carpenter',
+        salary: 70000,
+        description: 'Specialize in detailed woodwork and complex installations for interior spaces.',
+        skillRequirements: {
+          technical: 500,
+          physical: 500,
+          creativity: 300
+        },
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Master Carpenter',
+        salary: 90000,
+        description: 'Design and create custom woodwork while leading teams on large construction projects.',
+        skillRequirements: {
+          technical: 650,
+          management: 400,
+          physical: 600,
+          creativity: 450
+        },
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'General Contractor',
+        salary: 130000,
+        description: 'Run a construction business specializing in custom building and renovation projects.',
+        skillRequirements: {
+          technical: 700,
+          management: 650,
+          business: 550,
+          physical: 550,
+          creativity: 500
+        },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'hvac-technician',
+    name: 'HVAC Technician',
+    category: 'trade',
+    description: 'Install, maintain, and repair heating, ventilation, air conditioning, and refrigeration systems.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'HVAC Helper',
+        salary: 38000,
+        description: 'Assist licensed technicians by preparing tools and materials for HVAC installations.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'HVAC Installer',
+        salary: 58000,
+        description: 'Install basic heating and cooling systems under supervision.',
+        skillRequirements: {
+          technical: 300,
+          physical: 250
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'HVAC Technician',
+        salary: 78000,
+        description: 'Diagnose and repair complex HVAC systems independently.',
+        skillRequirements: {
+          technical: 550,
+          physical: 400
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior HVAC Specialist',
+        salary: 95000,
+        description: 'Design HVAC systems for commercial buildings and lead installation teams.',
+        skillRequirements: {
+          technical: 750,
+          management: 350,
+          physical: 500
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'HVAC Contractor',
+        salary: 135000,
+        description: 'Manage an HVAC company handling major commercial and industrial contracts.',
+        skillRequirements: {
+          technical: 800,
+          management: 650,
+          business: 500,
+          physical: 500
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'welder',
+    name: 'Welder',
+    category: 'trade',
+    description: 'Join metal components using high heat to melt and fuse materials together.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Welder Assistant',
+        salary: 36000,
+        description: 'Prepare materials and equipment for welding operations and learn basic techniques.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Production Welder',
+        salary: 52000,
+        description: 'Perform routine welding tasks following established patterns and procedures.',
+        skillRequirements: {
+          technical: 250,
+          physical: 350
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Certified Welder',
+        salary: 70000,
+        description: 'Perform complex welding operations using multiple techniques and materials.',
+        skillRequirements: {
+          technical: 500,
+          physical: 550
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Welding Specialist',
+        salary: 85000,
+        description: 'Handle specialized welding projects and supervise other welders on critical applications.',
+        skillRequirements: {
+          technical: 700,
+          management: 300,
+          physical: 650
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Welding Inspector/Contractor',
+        salary: 110000,
+        description: 'Either inspect welding quality for large industrial projects or run a specialized welding business.',
+        skillRequirements: {
+          technical: 850,
+          management: 550,
+          business: 400,
+          physical: 700
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'auto-mechanic',
+    name: 'Auto Mechanic',
+    category: 'trade',
+    description: 'Diagnose, adjust, repair, and overhaul automotive vehicles.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Mechanic Helper',
+        salary: 34000,
+        description: 'Assist mechanics with basic maintenance tasks like oil changes and tire rotations.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Service Technician',
+        salary: 48000,
+        description: 'Perform routine maintenance and basic repairs on vehicles.',
+        skillRequirements: {
+          technical: 250,
+          physical: 200
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Automotive Technician',
+        salary: 65000,
+        description: 'Diagnose and repair complex automotive issues across multiple vehicle systems.',
+        skillRequirements: {
+          technical: 500,
+          physical: 350
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Master Technician',
+        salary: 85000,
+        description: 'Handle the most complex automotive repairs and diagnose difficult problems.',
+        skillRequirements: {
+          technical: 750,
+          management: 200,
+          physical: 450
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Shop Manager/Owner',
+        salary: 120000,
+        description: 'Manage or own an automotive repair shop with multiple technicians.',
+        skillRequirements: {
+          technical: 800,
+          management: 600,
+          business: 500,
+          physical: 400
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'masonry-worker',
+    name: 'Masonry Worker',
+    category: 'trade',
+    description: 'Build structures with brick, stone, concrete blocks, and other materials.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Mason Helper',
+        salary: 35000,
+        description: 'Mix mortar, carry materials, and assist skilled masons on construction sites.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Apprentice Mason',
+        salary: 48000,
+        description: 'Lay bricks and blocks for simple structures under supervision.',
+        skillRequirements: {
+          technical: 200,
+          physical: 400
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Journeyman Mason',
+        salary: 65000,
+        description: 'Build complex masonry structures independently and direct helpers.',
+        skillRequirements: {
+          technical: 400,
+          physical: 600,
+          management: 150
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Master Mason',
+        salary: 80000,
+        description: 'Construct decorative and complex masonry works while leading teams on large projects.',
+        skillRequirements: {
+          technical: 600,
+          management: 350,
+          physical: 750,
+          creativity: 300
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Masonry Contractor',
+        salary: 110000,
+        description: 'Run a masonry business managing multiple crews for commercial and residential projects.',
+        skillRequirements: {
+          technical: 650,
+          management: 600,
+          business: 550,
+          physical: 700
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'construction-worker',
+    name: 'Construction Worker',
+    category: 'trade',
+    description: 'Build, repair, and maintain buildings, roads, and other structures.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Construction Laborer',
+        salary: 32000,
+        description: 'Perform basic tasks on construction sites like loading materials and cleaning areas.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Construction Worker',
+        salary: 45000,
+        description: 'Handle specific construction tasks like framing, roofing, or concrete work.',
+        skillRequirements: {
+          technical: 150,
+          physical: 400
+        },
+        happinessImpact: 5,
+        prestigeImpact: 5,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Skilled Construction Worker',
+        salary: 60000,
+        description: 'Perform multiple specialized construction tasks and coordinate with other trades.',
+        skillRequirements: {
+          technical: 350,
+          physical: 600,
+          management: 150
+        },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Construction Foreman',
+        salary: 75000,
+        description: 'Supervise workers on construction sites and ensure projects meet specifications.',
+        skillRequirements: {
+          technical: 500,
+          management: 500,
+          physical: 650
+        },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Construction Superintendent',
+        salary: 105000,
+        description: 'Oversee entire construction projects, coordinating multiple teams and trades.',
+        skillRequirements: {
+          technical: 600,
+          management: 750,
+          business: 400,
+          physical: 550
+        },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'landscaper',
+    name: 'Landscaper',
+    category: 'trade',
+    description: 'Create and maintain outdoor spaces through planting, maintenance, and hardscaping.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Landscape Laborer',
+        salary: 30000,
+        description: 'Perform basic landscaping tasks like mowing, planting, and general maintenance.',
+        skillRequirements: {},
+        happinessImpact: 5,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Landscape Technician',
+        salary: 42000,
+        description: 'Install plants, irrigation systems, and small hardscape features.',
+        skillRequirements: {
+          technical: 200,
+          physical: 350,
+          creativity: 150
+        },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Landscape Specialist',
+        salary: 55000,
+        description: 'Design and implement complex landscape features and manage maintenance schedules.',
+        skillRequirements: {
+          technical: 400,
+          physical: 450,
+          creativity: 350
+        },
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Landscape Designer',
+        salary: 70000,
+        description: 'Create comprehensive landscape designs for residential and commercial properties.',
+        skillRequirements: {
+          technical: 500,
+          management: 300,
+          physical: 400,
+          creativity: 600
+        },
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Landscape Architect/Contractor',
+        salary: 95000,
+        description: 'Either design large-scale landscape projects or run a landscape contracting business.',
+        skillRequirements: {
+          technical: 600,
+          management: 550,
+          business: 500,
+          physical: 350,
+          creativity: 700
+        },
+        happinessImpact: 20,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'painter',
+    name: 'Painter',
+    category: 'trade',
+    description: 'Apply paint, stain, and coatings to interior and exterior surfaces.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Painter Helper',
+        salary: 32000,
+        description: 'Prepare surfaces, mix paint, and assist with basic painting tasks.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Painter',
+        salary: 42000,
+        description: 'Paint walls, ceilings, and trim in residential settings.',
+        skillRequirements: {
+          technical: 150,
+          physical: 300
+        },
+        happinessImpact: 5,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 12
+      },
+      {
+        level: 'mid',
+        title: 'Commercial Painter',
+        salary: 55000,
+        description: 'Handle larger commercial painting projects and specialized finishes.',
+        skillRequirements: {
+          technical: 350,
+          physical: 450,
+          creativity: 200
+        },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Master Painter',
+        salary: 70000,
+        description: 'Apply complex decorative finishes and lead teams on large painting projects.',
+        skillRequirements: {
+          technical: 500,
+          management: 350,
+          physical: 500,
+          creativity: 400
+        },
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Painting Contractor',
+        salary: 95000,
+        description: 'Manage a painting company with multiple crews handling residential and commercial projects.',
+        skillRequirements: {
+          technical: 550,
+          management: 600,
+          business: 500,
+          physical: 400,
+          creativity: 350
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'equipment-operator',
+    name: 'Heavy Equipment Operator',
+    category: 'trade',
+    description: 'Operate heavy machinery for construction, excavation, and material moving.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Equipment Operator Trainee',
+        salary: 36000,
+        description: 'Learn to operate basic construction equipment under close supervision.',
+        skillRequirements: {},
+        happinessImpact: 0,
+        prestigeImpact: 0,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Equipment Operator',
+        salary: 50000,
+        description: 'Operate medium-sized equipment on construction sites with limited supervision.',
+        skillRequirements: {
+          technical: 300,
+          physical: 350
+        },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Advanced Equipment Operator',
+        salary: 65000,
+        description: 'Operate multiple types of heavy machinery for complex construction tasks.',
+        skillRequirements: {
+          technical: 550,
+          physical: 450
+        },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Heavy Equipment Specialist',
+        salary: 85000,
+        description: 'Handle the most complex and dangerous equipment operations and train junior operators.',
+        skillRequirements: {
+          technical: 750,
+          management: 300,
+          physical: 550
+        },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Equipment Operations Manager',
+        salary: 105000,
+        description: 'Manage equipment fleets and operations for large construction companies.',
+        skillRequirements: {
+          technical: 800,
+          management: 650,
+          business: 400,
+          physical: 500
+        },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
   }
 ];
 
