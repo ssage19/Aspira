@@ -4,6 +4,7 @@ import { useCharacter } from './useCharacter';
 import { useAssetTracker } from './useAssetTracker';
 import { useGame } from './useGame';
 import { useTime } from './useTime';
+import { toast } from 'sonner';
 
 export type ChallengeCategory = 
   | 'wealth' 
@@ -340,9 +341,6 @@ const useChallengesStore = create<ChallengesState>()(
         // Apply the reward based on type
         const { reward } = challenge;
         const character = useCharacter.getState();
-        
-        // Import toast for notifications
-        const { toast } = require('sonner');
         
         let rewardMessage = '';
         
