@@ -591,15 +591,8 @@ export function Investments() {
       active: true
     });
     
-    // Also update the AssetTracker store
-    assetTracker.addOtherInvestment({
-      id: selectedStartup.id,
-      name: selectedStartup.name,
-      amount: 1, // Set amount to 1 since we're tracking by total value
-      purchasePrice: startupAmount,
-      currentValue: startupAmount,
-      investmentAmount: startupAmount
-    });
+    // We don't need to update AssetTracker directly - the sync function will handle this
+    // This prevents the double counting issue
     
     // Mark this startup as unavailable for further investment
     const startupIndex = startupInvestments.findIndex(s => s.id === selectedStartup.id);
@@ -1625,6 +1618,10 @@ export function Investments() {
                         selectedStartup.successChance < 0.6 ? 'Moderate Risk' :
                         'Likely Success'
                       }</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Maturity Period:</span>
+                      <span className="font-medium">{selectedStartup.maturityTimeInDays} days</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Maximum Potential Return:</span>
