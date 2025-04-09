@@ -808,6 +808,510 @@ export const professions: Profession[] = [
       }
     ]
   },
+  {
+    id: 'human-resources',
+    name: 'Human Resources Professional',
+    category: 'business',
+    description: 'Manage employee relations, recruitment, and organizational development.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'HR Assistant',
+        salary: 45000,
+        description: 'Support HR functions, maintain employee records, and assist with recruitment.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'HR Specialist',
+        salary: 60000,
+        description: 'Handle specific HR functions like benefits, compensation, or recruitment.',
+        skillRequirements: { charisma: 550, intelligence: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'HR Manager',
+        salary: 85000,
+        description: 'Manage HR functions for a department or small company, develop HR policies.',
+        skillRequirements: { charisma: 700, intelligence: 600, leadership: 500 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'HR Director',
+        salary: 120000,
+        description: 'Lead HR department, develop organizational strategy, and align HR with business goals.',
+        skillRequirements: { charisma: 800, leadership: 700, intelligence: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Human Resources Officer',
+        salary: 175000,
+        description: 'Direct HR strategy, shape organizational culture, and drive talent management.',
+        skillRequirements: { charisma: 850, leadership: 800, intelligence: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'project-manager',
+    name: 'Project Manager',
+    category: 'business',
+    description: 'Plan, execute, and close projects, ensuring they are completed on time and within budget.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Project Coordinator',
+        salary: 50000,
+        description: 'Support project managers, track project progress, and communicate with team members.',
+        skillRequirements: { },
+        happinessImpact: 3,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Associate Project Manager',
+        salary: 70000,
+        description: 'Manage small projects or components of larger projects with limited supervision.',
+        skillRequirements: { leadership: 500, intelligence: 550, technical: 400 },
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Project Manager',
+        salary: 90000,
+        description: 'Lead medium-sized projects, manage project teams, and handle stakeholder relationships.',
+        skillRequirements: { leadership: 650, intelligence: 650, technical: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior Project Manager',
+        salary: 120000,
+        description: 'Manage complex, high-value projects and mentor junior project managers.',
+        skillRequirements: { leadership: 800, intelligence: 700, technical: 600, charisma: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Program Director',
+        salary: 160000,
+        description: 'Oversee multiple related projects, develop project management standards, and align with organizational strategy.',
+        skillRequirements: { leadership: 900, intelligence: 750, technical: 650, charisma: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'entrepreneur',
+    name: 'Entrepreneur',
+    category: 'business',
+    description: 'Start and grow businesses, taking on financial risks in pursuit of profit.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Small Business Owner',
+        salary: 40000,
+        description: 'Run a small, local business with limited staff and resources.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 60,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Growing Business Owner',
+        salary: 70000,
+        description: 'Expand business operations, increase customer base, and hire additional employees.',
+        skillRequirements: { leadership: 550, charisma: 550, intelligence: 500 },
+        happinessImpact: 12,
+        prestigeImpact: 25,
+        timeCommitment: 65,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Established Business Owner',
+        salary: 120000,
+        description: 'Manage a successful and stable business with multiple employees and steady revenue.',
+        skillRequirements: { leadership: 700, charisma: 650, intelligence: 650, creativity: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 60,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Multi-Business Entrepreneur',
+        salary: 200000,
+        description: 'Own and manage multiple successful businesses or a rapidly growing company.',
+        skillRequirements: { leadership: 800, charisma: 750, intelligence: 750, creativity: 600 },
+        happinessImpact: 18,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Business Magnate',
+        salary: 500000,
+        description: 'Control a large enterprise or business empire with widespread influence.',
+        skillRequirements: { leadership: 900, charisma: 850, intelligence: 850, creativity: 700 },
+        happinessImpact: 20,
+        prestigeImpact: 70,
+        timeCommitment: 65,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'sales-professional',
+    name: 'Sales Professional',
+    category: 'business',
+    description: 'Sell products or services by identifying customer needs and presenting solutions.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Sales Associate',
+        salary: 35000,
+        description: 'Assist customers, process sales, and maintain product knowledge.',
+        skillRequirements: { },
+        happinessImpact: 3,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Sales Representative',
+        salary: 55000,
+        description: 'Actively sell products/services to customers, generate leads, and meet sales targets.',
+        skillRequirements: { charisma: 600, intelligence: 450 },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 45,
+        experience: 12
+      },
+      {
+        level: 'mid',
+        title: 'Sales Manager',
+        salary: 80000,
+        description: 'Lead a sales team, develop sales strategies, and manage key accounts.',
+        skillRequirements: { charisma: 750, leadership: 600, intelligence: 550 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Regional Sales Director',
+        salary: 120000,
+        description: 'Manage sales across a region, develop strategic partnerships, and drive revenue growth.',
+        skillRequirements: { charisma: 850, leadership: 750, intelligence: 650 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Sales Officer',
+        salary: 200000,
+        description: 'Direct global sales operations, develop sales strategy, and drive organizational revenue.',
+        skillRequirements: { charisma: 900, leadership: 850, intelligence: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'operations-manager',
+    name: 'Operations Manager',
+    category: 'business',
+    description: 'Oversee the production of goods or services, focusing on efficiency and quality.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Operations Assistant',
+        salary: 45000,
+        description: 'Support operations management, track metrics, and help implement processes.',
+        skillRequirements: { },
+        happinessImpact: 3,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Operations Specialist',
+        salary: 60000,
+        description: 'Analyze operations, implement improvements, and support operational initiatives.',
+        skillRequirements: { intelligence: 550, technical: 500 },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Operations Manager',
+        salary: 85000,
+        description: 'Manage daily operations, improve efficiency, and lead operational staff.',
+        skillRequirements: { intelligence: 650, leadership: 600, technical: 600 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Director of Operations',
+        salary: 120000,
+        description: 'Oversee all operational activities, develop operational strategy, and drive performance.',
+        skillRequirements: { intelligence: 750, leadership: 750, technical: 650 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Operations Officer',
+        salary: 190000,
+        description: 'Direct all operational aspects of the company and align operations with business strategy.',
+        skillRequirements: { intelligence: 800, leadership: 850, technical: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'supply-chain-manager',
+    name: 'Supply Chain Manager',
+    category: 'business',
+    description: 'Coordinate and optimize the flow of goods, services, and information from supplier to customer.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Supply Chain Coordinator',
+        salary: 50000,
+        description: 'Support supply chain processes, track shipments, and maintain inventory records.',
+        skillRequirements: { },
+        happinessImpact: 3,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Supply Chain Analyst',
+        salary: 65000,
+        description: 'Analyze supply chain data, identify improvement opportunities, and support logistics planning.',
+        skillRequirements: { intelligence: 600, technical: 500 },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Supply Chain Manager',
+        salary: 90000,
+        description: 'Manage supply chain operations, develop vendor relationships, and optimize logistics.',
+        skillRequirements: { intelligence: 700, leadership: 600, technical: 650 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Supply Chain Director',
+        salary: 125000,
+        description: 'Lead supply chain strategy, manage global logistics, and drive continuous improvement.',
+        skillRequirements: { intelligence: 800, leadership: 750, technical: 700 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'VP of Supply Chain',
+        salary: 180000,
+        description: 'Direct global supply chain operations and develop strategic supply chain initiatives.',
+        skillRequirements: { intelligence: 850, leadership: 850, technical: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'business-analyst',
+    name: 'Business Analyst',
+    category: 'business',
+    description: 'Analyze business needs and processes to propose solutions and improvements.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Business Analyst',
+        salary: 55000,
+        description: 'Gather business requirements, document processes, and assist with data analysis.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Business Analyst',
+        salary: 75000,
+        description: 'Analyze business processes, develop solutions, and facilitate stakeholder discussions.',
+        skillRequirements: { intelligence: 650, technical: 550, charisma: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Business Analyst',
+        salary: 95000,
+        description: 'Lead complex analysis projects, develop business cases, and recommend strategic changes.',
+        skillRequirements: { intelligence: 750, technical: 650, charisma: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Lead Business Analyst',
+        salary: 120000,
+        description: 'Manage a team of analysts, develop analysis frameworks, and drive organizational change.',
+        skillRequirements: { intelligence: 850, technical: 700, leadership: 650, charisma: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Director of Business Analysis',
+        salary: 150000,
+        description: 'Lead enterprise-wide analysis efforts and align business analysis with strategic objectives.',
+        skillRequirements: { intelligence: 900, technical: 750, leadership: 750, charisma: 700 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'product-manager',
+    name: 'Product Manager',
+    category: 'business',
+    description: 'Guide the development, market launch, and continuous improvement of products.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Associate Product Manager',
+        salary: 65000,
+        description: 'Support product development, gather user feedback, and track product metrics.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Product Manager',
+        salary: 85000,
+        description: 'Manage product features, collaborate with development teams, and define product requirements.',
+        skillRequirements: { intelligence: 650, creativity: 600, charisma: 550 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Product Manager',
+        salary: 110000,
+        description: 'Lead product strategy, prioritize product roadmap, and drive product performance.',
+        skillRequirements: { intelligence: 750, creativity: 700, charisma: 650, leadership: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Product Director',
+        salary: 140000,
+        description: 'Manage a portfolio of products, develop product vision, and direct product teams.',
+        skillRequirements: { intelligence: 800, creativity: 750, leadership: 750, charisma: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Product Officer',
+        salary: 190000,
+        description: 'Direct product strategy across the organization and drive product innovation.',
+        skillRequirements: { intelligence: 850, creativity: 800, leadership: 850, charisma: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
   
   // Legal Professions
   {
@@ -873,6 +1377,573 @@ export const professions: Profession[] = [
       }
     ]
   },
+  {
+    id: 'judge',
+    name: 'Judge',
+    category: 'legal',
+    description: 'Preside over court proceedings, interpret laws, and make legal judgments.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Law Clerk',
+        salary: 70000,
+        description: 'Assist judges with research, writing opinions, and managing court dockets.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Administrative Law Judge',
+        salary: 120000,
+        description: 'Preside over administrative hearings for government agencies.',
+        skillRequirements: { intelligence: 800, charisma: 600 },
+        happinessImpact: 8,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'mid',
+        title: 'Municipal Court Judge',
+        salary: 150000,
+        description: 'Preside over local court cases involving city ordinances, traffic, and minor offenses.',
+        skillRequirements: { intelligence: 850, charisma: 700, leadership: 650 },
+        happinessImpact: 10,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Superior Court Judge',
+        salary: 180000,
+        description: 'Preside over major civil and criminal cases at the state level.',
+        skillRequirements: { intelligence: 900, charisma: 750, leadership: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Appellate Judge',
+        salary: 220000,
+        description: 'Review lower court decisions and set legal precedents that shape the law.',
+        skillRequirements: { intelligence: 950, charisma: 800, leadership: 800 },
+        happinessImpact: 15,
+        prestigeImpact: 65,
+        timeCommitment: 60,
+        experience: 84
+      }
+    ]
+  },
+  {
+    id: 'legal-consultant',
+    name: 'Legal Consultant',
+    category: 'legal',
+    description: 'Provide specialized legal advice to businesses on industry-specific regulations and compliance.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Legal Researcher',
+        salary: 65000,
+        description: 'Research legal issues, prepare reports, and support consulting projects.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Compliance Analyst',
+        salary: 85000,
+        description: 'Analyze regulations, develop compliance programs, and advise on legal risks.',
+        skillRequirements: { intelligence: 700, technical: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Legal Consultant',
+        salary: 120000,
+        description: 'Provide specialized legal advice, develop legal strategies, and manage client relationships.',
+        skillRequirements: { intelligence: 800, charisma: 650, technical: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior Legal Consultant',
+        salary: 160000,
+        description: 'Lead consulting teams, develop new service offerings, and solve complex legal problems.',
+        skillRequirements: { intelligence: 850, charisma: 750, leadership: 650, technical: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Legal Consulting Partner',
+        salary: 200000,
+        description: 'Lead a legal consulting practice, set strategic direction, and manage key client relationships.',
+        skillRequirements: { intelligence: 900, charisma: 800, leadership: 750, technical: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'paralegal',
+    name: 'Paralegal',
+    category: 'legal',
+    description: 'Assist lawyers by conducting research, preparing documents, and managing case information.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Legal Assistant',
+        salary: 40000,
+        description: 'Provide administrative support to legal teams, file documents, and coordinate schedules.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 5,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Paralegal',
+        salary: 55000,
+        description: 'Draft legal documents, conduct basic research, and assist with case preparation.',
+        skillRequirements: { intelligence: 550, technical: 400 },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 18
+      },
+      {
+        level: 'mid',
+        title: 'Senior Paralegal',
+        salary: 70000,
+        description: 'Handle complex legal research, manage case files, and assist with trial preparation.',
+        skillRequirements: { intelligence: 650, technical: 550, charisma: 450 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Paralegal Manager',
+        salary: 85000,
+        description: 'Oversee paralegal teams, develop procedures, and manage complex legal projects.',
+        skillRequirements: { intelligence: 750, technical: 600, leadership: 550, charisma: 500 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Paralegal Director',
+        salary: 110000,
+        description: 'Direct paralegal services across a large organization, develop training programs, and establish best practices.',
+        skillRequirements: { intelligence: 800, technical: 650, leadership: 700, charisma: 600 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'corporate-counsel',
+    name: 'Corporate Counsel',
+    category: 'legal',
+    description: 'Provide legal advice and services to a corporation as an in-house attorney.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Legal Specialist',
+        salary: 75000,
+        description: 'Support in-house legal department, review contracts, and research legal issues.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Corporate Counsel',
+        salary: 100000,
+        description: 'Provide legal advice, draft agreements, and ensure compliance with regulations.',
+        skillRequirements: { intelligence: 700, charisma: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Corporate Counsel',
+        salary: 140000,
+        description: 'Handle specialized legal matters, advise executives, and manage legal risk.',
+        skillRequirements: { intelligence: 800, charisma: 600, leadership: 500 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Associate General Counsel',
+        salary: 190000,
+        description: 'Lead a legal specialty area, manage legal teams, and advise on strategic decisions.',
+        skillRequirements: { intelligence: 850, charisma: 700, leadership: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'General Counsel',
+        salary: 275000,
+        description: 'Lead all legal affairs for the corporation, advise the board of directors, and develop legal strategy.',
+        skillRequirements: { intelligence: 900, charisma: 800, leadership: 800 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'legal-mediator',
+    name: 'Mediator',
+    category: 'legal',
+    description: 'Help parties resolve disputes outside of court through negotiation and compromise.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Mediation Assistant',
+        salary: 45000,
+        description: 'Support mediators, schedule sessions, and prepare case materials.',
+        skillRequirements: { },
+        happinessImpact: 8,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Mediation Specialist',
+        salary: 65000,
+        description: 'Facilitate discussions in straightforward disputes and help parties reach agreements.',
+        skillRequirements: { charisma: 650, intelligence: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Professional Mediator',
+        salary: 90000,
+        description: 'Mediate complex disputes, draft settlement agreements, and build a mediation practice.',
+        skillRequirements: { charisma: 800, intelligence: 700, leadership: 500 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior Mediator',
+        salary: 120000,
+        description: 'Handle high-profile mediations, train other mediators, and develop mediation programs.',
+        skillRequirements: { charisma: 850, intelligence: 800, leadership: 650 },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Mediation Center Director',
+        salary: 150000,
+        description: 'Lead a mediation center, develop alternative dispute resolution systems, and influence policy.',
+        skillRequirements: { charisma: 900, intelligence: 850, leadership: 800 },
+        happinessImpact: 18,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'intellectual-property',
+    name: 'Intellectual Property Specialist',
+    category: 'legal',
+    description: 'Protect and enforce legal rights to inventions, designs, and creative works.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'IP Paralegal',
+        salary: 55000,
+        description: 'Support IP attorneys, file patent applications, and maintain IP portfolios.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'IP Specialist',
+        salary: 80000,
+        description: 'Conduct IP searches, draft patent applications, and support IP litigation.',
+        skillRequirements: { intelligence: 650, technical: 600 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'IP Attorney',
+        salary: 130000,
+        description: 'Represent clients in IP matters, file patents, and develop IP strategies.',
+        skillRequirements: { intelligence: 800, technical: 700, charisma: 550 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Senior IP Counsel',
+        salary: 180000,
+        description: 'Manage complex IP portfolios, lead IP litigation, and develop licensing strategies.',
+        skillRequirements: { intelligence: 850, technical: 750, charisma: 650, leadership: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief IP Counsel',
+        salary: 250000,
+        description: 'Direct all intellectual property strategy, manage global IP portfolios, and protect key assets.',
+        skillRequirements: { intelligence: 900, technical: 800, charisma: 700, leadership: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'legal-researcher',
+    name: 'Legal Researcher',
+    category: 'legal',
+    description: 'Conduct in-depth legal research and analysis for complex legal issues.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Research Assistant',
+        salary: 50000,
+        description: 'Gather legal resources, conduct preliminary research, and organize legal data.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Legal Researcher',
+        salary: 70000,
+        description: 'Perform detailed legal research, analyze case law, and draft research memoranda.',
+        skillRequirements: { intelligence: 700, technical: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Legal Researcher',
+        salary: 90000,
+        description: 'Lead research projects, develop research methodologies, and provide expert analysis.',
+        skillRequirements: { intelligence: 800, technical: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Legal Research Director',
+        salary: 110000,
+        description: 'Oversee research departments, develop legal knowledge systems, and advise on complex matters.',
+        skillRequirements: { intelligence: 850, technical: 700, leadership: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Knowledge Officer',
+        salary: 140000,
+        description: 'Direct knowledge management for legal organizations, develop information strategies, and lead innovation.',
+        skillRequirements: { intelligence: 900, technical: 750, leadership: 700 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'compliance-officer',
+    name: 'Compliance Officer',
+    category: 'legal',
+    description: 'Ensure that organizations comply with relevant laws, regulations, and internal policies.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Compliance Specialist',
+        salary: 60000,
+        description: 'Monitor compliance processes, conduct audits, and assist with regulatory filings.',
+        skillRequirements: { },
+        happinessImpact: 3,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Compliance Analyst',
+        salary: 75000,
+        description: 'Analyze compliance data, develop compliance procedures, and investigate potential violations.',
+        skillRequirements: { intelligence: 650, technical: 550 },
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Compliance Manager',
+        salary: 100000,
+        description: 'Oversee compliance programs, train staff on regulations, and develop risk assessments.',
+        skillRequirements: { intelligence: 750, technical: 650, leadership: 500 },
+        happinessImpact: 8,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Compliance Director',
+        salary: 140000,
+        description: 'Lead compliance functions, develop comprehensive compliance strategies, and manage regulatory relationships.',
+        skillRequirements: { intelligence: 800, technical: 700, leadership: 650, charisma: 550 },
+        happinessImpact: 10,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Compliance Officer',
+        salary: 190000,
+        description: 'Direct all compliance activities, develop enterprise risk management, and advise the board on compliance matters.',
+        skillRequirements: { intelligence: 850, technical: 750, leadership: 750, charisma: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'law-professor',
+    name: 'Law Professor',
+    category: 'legal',
+    description: 'Teach law courses, conduct legal research, and publish scholarly works.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Law Lecturer',
+        salary: 70000,
+        description: 'Teach introductory law courses, support faculty research, and mentor students.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Assistant Professor of Law',
+        salary: 100000,
+        description: 'Teach specialized law courses, publish research articles, and develop course materials.',
+        skillRequirements: { intelligence: 800, charisma: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Associate Professor of Law',
+        salary: 130000,
+        description: 'Lead specialized legal programs, publish significant research, and mentor junior faculty.',
+        skillRequirements: { intelligence: 850, charisma: 700, leadership: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Full Professor of Law',
+        salary: 160000,
+        description: 'Lead law school departments, publish influential works, and shape legal education.',
+        skillRequirements: { intelligence: 900, charisma: 750, leadership: 600 },
+        happinessImpact: 18,
+        prestigeImpact: 55,
+        timeCommitment: 45,
+        experience: 60
+      },
+      {
+        level: 'executive',
+        title: 'Law School Dean',
+        salary: 200000,
+        description: 'Lead a law school, set educational vision, and develop strategic partnerships with the legal community.',
+        skillRequirements: { intelligence: 900, charisma: 800, leadership: 800 },
+        happinessImpact: 20,
+        prestigeImpact: 65,
+        timeCommitment: 50,
+        experience: 72
+      }
+    ]
+  },
   
   // Science Professions
   {
@@ -934,6 +2005,573 @@ export const professions: Profession[] = [
         happinessImpact: 18,
         prestigeImpact: 50,
         timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'biologist',
+    name: 'Biologist',
+    category: 'science',
+    description: 'Study living organisms and their relationships to the environment.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Laboratory Technician',
+        salary: 45000,
+        description: 'Perform routine lab tests, maintain biological samples, and assist with experiments.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Research Biologist',
+        salary: 65000,
+        description: 'Conduct biological experiments, analyze specimens, and document findings.',
+        skillRequirements: { intelligence: 700, technical: 600 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Biologist',
+        salary: 85000,
+        description: 'Design and lead biological research projects, publish in scientific journals, and mentor junior researchers.',
+        skillRequirements: { intelligence: 800, technical: 700, leadership: 450 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Biologist',
+        salary: 110000,
+        description: 'Direct multiple research initiatives, secure major funding, and contribute to field advancements.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Biology Research Director',
+        salary: 140000,
+        description: 'Lead research institutions, shape biological research policy, and drive scientific breakthroughs.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'chemist',
+    name: 'Chemist',
+    category: 'science',
+    description: 'Study the composition, structure, and properties of substances and their reactions.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Laboratory Assistant',
+        salary: 48000,
+        description: 'Prepare chemical solutions, run basic analyses, and maintain lab equipment.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Chemist',
+        salary: 70000,
+        description: 'Conduct chemical experiments, analyze results, and develop testing methods.',
+        skillRequirements: { intelligence: 700, technical: 650 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Chemist',
+        salary: 90000,
+        description: 'Lead chemistry projects, develop new compounds, and collaborate with other scientists.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 450 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Chemist',
+        salary: 115000,
+        description: 'Direct chemistry research teams, secure funding, and develop innovative solutions to complex problems.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chemistry Research Director',
+        salary: 145000,
+        description: 'Lead chemistry departments, set research agendas, and drive major scientific advancements.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'physicist',
+    name: 'Physicist',
+    category: 'science',
+    description: 'Study matter, energy, and their interactions, from subatomic particles to the cosmos.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Physics Research Assistant',
+        salary: 52000,
+        description: 'Set up experiments, collect data, and assist with physics research projects.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Physicist',
+        salary: 75000,
+        description: 'Conduct physics experiments, develop theoretical models, and publish research findings.',
+        skillRequirements: { intelligence: 750, technical: 700 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Physicist',
+        salary: 100000,
+        description: 'Lead physics research initiatives, develop new theoretical approaches, and secure research grants.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 500 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Physicist',
+        salary: 130000,
+        description: 'Direct major physics research programs, mentor junior scientists, and make significant contributions to the field.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 650 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Physics Research Director',
+        salary: 160000,
+        description: 'Lead physics research institutions, shape research policy, and drive breakthrough discoveries.',
+        skillRequirements: { intelligence: 950, technical: 900, leadership: 750 },
+        happinessImpact: 18,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'environmental-scientist',
+    name: 'Environmental Scientist',
+    category: 'science',
+    description: 'Study environmental problems and develop solutions to protect the environment and human health.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Environmental Technician',
+        salary: 45000,
+        description: 'Collect environmental samples, conduct field tests, and compile environmental data.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Environmental Scientist',
+        salary: 65000,
+        description: 'Analyze environmental data, assess environmental impacts, and develop mitigation strategies.',
+        skillRequirements: { intelligence: 650, technical: 600 },
+        happinessImpact: 12,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Environmental Scientist',
+        salary: 85000,
+        description: 'Lead environmental studies, develop conservation plans, and provide expert environmental consultations.',
+        skillRequirements: { intelligence: 750, technical: 700, leadership: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Environmental Program Manager',
+        salary: 105000,
+        description: 'Direct environmental programs, develop environmental policies, and lead interdisciplinary teams.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 650, charisma: 550 },
+        happinessImpact: 18,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Environmental Research Director',
+        salary: 130000,
+        description: 'Lead environmental research organizations, shape environmental policy, and drive sustainable solutions.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 750, charisma: 650 },
+        happinessImpact: 20,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'data-scientist',
+    name: 'Data Scientist',
+    category: 'science',
+    description: 'Extract insights from complex data using statistical methods, machine learning, and programming.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Data Analyst',
+        salary: 60000,
+        description: 'Collect and process data, create visualizations, and generate basic insights.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Data Scientist',
+        salary: 85000,
+        description: 'Build predictive models, analyze complex datasets, and develop data-driven solutions.',
+        skillRequirements: { intelligence: 750, technical: 700 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Data Scientist',
+        salary: 115000,
+        description: 'Lead data science projects, develop advanced algorithms, and translate complex data into business insights.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 500 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Lead Data Scientist',
+        salary: 140000,
+        description: 'Direct data science teams, develop data strategies, and drive innovation through data science.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Chief Data Scientist',
+        salary: 180000,
+        description: 'Lead organizational data science initiatives, develop data-driven strategies, and transform organizations through data insights.',
+        skillRequirements: { intelligence: 950, technical: 900, leadership: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 55,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'archaeologist',
+    name: 'Archaeologist',
+    category: 'science',
+    description: 'Study human history and prehistory through excavation and analysis of artifacts and sites.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Field Technician',
+        salary: 40000,
+        description: 'Assist with archaeological excavations, document findings, and process artifacts.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Archaeologist',
+        salary: 55000,
+        description: 'Conduct archaeological surveys, analyze artifacts, and contribute to research publications.',
+        skillRequirements: { intelligence: 650, technical: 550, physical: 500 },
+        happinessImpact: 12,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Archaeologist',
+        salary: 75000,
+        description: 'Lead archaeological digs, develop research methodologies, and publish scholarly works.',
+        skillRequirements: { intelligence: 750, technical: 650, leadership: 500, physical: 550 },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Archaeologist',
+        salary: 95000,
+        description: 'Direct major archaeological projects, secure research funding, and make significant contributions to the field.',
+        skillRequirements: { intelligence: 800, technical: 700, leadership: 650, physical: 500 },
+        happinessImpact: 18,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Archaeological Research Director',
+        salary: 120000,
+        description: 'Lead archaeological research institutions, develop preservation policies, and shape the direction of archaeological studies.',
+        skillRequirements: { intelligence: 850, technical: 750, leadership: 750 },
+        happinessImpact: 20,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'meteorologist',
+    name: 'Meteorologist',
+    category: 'science',
+    description: 'Study the atmosphere to understand and predict weather patterns and climate.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Weather Technician',
+        salary: 45000,
+        description: 'Collect weather data, maintain meteorological equipment, and assist with forecasts.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Meteorologist',
+        salary: 65000,
+        description: 'Analyze weather data, prepare forecasts, and contribute to weather research.',
+        skillRequirements: { intelligence: 650, technical: 600 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Meteorologist',
+        salary: 85000,
+        description: 'Develop forecasting techniques, lead weather research projects, and analyze complex atmospheric phenomena.',
+        skillRequirements: { intelligence: 750, technical: 700, leadership: 450 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Chief Meteorologist',
+        salary: 110000,
+        description: 'Direct weather forecasting teams, develop meteorological models, and communicate critical weather information.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 600, charisma: 550 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Meteorological Research Director',
+        salary: 135000,
+        description: 'Lead meteorological research organizations, shape climate policy, and advance weather prediction science.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 700, charisma: 600 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'astronomer',
+    name: 'Astronomer',
+    category: 'science',
+    description: 'Study celestial objects, space, and the physical universe as a whole.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Astronomy Assistant',
+        salary: 50000,
+        description: 'Assist with astronomical observations, process astronomical data, and maintain telescopes.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Astronomer',
+        salary: 75000,
+        description: 'Conduct astronomical research, analyze celestial phenomena, and publish findings.',
+        skillRequirements: { intelligence: 750, technical: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Astronomer',
+        salary: 100000,
+        description: 'Lead astronomy research projects, develop observational methodologies, and secure telescope time.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Astronomer',
+        salary: 125000,
+        description: 'Direct major astronomical studies, mentor astronomy teams, and make significant contributions to the field.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 650 },
+        happinessImpact: 18,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Observatory Director',
+        salary: 155000,
+        description: 'Lead astronomical observatories, shape astronomy research directions, and advance our understanding of the universe.',
+        skillRequirements: { intelligence: 950, technical: 900, leadership: 750 },
+        happinessImpact: 20,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 60
+      }
+    ]
+  },
+  {
+    id: 'zoologist',
+    name: 'Zoologist',
+    category: 'science',
+    description: 'Study animals and their interactions with ecosystems to advance understanding of animal biology.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Animal Care Technician',
+        salary: 40000,
+        description: 'Care for animals, collect specimens, and assist with zoological research.',
+        skillRequirements: { },
+        happinessImpact: 12,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Zoologist',
+        salary: 60000,
+        description: 'Study animal behavior, conduct field research, and analyze animal populations.',
+        skillRequirements: { intelligence: 650, technical: 550, physical: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Zoologist',
+        salary: 80000,
+        description: 'Lead zoological research projects, develop conservation strategies, and publish in scientific journals.',
+        skillRequirements: { intelligence: 750, technical: 650, leadership: 500, physical: 550 },
+        happinessImpact: 18,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'senior',
+        title: 'Principal Zoologist',
+        salary: 100000,
+        description: 'Direct major zoological studies, secure research funding, and make significant contributions to animal science.',
+        skillRequirements: { intelligence: 800, technical: 700, leadership: 600, physical: 500 },
+        happinessImpact: 20,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'executive',
+        title: 'Zoological Research Director',
+        salary: 125000,
+        description: 'Lead zoology research institutions, develop wildlife protection policies, and advance understanding of animal life.',
+        skillRequirements: { intelligence: 850, technical: 750, leadership: 700 },
+        happinessImpact: 22,
+        prestigeImpact: 45,
+        timeCommitment: 55,
         experience: 60
       }
     ]
