@@ -447,66 +447,66 @@ export default function CharacterCreation() {
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'shared' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedHousing === 'shared' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedHousing('shared')}
                       >
                         <div className="mr-3">
-                          <Home className={`h-5 w-5 ${selectedHousing === 'shared' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Home className={`h-5 w-5 ${selectedHousing === 'shared' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Shared Housing</span>
                             <span className="text-amber-600 font-semibold">$800/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Basic accommodation with roommates at reasonable cost</div>
+                          <div className="text-xs text-muted-foreground">Basic accommodation with roommates at reasonable cost</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'rental' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedHousing === 'rental' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedHousing('rental')}
                       >
                         <div className="mr-3">
-                          <Home className={`h-5 w-5 ${selectedHousing === 'rental' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Home className={`h-5 w-5 ${selectedHousing === 'rental' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Rental Housing</span>
                             <span className="text-amber-600 font-semibold">$2,000/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Your own rental apartment with better comfort but higher cost</div>
+                          <div className="text-xs text-muted-foreground">Your own rental apartment with better comfort but higher cost</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'owned' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedHousing === 'owned' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedHousing('owned')}
                       >
                         <div className="mr-3">
-                          <Home className={`h-5 w-5 ${selectedHousing === 'owned' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Home className={`h-5 w-5 ${selectedHousing === 'owned' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Owned Home</span>
                             <span className="text-amber-600 font-semibold">$3,500/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Your own house with mortgage payments, but builds equity</div>
+                          <div className="text-xs text-muted-foreground">Your own house with mortgage payments, but builds equity</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedHousing === 'luxury' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedHousing === 'luxury' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedHousing('luxury')}
                       >
                         <div className="mr-3">
-                          <Home className={`h-5 w-5 ${selectedHousing === 'luxury' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Home className={`h-5 w-5 ${selectedHousing === 'luxury' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Luxury Housing</span>
                             <span className="text-amber-600 font-semibold">$8,000/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">High-end living with premium amenities and significant prestige</div>
+                          <div className="text-xs text-muted-foreground">High-end living with premium amenities and significant prestige</div>
                         </div>
                       </div>
                     </div>
@@ -519,105 +519,105 @@ export default function CharacterCreation() {
                     </label>
                     <div className="space-y-2">
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'none' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'none' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('none')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'none' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'none' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>No Vehicle</span>
                             <span className="text-green-600 font-semibold">$150/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Use public transportation, lower monthly costs but limited mobility</div>
+                          <div className="text-xs text-muted-foreground">Use public transportation, lower monthly costs but limited mobility</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'bicycle' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'bicycle' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('bicycle')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'bicycle' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'bicycle' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Bicycle</span>
                             <span className="text-green-600 font-semibold">$30/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Environmentally friendly with very low maintenance costs</div>
+                          <div className="text-xs text-muted-foreground">Environmentally friendly with very low maintenance costs</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'economy' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'economy' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('economy')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'economy' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'economy' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Economy Car</span>
                             <span className="text-amber-600 font-semibold">$350/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Basic car with moderate costs, including gas and insurance</div>
+                          <div className="text-xs text-muted-foreground">Basic car with moderate costs, including gas and insurance</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'standard' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'standard' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('standard')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'standard' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'standard' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Standard Car</span>
                             <span className="text-amber-600 font-semibold">$500/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Mid-range vehicle with good comfort and reliability</div>
+                          <div className="text-xs text-muted-foreground">Mid-range vehicle with good comfort and reliability</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'luxury' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'luxury' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('luxury')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'luxury' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'luxury' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Luxury Car</span>
                             <span className="text-amber-600 font-semibold">$1,200/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">High-end vehicle with premium features and prestige</div>
+                          <div className="text-xs text-muted-foreground">High-end vehicle with premium features and prestige</div>
                         </div>
                       </div>
                       
                       <div 
-                        className={`p-3 border rounded-md cursor-pointer flex items-center ${selectedVehicle === 'premium' ? 'border-blue-500 bg-blue-50' : ''}`}
+                        className={`p-3 border border-primary/20 rounded-md cursor-pointer flex items-center ${selectedVehicle === 'premium' ? 'border-primary bg-primary/10' : 'bg-card/50'}`}
                         onClick={() => setSelectedVehicle('premium')}
                       >
                         <div className="mr-3">
-                          <Car className={`h-5 w-5 ${selectedVehicle === 'premium' ? 'text-blue-500' : 'text-gray-400'}`} />
+                          <Car className={`h-5 w-5 ${selectedVehicle === 'premium' ? 'text-primary' : 'text-muted-foreground'}`} />
                         </div>
                         <div className="flex-1">
                           <div className="font-medium flex justify-between">
                             <span>Premium Car</span>
                             <span className="text-amber-600 font-semibold">$2,500/mo</span>
                           </div>
-                          <div className="text-xs text-gray-500">Exotic or ultra-premium vehicle with maximum prestige</div>
+                          <div className="text-xs text-muted-foreground">Exotic or ultra-premium vehicle with maximum prestige</div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
                 
-                <div className="mt-4 text-xs text-gray-500">
+                <div className="mt-4 text-xs text-muted-foreground">
                   <p>Your basic needs affect your health, happiness, and overall wellbeing. Maintaining them requires ongoing expenses.</p>
                 </div>
               </CardContent>
@@ -691,16 +691,16 @@ export default function CharacterCreation() {
                     </div>
                     
                     {selectedJob && (
-                      <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                      <div className="mt-4 p-3 bg-card/50 border border-primary/20 rounded-md">
                         <h4 className="font-semibold text-lg mb-2">
                           {selectedJob.title} at {selectedJob.company}
                         </h4>
                         <div className="grid grid-cols-2 gap-2">
                           <div className="text-sm">
-                            <span className="text-gray-500">Salary:</span> {formatCurrency(selectedJob.salary)}/year
+                            <span className="text-muted-foreground">Salary:</span> {formatCurrency(selectedJob.salary)}/year
                           </div>
                           <div className="text-sm">
-                            <span className="text-gray-500">Hours:</span> {selectedJob.timeCommitment}/week
+                            <span className="text-muted-foreground">Hours:</span> {selectedJob.timeCommitment}/week
                           </div>
                         </div>
                       </div>
@@ -736,7 +736,7 @@ export default function CharacterCreation() {
                         <p className="text-sm font-semibold mb-1">Skills You'll Develop:</p>
                         <div className="flex flex-wrap gap-2">
                           {Object.entries(selectedJob.skillGains).map(([skill, gain]) => (
-                            <span key={skill} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs">
+                            <span key={skill} className="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs">
                               {skill} +{gain}/month
                             </span>
                           ))}
@@ -746,7 +746,7 @@ export default function CharacterCreation() {
                         <p className="text-sm font-semibold mb-1">Required Skills:</p>
                         <div className="flex flex-wrap gap-2">
                           {Object.entries(selectedJob.skillRequirements).map(([skill, level]) => (
-                            <span key={skill} className="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs">
+                            <span key={skill} className="px-2 py-1 bg-primary/5 text-primary/90 border border-primary/20 rounded-full text-xs">
                               {skill}: {level}
                             </span>
                           ))}
