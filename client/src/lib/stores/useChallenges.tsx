@@ -195,11 +195,16 @@ const useChallengesStore = create<ChallengesState>()(
         const characterState = useCharacter.getState();
         const assetTrackerState = useAssetTracker.getState();
         
+        // Use arrays to collect changes before applying them all at once
+        const challengesToComplete: string[] = [];
+        const challengesToFail: string[] = [];
+        const challengesToUpdate: {id: string, progress: number}[] = [];
+        
         // Process each active challenge
         for (const challenge of activeChallenges) {
           // Check if time-limited challenge has expired
           if (challenge.targetDate && currentDate > challenge.targetDate) {
-            get().failChallenge(challenge.id);
+            challengesToFail.push(challenge.id);
             continue;
           }
           
@@ -281,25 +286,50 @@ const useChallengesStore = create<ChallengesState>()(
             conditionMet = false;
           }
           
-          // Check if challenge is completed - but only if progress has changed 
+          // Check if challenge is completed - but only if progress has increased
           // from its initial value to prevent auto-completion on challenge start
           if (conditionMet && currentProgress > challenge.progress) {
-            get().completeChallenge(challenge.id);
+            challengesToComplete.push(challenge.id);
             continue;
           }
           
-          // Update progress
-          const updatedChallenge = {
-            ...challenge,
-            progress: currentProgress
-          };
-          
-          // Update the challenge
-          set(state => ({
-            activeChallenges: state.activeChallenges.map(c => 
-              c.id === updatedChallenge.id ? updatedChallenge : c
-            )
-          }));
+          // If we need to update progress, add to our update list
+          if (currentProgress !== challenge.progress) {
+            challengesToUpdate.push({
+              id: challenge.id,
+              progress: currentProgress
+            });
+          }
+        }
+        
+        // Now process all changes in batches to avoid nested state updates
+        
+        // First, fail any expired challenges
+        challengesToFail.forEach(id => {
+          get().failChallenge(id);
+        });
+        
+        // Then complete any finished challenges
+        challengesToComplete.forEach(id => {
+          get().completeChallenge(id);
+        });
+        
+        // Finally, update progress for remaining challenges
+        if (challengesToUpdate.length > 0) {
+          set(state => {
+            // Create a new array of active challenges with updated progress
+            const updatedActiveChallenges = state.activeChallenges.map(challenge => {
+              const update = challengesToUpdate.find(u => u.id === challenge.id);
+              if (update) {
+                return { ...challenge, progress: update.progress };
+              }
+              return challenge;
+            });
+            
+            return {
+              activeChallenges: updatedActiveChallenges
+            };
+          });
         }
       },
       

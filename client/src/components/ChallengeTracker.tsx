@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useChallenges } from '../lib/stores/useChallenges';
@@ -12,26 +12,53 @@ export function ChallengeTracker() {
   const { 
     activeChallenges, 
     completedChallenges,
-    checkChallengeProgress, 
-    failChallenge,
     consecutiveCompletions
   } = useChallenges();
   
-  // Track daily progress
+  // Use refs to prevent dependency loops
+  const activeChallengesRef = useRef(activeChallenges);
+  const hasRunInitialCheck = useRef(false);
+  
+  // Update refs when values change
+  useEffect(() => {
+    activeChallengesRef.current = activeChallenges;
+  }, [activeChallenges]);
+  
+  // Track daily progress - but access the store functions directly
+  // to prevent React update loops
   useEffect(() => {
     if (!currentGameDate) return;
     
-    // Check all active challenges
-    checkChallengeProgress();
+    // Prevent running on first render or during initialization
+    if (!hasRunInitialCheck.current) {
+      hasRunInitialCheck.current = true;
+      return;
+    }
     
-    // Check for time-based challenge failures
-    activeChallenges.forEach(challenge => {
-      if (challenge.targetDate && challenge.targetDate < currentGameDate) {
-        // Challenge has passed its target date
-        failChallenge(challenge.id);
+    // Use a timeout to avoid potential infinite update loops
+    const timeoutId = setTimeout(() => {
+      try {
+        // Get functions directly from the store
+        const challengesStore = useChallenges.getState();
+        
+        // Check all active challenges
+        challengesStore.checkChallengeProgress();
+        
+        // Check for time-based challenge failures
+        const currentChallenges = activeChallengesRef.current;
+        currentChallenges.forEach(challenge => {
+          if (challenge.targetDate && challenge.targetDate < currentGameDate) {
+            // Challenge has passed its target date
+            challengesStore.failChallenge(challenge.id);
+          }
+        });
+      } catch (err) {
+        console.error("Error in challenge tracker:", err);
       }
-    });
-  }, [currentGameDate, checkChallengeProgress, activeChallenges, failChallenge]);
+    }, 100);
+    
+    return () => clearTimeout(timeoutId);
+  }, [currentGameDate]);
   
   // Check for consecutive completion bonuses
   useEffect(() => {
