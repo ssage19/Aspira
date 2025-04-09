@@ -1474,6 +1474,420 @@ export const professions: Profession[] = [
     ]
   },
   
+  {
+    id: 'financial-advisor',
+    name: 'Financial Advisor',
+    category: 'finance',
+    description: 'Provide personalized financial advice to individuals and businesses on investments, insurance, and planning.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Financial Services Representative',
+        salary: 48000,
+        description: 'Assist clients with basic financial products and services.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Financial Advisor',
+        salary: 65000,
+        description: 'Develop financial plans and recommend investment strategies for clients.',
+        skillRequirements: { intelligence: 250, charisma: 300 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Financial Advisor',
+        salary: 90000,
+        description: 'Manage a portfolio of high-value clients and complex financial planning cases.',
+        skillRequirements: { intelligence: 400, charisma: 450, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Wealth Manager',
+        salary: 130000,
+        description: 'Provide comprehensive wealth management services to affluent clients.',
+        skillRequirements: { intelligence: 550, charisma: 600, leadership: 450 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Private Wealth Director',
+        salary: 200000,
+        description: 'Lead wealth management division and serve ultra-high-net-worth individuals.',
+        skillRequirements: { intelligence: 700, charisma: 750, leadership: 650 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 60,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'risk-manager',
+    name: 'Risk Manager',
+    category: 'finance',
+    description: 'Identify, analyze, and mitigate financial risks for organizations.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Risk Analyst',
+        salary: 60000,
+        description: 'Collect and analyze data to identify potential financial risks.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Senior Risk Analyst',
+        salary: 80000,
+        description: 'Evaluate complex risk scenarios and develop mitigation strategies.',
+        skillRequirements: { intelligence: 300, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Risk Manager',
+        salary: 110000,
+        description: 'Develop and implement comprehensive risk management programs.',
+        skillRequirements: { intelligence: 450, technical: 500, leadership: 350 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Senior Risk Manager',
+        salary: 150000,
+        description: 'Lead risk management teams and integrate risk strategies with business objectives.',
+        skillRequirements: { intelligence: 600, technical: 650, leadership: 550 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Chief Risk Officer',
+        salary: 225000,
+        description: 'Direct enterprise-wide risk management strategy and policies.',
+        skillRequirements: { intelligence: 750, technical: 700, leadership: 800 },
+        healthImpact: -25,
+        happinessImpact: 20,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'investment-fund-manager',
+    name: 'Investment Fund Manager',
+    category: 'finance',
+    description: 'Manage investment portfolios and funds to generate returns for clients.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Investment Analyst',
+        salary: 70000,
+        description: 'Research investment opportunities and provide recommendations.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Portfolio Analyst',
+        salary: 90000,
+        description: 'Analyze portfolio performance and assist in investment decision-making.',
+        skillRequirements: { intelligence: 350, technical: 300 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Portfolio Manager',
+        salary: 130000,
+        description: 'Manage investment portfolios and make buy/sell decisions.',
+        skillRequirements: { intelligence: 500, technical: 450, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Senior Fund Manager',
+        salary: 200000,
+        description: 'Manage large investment funds and develop investment strategies.',
+        skillRequirements: { intelligence: 650, technical: 600, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Chief Investment Officer',
+        salary: 350000,
+        description: 'Direct overall investment strategy and oversee all fund management activities.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 700 },
+        healthImpact: -25,
+        happinessImpact: 25,
+        prestigeImpact: 70,
+        timeCommitment: 65,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'insurance-actuary',
+    name: 'Insurance Actuary',
+    category: 'finance',
+    description: 'Analyze statistical data to calculate insurance risks and premiums.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Actuarial Analyst',
+        salary: 65000,
+        description: 'Gather and analyze data to support actuarial calculations.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Associate Actuary',
+        salary: 85000,
+        description: 'Perform actuarial analyses and assist in developing pricing models.',
+        skillRequirements: { intelligence: 350, technical: 400 },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Actuary',
+        salary: 120000,
+        description: 'Design insurance products and develop risk assessment models.',
+        skillRequirements: { intelligence: 550, technical: 600 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 45,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Senior Actuary',
+        salary: 160000,
+        description: 'Lead actuarial teams and oversee complex risk modeling projects.',
+        skillRequirements: { intelligence: 700, technical: 750, leadership: 400 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Chief Actuary',
+        salary: 220000,
+        description: 'Direct all actuarial functions and develop long-term risk strategies.',
+        skillRequirements: { intelligence: 850, technical: 900, leadership: 600 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 55,
+        timeCommitment: 55,
+        experience: 108
+      }
+    ]
+  },
+  
+  {
+    id: 'financial-controller',
+    name: 'Financial Controller',
+    category: 'finance',
+    description: 'Oversee accounting operations and financial reporting for organizations.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Staff Accountant',
+        salary: 55000,
+        description: 'Perform accounting tasks and assist with financial reporting.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Senior Accountant',
+        salary: 70000,
+        description: 'Manage accounting processes and prepare financial statements.',
+        skillRequirements: { intelligence: 250, technical: 300 },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Accounting Manager',
+        salary: 90000,
+        description: 'Supervise accounting staff and ensure accurate financial reporting.',
+        skillRequirements: { intelligence: 400, technical: 450, leadership: 350 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Financial Controller',
+        salary: 120000,
+        description: 'Direct all accounting operations and financial control systems.',
+        skillRequirements: { intelligence: 550, technical: 600, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Chief Financial Officer',
+        salary: 200000,
+        description: 'Lead all financial strategy, planning, and operations.',
+        skillRequirements: { intelligence: 700, technical: 650, leadership: 750 },
+        healthImpact: -25,
+        happinessImpact: 20,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'trader',
+    name: 'Trader',
+    category: 'finance',
+    description: 'Execute securities trades in financial markets to generate profits.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Trader',
+        salary: 75000,
+        description: 'Execute basic trades under supervision and assist senior traders.',
+        skillRequirements: { },
+        healthImpact: -10,
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Trader',
+        salary: 100000,
+        description: 'Execute trades independently and develop trading strategies.',
+        skillRequirements: { intelligence: 350, technical: 300 },
+        healthImpact: -15,
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 55,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Trader',
+        salary: 150000,
+        description: 'Trade larger positions and mentor junior traders.',
+        skillRequirements: { intelligence: 500, technical: 450 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Principal Trader',
+        salary: 250000,
+        description: 'Manage a trading desk and develop advanced trading strategies.',
+        skillRequirements: { intelligence: 650, technical: 600, leadership: 450 },
+        healthImpact: -25,
+        happinessImpact: 20,
+        prestigeImpact: 50,
+        timeCommitment: 65,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Head of Trading',
+        salary: 400000,
+        description: 'Lead all trading operations and set trading strategies.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 700 },
+        healthImpact: -30,
+        happinessImpact: 25,
+        prestigeImpact: 65,
+        timeCommitment: 70,
+        experience: 96
+      }
+    ]
+  },
+  
   // Additional Healthcare Professions
   {
     id: 'pharmacist',
@@ -1535,6 +1949,489 @@ export const professions: Profession[] = [
         prestigeImpact: 45,
         timeCommitment: 60,
         experience: 60
+      }
+    ]
+  },
+  
+  {
+    id: 'dentist',
+    name: 'Dentist',
+    category: 'healthcare',
+    description: 'Diagnose and treat dental issues, perform procedures, and promote oral health.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Associate Dentist',
+        salary: 120000,
+        description: 'Provide dental care in an established practice under senior dentist supervision.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'General Dentist',
+        salary: 150000,
+        description: 'Independently diagnose and treat a wide range of dental conditions.',
+        skillRequirements: { intelligence: 350, technical: 400, charisma: 250 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Dentist',
+        salary: 180000,
+        description: 'Lead complex procedures and mentor junior dentists.',
+        skillRequirements: { intelligence: 500, technical: 550, charisma: 350 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Dental Specialist',
+        salary: 250000,
+        description: 'Specialize in advanced dental care such as orthodontics, oral surgery, or endodontics.',
+        skillRequirements: { intelligence: 650, technical: 700, charisma: 400 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Dental Practice Owner',
+        salary: 350000,
+        description: 'Own and manage a large dental practice or group of practices.',
+        skillRequirements: { intelligence: 750, technical: 800, leadership: 600, charisma: 500 },
+        healthImpact: -25,
+        happinessImpact: 25,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'physical-therapist',
+    name: 'Physical Therapist',
+    category: 'healthcare',
+    description: 'Help patients improve movement, manage pain, and recover physical function.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Physical Therapist',
+        salary: 75000,
+        description: 'Evaluate patients and develop therapeutic exercise programs.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Senior Physical Therapist',
+        salary: 90000,
+        description: 'Specialize in specific treatment areas and mentor entry-level therapists.',
+        skillRequirements: { intelligence: 250, technical: 300, charisma: 300, physical: 350 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Lead Physical Therapist',
+        salary: 105000,
+        description: 'Oversee therapy programs and coordinate patient care with other healthcare providers.',
+        skillRequirements: { intelligence: 350, technical: 400, charisma: 400, physical: 450, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Rehabilitation Director',
+        salary: 120000,
+        description: 'Manage physical therapy departments and develop treatment protocols.',
+        skillRequirements: { intelligence: 450, technical: 500, charisma: 500, physical: 550, leadership: 450 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Rehabilitation Services Executive',
+        salary: 150000,
+        description: 'Lead rehabilitation services across multiple facilities or healthcare systems.',
+        skillRequirements: { intelligence: 550, technical: 600, charisma: 600, physical: 650, leadership: 600 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'medical-technologist',
+    name: 'Medical Technologist',
+    category: 'healthcare',
+    description: 'Perform laboratory tests to detect, diagnose, and treat diseases.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Medical Laboratory Technician',
+        salary: 50000,
+        description: 'Perform routine laboratory tests under supervision.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Medical Technologist',
+        salary: 65000,
+        description: 'Independently perform and analyze complex laboratory tests.',
+        skillRequirements: { intelligence: 300, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Lead Medical Technologist',
+        salary: 80000,
+        description: 'Supervise laboratory operations and specialized testing procedures.',
+        skillRequirements: { intelligence: 450, technical: 500, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Laboratory Manager',
+        salary: 95000,
+        description: 'Manage laboratory staff, budget, and quality assurance programs.',
+        skillRequirements: { intelligence: 600, technical: 650, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Laboratory Director',
+        salary: 120000,
+        description: 'Direct all laboratory operations and develop strategic plans.',
+        skillRequirements: { intelligence: 750, technical: 800, leadership: 700 },
+        healthImpact: -25,
+        happinessImpact: 20,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'psychologist',
+    name: 'Psychologist',
+    category: 'healthcare',
+    description: 'Assess, diagnose, and treat mental, emotional, and behavioral disorders.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Psychological Assistant',
+        salary: 60000,
+        description: 'Provide psychological services under licensed psychologist supervision.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Licensed Psychologist',
+        salary: 80000,
+        description: 'Independently diagnose and treat psychological disorders.',
+        skillRequirements: { intelligence: 400, charisma: 450 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Psychologist',
+        salary: 100000,
+        description: 'Specialize in specific psychological areas and supervise junior psychologists.',
+        skillRequirements: { intelligence: 550, charisma: 600, leadership: 350 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Psychology Director',
+        salary: 120000,
+        description: 'Lead psychology departments and develop treatment programs.',
+        skillRequirements: { intelligence: 700, charisma: 750, leadership: 550 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Chief Psychologist',
+        salary: 150000,
+        description: 'Direct psychological services across healthcare systems and influence policy.',
+        skillRequirements: { intelligence: 850, charisma: 900, leadership: 750 },
+        healthImpact: -25,
+        happinessImpact: 25,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 108
+      }
+    ]
+  },
+  
+  {
+    id: 'nutritionist',
+    name: 'Nutritionist',
+    category: 'healthcare',
+    description: 'Advise on nutrition and develop dietary plans to promote health and manage disease.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Nutrition Assistant',
+        salary: 45000,
+        description: 'Support registered dietitians and help implement nutrition programs.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Registered Dietitian',
+        salary: 60000,
+        description: 'Assess nutritional needs and develop personalized dietary plans.',
+        skillRequirements: { intelligence: 250, charisma: 300 },
+        healthImpact: -5,
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Clinical Dietitian',
+        salary: 75000,
+        description: 'Specialize in medical nutrition therapy for complex health conditions.',
+        skillRequirements: { intelligence: 400, charisma: 450, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Nutrition Services Manager',
+        salary: 90000,
+        description: 'Manage nutrition departments and develop institutional dietary programs.',
+        skillRequirements: { intelligence: 550, charisma: 600, technical: 500, leadership: 450 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Nutrition Director',
+        salary: 110000,
+        description: 'Lead nutrition strategy across healthcare systems and influence public health policy.',
+        skillRequirements: { intelligence: 700, charisma: 750, technical: 650, leadership: 600 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'healthcare-administrator',
+    name: 'Healthcare Administrator',
+    category: 'healthcare',
+    description: 'Plan, direct, and coordinate medical and health services in facilities or specific departments.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Administrative Assistant',
+        salary: 50000,
+        description: 'Support healthcare management and perform administrative tasks.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Department Coordinator',
+        salary: 70000,
+        description: 'Oversee daily operations of a specific healthcare department.',
+        skillRequirements: { intelligence: 250, leadership: 300, charisma: 250 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Department Manager',
+        salary: 90000,
+        description: 'Manage staff, budget, and operations of a healthcare department.',
+        skillRequirements: { intelligence: 400, leadership: 450, charisma: 350, technical: 300 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Healthcare Director',
+        salary: 120000,
+        description: 'Direct multiple departments or a small healthcare facility.',
+        skillRequirements: { intelligence: 550, leadership: 600, charisma: 500, technical: 450 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Hospital CEO',
+        salary: 200000,
+        description: 'Lead all aspects of a hospital or healthcare system.',
+        skillRequirements: { intelligence: 700, leadership: 800, charisma: 700, technical: 600 },
+        healthImpact: -25,
+        happinessImpact: 25,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'medical-researcher',
+    name: 'Medical Researcher',
+    category: 'healthcare',
+    description: 'Conduct research to advance medical knowledge and develop new treatments.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Research Assistant',
+        salary: 55000,
+        description: 'Support research projects by collecting and analyzing data.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 5,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Research Associate',
+        salary: 75000,
+        description: 'Design and conduct research studies under supervision.',
+        skillRequirements: { intelligence: 400, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 10,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Researcher',
+        salary: 95000,
+        description: 'Lead research projects and publish findings in scientific journals.',
+        skillRequirements: { intelligence: 600, technical: 550 },
+        healthImpact: -15,
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Principal Investigator',
+        salary: 120000,
+        description: 'Direct major research initiatives and secure funding grants.',
+        skillRequirements: { intelligence: 750, technical: 700, leadership: 500, charisma: 450 },
+        healthImpact: -20,
+        happinessImpact: 20,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Research Director',
+        salary: 160000,
+        description: 'Lead research institutions and shape research priorities.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 700, charisma: 600 },
+        healthImpact: -25,
+        happinessImpact: 25,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        experience: 108
       }
     ]
   },
