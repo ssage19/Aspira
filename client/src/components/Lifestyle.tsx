@@ -423,7 +423,7 @@ export function Lifestyle() {
   };
   
   return (
-    <div className="p-4 bg-white rounded-lg shadow-lg">
+    <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <ShoppingBag className="mr-2" />
         Lifestyle & Luxury
@@ -472,35 +472,35 @@ export function Lifestyle() {
         <TabsContent value="owned">
           {ownedItems.length === 0 ? (
             <div className="text-center p-6">
-              <div className="text-gray-400 mb-2">
+              <div className="text-muted-foreground mb-2">
                 <ShoppingBag size={40} className="mx-auto mb-2 opacity-30" />
                 <p>You don't own any lifestyle items yet.</p>
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Browse the categories to purchase luxury items, vehicles, and more.
               </p>
             </div>
           ) : (
             <div>
-              <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-md text-sm">
-                <h3 className="font-medium text-amber-800 mb-1">About Lifestyle Choices</h3>
-                <p className="text-amber-700 text-xs">
+              <div className="mb-4 p-3 bg-secondary/10 border border-border rounded-md text-sm">
+                <h3 className="font-medium mb-1">About Lifestyle Choices</h3>
+                <p className="text-muted-foreground text-xs">
                   Your lifestyle items affect your character attributes. Removing items will reverse their effects on your stats.
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                 {ownedItems.map(item => {
-                  // Determine item type for styling
+                  // Determine item type for styling with dark mode compatibility
                   const itemTypeColors = {
-                    'luxury': 'border-amber-200 bg-amber-50',
-                    'vehicles': 'border-blue-200 bg-blue-50',
-                    'vacations': 'border-purple-200 bg-purple-50',
-                    'experiences': 'border-pink-200 bg-pink-50',
-                    'hobbies': 'border-green-200 bg-green-50'
+                    'luxury': 'border-amber-500/30 bg-amber-500/5',
+                    'vehicles': 'border-blue-500/30 bg-blue-500/5',
+                    'vacations': 'border-purple-500/30 bg-purple-500/5',
+                    'experiences': 'border-pink-500/30 bg-pink-500/5',
+                    'hobbies': 'border-green-500/30 bg-green-500/5'
                   };
                   
-                  const colorClass = itemTypeColors[item.type as keyof typeof itemTypeColors] || 'border-gray-200';
+                  const colorClass = itemTypeColors[item.type as keyof typeof itemTypeColors] || 'border-border';
                   
                   return (
                     <Card key={item.id} className={`overflow-hidden ${colorClass}`}>
@@ -563,8 +563,8 @@ export function Lifestyle() {
                           {/* Attribute effects if any */}
                           {(item.timeCommitment || item.healthImpact || item.stressReduction || 
                             item.socialStatus || item.skillDevelopment || item.environmentalImpact) && (
-                            <div className="mt-2 pt-2 border-t border-gray-200">
-                              <p className="text-xs text-gray-500 mb-1">Effects on your attributes:</p>
+                            <div className="mt-2 pt-2 border-t border-border">
+                              <p className="text-xs text-muted-foreground mb-1">Effects on your attributes:</p>
                               <div className="grid grid-cols-2 gap-1">
                                 {item.timeCommitment && (
                                   <div className="text-xs flex items-center text-orange-600">
@@ -610,7 +610,7 @@ export function Lifestyle() {
                       <CardFooter>
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="outline" className="w-full text-green-600 hover:bg-green-50">
+                            <Button variant="outline" className="w-full text-green-600 hover:bg-green-500/10">
                               <ShoppingBag className="h-4 w-4 mr-2" />
                               Sell
                             </Button>
@@ -682,9 +682,9 @@ export function Lifestyle() {
         </TabsContent>
         
         <TabsContent value="tech">
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-            <h3 className="font-medium text-blue-800 mb-1">About Tech Products</h3>
-            <p className="text-blue-700">
+          <div className="mb-4 p-3 bg-blue-500/5 border border-blue-500/30 rounded-md text-sm">
+            <h3 className="font-medium mb-1">About Tech Products</h3>
+            <p className="text-muted-foreground text-xs">
               Premium technology enhances productivity, entertainment, and quality of life. 
               These items may become outdated over time, so choose based on your needs and budget.
             </p>
@@ -693,9 +693,9 @@ export function Lifestyle() {
         </TabsContent>
         
         <TabsContent value="fashion">
-          <div className="mb-4 p-3 bg-pink-50 border border-pink-200 rounded-md text-sm">
-            <h3 className="font-medium text-pink-800 mb-1">About Fashion Items</h3>
-            <p className="text-pink-700">
+          <div className="mb-4 p-3 bg-pink-500/5 border border-pink-500/30 rounded-md text-sm">
+            <h3 className="font-medium mb-1">About Fashion Items</h3>
+            <p className="text-muted-foreground text-xs">
               Fashion items boost social status and prestige while expressing your personal style.
               Trendy items may go out of style over time while luxury pieces maintain value longer.
             </p>
@@ -704,9 +704,9 @@ export function Lifestyle() {
         </TabsContent>
         
         <TabsContent value="tattoos">
-          <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-md text-sm">
-            <h3 className="font-medium text-purple-800 mb-1">About Tattoos</h3>
-            <p className="text-purple-700">
+          <div className="mb-4 p-3 bg-purple-500/5 border border-purple-500/30 rounded-md text-sm">
+            <h3 className="font-medium mb-1">About Tattoos</h3>
+            <p className="text-muted-foreground text-xs">
               Tattoos are permanent body art that can represent personal meaning, style, and status.
               Consider carefully as these permanent modifications reflect your character's identity.
             </p>
@@ -715,9 +715,9 @@ export function Lifestyle() {
         </TabsContent>
         
         <TabsContent value="hobbies">
-          <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-md text-sm">
-            <h3 className="font-medium text-blue-800 mb-1">About Hobbies</h3>
-            <p className="text-blue-700">
+          <div className="mb-4 p-3 bg-blue-500/5 border border-blue-500/30 rounded-md text-sm">
+            <h3 className="font-medium mb-1">About Hobbies</h3>
+            <p className="text-muted-foreground text-xs">
               Hobbies represent long-term lifestyle choices requiring time investment and commitment. 
               They provide unique benefits beyond standard purchases, including skills development, 
               social connections, and special opportunities. Choose wisely based on your goals!
