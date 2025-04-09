@@ -51,7 +51,7 @@ export default function CharacterCreation() {
     technical: 30,
     leadership: 30
   });
-  const [skillPoints, setSkillPoints] = useState(50);
+  const [skillPoints, setSkillPoints] = useState(100);
   
   // Load available entry-level jobs on mount
   useEffect(() => {
@@ -97,7 +97,7 @@ export default function CharacterCreation() {
       return;
     }
     
-    if (skills[skill] >= 100) {
+    if (skills[skill] >= 1000) {
       toast.error("This skill is already at maximum level");
       return;
     }
@@ -313,7 +313,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleAllocateSkill('intelligence')}
-                            disabled={skillPoints <= 0 || skills.intelligence >= 100}
+                            disabled={skillPoints <= 0 || skills.intelligence >= 1000}
                             title="Increase Intelligence"
                           >
                             <Plus className="h-3 w-3" />
@@ -324,7 +324,7 @@ export default function CharacterCreation() {
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-indigo-500 rounded-full" 
-                        style={{ width: `${skills.intelligence}%` }}
+                        style={{ width: `${skills.intelligence / 10}%` }}
                       />
                     </div>
                   </div>
@@ -354,7 +354,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleAllocateSkill('creativity')}
-                            disabled={skillPoints <= 0 || skills.creativity >= 100}
+                            disabled={skillPoints <= 0 || skills.creativity >= 1000}
                             title="Increase Creativity"
                           >
                             <Plus className="h-3 w-3" />
@@ -365,7 +365,7 @@ export default function CharacterCreation() {
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-pink-500 rounded-full" 
-                        style={{ width: `${skills.creativity}%` }}
+                        style={{ width: `${skills.creativity / 10}%` }}
                       />
                     </div>
                   </div>
@@ -395,7 +395,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleAllocateSkill('charisma')}
-                            disabled={skillPoints <= 0 || skills.charisma >= 100}
+                            disabled={skillPoints <= 0 || skills.charisma >= 1000}
                             title="Increase Charisma"
                           >
                             <Plus className="h-3 w-3" />
@@ -406,7 +406,7 @@ export default function CharacterCreation() {
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-blue-500 rounded-full" 
-                        style={{ width: `${skills.charisma}%` }}
+                        style={{ width: `${skills.charisma / 10}%` }}
                       />
                     </div>
                   </div>
@@ -436,7 +436,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleAllocateSkill('technical')}
-                            disabled={skillPoints <= 0 || skills.technical >= 100}
+                            disabled={skillPoints <= 0 || skills.technical >= 1000}
                             title="Increase Technical"
                           >
                             <Plus className="h-3 w-3" />
@@ -447,7 +447,7 @@ export default function CharacterCreation() {
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-amber-500 rounded-full" 
-                        style={{ width: `${skills.technical}%` }}
+                        style={{ width: `${skills.technical / 10}%` }}
                       />
                     </div>
                   </div>
@@ -477,7 +477,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleAllocateSkill('leadership')}
-                            disabled={skillPoints <= 0 || skills.leadership >= 100}
+                            disabled={skillPoints <= 0 || skills.leadership >= 1000}
                             title="Increase Leadership"
                           >
                             <Plus className="h-3 w-3" />
@@ -488,7 +488,7 @@ export default function CharacterCreation() {
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
                       <div 
                         className="h-full bg-green-500 rounded-full" 
-                        style={{ width: `${skills.leadership}%` }}
+                        style={{ width: `${skills.leadership / 10}%` }}
                       />
                     </div>
                   </div>

@@ -350,7 +350,7 @@ const getDefaultCharacter = () => {
   },
   
   // Skill points available to allocate during character creation
-  skillPoints: 50,
+  skillPoints: 100,
   
   // Earned skill points that can be spent later
   earnedSkillPoints: 0,
