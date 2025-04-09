@@ -1521,7 +1521,7 @@ export const professions: Profession[] = [
     ]
   },
   
-  // New Government Profession
+  // Government Professions
   {
     id: 'diplomat',
     name: 'Diplomat',
@@ -1586,7 +1586,592 @@ export const professions: Profession[] = [
     ]
   },
   
-  // New Trade Profession
+  // Policy Analyst
+  {
+    id: 'policy-analyst',
+    name: 'Policy Analyst',
+    category: 'government',
+    description: 'Research, analyze, and develop public policy solutions to address societal issues.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Research Assistant',
+        salary: 55000,
+        description: 'Gather data, conduct literature reviews, and support policy research projects.',
+        skillRequirements: { },
+        happinessImpact: 6,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Policy Analyst',
+        salary: 75000,
+        description: 'Analyze policy issues, prepare briefings, and make recommendations to decision-makers.',
+        skillRequirements: { intelligence: 700, technical: 650 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Policy Analyst',
+        salary: 95000,
+        description: 'Lead complex policy analysis, develop policy frameworks, and coordinate stakeholder engagement.',
+        skillRequirements: { intelligence: 800, technical: 750, leadership: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Policy Director',
+        salary: 120000,
+        description: 'Direct policy development in a specific area, manage policy teams, and advise high-level officials.',
+        skillRequirements: { intelligence: 850, technical: 800, leadership: 700, charisma: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 60
+      },
+      {
+        level: 'executive',
+        title: 'Chief Policy Advisor',
+        salary: 160000,
+        description: 'Shape national policy strategy, lead major policy initiatives, and advise top government officials.',
+        skillRequirements: { intelligence: 900, technical: 850, leadership: 800, charisma: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        experience: 84
+      }
+    ]
+  },
+  
+  // Legislator
+  {
+    id: 'legislator',
+    name: 'Legislator',
+    category: 'government',
+    description: 'Represent constituents and work to create, amend, and pass laws that address societal needs.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Legislative Aide',
+        salary: 45000,
+        description: 'Support elected officials with constituent services, research, and administrative tasks.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 20,
+        timeCommitment: 50,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'City Council Member',
+        salary: 65000,
+        description: 'Serve on local governing body, create local ordinances, and address community issues.',
+        skillRequirements: { charisma: 700, leadership: 650, intelligence: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 35,
+        timeCommitment: 30,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'State Representative',
+        salary: 85000,
+        description: 'Create and vote on state laws, represent district interests, and serve on legislative committees.',
+        skillRequirements: { charisma: 800, leadership: 750, intelligence: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 45,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'U.S. Representative',
+        salary: 174000,
+        description: 'Serve in the House of Representatives, create federal legislation, and represent district interests.',
+        skillRequirements: { charisma: 850, leadership: 800, intelligence: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'U.S. Senator',
+        salary: 174000,
+        description: 'Serve in the Senate, shape national policy, and provide consent on treaties and appointments.',
+        skillRequirements: { charisma: 900, leadership: 850, intelligence: 800 },
+        happinessImpact: 18,
+        prestigeImpact: 70,
+        timeCommitment: 65,
+        experience: 96
+      }
+    ]
+  },
+  
+  // Civil Servant
+  {
+    id: 'civil-servant',
+    name: 'Civil Servant',
+    category: 'government',
+    description: 'Work within government departments to implement policies, administer programs, and serve the public.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Administrative Assistant',
+        salary: 42000,
+        description: 'Provide administrative support, process documents, and assist with basic departmental operations.',
+        skillRequirements: { },
+        happinessImpact: 6,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Program Specialist',
+        salary: 55000,
+        description: 'Implement government programs, process applications, and assist with program management.',
+        skillRequirements: { intelligence: 600, technical: 600 },
+        happinessImpact: 7,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Program Manager',
+        salary: 75000,
+        description: 'Oversee government program operations, manage budgets, and ensure program effectiveness.',
+        skillRequirements: { intelligence: 700, technical: 650, leadership: 650 },
+        happinessImpact: 8,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Department Director',
+        salary: 110000,
+        description: 'Lead a government department, develop strategic plans, and manage large teams of civil servants.',
+        skillRequirements: { intelligence: 750, leadership: 800, technical: 700 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Agency Director',
+        salary: 150000,
+        description: 'Direct a major government agency, implement high-level policy directives, and manage agency operations.',
+        skillRequirements: { intelligence: 800, leadership: 850, technical: 750, charisma: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 60,
+        experience: 96
+      }
+    ]
+  },
+  
+  // Intelligence Officer
+  {
+    id: 'intelligence-officer',
+    name: 'Intelligence Officer',
+    category: 'government',
+    description: 'Gather and analyze intelligence to protect national security and inform government decision-making.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Intelligence Analyst',
+        salary: 65000,
+        description: 'Collect and analyze intelligence data, prepare reports, and identify potential threats.',
+        skillRequirements: { },
+        happinessImpact: 7,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Field Agent',
+        salary: 85000,
+        description: 'Conduct field operations, gather human intelligence, and develop intelligence networks.',
+        skillRequirements: { intelligence: 700, physical: 700, charisma: 650 },
+        happinessImpact: 6,
+        prestigeImpact: 30,
+        timeCommitment: 55,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Intelligence Officer',
+        salary: 110000,
+        description: 'Lead intelligence operations, manage intelligence collection, and brief senior officials.',
+        skillRequirements: { intelligence: 800, physical: 750, charisma: 700, leadership: 650 },
+        happinessImpact: 8,
+        prestigeImpact: 35,
+        timeCommitment: 60,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Division Chief',
+        salary: 140000,
+        description: 'Oversee intelligence operations in specific regions or subject areas, coordinate with other agencies.',
+        skillRequirements: { intelligence: 850, leadership: 800, charisma: 750 },
+        happinessImpact: 10,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Intelligence Director',
+        salary: 180000,
+        description: 'Lead intelligence agency, shape national security strategy, and advise top government officials.',
+        skillRequirements: { intelligence: 900, leadership: 850, charisma: 800 },
+        happinessImpact: 12,
+        prestigeImpact: 55,
+        timeCommitment: 65,
+        experience: 108
+      }
+    ]
+  },
+  
+  // Military Officer
+  {
+    id: 'military-officer',
+    name: 'Military Officer',
+    category: 'government',
+    description: 'Lead military personnel, plan and execute operations, and protect national security interests.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Second Lieutenant/Ensign',
+        salary: 45000,
+        description: 'Lead small units, learn military operations, and develop leadership skills.',
+        skillRequirements: { },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 60,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Captain/Lieutenant',
+        salary: 70000,
+        description: 'Command company-sized units, plan operations, and take on increased leadership responsibilities.',
+        skillRequirements: { leadership: 700, physical: 700, intelligence: 650 },
+        happinessImpact: 10,
+        prestigeImpact: 30,
+        timeCommitment: 60,
+        experience: 48
+      },
+      {
+        level: 'mid',
+        title: 'Major/Lieutenant Commander',
+        salary: 90000,
+        description: 'Serve as staff officers, develop strategic plans, and take on specialized leadership roles.',
+        skillRequirements: { leadership: 800, physical: 750, intelligence: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 35,
+        timeCommitment: 60,
+        experience: 96
+      },
+      {
+        level: 'senior',
+        title: 'Colonel/Captain',
+        salary: 130000,
+        description: 'Command large units, develop major operational plans, and lead significant military initiatives.',
+        skillRequirements: { leadership: 850, intelligence: 800, charisma: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 65,
+        experience: 144
+      },
+      {
+        level: 'executive',
+        title: 'General/Admiral',
+        salary: 200000,
+        description: 'Direct military branches, shape national defense strategy, and advise civilian leadership.',
+        skillRequirements: { leadership: 900, intelligence: 850, charisma: 800 },
+        happinessImpact: 18,
+        prestigeImpact: 60,
+        timeCommitment: 70,
+        experience: 192
+      }
+    ]
+  },
+  
+  // Urban Planner
+  {
+    id: 'urban-planner',
+    name: 'Urban Planner',
+    category: 'government',
+    description: 'Plan and design communities, manage development projects, and create sustainable urban environments.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Planning Technician',
+        salary: 50000,
+        description: 'Assist with planning projects, create maps and diagrams, and collect planning data.',
+        skillRequirements: { },
+        happinessImpact: 7,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Urban Planner',
+        salary: 65000,
+        description: 'Develop land use plans, review development proposals, and engage with community stakeholders.',
+        skillRequirements: { intelligence: 650, technical: 700, creativity: 600 },
+        happinessImpact: 9,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Urban Planner',
+        salary: 85000,
+        description: 'Lead planning projects, develop comprehensive plans, and coordinate with various agencies.',
+        skillRequirements: { intelligence: 750, technical: 800, creativity: 700, charisma: 650 },
+        happinessImpact: 11,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Planning Director',
+        salary: 110000,
+        description: 'Direct planning department, develop long-range planning strategies, and manage planning staff.',
+        skillRequirements: { intelligence: 800, technical: 850, leadership: 750, charisma: 700 },
+        happinessImpact: 12,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'City Development Commissioner',
+        salary: 140000,
+        description: 'Shape urban development policy, direct major urban initiatives, and coordinate regional planning.',
+        skillRequirements: { intelligence: 850, technical: 900, leadership: 800, charisma: 750 },
+        happinessImpact: 14,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 108
+      }
+    ]
+  },
+  
+  // Public Health Official
+  {
+    id: 'public-health-official',
+    name: 'Public Health Official',
+    category: 'government',
+    description: 'Protect and improve community health through policy, education, and public health initiatives.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Public Health Analyst',
+        salary: 55000,
+        description: 'Collect and analyze health data, support health education programs, and assist with health initiatives.',
+        skillRequirements: { },
+        happinessImpact: 8,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Public Health Specialist',
+        salary: 70000,
+        description: 'Develop health programs, conduct health assessments, and coordinate community health services.',
+        skillRequirements: { intelligence: 700, technical: 650, charisma: 600 },
+        happinessImpact: 10,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Public Health Manager',
+        salary: 90000,
+        description: 'Manage public health programs, develop health policies, and lead health intervention efforts.',
+        skillRequirements: { intelligence: 800, technical: 750, charisma: 700, leadership: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Public Health Director',
+        salary: 120000,
+        description: 'Lead local health department, develop comprehensive health strategies, and manage health crises.',
+        skillRequirements: { intelligence: 850, leadership: 800, charisma: 750, technical: 800 },
+        happinessImpact: 15,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Health Commissioner',
+        salary: 160000,
+        description: 'Shape health policy at regional or state level, lead major health initiatives, and coordinate emergency response.',
+        skillRequirements: { intelligence: 900, leadership: 850, charisma: 800, technical: 850 },
+        happinessImpact: 18,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  // Tax Assessor
+  {
+    id: 'tax-assessor',
+    name: 'Tax Assessor',
+    category: 'government',
+    description: 'Determine property values, apply tax rates, and ensure fair and accurate tax assessments.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Assessment Clerk',
+        salary: 45000,
+        description: 'Process property records, assist with property inspections, and maintain tax assessment data.',
+        skillRequirements: { },
+        happinessImpact: 5,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Assessment Specialist',
+        salary: 60000,
+        description: 'Conduct property assessments, review property data, and determine property values.',
+        skillRequirements: { intelligence: 650, technical: 700 },
+        happinessImpact: 6,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Assessor',
+        salary: 75000,
+        description: 'Handle complex property valuations, manage assessment appeals, and train assessment staff.',
+        skillRequirements: { intelligence: 750, technical: 800, leadership: 600 },
+        happinessImpact: 7,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Assessment Manager',
+        salary: 95000,
+        description: 'Oversee assessment operations, develop valuation methodologies, and ensure assessment quality.',
+        skillRequirements: { intelligence: 800, technical: 850, leadership: 700 },
+        happinessImpact: 8,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'County Assessor',
+        salary: 120000,
+        description: 'Direct assessment office, establish assessment policies, and ensure fair taxation practices.',
+        skillRequirements: { intelligence: 850, technical: 900, leadership: 800, charisma: 700 },
+        happinessImpact: 9,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 96
+      }
+    ]
+  },
+  
+  // Environmental Regulator
+  {
+    id: 'environmental-regulator',
+    name: 'Environmental Regulator',
+    category: 'government',
+    description: 'Develop and enforce environmental regulations to protect natural resources and public health.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Environmental Technician',
+        salary: 48000,
+        description: 'Collect environmental samples, conduct field inspections, and monitor compliance with regulations.',
+        skillRequirements: { },
+        happinessImpact: 7,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Environmental Specialist',
+        salary: 65000,
+        description: 'Review permit applications, investigate complaints, and ensure regulatory compliance.',
+        skillRequirements: { technical: 700, intelligence: 650 },
+        happinessImpact: 9,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Environmental Program Manager',
+        salary: 85000,
+        description: 'Develop environmental programs, coordinate enforcement activities, and engage with stakeholders.',
+        skillRequirements: { technical: 800, intelligence: 750, leadership: 650, charisma: 600 },
+        happinessImpact: 11,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Environmental Division Director',
+        salary: 110000,
+        description: 'Lead environmental divisions, develop regulatory frameworks, and manage environmental initiatives.',
+        skillRequirements: { technical: 850, intelligence: 800, leadership: 750, charisma: 700 },
+        happinessImpact: 13,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Environmental Protection Director',
+        salary: 150000,
+        description: 'Shape environmental policy, direct major environmental initiatives, and lead regulatory agency.',
+        skillRequirements: { technical: 900, intelligence: 850, leadership: 800, charisma: 750 },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  // Skilled Trades Professions
   {
     id: 'electrician',
     name: 'Electrician',

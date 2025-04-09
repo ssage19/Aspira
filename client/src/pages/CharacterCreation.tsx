@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
-import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery, Plus, Minus } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery, Plus, Minus, Activity } from 'lucide-react';
 import { getAvailableEntryLevelJobs, professions, getCategoryLabel } from '../lib/services/jobService';
 import type { JobCategory } from '../lib/data/jobs';
 import TimeResetHack from '../TimeResetHack';
@@ -49,7 +49,8 @@ export default function CharacterCreation() {
     creativity: 30,
     charisma: 30,
     technical: 30,
-    leadership: 30
+    leadership: 30,
+    physical: 30
   });
   const [skillPoints, setSkillPoints] = useState(100);
   
@@ -489,6 +490,47 @@ export default function CharacterCreation() {
                       <div 
                         className="h-full bg-green-500 rounded-full" 
                         style={{ width: `${skills.leadership / 10}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Physical */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Activity className="h-4 w-4 mr-1 text-red-500" />
+                        <span className="font-medium">Physical</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mx-2 text-lg font-semibold">{skills.physical}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('physical')}
+                            disabled={skills.physical <= 30}
+                            title="Decrease Physical"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('physical')}
+                            disabled={skillPoints <= 0 || skills.physical >= 1000}
+                            title="Increase Physical"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-red-500 rounded-full" 
+                        style={{ width: `${skills.physical / 10}%` }}
                       />
                     </div>
                   </div>

@@ -31,6 +31,7 @@ export interface CharacterSkills {
   charisma: number;
   technical: number;
   leadership: number;
+  physical: number;
   // New skill types can be added here
 }
 
@@ -346,7 +347,8 @@ const getDefaultCharacter = () => {
     creativity: 30,
     charisma: 30,
     technical: 30,
-    leadership: 30
+    leadership: 30,
+    physical: 30
   },
   
   // Skill points available to allocate during character creation
