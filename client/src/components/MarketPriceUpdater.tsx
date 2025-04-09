@@ -294,25 +294,49 @@ export function MarketPriceUpdater() {
     return day >= 1 && day <= 5; // Monday is 1, Friday is 5
   }, []);
   
+  // Check if the market is open (both weekday and within trading hours)
+  const isMarketOpen = useCallback((): boolean => {
+    // Check day of week first (most important)
+    const gameDate = new Date();
+    gameDate.setFullYear(useTime.getState().currentYear);
+    gameDate.setMonth(useTime.getState().currentMonth - 1);
+    gameDate.setDate(useTime.getState().currentDay);
+    
+    // First check if it's a weekday
+    if (!isWeekday(gameDate)) {
+      console.log("Market closed: Weekend");
+      return false;
+    }
+    
+    // Calculate current hour from timeProgress (0-23 range)
+    const timeProgress = useTime.getState().timeProgress;
+    const currentHour = Math.floor((timeProgress / 100) * 24);
+    const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+    
+    if (!isWithinTradingHours) {
+      console.log(`Market closed: Outside trading hours (${currentHour}:00)`);
+      return false;
+    }
+    
+    console.log(`Market open: Weekday during trading hours (${currentHour}:00)`);
+    return true;
+  }, [isWeekday]);
+  
   // Export this function to the global window object for use in other components
   useEffect(() => {
-    // Save a reference to check if market is open
-    (window as any).isMarketOpen = isWeekday;
+    // Save both functions for different use cases
+    (window as any).isWeekday = isWeekday;
+    (window as any).isMarketOpen = isMarketOpen;
     
     // Also save the current market status to a global variable for other components to access
-    (window as any).isStockMarketOpen = () => {
-      const gameDate = new Date();
-      gameDate.setFullYear(useTime.getState().currentYear);
-      gameDate.setMonth(useTime.getState().currentMonth - 1);
-      gameDate.setDate(useTime.getState().currentDay);
-      return isWeekday(gameDate);
-    };
+    (window as any).isStockMarketOpen = isMarketOpen;
     
     return () => {
+      delete (window as any).isWeekday;
       delete (window as any).isMarketOpen;
       delete (window as any).isStockMarketOpen;
     };
-  }, [isWeekday]);
+  }, [isWeekday, isMarketOpen]);
   
   // Create a stable reference to the update function that doesn't change on renders
   const updateAllPrices = useCallback(() => {
@@ -324,24 +348,18 @@ export function MarketPriceUpdater() {
       return;
     }
     
-    // Get current game date to check if it's a weekday
-    const gameDate = new Date();
-    gameDate.setFullYear(useTime.getState().currentYear);
-    gameDate.setMonth(useTime.getState().currentMonth - 1);
-    gameDate.setDate(useTime.getState().currentDay);
-    
-    // Check if current game date is a weekday for stock market updates
-    const marketOpen = isWeekday(gameDate);
-    
     // Update the last update time
     lastUpdateTimeRef.current = now;
     
-    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} today.`);
+    // Check if market is currently open for stock updates
+    const marketOpen = isMarketOpen();
+    
+    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} right now.`);
     
     // 1. Calculate updated stock prices based on market conditions
     const updatedStockPrices: Record<string, number> = {};
     
-    // Only update stock prices on weekdays when the market is open
+    // Only update stock prices when the market is open (weekday + trading hours)
     if (marketOpen) {
       expandedStockMarket.forEach(stock => {
         // Base price influenced by market health and stock volatility
@@ -363,7 +381,20 @@ export function MarketPriceUpdater() {
       // 2. Update asset tracker with the new prices for owned assets
       syncAssetTrackerStockPrices(updatedStockPrices);
     } else {
-      console.log("MarketPriceUpdater: Stock market closed today (weekend)");
+      // More specific message based on the reason for being closed
+      const gameDate = new Date();
+      gameDate.setFullYear(useTime.getState().currentYear);
+      gameDate.setMonth(useTime.getState().currentMonth - 1);
+      gameDate.setDate(useTime.getState().currentDay);
+      
+      if (!isWeekday(gameDate)) {
+        console.log("MarketPriceUpdater: Stock market closed (weekend)");
+      } else {
+        // It must be a weekday outside of trading hours
+        const timeProgress = useTime.getState().timeProgress;
+        const currentHour = Math.floor((timeProgress / 100) * 24);
+        console.log(`MarketPriceUpdater: Stock market closed (outside trading hours - ${currentHour}:00)`);
+      }
     }
     
     // 3. Update other asset types
@@ -388,7 +419,7 @@ export function MarketPriceUpdater() {
     getMarketFactor,
     syncAssetTrackerStockPrices,
     updateOtherAssetPrices,
-    isWeekday
+    isMarketOpen
   ]);
 
   // Add this function to global window object so it can be called from anywhere
