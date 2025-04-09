@@ -341,26 +341,42 @@ const useChallengesStore = create<ChallengesState>()(
         const { reward } = challenge;
         const character = useCharacter.getState();
         
+        // Import toast for notifications
+        const { toast } = require('sonner');
+        
+        let rewardMessage = '';
+        
         switch (reward.type) {
           case 'cash':
             character.addWealth(reward.value);
+            rewardMessage = `$${reward.value.toLocaleString()} added to your account!`;
             break;
           case 'skill_points':
             // For now, we'll just log that skill points would be added
             console.log(`Challenge would award ${reward.value} skill points`);
+            rewardMessage = `${reward.value} skill points awarded!`;
             break;
           case 'prestige':
             character.addPrestige(reward.value);
+            rewardMessage = `+${reward.value} Prestige gained!`;
             break;
           case 'happiness':
             character.addHappiness(reward.value);
+            rewardMessage = `+${reward.value} Happiness gained!`;
             break;
           case 'item_unlock':
             // Handle special item unlocks based on challenge ID
-            // For now, we'll just show a toast message or console log
             console.log(`Challenge ${challenge.id} unlocked a premium feature!`);
+            rewardMessage = 'Special feature unlocked!';
             break;
         }
+        
+        // Show success toast
+        toast.success('Challenge Reward Claimed!', {
+          description: rewardMessage,
+          position: 'top-center',
+          duration: 3000
+        });
         
         // Mark reward as claimed
         set(state => ({

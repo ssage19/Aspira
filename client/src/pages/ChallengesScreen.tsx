@@ -186,7 +186,11 @@ const ChallengeCard: React.FC<{
             )}
             
             {challenge.isCompleted && !challenge.rewardClaimed && onClaim && (
-              <Button size="sm" className="bg-amber-500 hover:bg-amber-600 flex items-center">
+              <Button 
+                size="sm" 
+                className="bg-amber-500 hover:bg-amber-600 flex items-center"
+                onClick={onClaim}
+              >
                 <Gift className="h-4 w-4 mr-1" />
                 Claim Reward
               </Button>
