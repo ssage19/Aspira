@@ -16,12 +16,15 @@ import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
 import AchievementsScreen from "./pages/AchievementsScreen";
 import JobScreen from "./pages/JobScreen";
+import ChallengesScreen from "./pages/ChallengesScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
 import { EventDebugger } from "./components/EventDebugger";
 import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
 import AchievementNotification from "./components/AchievementNotification";
+import { ChallengeNotificationManager } from "./components/ChallengeNotification";
+import { ChallengeTracker } from "./components/ChallengeTracker";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
@@ -280,6 +283,7 @@ function App() {
                 <Route path="/lifestyle" element={<LifestyleScreen />} />
                 <Route path="/properties" element={<PropertyScreen />} />
                 <Route path="/achievements" element={<AchievementsScreen />} />
+                <Route path="/challenges" element={<ChallengesScreen />} />
                 <Route path="/test" element={<TestPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -293,6 +297,8 @@ function App() {
               {/* Global systems */}
               <GlobalAutoMaintenance />
               <MarketPriceUpdater />
+              <ChallengeTracker />
+              <ChallengeNotificationManager />
               
               {/* Emergency hack to reset time if needed */}
               <TimeResetHack />
