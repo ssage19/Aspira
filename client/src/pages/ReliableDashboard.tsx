@@ -29,7 +29,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
 // Import icons
 import { Calendar, Settings, DollarSign, Crown, ChartBar, 
   Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
-  Upload, Trash2, RotateCcw, HeartPulse } from 'lucide-react';
+  Upload, Trash2, RotateCcw, HeartPulse, Target } from 'lucide-react';
 
 // Import data stores directly (for direct access)
 import useAssetTracker from '../lib/stores/useAssetTracker';
@@ -355,7 +355,7 @@ export default function ReliableDashboard() {
                 <AchievementsWidget key={`achievements-${refreshTrigger}`} />
                 
                 {/* Quick Action Buttons */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 gap-6">
                   <Button
                     variant="ghost"
                     size="lg"
@@ -394,6 +394,16 @@ export default function ReliableDashboard() {
                   >
                     <Crown className="h-5 w-5 mb-2" />
                     Lifestyle
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-blue-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/challenges')}
+                  >
+                    <Target className="h-5 w-5 mb-2 text-blue-500" />
+                    Challenges
                   </Button>
                 </div>
               </TabsContent>
