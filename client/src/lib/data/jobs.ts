@@ -5238,8 +5238,8 @@ export const professions: Profession[] = [
   
   // Additional Legal Professions
   {
-    id: 'judge',
-    name: 'Judge',
+    id: 'judicial-official',
+    name: 'Judicial Official',
     category: 'legal',
     description: 'Preside over court proceedings, interpret laws, and issue legal decisions.',
     careerPath: [
@@ -5248,7 +5248,7 @@ export const professions: Profession[] = [
         title: 'Law Clerk',
         salary: 70000,
         description: 'Assist judges with research, drafting opinions, and administrative tasks.',
-        skillRequirements: { intelligence: 75, charisma: 60 },
+        skillRequirements: { intelligence: 750, charisma: 600 },
         happinessImpact: 5,
         prestigeImpact: 20,
         timeCommitment: 50,
@@ -5259,44 +5259,44 @@ export const professions: Profession[] = [
         title: 'Administrative Law Judge',
         salary: 120000,
         description: 'Preside over administrative hearings and issue decisions in specific regulatory areas.',
-        skillRequirements: { intelligence: 80, charisma: 70, leadership: 65 },
+        skillRequirements: { intelligence: 800, charisma: 700, leadership: 650 },
         happinessImpact: 8,
         prestigeImpact: 30,
         timeCommitment: 45,
-        experience: 72
+        experience: 36
       },
       {
         level: 'mid',
         title: 'District Judge',
         salary: 160000,
         description: 'Preside over trial courts, conduct trials, and issue legal rulings.',
-        skillRequirements: { intelligence: 85, charisma: 75, leadership: 75 },
+        skillRequirements: { intelligence: 850, charisma: 750, leadership: 750 },
         happinessImpact: 10,
         prestigeImpact: 40,
         timeCommitment: 50,
-        experience: 96
+        experience: 48
       },
       {
         level: 'senior',
         title: 'Appellate Judge',
         salary: 200000,
         description: 'Review lower court decisions, hear appeals, and establish legal precedents.',
-        skillRequirements: { intelligence: 90, charisma: 80, leadership: 80 },
+        skillRequirements: { intelligence: 900, charisma: 800, leadership: 800 },
         happinessImpact: 12,
         prestigeImpact: 50,
         timeCommitment: 55,
-        experience: 120
+        experience: 60
       },
       {
         level: 'executive',
         title: 'Supreme Court Justice',
         salary: 250000,
         description: 'Serve on the highest court, decide constitutional issues, and shape legal interpretation.',
-        skillRequirements: { intelligence: 95, charisma: 85, leadership: 85 },
+        skillRequirements: { intelligence: 950, charisma: 850, leadership: 850 },
         happinessImpact: 15,
         prestigeImpact: 60,
         timeCommitment: 60,
-        experience: 144
+        experience: 72
       }
     ]
   },
@@ -5313,7 +5313,7 @@ export const professions: Profession[] = [
         title: 'Junior Aerospace Engineer',
         salary: 75000,
         description: 'Assist with design, analysis, and testing of aerospace systems under supervision.',
-        skillRequirements: { intelligence: 70, technical: 65 },
+        skillRequirements: { intelligence: 700, technical: 650 },
         happinessImpact: 7,
         prestigeImpact: 20,
         timeCommitment: 40,
@@ -5324,7 +5324,7 @@ export const professions: Profession[] = [
         title: 'Aerospace Engineer',
         salary: 95000,
         description: 'Design components, conduct analyses, and solve engineering problems independently.',
-        skillRequirements: { intelligence: 75, technical: 75 },
+        skillRequirements: { intelligence: 750, technical: 750 },
         happinessImpact: 9,
         prestigeImpact: 25,
         timeCommitment: 45,
@@ -5335,7 +5335,7 @@ export const professions: Profession[] = [
         title: 'Senior Aerospace Engineer',
         salary: 120000,
         description: 'Lead engineering projects, develop complex aerospace systems, and mentor junior engineers.',
-        skillRequirements: { intelligence: 80, technical: 85, leadership: 60 },
+        skillRequirements: { intelligence: 800, technical: 850, leadership: 600 },
         happinessImpact: 10,
         prestigeImpact: 35,
         timeCommitment: 50,
@@ -5346,7 +5346,7 @@ export const professions: Profession[] = [
         title: 'Principal Aerospace Engineer',
         salary: 150000,
         description: 'Direct major aerospace programs, lead research initiatives, and guide technical strategy.',
-        skillRequirements: { intelligence: 85, technical: 90, leadership: 70 },
+        skillRequirements: { intelligence: 850, technical: 900, leadership: 700 },
         happinessImpact: 12,
         prestigeImpact: 45,
         timeCommitment: 55,
@@ -5357,7 +5357,7 @@ export const professions: Profession[] = [
         title: 'Chief Engineer',
         salary: 200000,
         description: 'Set engineering vision, direct aerospace innovation, and lead engineering organizations.',
-        skillRequirements: { intelligence: 90, technical: 95, leadership: 80 },
+        skillRequirements: { intelligence: 900, technical: 950, leadership: 800 },
         happinessImpact: 15,
         prestigeImpact: 55,
         timeCommitment: 60,
