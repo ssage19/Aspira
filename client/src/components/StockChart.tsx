@@ -795,15 +795,29 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
             gameDate.setMonth(currentMonth - 1); // JS months are 0-indexed
             gameDate.setDate(currentDay);
             
-            const dayOfWeek = gameDate.getDay();
-            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0 = Sunday, 6 = Saturday
-            const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+            // Try to use the globally exported market function first
+            let isMarketOpen = false;
+            let isWeekend = false;
+            let isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+            
+            if (typeof window !== 'undefined' && (window as any).isMarketOpen) {
+              isMarketOpen = (window as any).isMarketOpen();
+              isWeekend = (window as any).isWeekday ? 
+                !(window as any).isWeekday(gameDate) : 
+                (gameDate.getDay() === 0 || gameDate.getDay() === 6);
+            } else {
+              // Fallback implementation
+              const dayOfWeek = gameDate.getDay();
+              isWeekend = dayOfWeek === 0 || dayOfWeek === 6; // 0 = Sunday, 6 = Saturday
+              const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+              isMarketOpen = !isWeekend && isWithinTradingHours;
+            }
             
             // Log for debugging
-            console.log(`Market status: ${isWeekend ? 'WEEKEND' : (isWithinTradingHours ? 'OPEN' : 'CLOSED')} (Day: ${dayOfWeek}, Hour: ${currentHour})`)
+            console.log(`Market status: ${isWeekend ? 'WEEKEND' : (isMarketOpen ? 'OPEN' : 'CLOSED')} (Day: ${gameDate.getDay()}, Hour: ${currentHour})`)
             
             // Weekday but outside trading hours
-            const isWeekdayClosed = !isWeekend && !isWithinTradingHours;
+            const isWeekdayClosed = !isWeekend && !isMarketOpen;
             
             // Styling classes based on status
             let statusClasses = '';
@@ -814,7 +828,7 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
               statusClasses = 'bg-slate-900/30 text-slate-400 border border-slate-800';
               dotColor = 'bg-slate-500';
               statusText = 'WEEKEND';
-            } else if (isWithinTradingHours) {
+            } else if (isMarketOpen) {
               statusClasses = 'bg-green-900/30 text-green-400 border border-green-800';
               dotColor = 'bg-green-500';
               statusText = 'OPEN';

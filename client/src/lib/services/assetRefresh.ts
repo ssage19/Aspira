@@ -10,14 +10,43 @@
  * - Detailed logging
  * - Multi-stage refresh for reliability
  * - Update verification
+ * - Market hour awareness (stock prices only update during market hours)
  */
 
 import useAssetTracker from '../stores/useAssetTracker';
 import { useCharacter } from '../stores/useCharacter';
+import { useTime } from '../stores/useTime';
 
 // Track the last refresh time to prevent spamming
 let lastRefreshTime = 0;
 let refreshInProgress = false;
+
+// Check if market is open (weekday during trading hours)
+const isMarketOpen = () => {
+  // Use the globally exported function if available
+  if ((window as any).isMarketOpen) {
+    return (window as any).isMarketOpen();
+  }
+  
+  // Fallback implementation if global function isn't available
+  // Check if it's a weekday
+  const timeState = useTime.getState();
+  const gameDate = new Date();
+  gameDate.setFullYear(timeState.currentYear);
+  gameDate.setMonth(timeState.currentMonth - 1);
+  gameDate.setDate(timeState.currentDay);
+  
+  // Check if it's a weekday
+  const dayOfWeek = gameDate.getDay();
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+  
+  if (isWeekend) return false;
+  
+  // Check trading hours (9 AM to 4 PM)
+  const hoursFraction = (timeState.timeProgress / 100) * 24;
+  const currentHour = Math.floor(hoursFraction);
+  return currentHour >= 9 && currentHour < 16;
+};
 
 // Utility to log asset values for debugging
 const logAssetSnapshots = (label: string) => {
@@ -62,6 +91,10 @@ export const refreshAllAssets = () => {
     console.log("=== BEGINNING COMPREHENSIVE ASSET REFRESH ===");
     lastRefreshTime = now;
     
+    // Check if market is open for stock price updates
+    const marketOpen = isMarketOpen();
+    console.log(`MARKET STATUS: ${marketOpen ? 'OPEN' : 'CLOSED'} during asset refresh`);
+    
     // Take before snapshots for debugging
     logAssetSnapshots("BEFORE REFRESH");
     
@@ -70,8 +103,10 @@ export const refreshAllAssets = () => {
     const assetTrackerState = useAssetTracker.getState();
     
     // 1. First step: Sync character assets with asset tracker
-    console.log("STEP 1: Syncing character with asset tracker");
-    characterState.syncAssetsWithAssetTracker();
+    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - no price updates)'}`);
+    
+    // If the market is closed, indicate that stock prices should not update
+    characterState.syncAssetsWithAssetTracker(marketOpen);
     
     // 2. Second step: Recalculate all totals in the asset tracker
     console.log("STEP 2: Recalculating asset tracker totals");

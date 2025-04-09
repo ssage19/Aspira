@@ -34,37 +34,86 @@ export function Investments() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedSector, setSelectedSector] = useState<string>('all');
 
+  // Check if market is open (function set by MarketPriceUpdater)
+  const isMarketOpen = () => {
+    // Use the globally exported function if available
+    if ((window as any).isMarketOpen) {
+      return (window as any).isMarketOpen();
+    }
+    
+    // Fallback if the global function isn't yet available
+    // Check if it's a weekday
+    const timeState = useTime.getState();
+    const gameDate = new Date();
+    gameDate.setFullYear(timeState.currentYear);
+    gameDate.setMonth(timeState.currentMonth - 1);
+    gameDate.setDate(timeState.currentDay);
+    
+    const dayOfWeek = gameDate.getDay(); // 0 = Sunday, 6 = Saturday
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    
+    if (isWeekend) return false;
+    
+    // Check trading hours (9 AM to 4 PM)
+    const hoursFraction = (timeState.timeProgress / 100) * 24;
+    const currentHour = Math.floor(hoursFraction);
+    const isWithinTradingHours = currentHour >= 9 && currentHour < 16;
+    
+    return isWithinTradingHours;
+  };
+  
   // Calculate current prices based on economy and time
   useEffect(() => {
-    const updatedPrices: Record<string, number> = {};
+    // Initialize with the last known prices to prevent jumpiness
+    const updatedPrices: Record<string, number> = {...stockPrices};
     
-    expandedStockMarket.forEach(stock => {
-      // Base price influenced by market health and stock volatility
-      const volatilityFactor = 
-        stock.volatility === 'extreme' ? 0.7 :
-        stock.volatility === 'very_high' ? 0.5 : 
-        stock.volatility === 'high' ? 0.3 : 
-        stock.volatility === 'medium' ? 0.2 : 
-        stock.volatility === 'low' ? 0.1 : 0.05; // very_low
-      const marketFactor = marketTrend === 'bull' ? 1.05 : marketTrend === 'bear' ? 0.95 : 1;
-      const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
-      
-      // Calculate new price with some randomness
-      let newPrice = stock.basePrice * marketFactor;
-      newPrice += newPrice * timeFactor;
-      newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
-      
-      // Ensure price doesn't go too low
-      newPrice = Math.max(newPrice, stock.basePrice * 0.1);
-      
-      updatedPrices[stock.id] = parseFloat(newPrice.toFixed(2));
-    });
+    // Only update prices when market is open (weekday during trading hours)
+    const marketOpen = isMarketOpen();
     
-    setStockPrices(updatedPrices);
-    
-    // Update asset tracker stock prices
-    // This ensures the asset tracker's stock values stay in sync with current prices
-    syncAssetTrackerStockPrices(updatedPrices);
+    if (marketOpen) {
+      console.log("Investments: Market is OPEN, updating stock prices");
+      
+      expandedStockMarket.forEach(stock => {
+        // Base price influenced by market health and stock volatility
+        const volatilityFactor = 
+          stock.volatility === 'extreme' ? 0.7 :
+          stock.volatility === 'very_high' ? 0.5 : 
+          stock.volatility === 'high' ? 0.3 : 
+          stock.volatility === 'medium' ? 0.2 : 
+          stock.volatility === 'low' ? 0.1 : 0.05; // very_low
+        const marketFactor = marketTrend === 'bull' ? 1.05 : marketTrend === 'bear' ? 0.95 : 1;
+        const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
+        
+        // Calculate new price with some randomness
+        let newPrice = stock.basePrice * marketFactor;
+        newPrice += newPrice * timeFactor;
+        newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
+        
+        // Ensure price doesn't go too low
+        newPrice = Math.max(newPrice, stock.basePrice * 0.1);
+        
+        updatedPrices[stock.id] = parseFloat(newPrice.toFixed(2));
+      });
+      
+      setStockPrices(updatedPrices);
+      
+      // Update asset tracker stock prices
+      // This ensures the asset tracker's stock values stay in sync with current prices
+      syncAssetTrackerStockPrices(updatedPrices);
+    } else {
+      console.log("Investments: Market is CLOSED, not updating stock prices");
+      
+      // If we don't have any prices yet, set initial prices without fluctuation
+      if (Object.keys(stockPrices).length === 0) {
+        console.log("Investments: No initial prices, setting static base prices");
+        
+        expandedStockMarket.forEach(stock => {
+          updatedPrices[stock.id] = stock.basePrice;
+        });
+        
+        setStockPrices(updatedPrices);
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDay, marketTrend, stockMarketHealth, assets]);
   

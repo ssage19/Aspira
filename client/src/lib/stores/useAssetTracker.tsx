@@ -241,14 +241,29 @@ export const useAssetTracker = create<AssetTrackerState>()(
       },
       
       updateStock: (id, shares, currentPrice) => {
-        // Check if market is open (weekday) before updating prices
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5; // 1-5 is Monday-Friday
+        // Check if market is open (weekday during market hours) before updating prices
+        // Use global market open function if available
+        let marketOpen = false;
         
-        // If it's a weekend, we shouldn't update the stock price
-        if (!isWeekday) {
-          console.log(`Market closed (weekend) - Not updating price for stock ${id}`);
+        if (typeof window !== 'undefined' && (window as any).isMarketOpen) {
+          marketOpen = (window as any).isMarketOpen();
+        } else {
+          // Fallback if global function isn't available
+          // First check if it's a weekday (Mon-Fri)
+          const now = new Date();
+          const dayOfWeek = now.getDay();
+          const isWeekday = dayOfWeek >= 1 && dayOfWeek <= 5; // 1-5 is Monday-Friday
+          
+          // Then check if it's during market hours (9am-4pm)
+          const hour = now.getHours();
+          const isDuringMarketHours = hour >= 9 && hour < 16;
+          
+          marketOpen = isWeekday && isDuringMarketHours;
+        }
+        
+        // If market is closed, we shouldn't update the stock price
+        if (!marketOpen) {
+          console.log(`Market closed - Not updating price for stock ${id}`);
           
           // Only update share count if needed, don't change the price
           set((state) => {
@@ -269,7 +284,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
             };
           });
         } else {
-          // Normal weekday update - update both shares and price
+          // Market is open - update both shares and price
           set((state) => {
             const updatedStocks = state.stocks.map(stock => {
               if (stock.id === id) {

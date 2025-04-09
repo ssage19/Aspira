@@ -77,6 +77,7 @@ export interface LifestyleItem {
   id: string;
   name: string;
   type: "housing" | "transportation" | "hobbies" | "subscriptions" | "luxury" | "vehicles" | "vacations" | "experiences" | "wellness" | "social" | "habit" | "education";
+  category?: string; // Added for compatibility with AssetTracker
   monthlyCost?: number;
   maintenanceCost?: number; // Some items use maintenanceCost instead of monthlyCost
   happiness?: number;
@@ -255,7 +256,10 @@ interface CharacterState {
   calculateNetWorth: () => number;
   calculateNetWorthInternal: (wealth: number, assets: any[], properties: any[], lifestyleItems: any[]) => number;
   getNetWorthBreakdown: () => NetWorthBreakdown;
-  syncAssetsWithAssetTracker: () => void;
+  syncAssetsWithAssetTracker: (updateMarketPrices?: boolean) => void;
+  
+  // Asset price syncing - behind the scenes
+  syncPricesFromAssetTracker: () => void;
   
   // Daily/weekly updates
   processDailyUpdate: () => void;
@@ -1938,11 +1942,15 @@ export const useCharacter = create<CharacterState>()(
         return fallbackBreakdown;
       },
       
+      // This empty block is intentionally left to show where the implementation
+      // of the syncPricesFromAssetTracker function would be placed.
+      // The actual implementation is defined later in the code.
+      
       // Helper function to sync all assets with the AssetTracker store
       // This ensures that the assets in the Character store are properly
       // reflected in the AssetTracker, which is used by other components
-      syncAssetsWithAssetTracker: () => {
-        console.log("=== BEGINNING ASSET SYNC WITH ASSET TRACKER ===");
+      syncAssetsWithAssetTracker: (updateMarketPrices = true) => {
+        console.log(`=== BEGINNING ASSET SYNC WITH ASSET TRACKER ${updateMarketPrices ? '(WITH PRICE UPDATES)' : '(MARKET CLOSED - NO PRICE UPDATES)'} ===`);
         const state = get();
         
         // Safeguard: Ensure the AssetTracker is accessible
@@ -2128,8 +2136,15 @@ export const useCharacter = create<CharacterState>()(
               
               if (existingStockIndex >= 0) {
                 // Update the existing stock
-                console.log(`Updating existing stock in tracker: ${stock.name} (${stock.id}) with ${stock.quantity} shares at ${stock.currentPrice}`);
-                assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+                if (updateMarketPrices) {
+                  console.log(`Updating existing stock in tracker: ${stock.name} (${stock.id}) with ${stock.quantity} shares at ${stock.currentPrice}`);
+                  assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+                } else {
+                  // Only update quantity when market is closed
+                  console.log(`Market CLOSED: Only updating quantity for stock: ${stock.name} (${stock.id}) to ${stock.quantity} shares`);
+                  const existingStock = assetTracker.stocks[existingStockIndex];
+                  assetTracker.updateStock(stock.id, stock.quantity, existingStock.currentPrice);
+                }
                 updatedCount++;
               } else {
                 // Add as a new stock
@@ -2204,8 +2219,15 @@ export const useCharacter = create<CharacterState>()(
               
               if (existingCryptoIndex >= 0) {
                 // Update the existing crypto
-                console.log(`Updating existing crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
-                assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+                if (updateMarketPrices) {
+                  console.log(`Updating existing crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                  assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+                } else {
+                  // Only update quantity when market is closed
+                  console.log(`Market CLOSED: Only updating quantity for crypto: ${crypto.name} (${crypto.id}) to ${crypto.quantity} units`);
+                  const existingCrypto = assetTracker.cryptoAssets[existingCryptoIndex];
+                  assetTracker.updateCrypto(crypto.id, crypto.quantity, existingCrypto.currentPrice);
+                }
                 cryptoUpdatedCount++;
               } else {
                 // Add as a new crypto
@@ -2532,7 +2554,7 @@ export const useCharacter = create<CharacterState>()(
                 assetTracker.addLifestyleItem({
                   id: item.id,
                   name: item.name,
-                  category: item.category || "other",
+                  category: item.category || item.type || "other",
                   type: item.type,
                   purchaseDate: item.purchaseDate,
                   purchasePrice: item.purchasePrice || 0,
@@ -2606,8 +2628,6 @@ export const useCharacter = create<CharacterState>()(
       },
       
       // Daily/weekly/monthly updates
-      // New function to sync prices from asset tracker to character store
-      // This ensures that the character store has the latest market prices
       syncPricesFromAssetTracker: () => {
         const state = get();
         
