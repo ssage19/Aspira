@@ -218,7 +218,6 @@ export default function Dashboard() {
   // Using memoized selectors to avoid infinite loops
   const character = useCharacter(
     React.useCallback(state => ({
-      wealth: state.wealth,
       name: state.name, 
       happiness: state.happiness,
       prestige: state.prestige,
@@ -229,11 +228,15 @@ export default function Dashboard() {
   );
   
   // Destructure for convenience
-  const { wealth, name, happiness, prestige, stress, energy, health } = character;
+  const { name, happiness, prestige, stress, energy, health } = character;
   
-  // Get netWorth directly from useAssetTracker with stable selector
+  // Get financial data directly from useAssetTracker with stable selectors
   const netWorth = useAssetTracker(
     React.useCallback(state => state.totalNetWorth, [])
+  );
+  
+  const wealth = useAssetTracker(
+    React.useCallback(state => state.totalCash, [])
   );
   
   // Force reload of date from localStorage when dashboard mounts

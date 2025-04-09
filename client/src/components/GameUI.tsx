@@ -4,6 +4,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
 import useEconomy from '../lib/stores/useEconomy';
+import { useAssetTracker } from '../lib/stores/useAssetTracker';
 
 // Helper function to determine if a date is the last day of the month
 function isEndOfMonth(day: number, month: number, year: number): boolean {
@@ -60,6 +61,7 @@ export function GameUI() {
   } = useTime();
   const audioState = useAudio();
   const isMuted = audioState.isMuted;
+  const { totalCash, totalNetWorth } = useAssetTracker();
   const [showTooltip, setShowTooltip] = useState('');
   // Track which months we've already deducted expenses for to prevent double-charging
   const [lastExpenseMonth, setLastExpenseMonth] = useState<string | null>(null);
@@ -646,8 +648,8 @@ export function GameUI() {
             <DollarSign className="h-5 w-5 text-quaternary" />
           </div>
           <div>
-            <p className="text-xl font-bold">{formatCurrency(wealth)}</p>
-            <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(netWorth)}</p>
+            <p className="text-xl font-bold">{formatCurrency(totalCash)}</p>
+            <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(totalNetWorth)}</p>
           </div>
         </div>
         
