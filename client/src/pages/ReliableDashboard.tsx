@@ -281,16 +281,6 @@ export default function ReliableDashboard() {
                           <span className="text-muted-foreground">Net Worth:</span>
                           <span className="font-semibold text-lg">{formatCurrency(stats.netWorth)}</span>
                         </div>
-                        <div className="flex justify-between items-center backdrop-blur-sm p-3 rounded-lg border border-primary/20 bg-primary/5">
-                          <span className="text-sm text-muted-foreground">Portfolio Growth:</span>
-                          <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                            stats.netWorth > stats.wealth 
-                              ? "bg-green-500/20 text-green-500 border border-green-500/30" 
-                              : "bg-red-500/20 text-red-500 border border-red-500/30"
-                          }`}>
-                            {((stats.netWorth / Math.max(stats.wealth, 1) - 1) * 100).toFixed(1)}%
-                          </span>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>

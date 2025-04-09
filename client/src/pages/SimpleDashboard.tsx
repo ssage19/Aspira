@@ -219,16 +219,6 @@ export default function SimpleDashboard() {
                           <span className="text-muted-foreground">Net Worth:</span>
                           <span className="font-semibold text-lg">{formatCurrency(netWorth)}</span>
                         </div>
-                        <div className="flex justify-between items-center backdrop-blur-sm p-3 rounded-lg border border-primary/20 bg-primary/5">
-                          <span className="text-sm text-muted-foreground">Portfolio Growth:</span>
-                          <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                            netWorth > wealth 
-                              ? "bg-green-500/20 text-green-500 border border-green-500/30" 
-                              : "bg-red-500/20 text-red-500 border border-red-500/30"
-                          }`}>
-                            {((netWorth / Math.max(wealth, 1) - 1) * 100).toFixed(1)}%
-                          </span>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>
