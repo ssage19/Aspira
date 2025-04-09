@@ -101,8 +101,17 @@ const useChallengesStore = create<ChallengesState>()(
         
         const currentDate = useTime.getState().currentGameDate;
         
-        // Get current progress value first
-        const currentProgress = challenge.getProgressValue();
+        // Get current progress value by calling the function directly
+        // We can't call methods on the challenge object after spreading it
+        let currentProgress = 0;
+        try {
+          // Safely try to get the current progress
+          currentProgress = challenge.getProgressValue();
+        } catch (err) {
+          console.error("Error getting progress value:", err);
+          // Fall back to 0 progress if there's an error
+          currentProgress = 0;
+        }
         
         const updatedChallenge = {
           ...challenge,
@@ -183,6 +192,8 @@ const useChallengesStore = create<ChallengesState>()(
       checkChallengeProgress: () => {
         const { activeChallenges } = get();
         const currentDate = useTime.getState().currentGameDate;
+        const characterState = useCharacter.getState();
+        const assetTrackerState = useAssetTracker.getState();
         
         // Process each active challenge
         for (const challenge of activeChallenges) {
@@ -192,12 +203,87 @@ const useChallengesStore = create<ChallengesState>()(
             continue;
           }
           
-          // Update progress
-          const currentProgress = challenge.getProgressValue();
+          // Get current progress based on challenge ID without calling methods
+          let currentProgress = 0;
+          let conditionMet = false;
+          
+          try {
+            // We need to re-evaluate the challenge conditions directly
+            // since the function references are lost when challenges are stored
+            switch(challenge.id) {
+              // Wealth challenges
+              case 'wealth-1':
+                currentProgress = Math.min(characterState.wealth, 10000);
+                conditionMet = characterState.wealth >= 10000;
+                break;
+              case 'wealth-2':
+                currentProgress = Math.min(characterState.wealth, 50000);
+                conditionMet = characterState.wealth >= 50000;
+                break;
+              case 'wealth-3':
+                currentProgress = Math.min(characterState.netWorth, 100000);
+                conditionMet = characterState.netWorth >= 100000;
+                break;
+              
+              // Investment challenges
+              case 'invest-1':
+                currentProgress = Math.min(assetTrackerState.stocks.length, 5);
+                conditionMet = assetTrackerState.stocks.length >= 5;
+                break;
+              case 'invest-2':
+                // Placeholder for stock hold challenge
+                currentProgress = 0;
+                conditionMet = false;
+                break;
+              
+              // Career challenges
+              case 'career-1':
+                currentProgress = characterState.job ? 1 : 0;
+                conditionMet = characterState.job !== null;
+                break;
+              case 'career-2':
+                currentProgress = Math.min(characterState.jobHistory.length, 1);
+                conditionMet = characterState.jobHistory.length > 1;
+                break;
+              
+              // Skill challenges
+              case 'skills-1':
+                currentProgress = Math.min(characterState.skills.technical, 500);
+                conditionMet = characterState.skills.technical >= 500;
+                break;
+              case 'skills-2':
+                currentProgress = Math.min(characterState.skills.leadership, 500);
+                conditionMet = characterState.skills.leadership >= 500;
+                break;
+              
+              // Lifestyle challenges
+              case 'lifestyle-1':
+                // Placeholder for health tracking challenge
+                currentProgress = 0;
+                conditionMet = false;
+                break;
+              
+              // Special challenges
+              case 'special-1':
+                currentProgress = Math.min(characterState.income, 10000);
+                conditionMet = characterState.income >= 10000;
+                break;
+              
+              default:
+                // For any challenges not explicitly handled
+                console.warn(`No progress handler for challenge ID: ${challenge.id}`);
+                currentProgress = challenge.progress; // Keep the current progress
+                conditionMet = false;
+            }
+          } catch (err) {
+            console.error("Error calculating challenge progress:", err);
+            currentProgress = challenge.progress; // Keep the current progress
+            conditionMet = false;
+          }
           
           // Check if challenge is completed - but only if progress has changed 
           // from its initial value to prevent auto-completion on challenge start
-          if (challenge.checkCondition() && currentProgress > challenge.progress) {
+          if (conditionMet && currentProgress > challenge.progress) {
             get().completeChallenge(challenge.id);
             continue;
           }
