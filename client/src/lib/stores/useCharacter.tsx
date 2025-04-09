@@ -31,6 +31,7 @@ export interface CharacterSkills {
   charisma: number;
   technical: number;
   leadership: number;
+  // New skill types can be added here
 }
 
 export interface Asset {
@@ -184,7 +185,7 @@ interface CharacterState {
   freeTime: number;
   timeCommitment: number;
   
-  // Skills (0-100)
+  // Skills (0-1000)
   skills: CharacterSkills;
   
   // Skill points - for allocation during character creation and gameplay
@@ -270,6 +271,7 @@ interface CharacterState {
   // Skills
   improveSkill: (skill: keyof CharacterSkills, amount: number) => void;
   allocateSkillPoint: (skill: keyof CharacterSkills) => boolean;
+  decreaseSkillPoint: (skill: keyof CharacterSkills) => boolean;
   awardSkillPoints: (amount: number) => void;
   spendEarnedSkillPoint: (skill: keyof CharacterSkills) => boolean;
   
@@ -436,6 +438,7 @@ export const useCharacter = create<CharacterState>()(
           quitJob: state.quitJob,
           improveSkill: state.improveSkill,
           allocateSkillPoint: state.allocateSkillPoint,
+          decreaseSkillPoint: state.decreaseSkillPoint,
           awardSkillPoints: state.awardSkillPoints,
           spendEarnedSkillPoint: state.spendEarnedSkillPoint,
           calculateNetWorth: state.calculateNetWorth,
@@ -1500,7 +1503,7 @@ export const useCharacter = create<CharacterState>()(
       improveSkill: (skill, amount) => {
         set((state) => {
           const updatedSkills = { ...state.skills };
-          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + amount);
+          updatedSkills[skill] = Math.min(1000, updatedSkills[skill] + amount);
           
           return { skills: updatedSkills };
         });
@@ -1508,8 +1511,35 @@ export const useCharacter = create<CharacterState>()(
         saveState();
       },
       
+      // Decrease skill point and refund it to the player's available skill points
+      // This is used only during character creation
+      decreaseSkillPoint: (skill: keyof CharacterSkills) => {
+        let success = false;
+        
+        set((state) => {
+          // Check if the skill has any points to remove (must be above 30, our base value)
+          if (state.skills[skill] <= 30) {
+            return state;
+          }
+          
+          // Remove a point
+          const updatedSkills = { ...state.skills };
+          updatedSkills[skill] = updatedSkills[skill] - 1;
+          
+          success = true;
+          
+          return {
+            skills: updatedSkills,
+            skillPoints: state.skillPoints + 1
+          };
+        });
+        
+        saveState();
+        return success;
+      },
+      
       // Skill points allocation for character creation
-      allocateSkillPoint: (skill) => {
+      allocateSkillPoint: (skill: keyof CharacterSkills) => {
         let success = false;
         
         set((state) => {
@@ -1519,13 +1549,13 @@ export const useCharacter = create<CharacterState>()(
           }
           
           // Check if the skill is already maxed out
-          if (state.skills[skill] >= 100) {
+          if (state.skills[skill] >= 1000) {
             return state;
           }
           
           // Allocate a point
           const updatedSkills = { ...state.skills };
-          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + 1);
+          updatedSkills[skill] = Math.min(1000, updatedSkills[skill] + 1);
           
           success = true;
           
@@ -1549,7 +1579,7 @@ export const useCharacter = create<CharacterState>()(
       },
       
       // Spend earned skill points during gameplay
-      spendEarnedSkillPoint: (skill) => {
+      spendEarnedSkillPoint: (skill: keyof CharacterSkills) => {
         let success = false;
         
         set((state) => {
@@ -1559,13 +1589,13 @@ export const useCharacter = create<CharacterState>()(
           }
           
           // Check if the skill is already maxed out
-          if (state.skills[skill] >= 100) {
+          if (state.skills[skill] >= 1000) {
             return state;
           }
           
           // Allocate a point
           const updatedSkills = { ...state.skills };
-          updatedSkills[skill] = Math.min(100, updatedSkills[skill] + 1);
+          updatedSkills[skill] = Math.min(1000, updatedSkills[skill] + 1);
           
           success = true;
           

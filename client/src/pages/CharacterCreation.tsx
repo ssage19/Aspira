@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { toast } from 'sonner';
 import { formatCurrency } from '../lib/utils';
-import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery } from 'lucide-react';
+import { DollarSign, Briefcase, TrendingUp, Crown, GraduationCap, BookOpen, Brain, Sparkles, Users, Wrench, Target, Home, Car, Coffee, Droplet, Battery, Plus, Minus } from 'lucide-react';
 import { getAvailableEntryLevelJobs, professions, getCategoryLabel } from '../lib/services/jobService';
 import type { JobCategory } from '../lib/data/jobs';
 import TimeResetHack from '../TimeResetHack';
@@ -20,7 +20,7 @@ type WealthOption = 'bootstrapped' | 'middle-class' | 'wealthy';
 
 export default function CharacterCreation() {
   const navigate = useNavigate();
-  const { createNewCharacter, allocateSkillPoint } = useCharacter();
+  const { createNewCharacter, allocateSkillPoint, decreaseSkillPoint } = useCharacter();
   const { phase, reset, start } = useGame();
   const { playSuccess } = useAudio();
   
@@ -108,6 +108,22 @@ export default function CharacterCreation() {
       [skill]: prevSkills[skill] + 1
     }));
     setSkillPoints(prevPoints => prevPoints - 1);
+  };
+  
+  // Handle decreasing skills
+  const handleDecreaseSkill = (skill: keyof CharacterSkills) => {
+    // Prevent decreasing below base value (30)
+    if (skills[skill] <= 30) {
+      toast.error("This skill cannot be decreased below the base level");
+      return;
+    }
+    
+    // Update local state for immediate UI feedback
+    setSkills(prevSkills => ({
+      ...prevSkills,
+      [skill]: prevSkills[skill] - 1
+    }));
+    setSkillPoints(prevPoints => prevPoints + 1);
   };
   
   const handleStartGame = () => {
@@ -280,16 +296,29 @@ export default function CharacterCreation() {
                         <span className="font-medium">Intelligence</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg font-semibold">{skills.intelligence}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2" 
-                          onClick={() => handleAllocateSkill('intelligence')}
-                          disabled={skillPoints <= 0 || skills.intelligence >= 100}
-                        >
-                          +
-                        </Button>
+                        <span className="mx-2 text-lg font-semibold">{skills.intelligence}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('intelligence')}
+                            disabled={skills.intelligence <= 30}
+                            title="Decrease Intelligence"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('intelligence')}
+                            disabled={skillPoints <= 0 || skills.intelligence >= 100}
+                            title="Increase Intelligence"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -308,16 +337,29 @@ export default function CharacterCreation() {
                         <span className="font-medium">Creativity</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg font-semibold">{skills.creativity}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2" 
-                          onClick={() => handleAllocateSkill('creativity')}
-                          disabled={skillPoints <= 0 || skills.creativity >= 100}
-                        >
-                          +
-                        </Button>
+                        <span className="mx-2 text-lg font-semibold">{skills.creativity}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('creativity')}
+                            disabled={skills.creativity <= 30}
+                            title="Decrease Creativity"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('creativity')}
+                            disabled={skillPoints <= 0 || skills.creativity >= 100}
+                            title="Increase Creativity"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -336,16 +378,29 @@ export default function CharacterCreation() {
                         <span className="font-medium">Charisma</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg font-semibold">{skills.charisma}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2" 
-                          onClick={() => handleAllocateSkill('charisma')}
-                          disabled={skillPoints <= 0 || skills.charisma >= 100}
-                        >
-                          +
-                        </Button>
+                        <span className="mx-2 text-lg font-semibold">{skills.charisma}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('charisma')}
+                            disabled={skills.charisma <= 30}
+                            title="Decrease Charisma"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('charisma')}
+                            disabled={skillPoints <= 0 || skills.charisma >= 100}
+                            title="Increase Charisma"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -364,16 +419,29 @@ export default function CharacterCreation() {
                         <span className="font-medium">Technical</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg font-semibold">{skills.technical}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2" 
-                          onClick={() => handleAllocateSkill('technical')}
-                          disabled={skillPoints <= 0 || skills.technical >= 100}
-                        >
-                          +
-                        </Button>
+                        <span className="mx-2 text-lg font-semibold">{skills.technical}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('technical')}
+                            disabled={skills.technical <= 30}
+                            title="Decrease Technical"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('technical')}
+                            disabled={skillPoints <= 0 || skills.technical >= 100}
+                            title="Increase Technical"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
@@ -392,16 +460,29 @@ export default function CharacterCreation() {
                         <span className="font-medium">Leadership</span>
                       </div>
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg font-semibold">{skills.leadership}</span>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="h-7 px-2" 
-                          onClick={() => handleAllocateSkill('leadership')}
-                          disabled={skillPoints <= 0 || skills.leadership >= 100}
-                        >
-                          +
-                        </Button>
+                        <span className="mx-2 text-lg font-semibold">{skills.leadership}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('leadership')}
+                            disabled={skills.leadership <= 30}
+                            title="Decrease Leadership"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('leadership')}
+                            disabled={skillPoints <= 0 || skills.leadership >= 100}
+                            title="Increase Leadership"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                     <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
