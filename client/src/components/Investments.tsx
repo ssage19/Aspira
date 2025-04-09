@@ -599,8 +599,8 @@ export function Investments() {
                           aria-selected={selectedStock.id === asset.id}
                           className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
                             selectedStock.id === asset.id 
-                              ? 'bg-blue-50 border-accessible-blue shadow-sm' 
-                              : 'hover:bg-gray-50 hover:border-gray-300'
+                              ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                              : 'hover:bg-muted hover:border-border'
                           }`}
                           onClick={() => {
                             const stockData = expandedStockMarket.find(s => s.id === asset.id);
@@ -612,17 +612,17 @@ export function Investments() {
                             <span className="font-semibold">{formatCurrency(totalValue)}</span>
                           </div>
                           <div className="flex justify-between text-xs mt-1">
-                            <span className="text-gray-600">
+                            <span className="text-muted-foreground">
                               Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
                             </span>
                             <span className={`${
-                              profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-gray-600'
+                              profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-muted-foreground'
                             }`}>
                               {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
                             </span>
                           </div>
                           <div className="flex justify-between text-xs mt-1">
-                            <span className="text-gray-600">
+                            <span className="text-muted-foreground">
                               Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
                             </span>
                             <button 
