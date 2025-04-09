@@ -105,7 +105,30 @@ export const stockMarket: Stock[] = [
   }
 ];
 
-export const startupInvestments = [
+export interface StartupInvestment {
+  id: string;
+  name: string;
+  round: 'seed' | 'series_a' | 'series_b' | 'pre_ipo';
+  industry: string;
+  minInvestment: number;
+  description: string;
+  successChance: number;
+  potentialReturnMultiple: number;
+  // Time-based properties
+  maturityTimeInDays: number; // How many days until outcome is determined
+  possibleOutcomes: {
+    success: {
+      message: string;
+      returnMultiplier: number; // Actual multiplier used on success (within range)
+    };
+    failure: {
+      message: string;
+    };
+  };
+  isAvailable: boolean; // Whether this startup is still available for investment
+}
+
+export const startupInvestments: StartupInvestment[] = [
   {
     id: 'ai_startup',
     name: 'NeuraTech AI',
@@ -114,7 +137,18 @@ export const startupInvestments = [
     minInvestment: 25000,
     description: 'Developing next-generation natural language processing algorithms.',
     successChance: 0.15,
-    potentialReturnMultiple: 50
+    potentialReturnMultiple: 50,
+    maturityTimeInDays: 180, // 6 months
+    possibleOutcomes: {
+      success: {
+        message: 'NeuraTech AI secured a major partnership with a tech giant, leading to a substantial acquisition offer!',
+        returnMultiplier: 50
+      },
+      failure: {
+        message: 'NeuraTech AI struggled to demonstrate viable technology and failed to secure additional funding.'
+      }
+    },
+    isAvailable: true
   },
   {
     id: 'biotech_startup',
@@ -124,7 +158,18 @@ export const startupInvestments = [
     minInvestment: 75000,
     description: 'Novel gene therapy approaches for rare diseases.',
     successChance: 0.25,
-    potentialReturnMultiple: 20
+    potentialReturnMultiple: 20,
+    maturityTimeInDays: 270, // 9 months
+    possibleOutcomes: {
+      success: {
+        message: 'Genome Solutions completed successful clinical trials and received FDA fast-track approval for their therapy!',
+        returnMultiplier: 20
+      },
+      failure: {
+        message: 'Genome Solutions encountered unexpected complications in clinical trials and failed to progress to the next phase.'
+      }
+    },
+    isAvailable: true
   },
   {
     id: 'fintech_startup',
@@ -134,7 +179,18 @@ export const startupInvestments = [
     minInvestment: 150000,
     description: 'Blockchain-based banking platform for cross-border transactions.',
     successChance: 0.40,
-    potentialReturnMultiple: 10
+    potentialReturnMultiple: 10,
+    maturityTimeInDays: 210, // 7 months
+    possibleOutcomes: {
+      success: {
+        message: 'CryptoBank has successfully expanded to 15 countries and is preparing for an IPO!',
+        returnMultiplier: 10
+      },
+      failure: {
+        message: 'CryptoBank faced regulatory challenges in key markets and was unable to scale as planned.'
+      }
+    },
+    isAvailable: true
   },
   {
     id: 'saas_startup',
@@ -144,7 +200,18 @@ export const startupInvestments = [
     minInvestment: 300000,
     description: 'Enterprise resource planning software with AI integration.',
     successChance: 0.65,
-    potentialReturnMultiple: 4
+    potentialReturnMultiple: 4,
+    maturityTimeInDays: 120, // 4 months
+    possibleOutcomes: {
+      success: {
+        message: 'Cloud Enterprise Solutions successfully completed their IPO with shares priced above the expected range!',
+        returnMultiplier: 4
+      },
+      failure: {
+        message: 'Cloud Enterprise Solutions postponed their IPO indefinitely due to unfavorable market conditions.'
+      }
+    },
+    isAvailable: true
   },
   {
     id: 'vr_startup',
@@ -154,7 +221,60 @@ export const startupInvestments = [
     minInvestment: 30000,
     description: 'Immersive virtual reality platform for education and training.',
     successChance: 0.20,
-    potentialReturnMultiple: 40
+    potentialReturnMultiple: 40,
+    maturityTimeInDays: 150, // 5 months
+    possibleOutcomes: {
+      success: {
+        message: 'Virtual Worlds\' prototype gained viral attention and secured major Series A funding!',
+        returnMultiplier: 40
+      },
+      failure: {
+        message: 'Virtual Worlds faced technical limitations and was unable to deliver on their ambitious vision.'
+      }
+    },
+    isAvailable: true
+  },
+  {
+    id: 'green_energy',
+    name: 'SolarFlow',
+    round: 'series_a',
+    industry: 'Renewable Energy',
+    minInvestment: 60000,
+    description: 'Revolutionary solar panel technology with 60% higher efficiency.',
+    successChance: 0.30,
+    potentialReturnMultiple: 25,
+    maturityTimeInDays: 240, // 8 months
+    possibleOutcomes: {
+      success: {
+        message: 'SolarFlow\'s technology breakthrough was verified by independent labs, attracting massive industry interest!',
+        returnMultiplier: 25
+      },
+      failure: {
+        message: 'SolarFlow struggled with manufacturing scale-up issues and couldn\'t deliver cost-effective production.'
+      }
+    },
+    isAvailable: true
+  },
+  {
+    id: 'space_tech',
+    name: 'Orbital Dynamics',
+    round: 'series_b',
+    industry: 'Space Technology',
+    minInvestment: 200000,
+    description: 'Low-cost satellite launch system with reusable components.',
+    successChance: 0.35,
+    potentialReturnMultiple: 12,
+    maturityTimeInDays: 300, // 10 months
+    possibleOutcomes: {
+      success: {
+        message: 'Orbital Dynamics completed three successful launches and secured contracts with major telecommunications companies!',
+        returnMultiplier: 12
+      },
+      failure: {
+        message: 'Orbital Dynamics experienced a launch failure that caused significant setbacks in their development timeline.'
+      }
+    },
+    isAvailable: true
   }
 ];
 

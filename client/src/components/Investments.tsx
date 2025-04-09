@@ -556,6 +556,20 @@ export function Investments() {
       return;
     }
     
+    // Check if the startup is already invested in
+    const existingInvestment = assets.find(asset => 
+      asset.type === 'other' && asset.id === selectedStartup.id
+    );
+    
+    if (existingInvestment) {
+      toast.error(`You have already invested in ${selectedStartup.name}`);
+      playHit();
+      return;
+    }
+    
+    // Calculate maturity day (current day + maturity period)
+    const maturityDay = currentDay + selectedStartup.maturityTimeInDays;
+    
     // Buy startup investment in character store
     addAsset({
       id: selectedStartup.id,
@@ -568,7 +582,13 @@ export function Investments() {
       successChance: selectedStartup.successChance,
       potentialReturnMultiple: selectedStartup.potentialReturnMultiple,
       round: selectedStartup.round,
-      industry: selectedStartup.industry
+      industry: selectedStartup.industry,
+      
+      // New maturity-related properties
+      maturityTimeInDays: selectedStartup.maturityTimeInDays,
+      maturityDay: maturityDay,
+      outcomeProcessed: false,
+      active: true
     });
     
     // Also update the AssetTracker store
@@ -581,8 +601,15 @@ export function Investments() {
       investmentAmount: startupAmount
     });
     
+    // Mark this startup as unavailable for further investment
+    const startupIndex = startupInvestments.findIndex(s => s.id === selectedStartup.id);
+    if (startupIndex !== -1) {
+      startupInvestments[startupIndex].isAvailable = false;
+    }
+    
     playSuccess();
     toast.success(`Invested ${formatCurrency(startupAmount)} in ${selectedStartup.name}`);
+    toast.info(`You'll receive the outcome of this investment in ${selectedStartup.maturityTimeInDays} days.`);
     
     // Trigger global update to refresh all components
     if ((window as any).globalUpdateAllPrices) {
@@ -1509,7 +1536,13 @@ export function Investments() {
                 aria-labelledby="available-startups-heading"
                 role="listbox"
               >
-                {startupInvestments.map((startup, index) => (
+                {startupInvestments.filter(startup => {
+                  // Only show startups that are not already invested in
+                  const alreadyInvested = assets.some(asset => 
+                    asset.type === 'other' && asset.id === startup.id && !asset.outcomeProcessed
+                  );
+                  return !alreadyInvested;
+                }).map((startup, index) => (
                   <div 
                     key={`startup-${startup.id}-${index}`}
                     role="option"

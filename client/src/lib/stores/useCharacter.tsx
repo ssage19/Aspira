@@ -4,6 +4,7 @@ import { getLocalStorage, setLocalStorage, formatCurrency } from "../utils";
 import { toast } from "sonner";
 import { useTime } from "./useTime";
 import useAssetTracker from "./useAssetTracker";
+import { startupInvestments } from "../data/investments";
 
 // Expense rate constants
 const EXPENSE_RATES = {
@@ -40,16 +41,30 @@ export interface Asset {
   currentPrice: number;
   quantity: number;
   purchaseDate: string;
+  
   // Additional properties for different asset types
+  // Bond properties
   maturityValue?: number;      // For bonds
   maturityDate?: string | Date;  // For bonds
-  otherType?: string;          // For categorizing other investments
   term?: number;               // For bonds - term in years
   yieldRate?: number;          // For bonds - interest rate
+  
+  // Startup investment properties
+  otherType?: string;          // For categorizing other investments
   successChance?: number;      // For startup investments
   potentialReturnMultiple?: number; // For startup investments
   round?: string;              // For startup investments - funding round
   industry?: string;           // For startup investments - industry sector
+  
+  // Time-based maturity for startups
+  maturityTimeInDays?: number; // Days until startup outcome is determined
+  maturityDay?: number;        // The game day when maturity will be reached
+  outcomeMessage?: string;     // Message describing the outcome (success/failure)
+  outcomeProcessed?: boolean;  // Whether the outcome has been processed
+  wasSuccessful?: boolean;     // Whether the investment was successful
+  
+  // General tracking
+  active?: boolean;            // Whether the asset is still active or has been processed
 }
 
 export interface Property {
@@ -2736,8 +2751,8 @@ export const useCharacter = create<CharacterState>()(
           let daysSincePromotion = state.daysSincePromotion;
           let dailyIncome = 0;
           
-          // Get the dayCounter from useTime
-          const { dayCounter, currentGameDate } = useTime.getState();
+          // Get current day and date from useTime
+          const { dayCounter, currentGameDate, currentDay } = useTime.getState();
           
           // Check for expired lifestyle items (vacations and experiences that have ended)
           // Use the game time instead of actual time for consistent expiration
@@ -2850,8 +2865,67 @@ export const useCharacter = create<CharacterState>()(
             return total + (monthlyCost / 30); // Daily expense
           }, 0);
           
-          // Apply income and expenses
-          const netDailyChange = dailyIncome + dailyPropertyIncome - dailyLifestyleExpenses;
+          // Check for startup investments that have reached maturity
+          let startupReturns = 0;
+          state.assets.forEach(asset => {
+            // Only process startup investments (other type) that are active and have a maturity date
+            if (asset.type === 'other' && asset.active !== false && 
+                asset.maturityDay !== undefined && !asset.outcomeProcessed) {
+                
+              // Check if we've reached or passed the maturity date
+              if (currentDay >= asset.maturityDay) {
+                console.log(`Startup investment ${asset.name} has reached maturity day`);
+                
+                // Determine if the investment was successful based on probability
+                const wasSuccessful = Math.random() < (asset.successChance || 0);
+                
+                // Get the return multiplier and set the outcome message
+                let returnMultiplier = 0;
+                let outcomeMessage = '';
+                
+                if (wasSuccessful) {
+                  // Success outcome - get the return multiplier
+                  returnMultiplier = asset.potentialReturnMultiple || 0;
+                  
+                  // Find the startup in our data to get the success message
+                  const startupData = startupInvestments.find(s => s.id === asset.id);
+                  outcomeMessage = startupData?.possibleOutcomes.success.message || 
+                                   `${asset.name} was successful!`;
+                  
+                  // Calculate the return amount
+                  const returnAmount = asset.purchasePrice * returnMultiplier;
+                  startupReturns += returnAmount;
+                  
+                  // Show success notification with return amount
+                  toast.success(
+                    `Startup Success: ${outcomeMessage} You received a ${returnMultiplier}x return of ${formatCurrency(returnAmount)}!`,
+                    { duration: 7000 }
+                  );
+                } else {
+                  // Failure outcome - no return
+                  // Find the startup in our data to get the failure message
+                  const startupData = startupInvestments.find(s => s.id === asset.id);
+                  outcomeMessage = startupData?.possibleOutcomes.failure.message || 
+                                   `${asset.name} unfortunately failed.`;
+                  
+                  // Show failure notification
+                  toast.error(
+                    `Startup Failure: ${outcomeMessage} Your investment was lost.`,
+                    { duration: 7000 }
+                  );
+                }
+                
+                // Update the asset with outcome information
+                asset.outcomeProcessed = true;
+                asset.wasSuccessful = wasSuccessful;
+                asset.outcomeMessage = outcomeMessage;
+                asset.active = false;
+              }
+            }
+          });
+          
+          // Apply income and expenses (including any startup returns)
+          const netDailyChange = dailyIncome + dailyPropertyIncome + startupReturns - dailyLifestyleExpenses;
           
           // Basic needs changes (hunger, thirst, energy decrease over time)
           // Slow down the decay rate even further to ensure auto-maintenance can keep up
