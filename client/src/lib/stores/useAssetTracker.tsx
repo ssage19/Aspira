@@ -46,6 +46,7 @@ export interface AssetTrackerState {
     amount: number;
     purchasePrice: number;
     currentValue: number;
+    investmentAmount?: number; // For startup investments
   }[];
   
   // Property assets

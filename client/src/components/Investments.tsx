@@ -11,8 +11,10 @@ import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarCha
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
 import { formatCurrency, formatPercentage } from '../lib/utils';
-import { VolatilityLevel, Stock } from '../lib/data/investments';
+import { VolatilityLevel, Stock, bonds } from '../lib/data/investments';
+import { startupInvestments } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
+import { cryptoTypes, bondTypes } from '../lib/data/assets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Investments() {
@@ -33,6 +35,19 @@ export function Investments() {
   const [buyMode, setBuyMode] = useState<'amount' | 'shares'>('amount');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedSector, setSelectedSector] = useState<string>('all');
+  
+  // Crypto state
+  const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
+  const [selectedCrypto, setSelectedCrypto] = useState(cryptoTypes[0]);
+  const [cryptoAmount, setCryptoAmount] = useState<number>(0);
+  
+  // Bond state
+  const [selectedBond, setSelectedBond] = useState(bonds[0]);
+  const [bondAmount, setBondAmount] = useState<number>(selectedBond.minInvestment);
+  
+  // Startup/Other investment state
+  const [selectedStartup, setSelectedStartup] = useState(startupInvestments[0]);
+  const [startupAmount, setStartupAmount] = useState<number>(selectedStartup.minInvestment);
 
   // Check if market is open (function set by MarketPriceUpdater)
   const isMarketOpen = () => {
@@ -131,6 +146,75 @@ export function Investments() {
         assetTracker.updateStock(stock.id, stock.quantity, currentPrice);
       }
     });
+  };
+  
+  // Update crypto prices (24/7 trading)
+  useEffect(() => {
+    // Initialize with the last known prices to prevent jumpiness
+    const updatedPrices: Record<string, number> = {...cryptoPrices};
+    
+    cryptoTypes.forEach(crypto => {
+      // Crypto is more volatile than stocks
+      const volatilityFactor = 
+        crypto.volatility === 'extreme' ? 1.0 :
+        crypto.volatility === 'very_high' ? 0.7 : 
+        crypto.volatility === 'high' ? 0.5 : 
+        crypto.volatility === 'medium' ? 0.3 : 
+        crypto.volatility === 'low' ? 0.1 : 0.01; // very_low or stablecoin
+      
+      const marketFactor = marketTrend === 'bull' ? 1.08 : marketTrend === 'bear' ? 0.92 : 1;
+      const timeFactor = Math.sin(currentDay / 15 * Math.PI) * volatilityFactor; // Faster cycles than stocks
+      
+      // Calculate new price with more randomness than stocks
+      let newPrice = crypto.basePrice * marketFactor;
+      newPrice += newPrice * timeFactor;
+      newPrice += newPrice * (Math.random() * volatilityFactor * 2 - volatilityFactor);
+      
+      // Ensure price doesn't go negative
+      newPrice = Math.max(newPrice, crypto.basePrice * 0.05);
+      
+      // Stablecoins stay close to their pegged value
+      if (crypto.volatility === 'very_low') {
+        // Small fluctuation around $1 for stablecoins
+        newPrice = crypto.basePrice + (Math.random() * 0.02 - 0.01);
+      }
+      
+      updatedPrices[crypto.id] = parseFloat(newPrice.toFixed(2));
+    });
+    
+    setCryptoPrices(updatedPrices);
+    
+    // Sync crypto prices to asset tracker
+    syncAssetTrackerCryptoPrices(updatedPrices);
+    
+  }, [currentDay, marketTrend, stockMarketHealth]);
+  
+  // Sync crypto prices with asset tracker
+  const syncAssetTrackerCryptoPrices = (prices: Record<string, number>) => {
+    // Get all owned crypto from character assets
+    const ownedCrypto = assets.filter(asset => asset.type === 'crypto');
+    
+    // For each owned crypto, update its price in the asset tracker
+    ownedCrypto.forEach(crypto => {
+      const currentPrice = prices[crypto.id] || crypto.purchasePrice;
+      
+      // Update the crypto in the asset tracker
+      if (getOwnedCryptoAmount(crypto.id) > 0) {
+        assetTracker.updateCrypto(crypto.id, crypto.quantity, currentPrice);
+      }
+    });
+  };
+  
+  // Calculate owned crypto amount
+  const getOwnedCryptoAmount = (cryptoId: string) => {
+    const ownedCrypto = assets.find(asset => asset.id === cryptoId && asset.type === 'crypto');
+    return ownedCrypto ? ownedCrypto.quantity : 0;
+  };
+  
+  const getOwnedCryptoValue = (cryptoId: string) => {
+    const amount = getOwnedCryptoAmount(cryptoId);
+    const currentPrice = cryptoPrices[cryptoId] || 0;
+    return amount * currentPrice;
   };
 
   // Calculate owned stock value
@@ -305,6 +389,207 @@ export function Investments() {
       (window as any).globalUpdateAllPrices();
     }
   };
+  
+  // Buy crypto
+  const handleBuyCrypto = () => {
+    if (cryptoAmount <= 0) {
+      toast.error("Please enter a valid amount");
+      return;
+    }
+    
+    const cryptoPrice = cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice;
+    const totalCost = cryptoAmount * cryptoPrice;
+    
+    if (totalCost > wealth) {
+      toast.error("Not enough funds");
+      playHit();
+      return;
+    }
+    
+    // Buy crypto in character store
+    addAsset({
+      id: selectedCrypto.id,
+      name: selectedCrypto.name,
+      type: 'crypto',
+      quantity: cryptoAmount,
+      purchasePrice: cryptoPrice,
+      currentPrice: cryptoPrice,
+      purchaseDate: `${currentDay}`
+    });
+    
+    // Also update the AssetTracker store
+    assetTracker.addCrypto({
+      id: selectedCrypto.id,
+      name: selectedCrypto.name,
+      amount: cryptoAmount,
+      purchasePrice: cryptoPrice,
+      currentPrice: cryptoPrice
+    });
+    
+    playSuccess();
+    toast.success(`Purchased ${cryptoAmount.toFixed(4)} ${selectedCrypto.name} at ${formatCurrency(cryptoPrice)} each`);
+    
+    // Trigger global update to refresh all components
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after crypto purchase");
+      (window as any).globalUpdateAllPrices();
+    }
+  };
+  
+  // Sell crypto
+  const handleSellCrypto = () => {
+    const ownedAmount = getOwnedCryptoAmount(selectedCrypto.id);
+    
+    if (ownedAmount <= 0) {
+      toast.error(`You don't own any ${selectedCrypto.name}`);
+      return;
+    }
+    
+    const cryptoPrice = cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice;
+    let amountToSell = ownedAmount;
+    let isPartialSale = false;
+    
+    // If amount to sell is specified and less than owned, do partial sale
+    if (cryptoAmount > 0 && cryptoAmount < ownedAmount) {
+      amountToSell = cryptoAmount;
+      isPartialSale = true;
+    }
+    
+    const sellValue = amountToSell * cryptoPrice;
+    
+    if (isPartialSale) {
+      // Partial sell
+      sellAsset(selectedCrypto.id, amountToSell);
+      
+      // Update AssetTracker with the remaining amount
+      const remainingAmount = ownedAmount - amountToSell;
+      assetTracker.updateCrypto(selectedCrypto.id, remainingAmount, cryptoPrice);
+    } else {
+      // Sell all
+      sellAsset(selectedCrypto.id, ownedAmount);
+      
+      // Remove crypto completely from AssetTracker
+      assetTracker.removeCrypto(selectedCrypto.id);
+    }
+    
+    playSuccess();
+    
+    if (isPartialSale) {
+      toast.success(`Sold ${amountToSell.toFixed(4)} ${selectedCrypto.name} for ${formatCurrency(sellValue)}`);
+    } else {
+      toast.success(`Sold all ${ownedAmount.toFixed(4)} ${selectedCrypto.name} for ${formatCurrency(sellValue)}`);
+    }
+    
+    // Trigger global update to refresh all components
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after crypto sale");
+      (window as any).globalUpdateAllPrices();
+    }
+  };
+  
+  // Buy bond
+  const handleBuyBond = () => {
+    if (bondAmount < selectedBond.minInvestment) {
+      toast.error(`Minimum investment amount is ${formatCurrency(selectedBond.minInvestment)}`);
+      return;
+    }
+    
+    if (bondAmount > wealth) {
+      toast.error("Not enough funds");
+      playHit();
+      return;
+    }
+    
+    // Calculate maturity date and value
+    const maturityYears = selectedBond.term;
+    const maturityDate = new Date();
+    maturityDate.setFullYear(maturityDate.getFullYear() + maturityYears);
+    
+    // Simple calculation for maturity value: principal + (principal * rate * years)
+    const maturityValue = bondAmount + (bondAmount * selectedBond.yieldRate * maturityYears);
+    
+    // Buy bond in character store
+    addAsset({
+      id: selectedBond.id,
+      name: selectedBond.name,
+      type: 'bond',
+      quantity: 1,
+      purchasePrice: bondAmount,
+      currentPrice: bondAmount,
+      purchaseDate: `${currentDay}`,
+      maturityDate: maturityDate.toISOString(),
+      maturityValue: maturityValue,
+      term: selectedBond.term,
+      yieldRate: selectedBond.yieldRate
+    });
+    
+    // Also update the AssetTracker store
+    assetTracker.addBond({
+      id: selectedBond.id,
+      name: selectedBond.name,
+      amount: 1,
+      purchasePrice: bondAmount,
+      maturityValue: maturityValue,
+      maturityDate: maturityDate
+    });
+    
+    playSuccess();
+    toast.success(`Purchased ${selectedBond.name} for ${formatCurrency(bondAmount)}`);
+    
+    // Trigger global update to refresh all components
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after bond purchase");
+      (window as any).globalUpdateAllPrices();
+    }
+  };
+  
+  // Buy startup investment
+  const handleBuyStartup = () => {
+    if (startupAmount < selectedStartup.minInvestment) {
+      toast.error(`Minimum investment amount is ${formatCurrency(selectedStartup.minInvestment)}`);
+      return;
+    }
+    
+    if (startupAmount > wealth) {
+      toast.error("Not enough funds");
+      playHit();
+      return;
+    }
+    
+    // Buy startup investment in character store
+    addAsset({
+      id: selectedStartup.id,
+      name: selectedStartup.name,
+      type: 'other',
+      quantity: 1,
+      purchasePrice: startupAmount,
+      currentPrice: startupAmount,
+      purchaseDate: `${currentDay}`,
+      successChance: selectedStartup.successChance,
+      potentialReturnMultiple: selectedStartup.potentialReturnMultiple,
+      round: selectedStartup.round,
+      industry: selectedStartup.industry
+    });
+    
+    // Also update the AssetTracker store
+    assetTracker.addOtherInvestment({
+      id: selectedStartup.id,
+      name: selectedStartup.name,
+      amount: 1, // Set amount to 1 since we're tracking by total value
+      purchasePrice: startupAmount,
+      currentValue: startupAmount,
+      investmentAmount: startupAmount
+    });
+    
+    playSuccess();
+    toast.success(`Invested ${formatCurrency(startupAmount)} in ${selectedStartup.name}`);
+    
+    // Trigger global update to refresh all components
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Triggering global price update after startup investment");
+      (window as any).globalUpdateAllPrices();
+    }
+  };
 
   // Calculate the price change percentage for context-aware tips
   const priceChangePercent = selectedStock ? 
@@ -396,14 +681,46 @@ export function Investments() {
       </div>
       
       <Tabs defaultValue="browse" className="mb-4">
-        <TabsList className="mb-4 grid w-full grid-cols-3 h-12">
+        <TabsList className="mb-4 grid w-full grid-cols-6 h-12">
           <TabsTrigger value="browse" className="flex items-center justify-center gap-2">
             <Search className="h-4 w-4" />
-            <span>Browse Stocks</span>
+            <span>Stocks</span>
+          </TabsTrigger>
+          <TabsTrigger value="crypto" className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
+              <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
+              <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Crypto</span>
+          </TabsTrigger>
+          <TabsTrigger value="bonds" className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Bonds</span>
+          </TabsTrigger>
+          <TabsTrigger value="other" className="flex items-center justify-center gap-2">
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M3 8H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M8 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span>Startups</span>
           </TabsTrigger>
           <TabsTrigger value="portfolio" className="flex items-center justify-center gap-2">
             <Wallet className="h-4 w-4" />
-            <span>My Portfolio</span>
+            <span>Portfolio</span>
           </TabsTrigger>
           <TabsTrigger value="analysis" className="flex items-center justify-center gap-2">
             <BarChart3 className="h-4 w-4" />
@@ -888,6 +1205,436 @@ export function Investments() {
                     <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-red/20 text-accessible-red">Very High</span>
                     <span className="text-gray-500">Growth<br/>Startups</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        {/* Crypto Tab */}
+        <TabsContent value="crypto" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg" id="available-crypto-heading">Available Cryptocurrencies</h3>
+              
+              <div 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-muted" 
+                aria-labelledby="available-crypto-heading"
+                role="listbox"
+              >
+                {cryptoTypes.map((crypto, index) => (
+                  <div 
+                    key={`crypto-${crypto.id}-${index}`}
+                    role="option"
+                    aria-selected={selectedCrypto.id === crypto.id}
+                    className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                      selectedCrypto.id === crypto.id 
+                        ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                        : 'hover:bg-muted hover:border-border'
+                    }`}
+                    onClick={() => setSelectedCrypto(crypto)}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-base">{crypto.name} ({crypto.symbol})</span>
+                      <span className={`font-mono font-semibold ${
+                        (cryptoPrices[crypto.id] || 0) > crypto.basePrice 
+                          ? 'text-accessible-green' 
+                          : (cryptoPrices[crypto.id] || 0) < crypto.basePrice 
+                            ? 'text-accessible-red' 
+                            : ''
+                      }`}>
+                        ${(cryptoPrices[crypto.id] || crypto.basePrice).toFixed(2)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs mt-1">
+                      <span className={`px-2 py-0.5 rounded-full ${
+                        crypto.volatility === 'extreme' ? 'bg-purple-200 text-purple-800 dark:bg-purple-900 dark:text-purple-200' :
+                        crypto.volatility === 'very_high' ? 'bg-accessible-red/10 text-accessible-red' :
+                        crypto.volatility === 'high' ? 'bg-accessible-orange/10 text-accessible-orange' :
+                        crypto.volatility === 'medium' ? 'bg-accessible-yellow/10 text-accessible-yellow' :
+                        crypto.volatility === 'low' ? 'bg-accessible-green/10 text-accessible-green' :
+                        'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100'
+                      }`}>
+                        Risk: {crypto.volatility === 'extreme' ? 'Extreme' :
+                              crypto.volatility === 'very_high' ? 'Very High' : 
+                              crypto.volatility === 'high' ? 'High' : 
+                              crypto.volatility === 'medium' ? 'Medium' : 
+                              crypto.volatility === 'low' ? 'Low' : 'Very Low'}
+                      </span>
+                      <span className="text-gray-600 dark:text-gray-400">
+                        Owned: <span className="font-medium">{getOwnedCryptoAmount(crypto.id).toFixed(4)}</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-lg flex items-center">
+                {selectedCrypto.name} ({selectedCrypto.symbol})
+                {cryptoPrices[selectedCrypto.id] !== undefined && (
+                  <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                    cryptoPrices[selectedCrypto.id] > selectedCrypto.basePrice
+                      ? 'bg-accessible-green/10 text-accessible-green' 
+                      : cryptoPrices[selectedCrypto.id] < selectedCrypto.basePrice
+                        ? 'bg-accessible-red/10 text-accessible-red' 
+                        : 'bg-accent-muted'
+                  }`}>
+                    {cryptoPrices[selectedCrypto.id] > selectedCrypto.basePrice ? '+' : ''}
+                    {((cryptoPrices[selectedCrypto.id] - selectedCrypto.basePrice) / selectedCrypto.basePrice * 100).toFixed(1)}%
+                  </span>
+                )}
+              </h3>
+              
+              <div className="h-40 mb-3 border p-1 rounded-md bg-background">
+                {/* Chart would be here */}
+                <div className="w-full h-full flex items-center justify-center bg-muted/50 rounded">
+                  <div className="text-center">
+                    <div className="mb-2 font-semibold">Price Trend</div>
+                    <div className={`text-2xl font-bold ${
+                      (cryptoPrices[selectedCrypto.id] || 0) > selectedCrypto.basePrice 
+                        ? 'text-accessible-green' 
+                        : (cryptoPrices[selectedCrypto.id] || 0) < selectedCrypto.basePrice 
+                          ? 'text-accessible-red' 
+                          : ''
+                    }`}>
+                      ${(cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice).toFixed(2)}
+                    </div>
+                    <div className="mt-2 text-sm text-muted-foreground">Trading 24/7</div>
+                  </div>
+                </div>
+              </div>
+              
+              <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedCrypto.description}</p>
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-muted p-2 rounded">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Current Price</p>
+                  <p className="font-semibold">${(cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice).toFixed(2)}</p>
+                </div>
+                <div className="bg-muted p-2 rounded">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Owned Value</p>
+                  <p className="font-semibold">{formatCurrency(getOwnedCryptoValue(selectedCrypto.id))}</p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="crypto-amount">
+                    Amount to Buy/Sell:
+                  </label>
+                  <div className="flex rounded-md">
+                    <input 
+                      type="number" 
+                      id="crypto-amount"
+                      value={cryptoAmount} 
+                      onChange={(e) => setCryptoAmount(parseFloat(e.target.value) || 0)}
+                      className="flex-1 p-2 border border-input bg-background rounded-l-md text-sm text-foreground"
+                      min="0.0001"
+                      step="0.0001"
+                    />
+                    <div className="px-3 py-2 border border-l-0 border-input bg-muted rounded-r-md">
+                      {selectedCrypto.symbol}
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-right">
+                    Cost: {formatCurrency(cryptoAmount * (cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice))}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    onClick={handleBuyCrypto}
+                    className="bg-accessible-green hover:bg-accessible-green/90"
+                    disabled={cryptoAmount <= 0 || cryptoAmount * (cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice) > wealth}
+                  >
+                    Buy {selectedCrypto.symbol}
+                  </Button>
+                  <Button 
+                    onClick={handleSellCrypto}
+                    className="bg-accessible-red hover:bg-accessible-red/90"
+                    disabled={getOwnedCryptoAmount(selectedCrypto.id) <= 0}
+                  >
+                    Sell {selectedCrypto.symbol}
+                  </Button>
+                </div>
+              </div>
+              
+              {selectedCrypto.volatility === 'extreme' && (
+                <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100 text-sm rounded border border-red-300 dark:border-red-800">
+                  <AlertCircle className="w-4 h-4 inline-block mr-1" />
+                  Warning: This cryptocurrency has extreme volatility and high risk of significant losses.
+                </div>
+              )}
+              
+              {selectedCrypto.volatility === 'very_low' && (
+                <div className="mt-3 p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100 text-sm rounded border border-blue-300 dark:border-blue-800">
+                  <AlertCircle className="w-4 h-4 inline-block mr-1" />
+                  Note: This is a stablecoin designed to maintain a steady value pegged to a fiat currency.
+                </div>
+              )}
+            </div>
+          </div>
+        </TabsContent>
+        
+        {/* Bonds Tab */}
+        <TabsContent value="bonds" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg" id="available-bonds-heading">Available Bonds</h3>
+              
+              <div 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-muted" 
+                aria-labelledby="available-bonds-heading"
+                role="listbox"
+              >
+                {bonds.map((bond, index) => (
+                  <div 
+                    key={`bond-${bond.id}-${index}`}
+                    role="option"
+                    aria-selected={selectedBond.id === bond.id}
+                    className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                      selectedBond.id === bond.id 
+                        ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                        : 'hover:bg-muted hover:border-border'
+                    }`}
+                    onClick={() => {
+                      setSelectedBond(bond);
+                      setBondAmount(bond.minInvestment);
+                    }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-base">{bond.name}</span>
+                      <span className="font-mono font-semibold">
+                        {(bond.yieldRate * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs mt-1">
+                      <span className={`px-2 py-0.5 rounded-full ${
+                        bond.type === 'treasury' ? 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-100' :
+                        bond.type === 'corporate' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' :
+                        bond.type === 'municipal' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                        'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100'
+                      }`}>
+                        {bond.type.charAt(0).toUpperCase() + bond.type.slice(1)}
+                      </span>
+                      <span className="text-muted-foreground">
+                        Term: <span className="font-medium">{bond.term} years</span>
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">{selectedBond.name}</h3>
+              
+              <div className="mb-3 p-3 border rounded-md bg-muted">
+                <div className="grid grid-cols-3 gap-2 mb-2">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Annual Yield</p>
+                    <p className="font-semibold text-lg">{(selectedBond.yieldRate * 100).toFixed(1)}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Term</p>
+                    <p className="font-semibold text-lg">{selectedBond.term} years</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Minimum</p>
+                    <p className="font-semibold text-lg">{formatCurrency(selectedBond.minInvestment)}</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm mb-1">{selectedBond.description}</p>
+                
+                <div className="mt-3 text-xs bg-background p-2 rounded">
+                  <p className="font-medium">At maturity, you'll receive:</p>
+                  <p className="mt-1 font-mono">
+                    Principal ${bondAmount.toLocaleString()} + Interest ${(bondAmount * selectedBond.yieldRate * selectedBond.term).toLocaleString()} = 
+                    <span className="font-bold ml-1">
+                      ${(bondAmount + (bondAmount * selectedBond.yieldRate * selectedBond.term)).toLocaleString()}
+                    </span>
+                  </p>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="bond-amount">
+                    Investment Amount:
+                  </label>
+                  <input 
+                    type="number" 
+                    id="bond-amount"
+                    value={bondAmount} 
+                    onChange={(e) => setBondAmount(Math.max(selectedBond.minInvestment, parseFloat(e.target.value) || 0))}
+                    className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
+                    min={selectedBond.minInvestment}
+                    step="1000"
+                  />
+                  <p className="mt-1 text-xs flex justify-between">
+                    <span>Minimum: {formatCurrency(selectedBond.minInvestment)}</span>
+                    <span>Available: {formatCurrency(wealth)}</span>
+                  </p>
+                </div>
+                
+                <Button 
+                  onClick={handleBuyBond} 
+                  className="w-full bg-accessible-green hover:bg-accessible-green/90"
+                  disabled={bondAmount < selectedBond.minInvestment || bondAmount > wealth}
+                >
+                  Purchase Bond
+                </Button>
+                
+                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100 text-xs rounded">
+                  <p className="font-medium">Bond Details:</p>
+                  <p className="mt-1">Bonds provide fixed, predictable returns over a set time period with typically lower risk than stocks.</p>
+                  <p className="mt-1">You can hold until maturity for full value or sell early (with potential penalties).</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+        
+        {/* Startups (Other) Tab */}
+        <TabsContent value="other" className="animate-fade-in">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <h3 className="font-semibold mb-2 text-lg" id="available-startups-heading">Startup Investments</h3>
+              
+              <div 
+                className="space-y-2 max-h-60 overflow-y-auto scrollbar-thin scrollbar-thumb-primary/50 scrollbar-track-muted" 
+                aria-labelledby="available-startups-heading"
+                role="listbox"
+              >
+                {startupInvestments.map((startup, index) => (
+                  <div 
+                    key={`startup-${startup.id}-${index}`}
+                    role="option"
+                    aria-selected={selectedStartup.id === startup.id}
+                    className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                      selectedStartup.id === startup.id 
+                        ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                        : 'hover:bg-muted hover:border-border'
+                    }`}
+                    onClick={() => {
+                      setSelectedStartup(startup);
+                      setStartupAmount(startup.minInvestment);
+                    }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-base">{startup.name}</span>
+                      <span className={`px-2 py-0.5 text-xs rounded-full ${
+                        startup.round === 'seed' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-100' :
+                        startup.round === 'series_a' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' :
+                        startup.round === 'series_b' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                        'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100'
+                      }`}>
+                        {startup.round === 'seed' ? 'Seed Round' :
+                         startup.round === 'series_a' ? 'Series A' :
+                         startup.round === 'series_b' ? 'Series B' :
+                         'Pre-IPO'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs mt-1">
+                      <span className="text-muted-foreground">
+                        {startup.industry}
+                      </span>
+                      <span className="font-medium">
+                        Min: {formatCurrency(startup.minInvestment)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2 text-lg">{selectedStartup.name}</h3>
+              
+              <div className="mb-4 p-3 border rounded-md bg-muted">
+                <div className="grid grid-cols-3 gap-2 mb-3">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Success Chance</p>
+                    <p className="font-semibold text-lg">{(selectedStartup.successChance * 100).toFixed()}%</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Potential Return</p>
+                    <p className="font-semibold text-lg">{selectedStartup.potentialReturnMultiple}x</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">Industry</p>
+                    <p className="font-semibold text-base">{selectedStartup.industry}</p>
+                  </div>
+                </div>
+                
+                <p className="text-sm">{selectedStartup.description}</p>
+                
+                <div className="mt-3 bg-background p-2 rounded text-xs">
+                  <p className="font-bold mb-1">Risk Analysis:</p>
+                  <div className="space-y-1">
+                    <div className="flex justify-between">
+                      <span>Investment Stage:</span>
+                      <span className="font-medium">{
+                        selectedStartup.round === 'seed' ? 'Very Early (Highest Risk)' :
+                        selectedStartup.round === 'series_a' ? 'Early Growth' :
+                        selectedStartup.round === 'series_b' ? 'Expansion Phase' :
+                        'Late Stage (Lower Risk)'
+                      }</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Expected Outcome:</span>
+                      <span className="font-medium">{
+                        selectedStartup.successChance < 0.2 ? 'Highly Speculative' :
+                        selectedStartup.successChance < 0.4 ? 'Speculative' :
+                        selectedStartup.successChance < 0.6 ? 'Moderate Risk' :
+                        'Likely Success'
+                      }</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Maximum Potential Return:</span>
+                      <span className="font-medium text-green-700 dark:text-green-400">
+                        {formatCurrency(startupAmount * selectedStartup.potentialReturnMultiple)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="startup-amount">
+                    Investment Amount:
+                  </label>
+                  <input 
+                    type="number" 
+                    id="startup-amount"
+                    value={startupAmount} 
+                    onChange={(e) => setStartupAmount(Math.max(selectedStartup.minInvestment, parseFloat(e.target.value) || 0))}
+                    className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
+                    min={selectedStartup.minInvestment}
+                    step="1000"
+                  />
+                  <p className="mt-1 text-xs flex justify-between">
+                    <span>Minimum: {formatCurrency(selectedStartup.minInvestment)}</span>
+                    <span>Available: {formatCurrency(wealth)}</span>
+                  </p>
+                </div>
+                
+                <Button 
+                  onClick={handleBuyStartup} 
+                  className="w-full bg-accessible-green hover:bg-accessible-green/90"
+                  disabled={startupAmount < selectedStartup.minInvestment || startupAmount > wealth}
+                >
+                  Invest in Startup
+                </Button>
+                
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-100 text-xs rounded">
+                  <AlertCircle className="w-4 h-4 inline-block mr-1" />
+                  <span className="font-medium">High Risk Investment:</span>
+                  <p className="mt-1">Startup investments are high-risk, illiquid assets with the potential for high returns or complete loss. Diversify your portfolio responsibly.</p>
                 </div>
               </div>
             </div>

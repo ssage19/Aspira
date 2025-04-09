@@ -44,6 +44,12 @@ export interface Asset {
   maturityValue?: number;      // For bonds
   maturityDate?: string | Date;  // For bonds
   otherType?: string;          // For categorizing other investments
+  term?: number;               // For bonds - term in years
+  yieldRate?: number;          // For bonds - interest rate
+  successChance?: number;      // For startup investments
+  potentialReturnMultiple?: number; // For startup investments
+  round?: string;              // For startup investments - funding round
+  industry?: string;           // For startup investments - industry sector
 }
 
 export interface Property {
