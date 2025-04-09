@@ -50,7 +50,8 @@ export default function CharacterCreation() {
     charisma: 30,
     technical: 30,
     leadership: 30,
-    physical: 30
+    physical: 30,
+    management: 30
   });
   const [skillPoints, setSkillPoints] = useState(100);
   
@@ -531,6 +532,47 @@ export default function CharacterCreation() {
                       <div 
                         className="h-full bg-red-500 rounded-full" 
                         style={{ width: `${skills.physical / 10}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Management */}
+                  <div>
+                    <div className="flex justify-between items-center mb-1">
+                      <div className="flex items-center">
+                        <Briefcase className="h-4 w-4 mr-1 text-purple-500" />
+                        <span className="font-medium">Management</span>
+                      </div>
+                      <div className="flex items-center">
+                        <span className="mx-2 text-lg font-semibold">{skills.management}</span>
+                        <div className="flex space-x-1">
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleDecreaseSkill('management')}
+                            disabled={skills.management <= 30}
+                            title="Decrease Management"
+                          >
+                            <Minus className="h-3 w-3" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 w-7 p-0 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('management')}
+                            disabled={skillPoints <= 0 || skills.management >= 1000}
+                            title="Increase Management"
+                          >
+                            <Plus className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                      <div 
+                        className="h-full bg-purple-500 rounded-full" 
+                        style={{ width: `${skills.management / 10}%` }}
                       />
                     </div>
                   </div>
