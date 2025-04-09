@@ -27,6 +27,7 @@ export interface CareerPath {
   prestigeImpact: number;
   timeCommitment: number; // Hours per week
   experience: number; // Months needed at previous level to be eligible
+  healthImpact?: number; // Optional health impact of the job
 }
 
 // Define a profession (collection of related jobs forming a career path)
@@ -1074,10 +1075,10 @@ export const professions: Profession[] = [
     description: 'Design user interfaces and create optimal user experiences for websites, applications, and digital products.',
     careerPath: [
       {
-        id: 'junior-ui-ux-designer',
-        title: 'Junior UI/UX Designer',
         level: 'entry',
+        title: 'Junior UI/UX Designer',
         salary: 58000,
+        description: 'Create basic wireframes and mockups under supervision.',
         skillRequirements: { },
         healthImpact: -5,
         happinessImpact: 10,
@@ -1188,10 +1189,10 @@ export const professions: Profession[] = [
     description: 'Bridge development and operations, automating infrastructure and streamlining software delivery processes.',
     careerPath: [
       {
-        id: 'junior-devops',
-        title: 'Junior DevOps Engineer',
         level: 'entry',
+        title: 'Junior DevOps Engineer',
         salary: 65000,
+        description: 'Assist with automation scripts and basic CI/CD pipeline maintenance.',
         skillRequirements: { },
         healthImpact: -10,
         happinessImpact: 5,
@@ -2501,6 +2502,489 @@ export const professions: Profession[] = [
     ]
   },
   
+  {
+    id: 'counselor',
+    name: 'School Counselor',
+    category: 'education',
+    description: 'Guide students through academic, personal, and career development challenges.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'School Counselor Assistant',
+        salary: 42000,
+        description: 'Support counseling programs and assist with student guidance activities.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'School Counselor',
+        salary: 55000,
+        description: 'Provide academic, career, and personal counseling to students.',
+        skillRequirements: { intelligence: 300, charisma: 350 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Lead School Counselor',
+        salary: 70000,
+        description: 'Develop counseling programs and coordinate counseling teams.',
+        skillRequirements: { intelligence: 450, charisma: 500, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Counseling Department Head',
+        salary: 85000,
+        description: 'Lead counseling departments and develop district-wide counseling strategies.',
+        skillRequirements: { intelligence: 600, charisma: 650, leadership: 450 },
+        healthImpact: -15,
+        happinessImpact: 25,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Director of Student Services',
+        salary: 110000,
+        description: 'Oversee all student support services across multiple schools or districts.',
+        skillRequirements: { intelligence: 750, charisma: 800, leadership: 600 },
+        healthImpact: -20,
+        happinessImpact: 30,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'librarian',
+    name: 'Librarian',
+    category: 'education',
+    description: 'Manage library resources, support research, and promote information literacy.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Library Assistant',
+        salary: 35000,
+        description: 'Assist with circulation, shelving, and basic library services.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Librarian',
+        salary: 50000,
+        description: 'Manage collections, provide research assistance, and develop library programs.',
+        skillRequirements: { intelligence: 350, technical: 250 },
+        healthImpact: -5,
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Librarian',
+        salary: 65000,
+        description: 'Lead specialized library departments and develop digital resources.',
+        skillRequirements: { intelligence: 500, technical: 400, leadership: 300 },
+        healthImpact: -10,
+        happinessImpact: 20,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Head Librarian',
+        salary: 80000,
+        description: 'Manage entire libraries and develop strategic information services.',
+        skillRequirements: { intelligence: 650, technical: 550, leadership: 450 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Library Director',
+        salary: 100000,
+        description: 'Direct library systems across institutions or districts.',
+        skillRequirements: { intelligence: 800, technical: 650, leadership: 600 },
+        healthImpact: -15,
+        happinessImpact: 25,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'special-education-teacher',
+    name: 'Special Education Teacher',
+    category: 'education',
+    description: 'Educate students with diverse learning needs and develop individualized education programs.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Special Education Aide',
+        salary: 32000,
+        description: 'Support special education teachers and assist students with disabilities.',
+        skillRequirements: { },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Special Education Teacher',
+        salary: 48000,
+        description: 'Develop and implement individualized education plans for students with special needs.',
+        skillRequirements: { intelligence: 300, charisma: 350, creativity: 300 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Lead Special Education Teacher',
+        salary: 60000,
+        description: 'Coordinate special education programs and mentor other teachers.',
+        skillRequirements: { intelligence: 450, charisma: 500, creativity: 450, leadership: 350 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Special Education Coordinator',
+        salary: 75000,
+        description: 'Develop special education curricula and oversee program implementation.',
+        skillRequirements: { intelligence: 600, charisma: 650, creativity: 550, leadership: 500 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Director of Special Education',
+        salary: 95000,
+        description: 'Lead special education services across schools or districts.',
+        skillRequirements: { intelligence: 750, charisma: 800, creativity: 650, leadership: 650 },
+        healthImpact: -30,
+        happinessImpact: 35,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'curriculum-developer',
+    name: 'Curriculum Developer',
+    category: 'education',
+    description: 'Design and improve educational curricula, instructional materials, and assessment methods.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Curriculum Assistant',
+        salary: 45000,
+        description: 'Support curriculum development and help create educational materials.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Curriculum Specialist',
+        salary: 60000,
+        description: 'Develop subject-specific curricula and assessment tools.',
+        skillRequirements: { intelligence: 350, creativity: 400 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Curriculum Developer',
+        salary: 75000,
+        description: 'Lead curriculum projects and integrate educational technologies.',
+        skillRequirements: { intelligence: 500, creativity: 550, technical: 400 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Curriculum Director',
+        salary: 90000,
+        description: 'Oversee curriculum development across multiple subject areas or grade levels.',
+        skillRequirements: { intelligence: 650, creativity: 700, technical: 500, leadership: 450 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Chief Academic Officer',
+        salary: 120000,
+        description: 'Shape educational vision and curriculum strategy across entire institutions.',
+        skillRequirements: { intelligence: 800, creativity: 850, technical: 600, leadership: 700 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 108
+      }
+    ]
+  },
+  
+  {
+    id: 'education-researcher',
+    name: 'Education Researcher',
+    category: 'education',
+    description: 'Conduct research to advance educational theory, practice, and policy.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Research Assistant',
+        salary: 40000,
+        description: 'Support education research projects by collecting and analyzing data.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Education Researcher',
+        salary: 55000,
+        description: 'Design and conduct research studies on educational practices.',
+        skillRequirements: { intelligence: 400, technical: 350 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 36
+      },
+      {
+        level: 'mid',
+        title: 'Senior Researcher',
+        salary: 70000,
+        description: 'Lead research projects and publish findings in academic journals.',
+        skillRequirements: { intelligence: 550, technical: 500 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 35,
+        timeCommitment: 45,
+        experience: 60
+      },
+      {
+        level: 'senior',
+        title: 'Principal Investigator',
+        salary: 90000,
+        description: 'Direct major research initiatives and secure research grants.',
+        skillRequirements: { intelligence: 700, technical: 650, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 45,
+        timeCommitment: 50,
+        experience: 84
+      },
+      {
+        level: 'executive',
+        title: 'Research Director',
+        salary: 120000,
+        description: 'Lead educational research institutions and shape research priorities.',
+        skillRequirements: { intelligence: 850, technical: 750, leadership: 650 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 55,
+        timeCommitment: 55,
+        experience: 108
+      }
+    ]
+  },
+  
+  {
+    id: 'educational-technology-specialist',
+    name: 'Educational Technology Specialist',
+    category: 'education',
+    description: 'Integrate technology into educational environments to enhance teaching and learning.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'EdTech Support Specialist',
+        salary: 45000,
+        description: 'Provide technical support for educational technology tools and platforms.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Educational Technology Specialist',
+        salary: 60000,
+        description: 'Implement educational technology solutions and train educators.',
+        skillRequirements: { technical: 350, intelligence: 300, charisma: 250 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior EdTech Specialist',
+        salary: 75000,
+        description: 'Develop educational technology strategies and lead implementation projects.',
+        skillRequirements: { technical: 500, intelligence: 450, charisma: 350, leadership: 300 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'EdTech Coordinator',
+        salary: 90000,
+        description: 'Oversee educational technology integration across schools or departments.',
+        skillRequirements: { technical: 650, intelligence: 600, charisma: 450, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Chief Technology Officer (Education)',
+        salary: 120000,
+        description: 'Direct educational technology vision and strategy across institutions.',
+        skillRequirements: { technical: 800, intelligence: 750, charisma: 550, leadership: 700 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'instructional-designer',
+    name: 'Instructional Designer',
+    category: 'education',
+    description: 'Create effective learning experiences, materials, and programs for various educational settings.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Instructional Design Assistant',
+        salary: 42000,
+        description: 'Support the development of instructional materials and learning activities.',
+        skillRequirements: { },
+        healthImpact: -5,
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Instructional Designer',
+        salary: 58000,
+        description: 'Design learning experiences and develop instructional materials.',
+        skillRequirements: { creativity: 350, intelligence: 300, technical: 250 },
+        healthImpact: -10,
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 40,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Instructional Designer',
+        salary: 72000,
+        description: 'Lead instructional design projects and develop innovative learning approaches.',
+        skillRequirements: { creativity: 500, intelligence: 450, technical: 400 },
+        healthImpact: -15,
+        happinessImpact: 20,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Instructional Design Manager',
+        salary: 85000,
+        description: 'Oversee instructional design teams and develop learning strategies.',
+        skillRequirements: { creativity: 650, intelligence: 600, technical: 550, leadership: 500 },
+        healthImpact: -20,
+        happinessImpact: 25,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Director of Learning Design',
+        salary: 105000,
+        description: 'Shape instructional vision and learning strategies across organizations.',
+        skillRequirements: { creativity: 800, intelligence: 750, technical: 650, leadership: 700 },
+        healthImpact: -25,
+        happinessImpact: 30,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        experience: 96
+      }
+    ]
+  },
+  
   // Additional Creative Professions
   {
     id: 'film-director',
@@ -2562,6 +3046,489 @@ export const professions: Profession[] = [
         prestigeImpact: 60,
         timeCommitment: 65,
         experience: 60
+      }
+    ]
+  },
+  
+  {
+    id: 'ux-designer',
+    name: 'UX Designer',
+    category: 'creative',
+    description: 'Design intuitive, user-centered digital experiences and interfaces.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior UX Designer',
+        salary: 45000,
+        description: 'Assist with user research and create wireframes under supervision.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        healthImpact: -5,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'UX Designer',
+        salary: 65000,
+        description: 'Design user flows, conduct usability testing, and create prototypes.',
+        skillRequirements: { creativity: 500, technical: 450, intelligence: 400 },
+        happinessImpact: 12,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        healthImpact: -10,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior UX Designer',
+        salary: 85000,
+        description: 'Lead UX projects, mentor junior designers, and define interaction patterns.',
+        skillRequirements: { creativity: 650, technical: 600, intelligence: 550, leadership: 350 },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        healthImpact: -15,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'UX Lead',
+        salary: 105000,
+        description: 'Define UX strategy, oversee multiple projects, and establish UX standards.',
+        skillRequirements: { creativity: 800, technical: 700, intelligence: 650, leadership: 500 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        healthImpact: -20,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'UX Director',
+        salary: 130000,
+        description: 'Shape organizational UX vision, lead design systems, and drive innovation.',
+        skillRequirements: { creativity: 900, technical: 800, intelligence: 750, leadership: 650 },
+        happinessImpact: 10,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        healthImpact: -25,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'animator',
+    name: 'Animator',
+    category: 'creative',
+    description: 'Create animated visual content for entertainment, education, and marketing.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Junior Animator',
+        salary: 42000,
+        description: 'Create basic animations and assist with animation production.',
+        skillRequirements: { },
+        happinessImpact: 12,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        healthImpact: -10,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Animator',
+        salary: 60000,
+        description: 'Create complex animations and develop character movements.',
+        skillRequirements: { creativity: 550, technical: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        healthImpact: -15,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Animator',
+        salary: 80000,
+        description: 'Lead animation sequences and mentor junior animators.',
+        skillRequirements: { creativity: 700, technical: 650, leadership: 400 },
+        happinessImpact: 18,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        healthImpact: -20,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Animation Director',
+        salary: 100000,
+        description: 'Oversee animation production and direct animation teams.',
+        skillRequirements: { creativity: 850, technical: 750, leadership: 600 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        healthImpact: -25,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Animation Studio Director',
+        salary: 120000,
+        description: 'Lead animation studio operations and shape creative direction.',
+        skillRequirements: { creativity: 900, technical: 800, leadership: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 55,
+        timeCommitment: 60,
+        healthImpact: -30,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'photographer',
+    name: 'Photographer',
+    category: 'creative',
+    description: 'Capture and create visual images for artistic, commercial, or documentary purposes.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Photography Assistant',
+        salary: 35000,
+        description: 'Assist professional photographers with equipment and studio setup.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        healthImpact: -5,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Photographer',
+        salary: 50000,
+        description: 'Shoot commercial and editorial photography projects.',
+        skillRequirements: { creativity: 500, technical: 450 },
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        healthImpact: -10,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Photographer',
+        salary: 70000,
+        description: 'Lead photography projects and develop unique visual styles.',
+        skillRequirements: { creativity: 650, technical: 600, charisma: 450 },
+        happinessImpact: 18,
+        prestigeImpact: 30,
+        timeCommitment: 45,
+        healthImpact: -15,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Photography Director',
+        salary: 90000,
+        description: 'Direct photography teams and define visual direction for campaigns.',
+        skillRequirements: { creativity: 800, technical: 700, charisma: 600, leadership: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 40,
+        timeCommitment: 50,
+        healthImpact: -20,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Photography Studio Owner',
+        salary: 110000,
+        description: 'Run a photography agency and work with high-profile clients.',
+        skillRequirements: { creativity: 900, technical: 800, charisma: 700, leadership: 650 },
+        happinessImpact: 12,
+        prestigeImpact: 50,
+        timeCommitment: 55,
+        healthImpact: -25,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'interior-designer',
+    name: 'Interior Designer',
+    category: 'creative',
+    description: 'Design functional and aesthetically pleasing interior spaces.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Interior Design Assistant',
+        salary: 38000,
+        description: 'Support senior designers with material selection and space planning.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        healthImpact: -5,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Interior Designer',
+        salary: 55000,
+        description: 'Design residential and small commercial spaces.',
+        skillRequirements: { creativity: 500, technical: 400, charisma: 350 },
+        happinessImpact: 12,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        healthImpact: -10,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Interior Designer',
+        salary: 75000,
+        description: 'Lead complex design projects and develop client relationships.',
+        skillRequirements: { creativity: 650, technical: 550, charisma: 500, leadership: 350 },
+        happinessImpact: 15,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        healthImpact: -15,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Design Director',
+        salary: 95000,
+        description: 'Oversee design teams and set standards for design excellence.',
+        skillRequirements: { creativity: 800, technical: 650, charisma: 600, leadership: 550 },
+        happinessImpact: 12,
+        prestigeImpact: 40,
+        timeCommitment: 55,
+        healthImpact: -20,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Interior Design Firm Principal',
+        salary: 120000,
+        description: 'Own and lead a design firm, working with high-profile clients and projects.',
+        skillRequirements: { creativity: 900, technical: 750, charisma: 750, leadership: 700 },
+        happinessImpact: 10,
+        prestigeImpact: 50,
+        timeCommitment: 60,
+        healthImpact: -25,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'fashion-designer',
+    name: 'Fashion Designer',
+    category: 'creative',
+    description: 'Design clothing, accessories, and footwear for consumers and industry.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Design Assistant',
+        salary: 40000,
+        description: 'Support senior designers with sketches, material selection, and production.',
+        skillRequirements: { },
+        happinessImpact: 10,
+        prestigeImpact: 15,
+        timeCommitment: 45,
+        healthImpact: -10,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Fashion Designer',
+        salary: 60000,
+        description: 'Create clothing designs and oversee sample production.',
+        skillRequirements: { creativity: 600, technical: 500 },
+        happinessImpact: 15,
+        prestigeImpact: 25,
+        timeCommitment: 50,
+        healthImpact: -15,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Fashion Designer',
+        salary: 85000,
+        description: 'Design clothing collections and oversee creation from concept to production.',
+        skillRequirements: { creativity: 750, technical: 650, leadership: 450 },
+        happinessImpact: 18,
+        prestigeImpact: 35,
+        timeCommitment: 55,
+        healthImpact: -20,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Design Director',
+        salary: 110000,
+        description: 'Direct design teams and shape brand aesthetic for clothing lines.',
+        skillRequirements: { creativity: 850, technical: 750, leadership: 650, charisma: 600 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 60,
+        healthImpact: -25,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Creative Director',
+        salary: 150000,
+        description: 'Define overall creative vision for fashion brands or design houses.',
+        skillRequirements: { creativity: 950, technical: 850, leadership: 800, charisma: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
+        timeCommitment: 65,
+        healthImpact: -30,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'music-producer',
+    name: 'Music Producer',
+    category: 'creative',
+    description: 'Oversee and manage the recording, mixing, and production of music.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Studio Assistant',
+        salary: 35000,
+        description: 'Support recording sessions and learn studio equipment operation.',
+        skillRequirements: { },
+        happinessImpact: 12,
+        prestigeImpact: 10,
+        timeCommitment: 40,
+        healthImpact: -10,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Sound Engineer',
+        salary: 50000,
+        description: 'Record and mix music tracks for artists and bands.',
+        skillRequirements: { creativity: 450, technical: 550 },
+        happinessImpact: 15,
+        prestigeImpact: 20,
+        timeCommitment: 45,
+        healthImpact: -15,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Music Producer',
+        salary: 75000,
+        description: 'Produce music projects and guide artists through the recording process.',
+        skillRequirements: { creativity: 600, technical: 700, charisma: 500 },
+        happinessImpact: 18,
+        prestigeImpact: 30,
+        timeCommitment: 50,
+        healthImpact: -20,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Executive Producer',
+        salary: 100000,
+        description: 'Oversee multiple music productions and develop artist careers.',
+        skillRequirements: { creativity: 750, technical: 800, charisma: 650, leadership: 600 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        healthImpact: -25,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Studio Owner',
+        salary: 150000,
+        description: 'Own and operate a recording studio, working with top artists and labels.',
+        skillRequirements: { creativity: 850, technical: 900, charisma: 800, leadership: 750 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        healthImpact: -30,
+        experience: 96
+      }
+    ]
+  },
+  
+  {
+    id: 'video-game-designer',
+    name: 'Video Game Designer',
+    category: 'creative',
+    description: 'Design concepts, mechanics, and systems for video games.',
+    careerPath: [
+      {
+        level: 'entry',
+        title: 'Game Design Intern',
+        salary: 40000,
+        description: 'Assist design teams and learn game development processes.',
+        skillRequirements: { },
+        happinessImpact: 15,
+        prestigeImpact: 15,
+        timeCommitment: 40,
+        healthImpact: -10,
+        experience: 0
+      },
+      {
+        level: 'junior',
+        title: 'Game Designer',
+        salary: 65000,
+        description: 'Design game mechanics and features for video games.',
+        skillRequirements: { creativity: 550, technical: 500, intelligence: 500 },
+        happinessImpact: 18,
+        prestigeImpact: 25,
+        timeCommitment: 45,
+        healthImpact: -15,
+        experience: 24
+      },
+      {
+        level: 'mid',
+        title: 'Senior Game Designer',
+        salary: 90000,
+        description: 'Lead game design for specific features or systems.',
+        skillRequirements: { creativity: 700, technical: 650, intelligence: 650, leadership: 400 },
+        happinessImpact: 20,
+        prestigeImpact: 35,
+        timeCommitment: 50,
+        healthImpact: -20,
+        experience: 48
+      },
+      {
+        level: 'senior',
+        title: 'Lead Game Designer',
+        salary: 120000,
+        description: 'Direct overall game design and manage design teams.',
+        skillRequirements: { creativity: 850, technical: 750, intelligence: 750, leadership: 650 },
+        happinessImpact: 15,
+        prestigeImpact: 45,
+        timeCommitment: 55,
+        healthImpact: -25,
+        experience: 72
+      },
+      {
+        level: 'executive',
+        title: 'Game Director',
+        salary: 160000,
+        description: 'Set creative vision for games and lead entire development studios.',
+        skillRequirements: { creativity: 950, technical: 850, intelligence: 850, leadership: 800 },
+        happinessImpact: 12,
+        prestigeImpact: 60,
+        timeCommitment: 60,
+        healthImpact: -30,
+        experience: 96
       }
     ]
   },
@@ -3515,7 +4482,7 @@ export const professions: Profession[] = [
         skillRequirements: {
           technical: 450,
           physical: 450,
-          management: 150
+          leadership: 150
         },
         happinessImpact: 10,
         prestigeImpact: 20,
@@ -3529,7 +4496,7 @@ export const professions: Profession[] = [
         description: 'Design plumbing systems for buildings and oversee large installation projects.',
         skillRequirements: {
           technical: 700,
-          management: 350,
+          leadership: 350,
           physical: 600
         },
         happinessImpact: 15,
@@ -3608,7 +4575,7 @@ export const professions: Profession[] = [
         description: 'Design and create custom woodwork while leading teams on large construction projects.',
         skillRequirements: {
           technical: 650,
-          management: 400,
+          leadership: 400,
           physical: 600,
           creativity: 450
         },
@@ -3624,8 +4591,7 @@ export const professions: Profession[] = [
         description: 'Run a construction business specializing in custom building and renovation projects.',
         skillRequirements: {
           technical: 700,
-          management: 650,
-          business: 550,
+          leadership: 650,
           physical: 550,
           creativity: 500
         },
@@ -3688,7 +4654,7 @@ export const professions: Profession[] = [
         description: 'Design HVAC systems for commercial buildings and lead installation teams.',
         skillRequirements: {
           technical: 750,
-          management: 350,
+          leadership: 350,
           physical: 500
         },
         happinessImpact: 15,
@@ -3703,8 +4669,7 @@ export const professions: Profession[] = [
         description: 'Manage an HVAC company handling major commercial and industrial contracts.',
         skillRequirements: {
           technical: 800,
-          management: 650,
-          business: 500,
+          leadership: 650,
           physical: 500
         },
         happinessImpact: 15,
@@ -3766,7 +4731,7 @@ export const professions: Profession[] = [
         description: 'Handle specialized welding projects and supervise other welders on critical applications.',
         skillRequirements: {
           technical: 700,
-          management: 300,
+          leadership: 300,
           physical: 650
         },
         happinessImpact: 15,
@@ -3781,8 +4746,7 @@ export const professions: Profession[] = [
         description: 'Either inspect welding quality for large industrial projects or run a specialized welding business.',
         skillRequirements: {
           technical: 850,
-          management: 550,
-          business: 400,
+          leadership: 550,
           physical: 700
         },
         happinessImpact: 15,
@@ -3844,7 +4808,7 @@ export const professions: Profession[] = [
         description: 'Handle the most complex automotive repairs and diagnose difficult problems.',
         skillRequirements: {
           technical: 750,
-          management: 200,
+          leadership: 200,
           physical: 450
         },
         happinessImpact: 15,
@@ -3859,8 +4823,7 @@ export const professions: Profession[] = [
         description: 'Manage or own an automotive repair shop with multiple technicians.',
         skillRequirements: {
           technical: 800,
-          management: 600,
-          business: 500,
+          leadership: 600,
           physical: 400
         },
         happinessImpact: 15,
@@ -3909,7 +4872,7 @@ export const professions: Profession[] = [
         skillRequirements: {
           technical: 400,
           physical: 600,
-          management: 150
+          leadership: 150
         },
         happinessImpact: 10,
         prestigeImpact: 20,
@@ -3923,7 +4886,7 @@ export const professions: Profession[] = [
         description: 'Construct decorative and complex masonry works while leading teams on large projects.',
         skillRequirements: {
           technical: 600,
-          management: 350,
+          leadership: 350,
           physical: 750,
           creativity: 300
         },
@@ -3939,8 +4902,7 @@ export const professions: Profession[] = [
         description: 'Run a masonry business managing multiple crews for commercial and residential projects.',
         skillRequirements: {
           technical: 650,
-          management: 600,
-          business: 550,
+          leadership: 600,
           physical: 700
         },
         happinessImpact: 15,
@@ -3989,7 +4951,7 @@ export const professions: Profession[] = [
         skillRequirements: {
           technical: 350,
           physical: 600,
-          management: 150
+          leadership: 150
         },
         happinessImpact: 10,
         prestigeImpact: 15,
@@ -4003,7 +4965,7 @@ export const professions: Profession[] = [
         description: 'Supervise workers on construction sites and ensure projects meet specifications.',
         skillRequirements: {
           technical: 500,
-          management: 500,
+          leadership: 500,
           physical: 650
         },
         happinessImpact: 10,
@@ -4018,8 +4980,7 @@ export const professions: Profession[] = [
         description: 'Oversee entire construction projects, coordinating multiple teams and trades.',
         skillRequirements: {
           technical: 600,
-          management: 750,
-          business: 400,
+          leadership: 750,
           physical: 550
         },
         happinessImpact: 15,
@@ -4083,7 +5044,7 @@ export const professions: Profession[] = [
         description: 'Create comprehensive landscape designs for residential and commercial properties.',
         skillRequirements: {
           technical: 500,
-          management: 300,
+          leadership: 300,
           physical: 400,
           creativity: 600
         },
@@ -4099,8 +5060,7 @@ export const professions: Profession[] = [
         description: 'Either design large-scale landscape projects or run a landscape contracting business.',
         skillRequirements: {
           technical: 600,
-          management: 550,
-          business: 500,
+          leadership: 550,
           physical: 350,
           creativity: 700
         },
@@ -4164,7 +5124,7 @@ export const professions: Profession[] = [
         description: 'Apply complex decorative finishes and lead teams on large painting projects.',
         skillRequirements: {
           technical: 500,
-          management: 350,
+          leadership: 350,
           physical: 500,
           creativity: 400
         },
@@ -4180,8 +5140,7 @@ export const professions: Profession[] = [
         description: 'Manage a painting company with multiple crews handling residential and commercial projects.',
         skillRequirements: {
           technical: 550,
-          management: 600,
-          business: 500,
+          leadership: 600,
           physical: 400,
           creativity: 350
         },
@@ -4244,7 +5203,7 @@ export const professions: Profession[] = [
         description: 'Handle the most complex and dangerous equipment operations and train junior operators.',
         skillRequirements: {
           technical: 750,
-          management: 300,
+          leadership: 300,
           physical: 550
         },
         happinessImpact: 15,
@@ -4259,8 +5218,7 @@ export const professions: Profession[] = [
         description: 'Manage equipment fleets and operations for large construction companies.',
         skillRequirements: {
           technical: 800,
-          management: 650,
-          business: 400,
+          leadership: 650,
           physical: 500
         },
         happinessImpact: 15,
