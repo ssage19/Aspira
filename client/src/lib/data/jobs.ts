@@ -23,6 +23,7 @@ export interface CareerPath {
   salary: number;
   description: string;
   skillRequirements: Partial<CharacterSkills>;
+  skillGains?: Partial<CharacterSkills>; // Monthly skill gains for the character
   happinessImpact: number;
   prestigeImpact: number;
   timeCommitment: number; // Hours per week
@@ -54,6 +55,7 @@ export const professions: Profession[] = [
         salary: 65000,
         description: 'Write code, fix bugs, and participate in code reviews under senior guidance.',
         skillRequirements: { },
+        skillGains: { technical: 20, intelligence: 15 },
         happinessImpact: 5,
         prestigeImpact: 10,
         timeCommitment: 40,
@@ -117,6 +119,7 @@ export const professions: Profession[] = [
         salary: 70000,
         description: 'Collect, clean, and analyze data to support business decisions.',
         skillRequirements: { },
+        skillGains: { technical: 15, intelligence: 20 },
         happinessImpact: 5,
         prestigeImpact: 10,
         timeCommitment: 40,
@@ -128,6 +131,7 @@ export const professions: Profession[] = [
         salary: 90000,
         description: 'Develop statistical models and begin working with machine learning algorithms.',
         skillRequirements: { intelligence: 700, technical: 550 },
+        skillGains: { technical: 20, intelligence: 25 },
         happinessImpact: 8,
         prestigeImpact: 15,
         timeCommitment: 45,
@@ -139,6 +143,7 @@ export const professions: Profession[] = [
         salary: 120000,
         description: 'Create advanced models and lead data-driven initiatives.',
         skillRequirements: { intelligence: 800, technical: 700 },
+        skillGains: { technical: 25, intelligence: 25, leadership: 10 },
         happinessImpact: 10,
         prestigeImpact: 25,
         timeCommitment: 50,
@@ -150,6 +155,7 @@ export const professions: Profession[] = [
         salary: 150000,
         description: 'Lead teams, design complex data systems, and drive organizational data strategy.',
         skillRequirements: { intelligence: 850, technical: 800, leadership: 600 },
+        skillGains: { technical: 25, intelligence: 30, leadership: 20 },
         happinessImpact: 12,
         prestigeImpact: 35,
         timeCommitment: 55,
@@ -161,6 +167,7 @@ export const professions: Profession[] = [
         salary: 200000,
         description: 'Set data vision, lead data governance, and maximize data value across the organization.',
         skillRequirements: { intelligence: 900, technical: 850, leadership: 800 },
+        skillGains: { technical: 20, intelligence: 30, leadership: 30, charisma: 10 },
         happinessImpact: 15,
         prestigeImpact: 50,
         timeCommitment: 60,
@@ -2273,6 +2280,7 @@ export const professions: Profession[] = [
         salary: 60000,
         description: 'Collect and process data, create visualizations, and generate basic insights.',
         skillRequirements: { },
+        skillGains: { technical: 15, intelligence: 25 },
         happinessImpact: 5,
         prestigeImpact: 15,
         timeCommitment: 40,
@@ -2284,6 +2292,7 @@ export const professions: Profession[] = [
         salary: 85000,
         description: 'Build predictive models, analyze complex datasets, and develop data-driven solutions.',
         skillRequirements: { intelligence: 750, technical: 700 },
+        skillGains: { technical: 20, intelligence: 25 },
         happinessImpact: 8,
         prestigeImpact: 25,
         timeCommitment: 45,
@@ -2295,6 +2304,7 @@ export const professions: Profession[] = [
         salary: 115000,
         description: 'Lead data science projects, develop advanced algorithms, and translate complex data into business insights.',
         skillRequirements: { intelligence: 850, technical: 800, leadership: 500 },
+        skillGains: { technical: 25, intelligence: 25, leadership: 15 },
         happinessImpact: 10,
         prestigeImpact: 35,
         timeCommitment: 45,
@@ -2306,6 +2316,7 @@ export const professions: Profession[] = [
         salary: 140000,
         description: 'Direct data science teams, develop data strategies, and drive innovation through data science.',
         skillRequirements: { intelligence: 900, technical: 850, leadership: 650 },
+        skillGains: { technical: 25, intelligence: 30, leadership: 25 },
         happinessImpact: 12,
         prestigeImpact: 45,
         timeCommitment: 50,
@@ -2317,6 +2328,7 @@ export const professions: Profession[] = [
         salary: 180000,
         description: 'Lead organizational data science initiatives, develop data-driven strategies, and transform organizations through data insights.',
         skillRequirements: { intelligence: 950, technical: 900, leadership: 750 },
+        skillGains: { technical: 20, intelligence: 35, leadership: 30, charisma: 15 },
         happinessImpact: 15,
         prestigeImpact: 55,
         timeCommitment: 55,

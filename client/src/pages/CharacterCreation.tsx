@@ -856,24 +856,17 @@ export default function CharacterCreation() {
                         </span>
                       </div>
                       <div className="mt-2">
-                        <p className="text-sm font-semibold mb-1">Skills You'll Develop:</p>
+                        <p className="text-sm font-semibold mb-1">Monthly Skill Development:</p>
                         <div className="flex flex-wrap gap-2">
-                          {Object.entries(selectedJob.skillGains).map(([skill, gain]) => (
+                          {Object.entries(selectedJob.skillGains || {}).map(([skill, gain]) => (
                             <span key={skill} className="px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded-full text-xs">
                               {skill} +{gain}/month
                             </span>
                           ))}
                         </div>
-                      </div>
-                      <div className="mt-2">
-                        <p className="text-sm font-semibold mb-1">Required Skills:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {Object.entries(selectedJob.skillRequirements).map(([skill, level]) => (
-                            <span key={skill} className="px-2 py-1 bg-primary/5 text-primary/90 border border-primary/20 rounded-full text-xs">
-                              {skill}: {level}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          These skills will be automatically added to your character each month
+                        </p>
                       </div>
                     </CardContent>
                   </Card>
