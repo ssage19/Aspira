@@ -81,17 +81,18 @@ export const refreshAllAssets = () => {
     console.log("STEP 3: Verifying values match between stores");
     if (Math.abs(characterState.wealth - assetTrackerState.totalCash) > 0.01) {
       console.warn("⚠️ Cash values don't match, forcing additional sync");
-      // Force alignment of cash values - using setters that definitely exist
-      if (typeof characterState.setWealth === 'function') {
-        // Use setWealth if it exists
-        characterState.setWealth(assetTrackerState.totalCash);
-      } else if (typeof characterState.updateCash === 'function') {
-        // Use updateCash if it exists and setWealth doesn't
-        const difference = assetTrackerState.totalCash - characterState.wealth;
-        characterState.updateCash(difference, "sync_correction");
+      
+      // Use the available methods in the character store
+      const difference = assetTrackerState.totalCash - characterState.wealth;
+      
+      if (difference > 0) {
+        // Add money if asset tracker has more
+        characterState.addWealth(difference);
+        console.log(`Fixed cash mismatch by adding ${difference}`);
       } else {
-        // Log error if neither function exists
-        console.error("⚠️ Cannot fix cash mismatch - no suitable update method found");
+        // Remove money if asset tracker has less
+        characterState.deductWealth(Math.abs(difference));
+        console.log(`Fixed cash mismatch by deducting ${Math.abs(difference)}`);
       }
       // One more re-calculation for safety
       assetTrackerState.recalculateTotals();
