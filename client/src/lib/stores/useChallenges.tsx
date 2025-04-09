@@ -100,9 +100,14 @@ const useChallengesStore = create<ChallengesState>()(
         if (!challenge) return;
         
         const currentDate = useTime.getState().currentGameDate;
+        
+        // Get current progress value first
+        const currentProgress = challenge.getProgressValue();
+        
         const updatedChallenge = {
           ...challenge,
           isActive: true,
+          progress: currentProgress,  // Initialize with current progress
           startDate: currentDate,
           targetDate: challenge.timeLimit 
             ? new Date(currentDate.getTime() + challenge.timeLimit * 24 * 60 * 60 * 1000)
@@ -190,8 +195,9 @@ const useChallengesStore = create<ChallengesState>()(
           // Update progress
           const currentProgress = challenge.getProgressValue();
           
-          // Check if challenge is completed
-          if (challenge.checkCondition()) {
+          // Check if challenge is completed - but only if progress has changed 
+          // from its initial value to prevent auto-completion on challenge start
+          if (challenge.checkCondition() && currentProgress > challenge.progress) {
             get().completeChallenge(challenge.id);
             continue;
           }
