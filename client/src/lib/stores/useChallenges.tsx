@@ -176,12 +176,26 @@ const useChallengesStore = create<ChallengesState>()(
           endDate: currentDate
         };
         
-        set(state => ({
-          activeChallenges: state.activeChallenges.filter(c => c.id !== id),
-          completedChallenges: [...state.completedChallenges, updatedChallenge],
-          totalCompleted: state.totalCompleted + 1,
-          consecutiveCompletions: state.consecutiveCompletions + 1
-        }));
+        // Check if this is a duration challenge
+        const isDurationChallenge = id === 'invest-2' || id === 'lifestyle-1';
+        
+        set(state => {
+          // Create updated state object
+          const updatedState: Partial<ChallengesState> = {
+            activeChallenges: state.activeChallenges.filter(c => c.id !== id),
+            completedChallenges: [...state.completedChallenges, updatedChallenge],
+            totalCompleted: state.totalCompleted + 1,
+            consecutiveCompletions: state.consecutiveCompletions + 1
+          };
+          
+          // If it's a duration challenge, remove the tracking data
+          if (isDurationChallenge) {
+            const { [id]: _, ...remainingDurationProgress } = state.durationProgress;
+            updatedState.durationProgress = remainingDurationProgress;
+          }
+          
+          return updatedState;
+        });
       },
       
       failChallenge: (id) => {
@@ -196,12 +210,26 @@ const useChallengesStore = create<ChallengesState>()(
           endDate: currentDate
         };
         
-        set(state => ({
-          activeChallenges: state.activeChallenges.filter(c => c.id !== id),
-          failedChallenges: [...state.failedChallenges, updatedChallenge],
-          totalFailed: state.totalFailed + 1,
-          consecutiveCompletions: 0
-        }));
+        // Check if this is a duration challenge
+        const isDurationChallenge = id === 'invest-2' || id === 'lifestyle-1';
+        
+        set(state => {
+          // Create updated state object
+          const updatedState: Partial<ChallengesState> = {
+            activeChallenges: state.activeChallenges.filter(c => c.id !== id),
+            failedChallenges: [...state.failedChallenges, updatedChallenge],
+            totalFailed: state.totalFailed + 1,
+            consecutiveCompletions: 0
+          };
+          
+          // If it's a duration challenge, remove the tracking data
+          if (isDurationChallenge) {
+            const { [id]: _, ...remainingDurationProgress } = state.durationProgress;
+            updatedState.durationProgress = remainingDurationProgress;
+          }
+          
+          return updatedState;
+        });
       },
       
       abandonChallenge: (id) => {
@@ -225,7 +253,7 @@ const useChallengesStore = create<ChallengesState>()(
       },
       
       checkChallengeProgress: () => {
-        const { activeChallenges } = get();
+        const { activeChallenges, durationProgress } = get();
         const currentDate = useTime.getState().currentGameDate;
         const characterState = useCharacter.getState();
         const assetTrackerState = useAssetTracker.getState();
@@ -234,6 +262,9 @@ const useChallengesStore = create<ChallengesState>()(
         const challengesToComplete: string[] = [];
         const challengesToFail: string[] = [];
         const challengesToUpdate: {id: string, progress: number}[] = [];
+        
+        // Track updates to duration progress
+        const durationProgressUpdates: DurationProgress = {};
         
         // Process each active challenge
         for (const challenge of activeChallenges) {
@@ -270,11 +301,57 @@ const useChallengesStore = create<ChallengesState>()(
                 currentProgress = Math.min(assetTrackerState.stocks.length, 5);
                 conditionMet = assetTrackerState.stocks.length >= 5;
                 break;
-              case 'invest-2':
-                // Placeholder for stock hold challenge
-                currentProgress = 0;
-                conditionMet = false;
+              case 'invest-2': {
+                // Stock hold duration challenge
+                const hasStocks = assetTrackerState.stocks.length > 0;
+                const durationData = durationProgress[challenge.id];
+                
+                if (!durationData) {
+                  // Shouldn't happen, but initialize if missing
+                  conditionMet = false;
+                  currentProgress = 0;
+                  break;
+                }
+                
+                // Get duration data
+                const lastCheckedDate = new Date(durationData.lastCheckedDate);
+                const today = new Date(currentDate);
+                
+                // Only process once per game day
+                if (lastCheckedDate.toDateString() === today.toDateString()) {
+                  currentProgress = durationData.daysWithConditionMet;
+                  conditionMet = currentProgress >= challenge.targetValue;
+                  break;
+                }
+                
+                const dayDiff = Math.floor((today.getTime() - lastCheckedDate.getTime()) / (1000 * 60 * 60 * 24));
+                
+                // Check if the condition is still being met (having stocks)
+                if (hasStocks) {
+                  const newDaysWithCondition = durationData.daysWithConditionMet + dayDiff;
+                  currentProgress = newDaysWithCondition;
+                  conditionMet = newDaysWithCondition >= challenge.targetValue;
+                  
+                  durationProgressUpdates[challenge.id] = {
+                    ...durationData,
+                    lastCheckedDate: today.toISOString(),
+                    daysWithConditionMet: newDaysWithCondition,
+                    meetingCondition: true
+                  };
+                } else {
+                  // Reset the streak if they sold all stocks
+                  currentProgress = 0;
+                  conditionMet = false;
+                  
+                  durationProgressUpdates[challenge.id] = {
+                    ...durationData,
+                    lastCheckedDate: today.toISOString(),
+                    daysWithConditionMet: 0,
+                    meetingCondition: false
+                  };
+                }
                 break;
+              }
               
               // Career challenges
               case 'career-1':
@@ -297,11 +374,58 @@ const useChallengesStore = create<ChallengesState>()(
                 break;
               
               // Lifestyle challenges
-              case 'lifestyle-1':
-                // Placeholder for health tracking challenge
-                currentProgress = 0;
-                conditionMet = false;
+              case 'lifestyle-1': {
+                // Health tracking challenge
+                const healthThreshold = 80; // 80% health
+                const isHealthy = characterState.health >= healthThreshold;
+                const durationData = durationProgress[challenge.id];
+                
+                if (!durationData) {
+                  // Shouldn't happen, but initialize if missing
+                  conditionMet = false;
+                  currentProgress = 0;
+                  break;
+                }
+                
+                // Get duration data
+                const lastCheckedDate = new Date(durationData.lastCheckedDate);
+                const today = new Date(currentDate);
+                
+                // Only process once per game day
+                if (lastCheckedDate.toDateString() === today.toDateString()) {
+                  currentProgress = durationData.daysWithConditionMet;
+                  conditionMet = currentProgress >= challenge.targetValue;
+                  break;
+                }
+                
+                const dayDiff = Math.floor((today.getTime() - lastCheckedDate.getTime()) / (1000 * 60 * 60 * 24));
+                
+                // Check if the condition is still being met (health above threshold)
+                if (isHealthy) {
+                  const newDaysWithCondition = durationData.daysWithConditionMet + dayDiff;
+                  currentProgress = newDaysWithCondition;
+                  conditionMet = newDaysWithCondition >= challenge.targetValue;
+                  
+                  durationProgressUpdates[challenge.id] = {
+                    ...durationData,
+                    lastCheckedDate: today.toISOString(),
+                    daysWithConditionMet: newDaysWithCondition,
+                    meetingCondition: true
+                  };
+                } else {
+                  // Reset the streak if health drops below threshold
+                  currentProgress = 0;
+                  conditionMet = false;
+                  
+                  durationProgressUpdates[challenge.id] = {
+                    ...durationData,
+                    lastCheckedDate: today.toISOString(),
+                    daysWithConditionMet: 0,
+                    meetingCondition: false
+                  };
+                }
                 break;
+              }
               
               // Special challenges
               case 'special-1':
@@ -350,6 +474,16 @@ const useChallengesStore = create<ChallengesState>()(
         challengesToComplete.forEach(id => {
           get().completeChallenge(id);
         });
+        
+        // Update duration progress tracking
+        if (Object.keys(durationProgressUpdates).length > 0) {
+          set(state => ({
+            durationProgress: {
+              ...state.durationProgress,
+              ...durationProgressUpdates
+            }
+          }));
+        }
         
         // Finally, update progress for remaining challenges
         if (challengesToUpdate.length > 0) {
@@ -545,13 +679,22 @@ function generateChallenges(): Challenge[] {
         value: 3000,
         description: '$3,000 cash bonus'
       },
-      // This would need specialized tracking logic for stock hold duration
+      // Using our new duration tracking system
       checkCondition: () => {
         if (!assetTrackerState.stocks.length) return false;
-        // In a real implementation, we'd need to track purchase dates
-        return false; // Placeholder  
+        
+        // Duration challenges are checked by the checkChallengeProgress function
+        // which manages the durationProgress state
+        const { durationProgress } = useChallengesStore.getState();
+        const durationData = durationProgress['invest-2'];
+        return durationData?.daysWithConditionMet >= 30;
       },
-      getProgressValue: () => 0 // Placeholder
+      getProgressValue: () => {
+        // Get progress from duration tracker if available
+        const { durationProgress } = useChallengesStore.getState();
+        const durationData = durationProgress['invest-2'];
+        return durationData?.daysWithConditionMet || 0;
+      }
     },
     
     // --- CAREER CHALLENGES ---
@@ -653,9 +796,23 @@ function generateChallenges(): Challenge[] {
         value: 20,
         description: '+20 Happiness'
       },
-      // This would need daily tracking of health
-      checkCondition: () => false, // Placeholder
-      getProgressValue: () => 0 // Placeholder
+      // Using our new duration tracking system
+      checkCondition: () => {
+        const healthThreshold = 80; // 80% health
+        if (characterState.health < healthThreshold) return false;
+        
+        // Duration challenges are checked by the checkChallengeProgress function
+        // which manages the durationProgress state
+        const { durationProgress } = useChallengesStore.getState();
+        const durationData = durationProgress['lifestyle-1'];
+        return durationData?.daysWithConditionMet >= 10;
+      },
+      getProgressValue: () => {
+        // Get progress from duration tracker if available
+        const { durationProgress } = useChallengesStore.getState();
+        const durationData = durationProgress['lifestyle-1'];
+        return durationData?.daysWithConditionMet || 0;
+      }
     },
     
     // --- SPECIAL CHALLENGES ---
