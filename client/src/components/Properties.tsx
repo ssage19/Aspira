@@ -3,6 +3,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
@@ -16,7 +17,8 @@ import {
   DollarSign,
   TrendingUp,
   AlertCircle,
-  Check 
+  Check,
+  ChevronLeft
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import { 
@@ -33,6 +35,7 @@ export function Properties() {
   const { interestRate, realEstateMarketHealth } = useEconomy();
   const { currentDay, currentMonth, currentYear } = useTime();
   const { playSuccess, playHit } = useAudio();
+  const navigate = useNavigate();
   
   const [activeTab, setActiveTab] = useState('residential');
   const [selectedProperty, setSelectedProperty] = useState<PropertyType>(residentialProperties[0]);

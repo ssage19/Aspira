@@ -4,10 +4,11 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
 import useAssetTracker from '../lib/stores/useAssetTracker';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { toast } from 'sonner';
-import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarChart3 } from 'lucide-react';
+import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarChart3, ChevronLeft } from 'lucide-react';
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
 import { formatCurrency, formatPercentage } from '../lib/utils';
@@ -23,6 +24,7 @@ export function Investments() {
   const { currentDay } = useTime();
   const audio = useAudio();
   const assetTracker = useAssetTracker();
+  const navigate = useNavigate();
   
   // Handle audio functions safely
   const playSuccess = () => audio.playSound && audio.playSound('success');
@@ -638,6 +640,17 @@ export function Investments() {
 
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg animate-scale-in border border-border">
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="secondary"
+          onClick={() => navigate('/')}
+          className="bg-white hover:bg-gray-100 text-black"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+    
       <h2 className="text-2xl font-bold mb-4 flex items-center text-foreground" aria-label={`Stock Market - ${marketTrend} market`}>
         <ChartBar className="mr-2" />
         Stock Market
