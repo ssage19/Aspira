@@ -23,10 +23,14 @@ import {
   GraduationCap,
   Home,
   Sparkles,
-  ChevronLeft
+  ChevronLeft,
+  Briefcase,
+  TrendingUp as TrendingUpIcon,
+  DollarSign
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppBackground } from '../components/AppBackground';
+import { useCharacter } from '../lib/stores/useCharacter';
 
 const CategoryLabel: React.FC<{ category: ChallengeCategory }> = ({ category }) => {
   const getColor = (category: ChallengeCategory) => {
@@ -228,6 +232,9 @@ export default function ChallengesScreen() {
     checkChallengeProgress
   } = useChallenges();
   
+  // Get the character state to display header position
+  const { job, income, netWorth } = useCharacter();
+  
   // Force-check challenge progress when this screen is loaded
   // This ensures any challenges that should be completed are moved correctly
   useEffect(() => {
@@ -258,7 +265,7 @@ export default function ChallengesScreen() {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
           <Card className="bg-blue-50 dark:bg-blue-950/40 shadow-md">
             <CardContent className="pt-6">
               <div className="flex items-center">
@@ -301,6 +308,43 @@ export default function ChallengesScreen() {
             </CardContent>
           </Card>
         </div>
+        
+        {/* Header position section */}
+        <Card className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-blue-950/40 dark:to-indigo-950/40 shadow-md mb-8">
+          <CardContent className="py-4">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div className="flex items-center">
+                <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-3 mr-4">
+                  <Briefcase className="h-6 w-6 text-blue-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Current Position</p>
+                  <h3 className="text-xl font-bold">{job?.title || "Unemployed"}</h3>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="rounded-full bg-green-100 dark:bg-green-900 p-3 mr-4">
+                  <DollarSign className="h-6 w-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Monthly Income</p>
+                  <h3 className="text-xl font-bold">${income.toLocaleString()}</h3>
+                </div>
+              </div>
+              
+              <div className="flex items-center">
+                <div className="rounded-full bg-purple-100 dark:bg-purple-900 p-3 mr-4">
+                  <TrendingUpIcon className="h-6 w-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Net Worth</p>
+                  <h3 className="text-xl font-bold">${netWorth.toLocaleString()}</h3>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
         
         <Tabs 
           defaultValue="available" 

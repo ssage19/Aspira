@@ -245,11 +245,25 @@ const useChallengesStore = create<ChallengesState>()(
           targetDate: undefined
         };
         
-        set(state => ({
-          activeChallenges: state.activeChallenges.filter(c => c.id !== id),
-          availableChallenges: [...state.availableChallenges, resetChallenge],
-          consecutiveCompletions: 0
-        }));
+        // Check if this is a duration challenge
+        const isDurationChallenge = id === 'invest-2' || id === 'lifestyle-1';
+        
+        set(state => {
+          // Create updated state object
+          const updatedState: Partial<ChallengesState> = {
+            activeChallenges: state.activeChallenges.filter(c => c.id !== id),
+            availableChallenges: [...state.availableChallenges, resetChallenge],
+            consecutiveCompletions: 0
+          };
+          
+          // If it's a duration challenge, remove the tracking data
+          if (isDurationChallenge) {
+            const { [id]: _, ...remainingDurationProgress } = state.durationProgress;
+            updatedState.durationProgress = remainingDurationProgress;
+          }
+          
+          return updatedState;
+        });
       },
       
       checkChallengeProgress: () => {
