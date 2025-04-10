@@ -34,7 +34,8 @@ import {
   RefreshCw,
   TrendingDown,
   Timer,
-  Minimize2
+  Minimize2,
+  ChevronLeft
 } from 'lucide-react';
 import { formatCurrency } from '../lib/utils';
 import GameUI from '../components/GameUI';
@@ -50,6 +51,7 @@ import {
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useCharacter } from '../lib/stores/useCharacter';
+import { useNavigate } from 'react-router-dom';
 
 interface AchievementItemProps {
   achievement: Achievement;
@@ -226,6 +228,7 @@ const AchievementItem = ({ achievement, claimReward, hasUnclaimedReward }: Achie
 };
 
 export default function AchievementsScreen() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<AchievementCategory>('general');
   // Load previously claimed rewards from localStorage
   const [claimedRewards, setClaimedRewards] = useState<Record<string, boolean>>(() => {
@@ -324,9 +327,20 @@ export default function AchievementsScreen() {
       <GameUI />
       
       <div className="container mx-auto p-4 pt-24 max-w-4xl">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold gradient-text">Achievements</h1>
-          <p className="text-muted-foreground">Track your progress and earn rewards</p>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold gradient-text">Achievements</h1>
+            <p className="text-muted-foreground">Track your progress and earn rewards</p>
+          </div>
+
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/')}
+            className="bg-white"
+          >
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
+          </Button>
         </div>
         
         <div className="glass-effect rounded-lg p-4 mb-6">
