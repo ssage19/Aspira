@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useAudio } from '../lib/stores/useAudio';
 import { useTime } from '../lib/stores/useTime';
+import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { 
   Card, 
@@ -27,7 +28,8 @@ import { toast } from 'sonner';
 import { 
   ShoppingBag, 
   Car, 
-  Plane, 
+  Plane,
+  ChevronLeft,
   Watch, 
   Home, 
   HeartPulse,
@@ -66,6 +68,7 @@ export function Lifestyle() {
   const { wealth, addWealth, addLifestyleItem, removeLifestyleItem, lifestyleItems: ownedItems } = useCharacter();
   const { playSuccess, playHit } = useAudio();
   const { currentGameDate, dayCounter } = useTime(); // Access game time
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('luxury');
   const [, forceUpdate] = useState({});
   
@@ -424,6 +427,17 @@ export function Lifestyle() {
   
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
+      <div className="flex justify-between items-center mb-4">
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/')}
+          className="bg-white hover:bg-gray-100 text-black"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+      
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <ShoppingBag className="mr-2" />
         Lifestyle & Luxury

@@ -295,6 +295,17 @@ export function Properties() {
   
   return (
     <div className="p-4 bg-white rounded-lg shadow-lg">
+      <div className="flex justify-between items-center mb-4">
+        <Button 
+          variant="secondary" 
+          onClick={() => navigate('/')}
+          className="bg-white hover:bg-gray-100 text-black"
+        >
+          <ChevronLeft className="h-4 w-4 mr-2" />
+          Back to Dashboard
+        </Button>
+      </div>
+      
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <Home className="mr-2" />
         Real Estate Portfolio
