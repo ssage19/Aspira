@@ -1,0 +1,163 @@
+/* Theme Color Variants */
+
+/* Default Theme */
+html {
+  /* Default Royal Blue theme is set in index.css */
+}
+
+/* Emerald Theme */
+html.theme-emerald {
+  --primary: 160 84% 39%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 168 76% 42%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --tertiary: 172 66% 50%;
+  --tertiary-foreground: 0 0% 100%;
+  
+  --quaternary: 160 80% 32%;
+  --quaternary-foreground: 0 0% 100%;
+  
+  --quinary: 168 70% 35%;
+  --quinary-foreground: 0 0% 100%;
+  
+  --accent: 172 66% 50%;
+  --accent-foreground: 0 0% 100%;
+}
+
+/* Royal Theme */
+html.theme-royal {
+  --primary: 273 68% 59%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 43 74% 66%;
+  --secondary-foreground: 215 25% 27%;
+  
+  --tertiary: 291 46% 52%;
+  --tertiary-foreground: 0 0% 100%;
+  
+  --quaternary: 273 64% 50%;
+  --quaternary-foreground: 0 0% 100%;
+  
+  --quinary: 43 70% 60%;
+  --quinary-foreground: 215 25% 27%;
+  
+  --accent: 291 46% 52%;
+  --accent-foreground: 0 0% 100%;
+}
+
+/* Sunset Theme */
+html.theme-sunset {
+  --primary: 21 83% 61%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 14 89% 55%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --tertiary: 36 100% 50%;
+  --tertiary-foreground: 0 0% 100%;
+  
+  --quaternary: 21 78% 54%;
+  --quaternary-foreground: 0 0% 100%;
+  
+  --quinary: 14 84% 50%;
+  --quinary-foreground: 0 0% 100%;
+  
+  --accent: 36 100% 50%;
+  --accent-foreground: 215 25% 27%;
+}
+
+/* Ocean Theme */
+html.theme-ocean {
+  --primary: 199 89% 48%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 187 92% 42%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --tertiary: 174 62% 47%;
+  --tertiary-foreground: 0 0% 100%;
+  
+  --quaternary: 199 84% 42%;
+  --quaternary-foreground: 0 0% 100%;
+  
+  --quinary: 187 86% 38%;
+  --quinary-foreground: 0 0% 100%;
+  
+  --accent: 174 62% 47%;
+  --accent-foreground: 215 25% 27%;
+}
+
+/* Violet Theme */
+html.theme-violet {
+  --primary: 262 80% 65%;
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 292 91% 73%;
+  --secondary-foreground: 0 0% 100%;
+  
+  --tertiary: 326 78% 60%;
+  --tertiary-foreground: 0 0% 100%;
+  
+  --quaternary: 262 75% 58%;
+  --quaternary-foreground: 0 0% 100%;
+  
+  --quinary: 292 86% 66%;
+  --quinary-foreground: 0 0% 100%;
+  
+  --accent: 326 78% 60%;
+  --accent-foreground: 0 0% 100%;
+}
+
+/* Update button colors when theme changes */
+.theme-emerald .btn-primary-gradient {
+  background: linear-gradient(to right, hsl(160, 84%, 39%), hsl(168, 76%, 42%));
+}
+
+.theme-royal .btn-primary-gradient {
+  background: linear-gradient(to right, hsl(273, 68%, 59%), hsl(291, 46%, 52%));
+}
+
+.theme-sunset .btn-primary-gradient {
+  background: linear-gradient(to right, hsl(21, 83%, 61%), hsl(14, 89%, 55%));
+}
+
+.theme-ocean .btn-primary-gradient {
+  background: linear-gradient(to right, hsl(199, 89%, 48%), hsl(187, 92%, 42%));
+}
+
+.theme-violet .btn-primary-gradient {
+  background: linear-gradient(to right, hsl(262, 80%, 65%), hsl(292, 91%, 73%));
+}
+
+/* Glow effects for different themes */
+.theme-emerald {
+  --glow-color: 16, 185, 129;
+  --border-glow-color: 16, 185, 129;
+  --text-glow-color: 16, 185, 129;
+}
+
+.theme-royal {
+  --glow-color: 139, 92, 246;
+  --border-glow-color: 139, 92, 246;
+  --text-glow-color: 139, 92, 246;
+}
+
+.theme-sunset {
+  --glow-color: 245, 158, 11;
+  --border-glow-color: 245, 158, 11;
+  --text-glow-color: 245, 158, 11;
+}
+
+.theme-ocean {
+  --glow-color: 6, 182, 212;
+  --border-glow-color: 6, 182, 212;
+  --text-glow-color: 6, 182, 212;
+}
+
+.theme-violet {
+  --glow-color: 168, 85, 247;
+  --border-glow-color: 168, 85, 247;
+  --text-glow-color: 168, 85, 247;
+}

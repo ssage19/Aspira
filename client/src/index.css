@@ -1,5 +1,6 @@
 @import './styles/theme-tokens.css';
 @import './styles/theme-contrast-fix.css';
+@import './styles/theme-colors.css';
 
 @tailwind base;
 @tailwind components;
