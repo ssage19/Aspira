@@ -159,6 +159,7 @@ interface CharacterState {
   name: string;
   wealth: number;
   netWorth: number;
+  currentDay?: number; // Current day of the month (1-31) for monthly calculations
   
   // Character attributes (0-100)
   happiness: number;
@@ -316,6 +317,7 @@ const getDefaultCharacter = () => {
     name: "",
     wealth: 10000,
     netWorth: 10000,
+    currentDay: 1, // Start on day 1
     
     happiness: 70,
     prestige: 10,
@@ -2786,13 +2788,16 @@ export const useCharacter = create<CharacterState>()(
       },
       
       processDailyUpdate: () => {
+        // Get current day and date from useTime
+        const { dayCounter, currentGameDate, currentDay, currentMonth } = useTime.getState();
+        
         set((state) => {
           // Update days since promotion if employed
           let daysSincePromotion = state.daysSincePromotion;
           let dailyIncome = 0;
           
-          // Get current day and date from useTime
-          const { dayCounter, currentGameDate, currentDay } = useTime.getState();
+          // Update the current day in state for property income calculations
+          state.currentDay = currentDay;
           
           // Check for expired lifestyle items (vacations and experiences that have ended)
           // Use the game time instead of actual time for consistent expiration
@@ -2893,10 +2898,15 @@ export const useCharacter = create<CharacterState>()(
             }
           }
           
-          // Add property income
-          const dailyPropertyIncome = state.properties.reduce((total, property) => {
-            return total + (property.income / 30); // Daily property income (monthly income ÷ 30)
-          }, 0);
+          // Add property income (monthly instead of daily)
+          let dailyPropertyIncome = 0;
+          
+          // Only add property income on the 1st day of each month
+          if (state.currentDay === 1) {
+            dailyPropertyIncome = state.properties.reduce((total, property) => {
+              return total + property.income; // Full monthly income on 1st day
+            }, 0);
+          }
           
           // Process lifestyle expenses
           const dailyLifestyleExpenses = state.lifestyleItems.reduce((total, item) => {
@@ -3047,7 +3057,7 @@ export const useCharacter = create<CharacterState>()(
               currency: 'USD'
             });
             
-            toast(`Property income received: ${formattedPropertyIncome}`, {
+            toast(`Monthly property income received: ${formattedPropertyIncome}`, {
               duration: 3000,
               position: 'bottom-right',
               icon: '🏢'
@@ -3057,6 +3067,7 @@ export const useCharacter = create<CharacterState>()(
           // Apply changes
           return { 
             daysSincePromotion,
+            currentDay, // Make sure we return the current day to update state
             wealth: state.wealth + netDailyChange,
             netWorth: state.netWorth + netDailyChange,
             hunger,
