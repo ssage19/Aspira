@@ -82,77 +82,77 @@
   }
 
   .dark {
-    /* Sleek and Futuristic Color Palette based on reference image */
-    --background: 198 10% 18%; /* Dark greenish background #2C3531 */
+    /* Our new navy and blue color palette */
+    --background: 215 40% 10%; /* Deep navy background */
     --foreground: 0 0% 100%; /* Pure white text for maximum contrast */
 
-    --muted: 198 15% 22%; /* Slightly lighter than background */
+    --muted: 215 35% 12%;
     --muted-foreground: 0 0% 90%; /* Very light muted text for better contrast */
 
-    --accent: 178 29% 24%; /* Teal accent #116466 */
+    --accent: 200 40% 40%; /* Brighter cerulean accent for contrast */
     --accent-foreground: 0 0% 100%; /* Pure white text */
 
-    --popover: 198 14% 15%; /* Darker than background */
+    --popover: 215 35% 8%;
     --popover-foreground: 0 0% 100%; /* Pure white text */
 
-    --border: 178 29% 20%; /* Teal-based border */
-    --input: 198 14% 15%; /* Dark input fields */
+    --border: 215 45% 25%; /* Brighter border color for visibility */
+    --input: 215 35% 8%; /* Dark input fields */
 
-    --card: 198 12% 20%; /* Slightly lighter than background for cards */
+    --card: 215 40% 12%; /* Darker card background */
     --card-foreground: 0 0% 100%; /* Pure white text */
 
-    --primary: 178 29% 24%; /* Teal primary color #116466 */
+    --primary: 215 60% 45%; /* Bright royal blue primary color for visibility */
     --primary-foreground: 0 0% 100%; /* Pure white text */
 
-    --secondary: 32 43% 70%; /* Beige/Gold secondary #D9B08C */
-    --secondary-foreground: 198 15% 15%; /* Dark text on light secondary */
+    --secondary: 90 25% 35%; /* Olive green secondary */
+    --secondary-foreground: 0 0% 100%; /* Pure white text */
 
-    --tertiary: 36 100% 80%; /* Soft orange #FFCB9A */
-    --tertiary-foreground: 198 15% 15%; /* Dark text on light tertiary */
+    --tertiary: 200 40% 45%; /* Brighter cerulean color */
+    --tertiary-foreground: 0 0% 100%; /* Pure white text */
   
-    --quaternary: 156 28% 86%; /* Light mint #D1E8E2 */
-    --quaternary-foreground: 198 15% 15%; /* Dark text on light quaternary */
+    --quaternary: 215 55% 35%; /* Brighter royal blue variant */
+    --quaternary-foreground: 0 0% 100%; /* Pure white text */
 
-    --quinary: 178 35% 30%; /* Brighter teal variant */
+    --quinary: 90 30% 30%; /* Darker olive green variant */
     --quinary-foreground: 0 0% 100%; /* Pure white text */
 
     --destructive: 0 95% 60%; /* Brighter destructive color */
     --destructive-foreground: 0 0% 100%; /* Pure white text */
 
-    --ring: 178 29% 30%; /* Slightly brighter teal for focus rings */
+    --ring: 215 60% 55%; /* Bright royal blue */
     
     /* Sidebar styles */
-    --sidebar-background: 198 20% 12%; /* Darker greenish background */
+    --sidebar-background: 215 45% 15%; /* Deep navy blue */
     --sidebar-foreground: 0 0% 95%;
-    --sidebar-primary: 178 29% 24%; /* Teal */
+    --sidebar-primary: 215 50% 30%; /* Royal blue */
     --sidebar-primary-foreground: 0 0% 95%;
-    --sidebar-accent: 32 43% 70%; /* Beige/Gold */
-    --sidebar-accent-foreground: 198 15% 15%; /* Dark text on light sidebar accent */
-    --sidebar-border: 198 20% 15%;
-    --sidebar-ring: 178 29% 30%; /* Brighter teal */
+    --sidebar-accent: 200 35% 35%; /* Cerulean accent */
+    --sidebar-accent-foreground: 0 0% 95%;
+    --sidebar-border: 215 45% 18%;
+    --sidebar-ring: 215 50% 30%; /* Royal blue */
     
     /* Chart colors */
-    --chart-1: 178 29% 30%; /* Teal */
-    --chart-2: 32 43% 70%; /* Beige/Gold */
-    --chart-3: 36 100% 80%; /* Soft orange */
-    --chart-4: 156 28% 86%; /* Light mint */
-    --chart-5: 198 15% 25%; /* Dark greenish */
+    --chart-1: 215 60% 45%; /* Royal blue */
+    --chart-2: 90 25% 30%; /* Olive green */
+    --chart-3: 200 40% 40%; /* Cerulean */
+    --chart-4: 215 50% 30%; /* Medium royal blue */
+    --chart-5: 200 35% 50%; /* Lighter cerulean */
     
     /* Achievement category colors */
-    --wealth-color-start: #116466; /* Teal */
-    --wealth-color-end: #D9B08C; /* Beige/Gold */
-    --property-color-start: #D9B08C; /* Beige/Gold */
-    --property-color-end: #2C3531; /* Dark greenish */
-    --investment-color-start: #116466; /* Teal */
-    --investment-color-end: #FFCB9A; /* Soft orange */
-    --lifestyle-color-start: #FFCB9A; /* Soft orange */
-    --lifestyle-color-end: #D1E8E2; /* Light mint */
-    --general-color-start: #2C3531; /* Dark greenish */
-    --general-color-end: #116466; /* Teal */
-    --challenge-color-start: #D1E8E2; /* Light mint */
-    --challenge-color-end: #2C3531; /* Dark greenish */
-    --strategy-color-start: #116466; /* Teal */
-    --strategy-color-end: #D9B08C; /* Beige/Gold */
+    --wealth-color-start: #3170BE;
+    --wealth-color-end: #5085A5;
+    --property-color-start: #5085A5;
+    --property-color-end: #142E4C;
+    --investment-color-start: #3170BE;
+    --investment-color-end: #687864;
+    --lifestyle-color-start: #687864;
+    --lifestyle-color-end: #5085A5;
+    --general-color-start: #0A1726;
+    --general-color-end: #3170BE;
+    --challenge-color-start: #687864;
+    --challenge-color-end: #0A1726;
+    --strategy-color-start: #3170BE;
+    --strategy-color-end: #5085A5;
   }
 
   * {
@@ -189,18 +189,13 @@ canvas {
 
 .dark .glass-effect {
   @apply bg-opacity-10 backdrop-blur-md backdrop-filter border-opacity-20 bg-black border-primary/30 shadow-md;
-  box-shadow: 0 4px 30px rgba(17, 100, 102, 0.2), inset 0 0 10px rgba(17, 100, 102, 0.1);
+  box-shadow: 0 4px 30px rgba(49, 112, 190, 0.15), inset 0 0 10px rgba(49, 112, 190, 0.08);
 }
 
 /* Futuristic card effect */
 .futuristic-card {
   @apply relative overflow-hidden rounded-lg border border-primary/20 bg-background/80 p-4 backdrop-blur-sm;
   box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
-}
-
-.dark .futuristic-card {
-  box-shadow: 0 4px 20px rgba(17, 100, 102, 0.2);
-  @apply border-[#116466]/30;
 }
 
 .futuristic-card::before {
@@ -230,7 +225,7 @@ canvas {
 }
 
 .dark .gradient-text {
-  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#116466] to-[#D9B08C];
+  @apply text-transparent bg-clip-text bg-gradient-to-r from-[#3170BE] to-[#687864];
 }
 
 /* Button animations */
@@ -299,10 +294,6 @@ canvas {
   box-shadow: 0 0 15px var(--glow-color, rgba(49, 112, 190, 0.5));
 }
 
-.dark .futuristic-glow {
-  box-shadow: 0 0 15px var(--glow-color, rgba(17, 100, 102, 0.4));
-}
-
 .futuristic-border {
   @apply relative overflow-hidden;
 }
@@ -317,14 +308,6 @@ canvas {
   );
   background-size: 200% 100%;
   animation: border-slide 3s linear infinite;
-}
-
-.dark .futuristic-border::before {
-  background: linear-gradient(90deg, 
-    transparent, 
-    rgba(17, 100, 102, 0.6), 
-    transparent
-  );
 }
 
 @keyframes border-slide {
@@ -343,169 +326,13 @@ canvas {
   text-shadow: 0 0 5px rgba(var(--text-glow-color, 49, 112, 190), 0.3);
 }
 
-.dark .futuristic-text {
-  background-image: linear-gradient(
-    90deg,
-    rgba(17, 100, 102, 1),
-    rgba(17, 100, 102, 0.8),
-    rgba(17, 100, 102, 1)
-  );
-  text-shadow: 0 0 5px rgba(17, 100, 102, 0.4);
-}
-
 /* Style variants for theme */
 .dark .futuristic-glass {
-  box-shadow: 0 4px 20px rgba(17, 100, 102, 0.3);
-  @apply bg-black/10 border-[#116466]/30;
+  box-shadow: 0 4px 20px rgba(49, 112, 190, 0.25);
+  @apply bg-black/10 border-[#3170BE]/20;
 }
 
 .light .futuristic-glass {
   box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
   @apply bg-white/10 border-[#3170BE]/20;
-}
-
-/* Futuristic background */
-.dark .futuristic-bg {
-  @apply relative bg-[#2C3531];
-  background-image: 
-    radial-gradient(circle at 10% 20%, rgba(17, 100, 102, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(217, 176, 140, 0.05) 0%, transparent 50%);
-}
-
-.dark .circuit-bg {
-  @apply relative;
-  background-color: #2C3531;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Cpath fill='none' stroke='rgba(17, 100, 102, 0.08)' stroke-width='1' d='M10,10 L30,10 L30,30 L10,30 Z M40,10 L90,10 L90,30 M10,40 L30,40 L30,90 M40,90 L90,90 L90,70 M70,30 L70,70 L40,70'/%3E%3C/svg%3E");
-}
-
-.dark .dot-matrix-bg {
-  @apply relative;
-  background-color: #2C3531;
-  background-image: 
-    radial-gradient(rgba(17, 100, 102, 0.15) 1px, transparent 1px),
-    radial-gradient(rgba(17, 100, 102, 0.1) 1px, transparent 1px);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-}
-
-/* New sleek futuristic components */
-.dark .cyber-panel {
-  @apply bg-[#2C3531] border border-[#116466]/40 rounded-md p-4 relative overflow-hidden;
-  box-shadow: 0 4px 20px rgba(17, 100, 102, 0.2);
-}
-
-.dark .cyber-panel::before {
-  content: '';
-  @apply absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#116466] to-transparent;
-}
-
-.dark .cyber-panel::after {
-  content: '';
-  @apply absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#D9B08C]/50 to-transparent;
-}
-
-.dark .teal-glow {
-  box-shadow: 0 0 15px rgba(17, 100, 102, 0.4);
-}
-
-.dark .golden-glow {
-  box-shadow: 0 0 15px rgba(217, 176, 140, 0.4);
-}
-
-.dark .teal-gradient-text {
-  @apply text-transparent bg-clip-text;
-  background-image: linear-gradient(90deg, #116466, #0a9396, #116466);
-}
-
-.dark .gold-gradient-text {
-  @apply text-transparent bg-clip-text;
-  background-image: linear-gradient(90deg, #D9B08C, #FFCB9A, #D9B08C);
-}
-
-.dark .tech-scanline {
-  @apply relative;
-}
-
-.dark .tech-scanline::after {
-  content: '';
-  @apply absolute top-0 left-0 w-full h-full pointer-events-none;
-  background: linear-gradient(to bottom, 
-    transparent 0%, 
-    rgba(17, 100, 102, 0.03) 50%, 
-    transparent 100%);
-  background-size: 100% 8px;
-  animation: scanline 8s linear infinite;
-}
-
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100%); }
-}
-
-/* Futuristic geometric grid elements */
-.dark .grid-overlay {
-  @apply relative;
-}
-
-.dark .grid-overlay::before {
-  content: '';
-  @apply absolute inset-0 opacity-5 pointer-events-none;
-  background-image: 
-    linear-gradient(to right, #116466 1px, transparent 1px),
-    linear-gradient(to bottom, #116466 1px, transparent 1px);
-  background-size: 50px 50px;
-}
-
-/* Geometric accent elements similar to the reference image */
-.dark .geometric-accent {
-  position: relative;
-  overflow: hidden;
-}
-
-.dark .geometric-accent::before {
-  content: '';
-  position: absolute;
-  width: 200px;
-  height: 200px;
-  background: radial-gradient(circle, rgba(17, 100, 102, 0.15) 0%, transparent 70%);
-  top: -100px;
-  right: -100px;
-  border-radius: 50%;
-  z-index: -1;
-}
-
-.dark .geometric-triangle {
-  position: relative;
-}
-
-.dark .geometric-triangle::before {
-  content: '';
-  position: absolute;
-  width: 0;
-  height: 0;
-  border-left: 30px solid transparent;
-  border-right: 30px solid transparent;
-  border-bottom: 50px solid rgba(217, 176, 140, 0.1);
-  top: -40px;
-  right: 30px;
-  transform: rotate(30deg);
-  z-index: -1;
-}
-
-/* Glowing hexagon accent inspired by reference image */
-.dark .hex-accent {
-  position: relative;
-}
-
-.dark .hex-accent::before {
-  content: '';
-  position: absolute;
-  width: 60px;
-  height: 60px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60' viewBox='0 0 24 24' fill='none' stroke='rgba(17, 100, 102, 0.3)' stroke-width='1' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 2l9 4.9v10.2L12 22l-9-4.9V6.9L12 2z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
-  z-index: -1;
-  opacity: 0.6;
-  filter: drop-shadow(0 0 5px rgba(17, 100, 102, 0.5));
 }
