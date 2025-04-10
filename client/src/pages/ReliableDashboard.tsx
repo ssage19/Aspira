@@ -481,6 +481,20 @@ export default function ReliableDashboard() {
                           </AlertDialog>
                         </div>
                       </div>
+                      
+                      {/* Appearance Section */}
+                      <div className="space-y-4 mt-6 pt-6 border-t border-primary/10">
+                        <h3 className="text-lg font-medium flex items-center">
+                          <Palette className="mr-2 h-5 w-5 text-primary" />
+                          Appearance
+                        </h3>
+                        <div>
+                          <p className="text-sm text-muted-foreground mb-4">
+                            Customize the look and feel of your game interface with different color themes.
+                          </p>
+                          <ThemeControls className="w-full" />
+                        </div>
+                      </div>
                     </CardContent>
                   </Card>
                 </div>
