@@ -295,11 +295,11 @@ export function Properties() {
   
   return (
     <div className="p-4 bg-white rounded-lg shadow-lg">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <Button 
           variant="secondary" 
           onClick={() => navigate('/')}
-          className="bg-white hover:bg-gray-100 text-black"
+          className="bg-primary/90 hover:bg-primary text-white"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Dashboard

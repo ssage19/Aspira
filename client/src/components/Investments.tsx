@@ -640,11 +640,11 @@ export function Investments() {
 
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg animate-scale-in border border-border">
-      <div className="flex justify-between items-center mb-4">
+      <div className="mb-4">
         <Button
           variant="secondary"
           onClick={() => navigate('/')}
-          className="bg-white hover:bg-gray-100 text-black"
+          className="bg-primary/90 hover:bg-primary text-white"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
