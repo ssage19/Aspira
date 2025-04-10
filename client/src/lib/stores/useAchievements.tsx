@@ -469,9 +469,10 @@ const initialAchievements: Achievement[] = [
     threshold: 60,
     icon: 'Scale',
     reward: {
-      type: 'bonus',
+      type: 'skill',
       value: 15,
-      description: '+15 to all personal attributes'
+      description: '+15 to all personal attributes',
+      skillType: 'all'
     }
   },
   
@@ -972,6 +973,53 @@ export const useAchievements = create<AchievementsState>()(
                 character.addPrestige(bonusAmount);
                 rewardMessage = `+${bonusAmount} Prestige gained!`;
               }
+              break;
+              
+            case 'skill':
+              console.log(`[Achievement Store] Processing skill reward: ${reward.description}`);
+              const skillAmount = typeof reward.value === 'number' && !isNaN(reward.value) ? reward.value : 0;
+              const skillType = reward.skillType || '';
+              
+              console.log(`[Achievement Store] Skill transaction beginning:`, {
+                skillType,
+                amount: skillAmount,
+                description: reward.description
+              });
+              
+              // Apply the skill points based on the skillType using improveSkill method
+              if (skillType === 'intelligence') {
+                character.improveSkill('intelligence', skillAmount);
+                rewardMessage = `+${skillAmount} Intelligence gained!`;
+              } else if (skillType === 'creativity') {
+                character.improveSkill('creativity', skillAmount);
+                rewardMessage = `+${skillAmount} Creativity gained!`;
+              } else if (skillType === 'charisma') {
+                character.improveSkill('charisma', skillAmount);
+                rewardMessage = `+${skillAmount} Charisma gained!`;
+              } else if (skillType === 'technical') {
+                character.improveSkill('technical', skillAmount);
+                rewardMessage = `+${skillAmount} Technical skill gained!`;
+              } else if (skillType === 'leadership') {
+                character.improveSkill('leadership', skillAmount);
+                rewardMessage = `+${skillAmount} Leadership gained!`;
+              } else if (skillType === 'physical') {
+                character.improveSkill('physical', skillAmount);
+                rewardMessage = `+${skillAmount} Physical ability gained!`;
+              } else if (skillType === 'all') {
+                // Add to all skills evenly
+                character.improveSkill('intelligence', skillAmount);
+                character.improveSkill('creativity', skillAmount);
+                character.improveSkill('charisma', skillAmount);
+                character.improveSkill('technical', skillAmount);
+                character.improveSkill('leadership', skillAmount);
+                character.improveSkill('physical', skillAmount);
+                rewardMessage = `+${skillAmount} to all skills gained!`;
+              } else {
+                console.error(`[Achievement Store] Unknown skill type: ${skillType}`);
+                rewardMessage = `Skill points earned!`;
+              }
+              
+              console.log(`[Achievement Store] Applied ${skillAmount} points to ${skillType} skill(s)`);
               break;
           }
           
