@@ -1,8 +1,8 @@
 import React from 'react';
-import { useTheme, ColorTheme, colorThemeDescriptions } from '@/lib/ThemeProvider';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { useTheme, ColorTheme, colorThemeDescriptions } from '../lib/ThemeProvider';
+import { Button } from '../components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
+import { cn } from '../lib/utils';
 import { Check, Palette } from 'lucide-react';
 
 // Color theme icons/previews mapped to each theme

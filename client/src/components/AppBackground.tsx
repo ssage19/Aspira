@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTheme } from '@/lib/ThemeProvider';
+import { useTheme } from '../lib/ThemeProvider';
 
 /**
  * A component that renders a full-page background with a gradient

@@ -1,14 +1,14 @@
 import React from 'react';
-import { useTheme, themeDescriptions } from '@/lib/ThemeProvider';
-import { Button } from '@/components/ui/button';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useTheme, themeDescriptions } from '../lib/ThemeProvider';
+import { Button } from '../components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '../components/ui/popover';
 import { 
   Monitor, 
   Moon, 
   SunMedium,
   Check
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '../lib/utils';
 
 // Theme icons mapped to each theme
 const themeIcons = {
