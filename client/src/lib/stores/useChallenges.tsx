@@ -539,6 +539,13 @@ const useChallengesStore = create<ChallengesState>()(
             character.addWealth(cashAmount);
             console.log(`Added $${cashAmount} to character's wealth. New wealth: ${character.wealth}`);
             
+            // Trigger asset refresh to update UI values
+            const assetRefresh = useAssetTracker.getState();
+            if (assetRefresh && typeof assetRefresh.refreshAssets === 'function') {
+              console.log('Triggering asset refresh after cash reward');
+              assetRefresh.refreshAssets();
+            }
+            
             rewardMessage = `$${cashAmount.toLocaleString()} added to your account!`;
             break;
           case 'skill_points':

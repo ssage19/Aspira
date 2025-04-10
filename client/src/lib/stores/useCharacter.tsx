@@ -1602,11 +1602,40 @@ export const useCharacter = create<CharacterState>()(
       
       // Award skill points during gameplay (from quests, achievements, etc.)
       awardSkillPoints: (amount) => {
-        set((state) => ({
-          earnedSkillPoints: state.earnedSkillPoints + amount
-        }));
+        // Ensure amount is a valid number
+        const validAmount = typeof amount === 'number' && !isNaN(amount) ? amount : 0;
+        
+        console.log(`Awarding ${validAmount} skill points to character`);
+        
+        set((state) => {
+          // Ensure current skill points is a valid number
+          const currentSkillPoints = typeof state.earnedSkillPoints === 'number' && !isNaN(state.earnedSkillPoints) 
+                                    ? state.earnedSkillPoints : 0;
+          
+          // Calculate new skill points total
+          const newSkillPoints = currentSkillPoints + validAmount;
+          
+          console.log(`Previous skill points: ${currentSkillPoints}, New skill points: ${newSkillPoints}`);
+          
+          return {
+            earnedSkillPoints: newSkillPoints
+          };
+        });
+        
+        // Show toast notification
+        if (validAmount > 0) {
+          toast.success('Skill Points Awarded!', {
+            description: `You gained ${validAmount} skill points that can be used to improve your character.`,
+            position: 'top-center',
+            duration: 3000
+          });
+        }
         
         saveState();
+        
+        // Check challenges after gaining skill points
+        const challengesStore = useChallenges.getState();
+        challengesStore.checkChallengeProgress();
       },
       
       // Spend earned skill points during gameplay
