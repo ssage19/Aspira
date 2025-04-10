@@ -15,9 +15,10 @@ export type AchievementCategory =
   | 'strategy';
 
 export type AchievementReward = {
-  type: 'cash' | 'multiplier' | 'unlock' | 'bonus';
+  type: 'cash' | 'multiplier' | 'unlock' | 'bonus' | 'skill';
   value: number;
   description: string;
+  skillType?: string; // For skill rewards - specifies which skill to improve
 };
 
 export type Achievement = {
@@ -913,18 +914,33 @@ export const useAchievements = create<AchievementsState>()(
               const cashAmount = typeof reward.value === 'number' && !isNaN(reward.value) ? reward.value : 0;
               console.log(`[Achievement Store] Validated cash reward amount: $${cashAmount}`);
               
-              // Add wealth to the character
+              // Create a transaction log for debugging
+              console.log(`[Achievement Store] Cash reward transaction beginning:`, {
+                initialCharacterWealth: character.wealth,
+                initialAssetTrackerCash: useAssetTracker.getState().cash,
+                rewardAmount: cashAmount
+              });
+              
+              // IMPROVED CASH REWARD FLOW - Following best practices from other parts of the application
+              // Step 1: Add wealth to the character store
               character.addWealth(cashAmount);
               console.log(`[Achievement Store] Added $${cashAmount} to character's wealth. New wealth: ${character.wealth}`);
               
-              // Trigger asset refresh to update UI values
-              const assetTracker = useAssetTracker.getState();
-              console.log('[Achievement Store] Triggering asset refresh after cash reward');
-              assetTracker.recalculateTotals();
-              console.log(`[Achievement Store] Asset refresh complete. New total: ${assetTracker.cash}`);
+              // Step 2: Immediately sync with asset tracker to ensure consistency
+              // This uses the robust asset sync mechanism we've enhanced
+              character.syncAssetsWithAssetTracker(false); // false = don't update market prices
+              console.log(`[Achievement Store] Synced character wealth with asset tracker`);
               
-              // Update the assetTracker cash directly
-              useAssetTracker.setState({ cash: character.wealth });
+              // Step 3: Verify the sync was successful
+              const verificationCash = useAssetTracker.getState().cash;
+              console.log(`[Achievement Store] Verification: Character wealth: ${character.wealth}, Asset tracker cash: ${verificationCash}`);
+              
+              // Step 4: Force a recalculation of totals to update UI
+              useAssetTracker.getState().recalculateTotals();
+              console.log(`[Achievement Store] Asset refresh complete. Final cash: ${useAssetTracker.getState().cash}`);
+              
+              // Step 5: Force-update the asset tracker to ensure it renders the new values
+              useAssetTracker.getState().forceUpdate();
               
               rewardMessage = `$${cashAmount.toLocaleString()} added to your account!`;
               break;

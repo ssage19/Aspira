@@ -123,25 +123,31 @@ export const refreshAllAssets = () => {
     const characterWealthFixed = parseFloat(characterState.wealth.toFixed(1));
     const trackerCashFixed = parseFloat(assetTrackerState.totalCash.toFixed(1));
     
-    // Use a much wider tolerance threshold (1.0) to prevent excessive syncs
-    if (Math.abs(characterWealthFixed - trackerCashFixed) > 1.0) {
-      console.warn("⚠️ Cash values don't match, forcing additional sync");
+    // Use a wider tolerance threshold to prevent excessive syncs
+    // But we'll now explicitly force synchronization for exact matches
+    if (Math.abs(characterWealthFixed - trackerCashFixed) > 0.1) {
+      // There's a mismatch that's beyond rounding error
+      console.warn("⚠️ Cash values don't match, forcing synchronization");
       console.log(`Cash mismatch details: Character wealth: ${characterWealthFixed}, Asset tracker cash: ${trackerCashFixed}`);
       
-      // Use the fixed values for the difference calculation to avoid propagating floating-point errors
-      const difference = trackerCashFixed - characterWealthFixed;
+      // IMPORTANT CHANGE: Instead of trying to calculate the difference and adjust,
+      // we'll simply set the asset tracker cash to match character wealth exactly
+      // This ensures they are always in perfect sync
+      useAssetTracker.setState({ 
+        cash: characterState.wealth,
+        totalCash: characterState.wealth,
+        lastUpdated: Date.now()
+      });
       
-      if (difference > 0) {
-        // Add money if asset tracker has more
-        characterState.addWealth(difference);
-        console.log(`Fixed cash mismatch by adding ${difference}`);
-      } else {
-        // Remove money if asset tracker has less
-        characterState.deductWealth(Math.abs(difference));
-        console.log(`Fixed cash mismatch by deducting ${Math.abs(difference)}`);
-      }
-      // One more re-calculation for safety
+      // Recalculate totals to ensure accurate net worth
       assetTrackerState.recalculateTotals();
+      
+      // Log the fix
+      console.log(`Fixed cash mismatch by syncing asset tracker directly to character wealth: ${characterState.wealth}`);
+      
+      // Double-check that the fix worked
+      const finalTrackerState = useAssetTracker.getState();
+      console.log(`Verification: Character wealth: ${characterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}`);
     } else {
       console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
     }
