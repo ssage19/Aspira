@@ -530,12 +530,21 @@ const useChallengesStore = create<ChallengesState>()(
         
         switch (reward.type) {
           case 'cash':
-            character.addWealth(reward.value);
-            rewardMessage = `$${reward.value.toLocaleString()} added to your account!`;
+            console.log(`Challenge will award $${reward.value} in cash`);
+            // Ensure reward.value is a valid number
+            const cashAmount = typeof reward.value === 'number' && !isNaN(reward.value) ? reward.value : 0;
+            console.log(`Validated cash reward amount: $${cashAmount}`);
+            
+            // Add wealth to the character
+            character.addWealth(cashAmount);
+            console.log(`Added $${cashAmount} to character's wealth. New wealth: ${character.wealth}`);
+            
+            rewardMessage = `$${cashAmount.toLocaleString()} added to your account!`;
             break;
           case 'skill_points':
-            // For now, we'll just log that skill points would be added
-            console.log(`Challenge would award ${reward.value} skill points`);
+            // Actually award the skill points to the character
+            character.awardSkillPoints(reward.value);
+            console.log(`Challenge awarded ${reward.value} skill points`);
             rewardMessage = `${reward.value} skill points awarded!`;
             break;
           case 'prestige':
