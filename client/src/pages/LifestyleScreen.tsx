@@ -29,14 +29,16 @@ export default function LifestyleScreen() {
         <GameUI />
         
         <div className="p-4 max-w-5xl mx-auto">
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/')}
-            className="mb-4 bg-white"
-          >
-            <ChevronLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="flex mb-4">
+            <Button 
+              variant="secondary" 
+              onClick={() => navigate('/')}
+              className="bg-white hover:bg-gray-100 text-black"
+            >
+              <ChevronLeft className="h-4 w-4 mr-2" />
+              Back to Dashboard
+            </Button>
+          </div>
           
           <Tabs defaultValue="lifestyle" className="mb-8">
             <TabsList className="mb-4 flex flex-wrap">
