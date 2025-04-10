@@ -294,12 +294,12 @@ export function Properties() {
   const mortgageDetails = calculateMonthlyPayment();
   
   return (
-    <div className="p-4 bg-white rounded-lg shadow-lg">
+    <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
       <div className="mb-4">
         <Button 
-          variant="secondary" 
+          variant="outline" 
           onClick={() => navigate('/')}
-          className="bg-primary/90 hover:bg-primary text-white"
+          className="bg-background hover:bg-muted border-border text-white"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
