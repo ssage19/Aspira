@@ -56,11 +56,24 @@ export interface Challenge {
   getProgressValue: () => number; // Function to calculate current progress
 }
 
+export interface DurationProgress {
+  [challengeId: string]: {
+    startDate: string;
+    currentStreak: number;
+    lastCheckedDate: string;
+    daysWithConditionMet: number;
+    meetingCondition: boolean;
+  }
+}
+
 interface ChallengesState {
   availableChallenges: Challenge[];
   activeChallenges: Challenge[];
   completedChallenges: Challenge[];
   failedChallenges: Challenge[];
+  
+  // Track duration progress for challenges
+  durationProgress: DurationProgress;
   
   // Stats
   totalCompleted: number;
@@ -91,6 +104,9 @@ const useChallengesStore = create<ChallengesState>()(
       activeChallenges: [],
       completedChallenges: [],
       failedChallenges: [],
+      
+      // Initialize the duration progress tracking
+      durationProgress: {},
       
       totalCompleted: 0,
       totalFailed: 0,
@@ -124,9 +140,27 @@ const useChallengesStore = create<ChallengesState>()(
             : undefined
         };
         
+        // For duration-based challenges, initialize tracking
+        let durationProgressUpdate = {};
+        if (challenge.id === 'invest-2' || challenge.id === 'lifestyle-1') {
+          durationProgressUpdate = {
+            [challenge.id]: {
+              startDate: currentDate.toISOString(),
+              currentStreak: 0,
+              lastCheckedDate: currentDate.toISOString(),
+              daysWithConditionMet: 0,
+              meetingCondition: false
+            }
+          };
+        }
+        
         set(state => ({
           availableChallenges: state.availableChallenges.filter(c => c.id !== id),
-          activeChallenges: [...state.activeChallenges, updatedChallenge]
+          activeChallenges: [...state.activeChallenges, updatedChallenge],
+          durationProgress: {
+            ...state.durationProgress,
+            ...durationProgressUpdate
+          }
         }));
       },
       
