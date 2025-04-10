@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useTime } from "./useTime";
 import useAssetTracker from "./useAssetTracker";
 import { startupInvestments } from "../data/investments";
+import { useChallenges } from "./useChallenges";
 
 // Expense rate constants
 const EXPENSE_RATES = {
@@ -1520,7 +1521,17 @@ export const useCharacter = create<CharacterState>()(
           return { skills: updatedSkills };
         });
         
+        // Save state and trigger challenge progress check
         saveState();
+        
+        // Import useChallenges at the top level to avoid circular dependencies
+        const useChallengesStore = useChallenges.getState();
+        
+        // Trigger challenge progress check
+        if (useChallengesStore && typeof useChallengesStore.checkChallengeProgress === 'function') {
+          console.log(`Triggering challenge progress check after improving ${skill} skill by ${amount}`);
+          useChallengesStore.checkChallengeProgress();
+        }
       },
       
       // Decrease skill point and refund it to the player's available skill points
@@ -1578,6 +1589,14 @@ export const useCharacter = create<CharacterState>()(
         });
         
         saveState();
+        
+        // Trigger challenge progress check after skill allocation
+        const useChallengesStore = useChallenges.getState();
+        if (useChallengesStore && typeof useChallengesStore.checkChallengeProgress === 'function') {
+          console.log(`Triggering challenge progress check after allocating skill point to ${skill}`);
+          useChallengesStore.checkChallengeProgress();
+        }
+        
         return success;
       },
       
