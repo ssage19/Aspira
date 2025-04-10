@@ -393,73 +393,18 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
       // Play a success sound
       playSound('success.mp3');
       
-      console.log(`Claiming reward for achievement: ${achievement.title}`);
+      console.log(`Overlay: Claiming reward for achievement: ${achievement.title}`);
       
-      // Apply the reward based on its type
-      switch (achievement.reward.type) {
-        case 'cash':
-          // Ensure reward value is a valid number
-          const cashReward = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                            ? achievement.reward.value : 0;
-                            
-          console.log(`Adding cash reward: ${cashReward}`);
-          
-          // Add to game store cash (just for tracking)
-          gameStore.addCash(cashReward);
-          
-          // Add to character store wealth (actual money implementation)
-          characterStore.addWealth(cashReward);
-          
-          // IMPORTANT: Also update the asset tracker directly to ensure UI consistency
-          const assetTracker = useAssetTracker.getState();
-          assetTracker.recalculateTotals();
-          
-          // Directly update cash in the asset tracker to match character wealth
-          useAssetTracker.setState({ cash: characterStore.wealth });
-          break;
-          
-        case 'multiplier':
-          // Ensure multiplier value is a valid number
-          const multiplier = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                          ? achievement.reward.value : 1.0;
-                          
-          console.log(`Applying income multiplier: ${multiplier}`);
-          gameStore.applyIncomeMultiplier(multiplier);
-          break;
-          
-        case 'unlock':
-          console.log(`Unlocking feature: ${achievement.reward.description}`);
-          // Handle unlock logic
-          break;
-          
-        case 'bonus':
-          console.log(`Applying bonus: ${achievement.reward.description}`);
-          
-          // For happiness and prestige bonuses
-          if (achievement.reward.description.includes('Happiness') || 
-              achievement.reward.description.includes('Prestige')) {
-            
-            // Ensure bonus amount is a valid number
-            const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                             ? achievement.reward.value : 0;
-            
-            if (achievement.reward.description.includes('Happiness')) {
-              console.log(`Applying happiness bonus: +${bonusAmount}`);
-              characterStore.addHappiness(bonusAmount);
-            }
-            
-            if (achievement.reward.description.includes('Prestige')) {
-              console.log(`Applying prestige bonus: +${bonusAmount}`);
-              characterStore.addPrestige(bonusAmount);
-            }
-          }
-          break;
+      // Use the centralized claim function in the achievements store
+      const reward = useAchievements.getState().claimReward(id);
+      
+      if (reward) {
+        console.log(`Overlay: Successfully claimed reward: ${reward.description}`);
+        
+        // Update local claimedRewards state to reflect the change
+        const newState = { ...claimedRewards, [id]: true };
+        setClaimedRewards(newState);
       }
-      
-      // Mark as claimed
-      const newState = { ...claimedRewards, [id]: true };
-      setClaimedRewards(newState);
-      localStorage.setItem('business-empire-claimed-rewards', JSON.stringify(newState));
     }
   };
   

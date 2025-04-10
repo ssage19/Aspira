@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useGame } from './useGame';
+import { useCharacter } from './useCharacter';
+import { useAssetTracker } from './useAssetTracker';
 
 export type AchievementCategory = 
   | 'wealth' 
@@ -872,6 +875,70 @@ export const useAchievements = create<AchievementsState>()(
         const achievement = get().achievements.find(a => a.id === id);
         
         if (achievement && achievement.isUnlocked) {
+          // Get necessary stores for reward processing
+          const gameStore = useGame.getState();
+          const characterStore = useCharacter.getState();
+          const assetTracker = useAssetTracker.getState();
+          
+          // Apply reward based on type
+          switch (achievement.reward.type) {
+            case 'cash':
+              // Ensure reward value is a valid number
+              const cashAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                                ? achievement.reward.value : 0;
+              
+              console.log(`[Achievement Store] Awarding cash: $${cashAmount}`);
+              
+              // Update game store (just for tracking)
+              gameStore.addCash(cashAmount);
+              
+              // Update character store (actual game money)
+              characterStore.addWealth(cashAmount);
+              
+              // Update asset tracker to ensure UI consistency
+              assetTracker.recalculateTotals();
+              useAssetTracker.setState({ cash: characterStore.wealth });
+              
+              console.log(`[Achievement Store] Cash reward processed. Character wealth: ${characterStore.wealth}, Asset tracker cash: ${assetTracker.cash}`);
+              break;
+              
+            case 'multiplier':
+              const multiplier = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                            ? achievement.reward.value : 1.0;
+              
+              console.log(`[Achievement Store] Applying income multiplier: ${multiplier}`);
+              gameStore.applyIncomeMultiplier(multiplier);
+              break;
+              
+            case 'unlock':
+              console.log(`[Achievement Store] Unlocking feature: ${achievement.reward.description}`);
+              // Specific unlock logic would go here if needed
+              break;
+              
+            case 'bonus':
+              console.log(`[Achievement Store] Processing bonus: ${achievement.reward.description}`);
+              const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
+                              ? achievement.reward.value : 0;
+              
+              if (achievement.reward.description.includes('Happiness')) {
+                console.log(`[Achievement Store] Applying happiness bonus: +${bonusAmount}`);
+                characterStore.addHappiness(bonusAmount);
+              }
+              
+              if (achievement.reward.description.includes('Prestige')) {
+                console.log(`[Achievement Store] Applying prestige bonus: +${bonusAmount}`);
+                characterStore.addPrestige(bonusAmount);
+              }
+              break;
+          }
+          
+          // Mark reward as claimed in localStorage
+          const claimedRewards = localStorage.getItem('business-empire-claimed-rewards');
+          const claimedRewardsObj = claimedRewards ? JSON.parse(claimedRewards) : {};
+          claimedRewardsObj[id] = true;
+          localStorage.setItem('business-empire-claimed-rewards', JSON.stringify(claimedRewardsObj));
+          
+          // Return the reward so UI can show appropriate messages
           return achievement.reward;
         }
         
@@ -879,10 +946,17 @@ export const useAchievements = create<AchievementsState>()(
       },
       
       hasClaimedReward: (id) => {
-        // This function is just a stub to satisfy the interface
-        // The actual claimed state is managed in the localStorage
-        // from the AchievementsScreen component
-        return false;
+        // Check localStorage for claimed status
+        const claimedRewards = localStorage.getItem('business-empire-claimed-rewards');
+        if (!claimedRewards) return false;
+        
+        try {
+          const claimedRewardsObj = JSON.parse(claimedRewards);
+          return !!claimedRewardsObj[id];
+        } catch (err) {
+          console.error('Error parsing claimed rewards:', err);
+          return false;
+        }
       },
       
       getAchievement: (id) => {

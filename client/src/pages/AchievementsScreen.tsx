@@ -245,87 +245,31 @@ export default function AchievementsScreen() {
   } = useAchievements();
   
   const claimReward = (id: string) => {
+    // Get achievement
     const achievement = achievements.find(a => a.id === id);
     
-    if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
+    // Check if valid to claim
+    if (achievement && achievement.isUnlocked && !hasClaimedReward(id)) {
       console.log(`Claiming reward for achievement: ${achievement.title}`);
       
-      // Get both game and character stores directly
-      const gameStore = useGame.getState();
-      const characterStore = useCharacter.getState();
+      // Use the centralized claim function in the achievements store
+      const reward = useAchievements.getState().claimReward(id);
       
-      // Apply the reward
-      switch (achievement.reward.type) {
-        case 'cash':
-          // Ensure reward value is a valid number
-          const rewardValue = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                            ? achievement.reward.value : 0;
-                            
-          console.log(`Adding cash reward: ${rewardValue}`);
-          
-          // IMPORTANT FIX: Update both stores for cash rewards
-          // Add to game store cash (just for tracking purposes)
-          gameStore.addCash(rewardValue);
-          
-          // Add to character store wealth (this is the actual game money implementation)
-          characterStore.addWealth(rewardValue);
-          
-          // IMPORTANT: Update asset tracker state to ensure UI consistency
-          const assetTracker = useAssetTracker.getState();
-          console.log('Triggering asset refresh after achievement cash reward');
-          assetTracker.recalculateTotals();
-          
-          // Directly update cash in the asset tracker to match character wealth
-          useAssetTracker.setState({ cash: characterStore.wealth });
-          
-          // Log the updated character wealth with NaN check
-          const currentWealth = typeof characterStore.wealth === 'number' && !isNaN(characterStore.wealth)
-                              ? characterStore.wealth : 0;
-          console.log(`Current character wealth after reward: ${currentWealth}`, `Asset tracker cash: ${assetTracker.cash}`);
-          break;
-        case 'multiplier':
-          console.log(`Applying income multiplier: ${achievement.reward.value}`);
-          gameStore.applyIncomeMultiplier(achievement.reward.value);
-          break;
-        case 'unlock':
-          console.log(`Unlocking feature: ${achievement.reward.description}`);
-          // Unlock feature would be handled by the feature itself
-          // by checking if the achievement is unlocked
-          break;
-        case 'bonus':
-          console.log(`Applying bonus: ${achievement.reward.description}`);
-          
-          // Apply character bonuses for the "bonus" type rewards
-          if (achievement.id.startsWith('lifestyle') || achievement.id.startsWith('character')) {
-            // For happiness bonus
-            if (achievement.reward.description.includes('Happiness')) {
-              // Ensure bonus amount is a valid number
-              const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                               ? achievement.reward.value : 0;
-              console.log(`Applying happiness bonus: +${bonusAmount}`);
-              characterStore.addHappiness(bonusAmount);
-            }
-            
-            // For prestige bonus
-            if (achievement.reward.description.includes('Prestige')) {
-              // Ensure bonus amount is a valid number
-              const bonusAmount = typeof achievement.reward.value === 'number' && !isNaN(achievement.reward.value) 
-                               ? achievement.reward.value : 0;
-              console.log(`Applying prestige bonus: +${bonusAmount}`);
-              characterStore.addPrestige(bonusAmount);
-            }
-          }
-          break;
+      if (reward) {
+        console.log(`Successfully claimed reward: ${reward.description}`);
+        
+        // Update local UI state to reflect claimed status
+        // Note: The store updates localStorage, but we need to update the local state too
+        setClaimedRewards(prev => {
+          return { ...prev, [id]: true };
+        });
       }
-      
-      // Mark as claimed in component state
-      setClaimedRewards(prev => {
-        const newState = { ...prev, [id]: true };
-        // Persist to localStorage
-        localStorage.setItem('business-empire-claimed-rewards', JSON.stringify(newState));
-        return newState;
-      });
     }
+  };
+  
+  // Helper function to check if a reward has been claimed
+  const hasClaimedReward = (id: string) => {
+    return useAchievements.getState().hasClaimedReward(id);
   };
   
   const completedCount = getCompletedAchievements().length;
