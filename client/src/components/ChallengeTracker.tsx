@@ -44,12 +44,19 @@ export function ChallengeTracker() {
         // Check all active challenges
         challengesStore.checkChallengeProgress();
         
-        // Check for time-based challenge failures
+        // Check for time-based challenge failures or completions
         const currentChallenges = activeChallengesRef.current;
         currentChallenges.forEach(challenge => {
+          // Handle time-limited challenges that have expired
           if (challenge.targetDate && challenge.targetDate < currentGameDate) {
             // Challenge has passed its target date
             challengesStore.failChallenge(challenge.id);
+          }
+          
+          // Check for challenges at 100% that should be completed
+          if (challenge.progress >= challenge.targetValue) {
+            console.log(`ChallengeTracker: Challenge ${challenge.id} has reached 100% progress (${challenge.progress}/${challenge.targetValue})`);
+            challengesStore.completeChallenge(challenge.id);
           }
         });
       } catch (err) {

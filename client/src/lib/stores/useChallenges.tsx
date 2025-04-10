@@ -287,9 +287,11 @@ const useChallengesStore = create<ChallengesState>()(
             conditionMet = false;
           }
           
-          // Check if challenge is completed - but only if progress has increased
-          // from its initial value to prevent auto-completion on challenge start
-          if (conditionMet && currentProgress > challenge.progress) {
+          // Check if challenge is completed - either if condition is met and progress has increased 
+          // OR if progress reaches 100% of the target value
+          if ((conditionMet && currentProgress > challenge.progress) || 
+              (currentProgress >= challenge.targetValue)) {
+            console.log(`Challenge ${challenge.id} completed: conditionMet=${conditionMet}, progress=${currentProgress}/${challenge.targetValue}`);
             challengesToComplete.push(challenge.id);
             continue;
           }

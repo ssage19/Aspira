@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useState, useEffect } from 'react';
 import { 
   useChallenges, 
   Challenge, 
@@ -223,8 +224,16 @@ export default function ChallengesScreen() {
     startChallenge,
     abandonChallenge,
     claimReward,
-    generateNewChallenges
+    generateNewChallenges,
+    checkChallengeProgress
   } = useChallenges();
+  
+  // Force-check challenge progress when this screen is loaded
+  // This ensures any challenges that should be completed are moved correctly
+  useEffect(() => {
+    console.log("ChallengesScreen: Force checking challenge progress...");
+    checkChallengeProgress();
+  }, [checkChallengeProgress]);
   
   return (
     <div className="flex flex-col min-h-screen">
