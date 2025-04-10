@@ -1637,6 +1637,14 @@ export const useCharacter = create<CharacterState>()(
         });
         
         saveState();
+        
+        // Trigger challenge progress check after spending skill point
+        const useChallengesStore = useChallenges.getState();
+        if (useChallengesStore && typeof useChallengesStore.checkChallengeProgress === 'function') {
+          console.log(`Triggering challenge progress check after spending earned skill point on ${skill}`);
+          useChallengesStore.checkChallengeProgress();
+        }
+        
         return success;
       },
       
