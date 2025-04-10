@@ -431,7 +431,7 @@ export function Lifestyle() {
         <Button 
           variant="secondary" 
           onClick={() => navigate('/')}
-          className="bg-primary/90 hover:bg-primary text-white"
+          className="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 shadow-md"
         >
           <ChevronLeft className="h-4 w-4 mr-2" />
           Back to Dashboard
