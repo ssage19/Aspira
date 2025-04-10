@@ -540,11 +540,13 @@ const useChallengesStore = create<ChallengesState>()(
             console.log(`Added $${cashAmount} to character's wealth. New wealth: ${character.wealth}`);
             
             // Trigger asset refresh to update UI values
-            const assetRefresh = useAssetTracker.getState();
-            if (assetRefresh && typeof assetRefresh.refreshAssets === 'function') {
-              console.log('Triggering asset refresh after cash reward');
-              assetRefresh.refreshAssets();
-            }
+            const assetTracker = useAssetTracker.getState();
+            console.log('Triggering asset refresh after cash reward');
+            assetTracker.recalculateTotals();
+            console.log(`Asset refresh complete. New total: ${assetTracker.cash}`);
+            
+            // Update the assetTracker cash directly
+            useAssetTracker.setState({ cash: character.wealth });
             
             rewardMessage = `$${cashAmount.toLocaleString()} added to your account!`;
             break;

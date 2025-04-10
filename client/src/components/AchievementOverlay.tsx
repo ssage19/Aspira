@@ -408,6 +408,13 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
           
           // Add to character store wealth (actual money implementation)
           characterStore.addWealth(cashReward);
+          
+          // IMPORTANT: Also update the asset tracker directly to ensure UI consistency
+          const assetTracker = useAssetTracker.getState();
+          assetTracker.recalculateTotals();
+          
+          // Directly update cash in the asset tracker to match character wealth
+          useAssetTracker.setState({ cash: characterStore.wealth });
           break;
           
         case 'multiplier':
