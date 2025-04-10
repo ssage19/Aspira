@@ -16,6 +16,7 @@ import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 import { AchievementsWidget } from '../components/AchievementsWidget';
+import { ThemeControls } from '../components/ThemeControls';
 
 // Import UI elements
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -29,7 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
 // Import icons
 import { Calendar, Settings, DollarSign, Crown, ChartBar, 
   Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
-  Upload, Trash2, RotateCcw, HeartPulse, Target } from 'lucide-react';
+  Upload, Trash2, RotateCcw, HeartPulse, Target, Palette } from 'lucide-react';
 
 // Import data stores directly (for direct access)
 import useAssetTracker from '../lib/stores/useAssetTracker';
