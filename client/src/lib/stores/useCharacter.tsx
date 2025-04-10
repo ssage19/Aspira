@@ -474,9 +474,9 @@ export const useCharacter = create<CharacterState>()(
           const currentNetWorth = typeof state.netWorth === 'number' && !isNaN(state.netWorth) 
                                 ? state.netWorth : 0;
           
-          // Round to 2 decimal places to avoid floating-point precision issues
-          const newWealth = Math.round((currentWealth + validAmount) * 100) / 100;
-          const newNetWorth = Math.round((currentNetWorth + validAmount) * 100) / 100;
+          // Convert to truncated decimal to avoid floating-point precision issues
+          const newWealth = parseFloat((currentWealth + validAmount).toFixed(1));
+          const newNetWorth = parseFloat((currentNetWorth + validAmount).toFixed(1));
                                 
           return { 
             wealth: newWealth,
@@ -507,9 +507,9 @@ export const useCharacter = create<CharacterState>()(
           // Ensure we don't subtract more than the player has (fallback to current wealth)
           const amountToDeduct = Math.min(validAmount, currentWealth);
           
-          // Round to 2 decimal places to avoid floating-point precision issues
-          const newWealth = Math.round((currentWealth - amountToDeduct) * 100) / 100;
-          const newNetWorth = Math.round((currentNetWorth - amountToDeduct) * 100) / 100;
+          // Convert to truncated decimal to avoid floating-point precision issues
+          const newWealth = parseFloat((currentWealth - amountToDeduct).toFixed(1));
+          const newNetWorth = parseFloat((currentNetWorth - amountToDeduct).toFixed(1));
                                 
           return { 
             wealth: newWealth,

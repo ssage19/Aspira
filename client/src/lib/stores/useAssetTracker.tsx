@@ -185,8 +185,8 @@ export const useAssetTracker = create<AssetTrackerState>()(
       // Cash updates
       updateCash: (amount: number) => {
         set((state) => {
-          // Round to 2 decimal places to avoid floating-point precision issues
-          const newCash = Math.round(amount * 100) / 100;
+          // Convert to truncated decimal to avoid floating-point precision issues
+          const newCash = parseFloat(amount.toFixed(1));
           
           return {
             cash: newCash,

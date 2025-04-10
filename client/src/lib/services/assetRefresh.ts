@@ -53,16 +53,16 @@ const logAssetSnapshots = (label: string) => {
   const character = useCharacter.getState();
   const assetTracker = useAssetTracker.getState();
   
-  // Round values to 2 decimal places for consistency
-  const roundedCharacterWealth = Math.round(character.wealth * 100) / 100;
-  const roundedTrackerCash = Math.round(assetTracker.totalCash * 100) / 100;
+  // Convert to strings truncated to 1 decimal place to address floating-point precision issues
+  const characterWealthFixed = parseFloat(character.wealth.toFixed(1));
+  const trackerCashFixed = parseFloat(assetTracker.totalCash.toFixed(1));
   
   console.log(`📊 ASSET SNAPSHOT [${label}]:`, {
-    characterWealth: roundedCharacterWealth,
+    characterWealth: characterWealthFixed,
     assetTrackerNetWorth: assetTracker.totalNetWorth,
-    assetTrackerCash: roundedTrackerCash,
+    assetTrackerCash: trackerCashFixed,
     assetTrackerStocks: assetTracker.totalStocks,
-    assetsMatch: Math.abs(roundedCharacterWealth - roundedTrackerCash) < 0.1
+    assetsMatch: Math.abs(characterWealthFixed - trackerCashFixed) < 1.0
   });
 };
 
@@ -119,17 +119,17 @@ export const refreshAllAssets = () => {
     // 3. Third step: Verify the values match and fix if needed
     console.log("STEP 3: Verifying values match between stores");
     
-    // Round values to 2 decimal places to address floating-point precision issues
-    const roundedCharacterWealth = Math.round(characterState.wealth * 100) / 100;
-    const roundedTrackerCash = Math.round(assetTrackerState.totalCash * 100) / 100;
+    // Convert to strings truncated to 1 decimal place to address floating-point precision issues
+    const characterWealthFixed = parseFloat(characterState.wealth.toFixed(1));
+    const trackerCashFixed = parseFloat(assetTrackerState.totalCash.toFixed(1));
     
-    // Use a wider tolerance threshold (0.1) to catch cases where floating point precision might cause tiny differences
-    if (Math.abs(roundedCharacterWealth - roundedTrackerCash) > 0.1) {
+    // Use a much wider tolerance threshold (1.0) to prevent excessive syncs
+    if (Math.abs(characterWealthFixed - trackerCashFixed) > 1.0) {
       console.warn("⚠️ Cash values don't match, forcing additional sync");
-      console.log(`Cash mismatch details: Character wealth: ${roundedCharacterWealth}, Asset tracker cash: ${roundedTrackerCash}`);
+      console.log(`Cash mismatch details: Character wealth: ${characterWealthFixed}, Asset tracker cash: ${trackerCashFixed}`);
       
-      // Use the rounded values for the difference calculation to avoid propagating floating-point errors
-      const difference = roundedTrackerCash - roundedCharacterWealth;
+      // Use the fixed values for the difference calculation to avoid propagating floating-point errors
+      const difference = trackerCashFixed - characterWealthFixed;
       
       if (difference > 0) {
         // Add money if asset tracker has more
@@ -143,7 +143,7 @@ export const refreshAllAssets = () => {
       // One more re-calculation for safety
       assetTrackerState.recalculateTotals();
     } else {
-      console.log(`✅ Cash values match within tolerance (Character: ${roundedCharacterWealth}, Tracker: ${roundedTrackerCash})`);
+      console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
     }
     
     // Take after snapshots for debugging
