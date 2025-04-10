@@ -21,7 +21,8 @@ import {
   BadgeCheck, 
   GraduationCap,
   Home,
-  Sparkles
+  Sparkles,
+  ChevronLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppBackground } from '../components/AppBackground';
@@ -240,10 +241,11 @@ export default function ChallengesScreen() {
           
           <Button 
             variant="outline" 
-            onClick={() => navigate(-1)}
+            onClick={() => navigate('/')}
             className="flex items-center"
           >
-            Back
+            <ChevronLeft className="h-4 w-4 mr-2" />
+            Back to Dashboard
           </Button>
         </div>
         
