@@ -16,6 +16,7 @@ import {
 import { useAchievements, Achievement, AchievementCategory } from '../lib/stores/useAchievements';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useGame } from '../lib/stores/useGame';
+import { useAssetTracker } from '../lib/stores/useAssetTracker';
 import { Button } from './ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from './ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';

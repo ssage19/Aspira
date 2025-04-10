@@ -52,6 +52,7 @@ import {
 import { useAudio } from '../lib/stores/useAudio';
 import { useGame } from '../lib/stores/useGame';
 import { useCharacter } from '../lib/stores/useCharacter';
+import { useAssetTracker } from '../lib/stores/useAssetTracker';
 import { useNavigate } from 'react-router-dom';
 
 interface AchievementItemProps {
@@ -269,10 +270,18 @@ export default function AchievementsScreen() {
           // Add to character store wealth (this is the actual game money implementation)
           characterStore.addWealth(rewardValue);
           
+          // IMPORTANT: Update asset tracker state to ensure UI consistency
+          const assetTracker = useAssetTracker.getState();
+          console.log('Triggering asset refresh after achievement cash reward');
+          assetTracker.recalculateTotals();
+          
+          // Directly update cash in the asset tracker to match character wealth
+          useAssetTracker.setState({ cash: characterStore.wealth });
+          
           // Log the updated character wealth with NaN check
           const currentWealth = typeof characterStore.wealth === 'number' && !isNaN(characterStore.wealth)
                               ? characterStore.wealth : 0;
-          console.log(`Current character wealth after reward: ${currentWealth}`);
+          console.log(`Current character wealth after reward: ${currentWealth}`, `Asset tracker cash: ${assetTracker.cash}`);
           break;
         case 'multiplier':
           console.log(`Applying income multiplier: ${achievement.reward.value}`);
