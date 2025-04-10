@@ -18,9 +18,6 @@ export default function LifestyleScreen() {
   
   return (
     <div className="w-full min-h-screen pt-2 pb-24">
-      {/* Background */}
-      <div className="fixed inset-0 bg-gradient-to-b from-amber-800 to-amber-900 opacity-90 z-0" />
-      
       {/* Enhanced Lifestyle Manager (invisible background processor) */}
       <EnhancedLifestyleManager />
       
@@ -31,9 +28,9 @@ export default function LifestyleScreen() {
         <div className="p-4 max-w-5xl mx-auto">
           <div className="flex mb-4">
             <Button 
-              variant="secondary" 
+              variant="outline" 
               onClick={() => navigate('/')}
-              className="bg-white hover:bg-gray-100 text-black"
+              className="bg-background hover:bg-muted border-border text-white"
             >
               <ChevronLeft className="h-4 w-4 mr-2" />
               Back to Dashboard
