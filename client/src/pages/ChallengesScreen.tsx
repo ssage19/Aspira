@@ -26,11 +26,17 @@ import {
   ChevronLeft,
   Briefcase,
   TrendingUp as TrendingUpIcon,
-  DollarSign
+  DollarSign,
+  Calendar,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppBackground } from '../components/AppBackground';
 import { useCharacter } from '../lib/stores/useCharacter';
+import { useTime } from '../lib/stores/useTime';
+import { useAssetTracker } from '../lib/stores/useAssetTracker';
+import { formatCurrency } from '../lib/utils';
 
 const CategoryLabel: React.FC<{ category: ChallengeCategory }> = ({ category }) => {
   const getColor = (category: ChallengeCategory) => {
@@ -235,6 +241,23 @@ export default function ChallengesScreen() {
   // Get the character state to display header position
   const { job, income, netWorth } = useCharacter();
   
+  // Get time state for header
+  const { 
+    currentDay, 
+    currentMonth, 
+    currentYear,
+    timeProgress,
+    autoAdvanceEnabled,
+    timeSpeed,
+    setTimeSpeed
+  } = useTime();
+  
+  // Get asset tracker data for wealth display
+  const { totalCash, totalNetWorth } = useAssetTracker();
+  
+  // Track state for time controls
+  const [showTooltip, setShowTooltip] = useState('');
+  
   // Force-check challenge progress when this screen is loaded
   // This ensures any challenges that should be completed are moved correctly
   useEffect(() => {
@@ -242,11 +265,176 @@ export default function ChallengesScreen() {
     checkChallengeProgress();
   }, [checkChallengeProgress]);
   
+  // Function to toggle auto-advance (play/pause)
+  const toggleAutoAdvance = () => {
+    const { setAutoAdvance } = useTime.getState();
+    setAutoAdvance(!autoAdvanceEnabled);
+  };
+  
   return (
     <div className="flex flex-col min-h-screen">
       <AppBackground />
       
-      <div className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
+      {/* Top bar with wealth - fixed at top of viewport */}
+      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 text-foreground p-2 flex justify-between items-center pointer-events-auto z-50 transition-all duration-300">
+        {/* Wealth indicator - most important info */}
+        <div className="flex items-center transition-all duration-300 hover:scale-105 space-x-3" aria-label="Current wealth and net worth">
+          <div className="p-2 rounded-full bg-quaternary/10 flex items-center justify-center">
+            <DollarSign className="h-5 w-5 text-quaternary" />
+          </div>
+          <div>
+            <p className="text-xl font-bold">{formatCurrency(totalCash)}</p>
+            <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(totalNetWorth)}</p>
+          </div>
+        </div>
+        
+        {/* Date - placed center */}
+        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
+          <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
+            <Calendar className="h-4 w-4 text-primary dark:text-primary" />
+            <div>
+              <p className="text-sm font-medium">
+                {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
+                  month: 'long',
+                  day: 'numeric',
+                  year: 'numeric'
+                })}
+              </p>
+            </div>
+          </div>
+          
+          {/* Day/Night cycle indicator */}
+          <div className="w-64 flex items-center justify-center gap-4">
+            <div className="flex items-center gap-2 relative">
+              {/* Sun/Moon indicator based on time progress */}
+              <div className="relative h-6 w-24 bg-gradient-to-r from-indigo-900 via-amber-400 to-indigo-900 rounded-full overflow-hidden">
+                {/* Day/Night position indicator */}
+                <div 
+                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                  style={{ 
+                    left: `${Math.min(Math.max(timeProgress - 4, 0), 92)}%`,
+                    filter: "drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))"
+                  }}
+                >
+                  {timeProgress < 50 ? (
+                    <Sun className="h-5 w-5 text-yellow-300" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-blue-100" />
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Time of day indicator */}
+            <div className="min-w-[75px] text-center">
+              <span className="text-xs inline-block">
+                {autoAdvanceEnabled ? (
+                  <span>
+                    {String(Math.floor(timeProgress / 100 * 24)).padStart(2, '0')}:
+                    {String(Math.floor((timeProgress / 100 * 24 % 1) * 60)).padStart(2, '0')} 
+                    {timeProgress < 50 ? ' AM' : ' PM'}
+                    {timeSpeed === 'superfast' ? ' (6x)' : timeSpeed === 'fast' ? ' (3x)' : ''}
+                  </span>
+                ) : "Paused"}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Time control buttons */}
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <Button 
+              variant={autoAdvanceEnabled ? "outline" : "default"}
+              size="sm"
+              onClick={toggleAutoAdvance}
+              className={autoAdvanceEnabled ? 
+                "border-quaternary/80 text-quaternary" : 
+                "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
+              aria-label={autoAdvanceEnabled ? "Pause time passage" : "Resume time passage"}
+              onMouseEnter={() => setShowTooltip('time-toggle')}
+              onMouseLeave={() => setShowTooltip('')}
+            >
+              <Clock className="mr-2 h-4 w-4" />
+              {autoAdvanceEnabled ? "Time: Flowing" : "Time: Paused"}
+            </Button>
+            {showTooltip === 'time-toggle' && (
+              <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                Press Space to toggle play/pause
+              </span>
+            )}
+          </div>
+          
+          {autoAdvanceEnabled && (
+            <div className="flex space-x-1">
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'normal' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('normal')}
+                  className={timeSpeed === 'normal' ? 
+                    "bg-emerald-600 hover:bg-emerald-700 text-white" : 
+                    "border-emerald-600 text-emerald-600"}
+                  aria-label="Normal speed (1x)"
+                  onMouseEnter={() => setShowTooltip('speed-1x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  1x
+                </Button>
+                {showTooltip === 'speed-1x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 1 for normal speed
+                  </span>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'fast' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('fast')}
+                  className={timeSpeed === 'fast' ? 
+                    "bg-amber-600 hover:bg-amber-700 text-white" : 
+                    "border-amber-600 text-amber-600"}
+                  aria-label="Fast speed (3x)"
+                  onMouseEnter={() => setShowTooltip('speed-3x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  3x
+                </Button>
+                {showTooltip === 'speed-3x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 2 for fast speed
+                  </span>
+                )}
+              </div>
+              
+              <div className="relative">
+                <Button
+                  variant={timeSpeed === 'superfast' ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTimeSpeed('superfast')}
+                  className={timeSpeed === 'superfast' ? 
+                    "bg-red-600 hover:bg-red-700 text-white" : 
+                    "border-red-600 text-red-600"}
+                  aria-label="Super fast speed (6x)"
+                  onMouseEnter={() => setShowTooltip('speed-6x')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  6x
+                </Button>
+                {showTooltip === 'speed-6x' && (
+                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
+                    Press 3 for super fast speed
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      <div className="container max-w-6xl mx-auto px-4 py-8 mt-24 relative z-10">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-3xl font-bold mb-2">Challenges</h1>
@@ -258,7 +446,7 @@ export default function ChallengesScreen() {
           <Button 
             variant="outline" 
             onClick={() => navigate('/')}
-            className="flex items-center"
+            className="bg-background hover:bg-muted border-border text-white flex items-center"
           >
             <ChevronLeft className="h-4 w-4 mr-2" />
             Back to Dashboard
