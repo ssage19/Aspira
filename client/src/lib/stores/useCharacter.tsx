@@ -473,10 +473,14 @@ export const useCharacter = create<CharacterState>()(
                               ? state.wealth : 0;
           const currentNetWorth = typeof state.netWorth === 'number' && !isNaN(state.netWorth) 
                                 ? state.netWorth : 0;
+          
+          // Round to 2 decimal places to avoid floating-point precision issues
+          const newWealth = Math.round((currentWealth + validAmount) * 100) / 100;
+          const newNetWorth = Math.round((currentNetWorth + validAmount) * 100) / 100;
                                 
           return { 
-            wealth: currentWealth + validAmount,
-            netWorth: currentNetWorth + validAmount,
+            wealth: newWealth,
+            netWorth: newNetWorth,
             // Add a timestamp field to force state updates
             lastUpdated: updateTimestamp
           };
@@ -502,10 +506,14 @@ export const useCharacter = create<CharacterState>()(
           
           // Ensure we don't subtract more than the player has (fallback to current wealth)
           const amountToDeduct = Math.min(validAmount, currentWealth);
+          
+          // Round to 2 decimal places to avoid floating-point precision issues
+          const newWealth = Math.round((currentWealth - amountToDeduct) * 100) / 100;
+          const newNetWorth = Math.round((currentNetWorth - amountToDeduct) * 100) / 100;
                                 
           return { 
-            wealth: currentWealth - amountToDeduct,
-            netWorth: currentNetWorth - amountToDeduct,
+            wealth: newWealth,
+            netWorth: newNetWorth,
             // Add a timestamp field to force state updates
             lastUpdated: updateTimestamp
           };

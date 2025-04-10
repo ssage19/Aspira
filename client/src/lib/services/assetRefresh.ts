@@ -53,12 +53,16 @@ const logAssetSnapshots = (label: string) => {
   const character = useCharacter.getState();
   const assetTracker = useAssetTracker.getState();
   
+  // Round values to 2 decimal places for consistency
+  const roundedCharacterWealth = Math.round(character.wealth * 100) / 100;
+  const roundedTrackerCash = Math.round(assetTracker.totalCash * 100) / 100;
+  
   console.log(`📊 ASSET SNAPSHOT [${label}]:`, {
-    characterWealth: character.wealth,
+    characterWealth: roundedCharacterWealth,
     assetTrackerNetWorth: assetTracker.totalNetWorth,
-    assetTrackerCash: assetTracker.totalCash,
+    assetTrackerCash: roundedTrackerCash,
     assetTrackerStocks: assetTracker.totalStocks,
-    assetsMatch: Math.abs(character.wealth - assetTracker.totalCash) < 0.01
+    assetsMatch: Math.abs(roundedCharacterWealth - roundedTrackerCash) < 0.1
   });
 };
 
@@ -114,11 +118,18 @@ export const refreshAllAssets = () => {
     
     // 3. Third step: Verify the values match and fix if needed
     console.log("STEP 3: Verifying values match between stores");
-    if (Math.abs(characterState.wealth - assetTrackerState.totalCash) > 0.01) {
+    
+    // Round values to 2 decimal places to address floating-point precision issues
+    const roundedCharacterWealth = Math.round(characterState.wealth * 100) / 100;
+    const roundedTrackerCash = Math.round(assetTrackerState.totalCash * 100) / 100;
+    
+    // Use a wider tolerance threshold (0.1) to catch cases where floating point precision might cause tiny differences
+    if (Math.abs(roundedCharacterWealth - roundedTrackerCash) > 0.1) {
       console.warn("⚠️ Cash values don't match, forcing additional sync");
+      console.log(`Cash mismatch details: Character wealth: ${roundedCharacterWealth}, Asset tracker cash: ${roundedTrackerCash}`);
       
-      // Use the available methods in the character store
-      const difference = assetTrackerState.totalCash - characterState.wealth;
+      // Use the rounded values for the difference calculation to avoid propagating floating-point errors
+      const difference = roundedTrackerCash - roundedCharacterWealth;
       
       if (difference > 0) {
         // Add money if asset tracker has more
@@ -131,6 +142,8 @@ export const refreshAllAssets = () => {
       }
       // One more re-calculation for safety
       assetTrackerState.recalculateTotals();
+    } else {
+      console.log(`✅ Cash values match within tolerance (Character: ${roundedCharacterWealth}, Tracker: ${roundedTrackerCash})`);
     }
     
     // Take after snapshots for debugging
