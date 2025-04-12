@@ -685,7 +685,7 @@ export function Investments() {
         const crypto = cryptoCurrencies.find(c => c.id === asset.id);
         if (crypto) name = crypto.name;
       } else if (asset.type === 'bond') {
-        currentPrice = asset.currentValue || asset.purchasePrice;
+        currentPrice = asset.maturityValue || asset.purchasePrice;
         const bond = bonds.find(b => b.id === asset.id);
         if (bond) name = bond.name;
       } else if (asset.type === 'other') {
@@ -730,7 +730,7 @@ export function Investments() {
         const crypto = cryptoCurrencies.find(c => c.id === asset.id);
         if (crypto) name = crypto.name;
       } else if (asset.type === 'bond') {
-        currentPrice = asset.currentValue || asset.purchasePrice;
+        currentPrice = asset.maturityValue || asset.purchasePrice;
         const bond = bonds.find(b => b.id === asset.id);
         if (bond) name = bond.name;
       } else if (asset.type === 'other') {
@@ -781,7 +781,7 @@ export function Investments() {
       .filter(a => a.type === 'crypto')
       .forEach(asset => {
         const crypto = cryptoCurrencies.find(c => c.id === asset.id);
-        if (crypto) cryptoCategories.add(crypto.category);
+        if (crypto) cryptoCategories.add(crypto.type);
       });
     
     const cryptoScore = Math.min(4, cryptoCategories.size) * 0.5; // Max 2 points for crypto categories
@@ -818,7 +818,7 @@ export function Investments() {
         const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
         assetValues.crypto += asset.quantity * currentPrice;
       } else if (asset.type === 'bond') {
-        assetValues.bond += asset.currentValue || asset.purchasePrice;
+        assetValues.bond += asset.maturityValue || asset.purchasePrice;
       } else if (asset.type === 'other') {
         assetValues.other += asset.purchasePrice;
       }
@@ -871,7 +871,7 @@ export function Investments() {
         const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
         value = asset.quantity * currentPrice;
       } else if (asset.type === 'bond') {
-        value = asset.currentValue || asset.purchasePrice;
+        value = asset.maturityValue || asset.purchasePrice;
       } else if (asset.type === 'other') {
         value = asset.purchasePrice;
       }
