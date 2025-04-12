@@ -1596,10 +1596,25 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         return { success: false, newConnections: [] };
       },
       
-      // Check for expired content (old events, expired benefits)
+      // Check for expired content and handle due events
       checkForExpiredContent: () => {
         const { events, connections } = get();
         const now = Date.now();
+        const { currentDay, currentMonth, currentYear } = useTime.getState();
+        const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+        
+        // Process events that are reserved and the date has arrived
+        const dueEvents = events.filter(event => 
+          event.reserved && !event.attended && 
+          new Date(event.date) <= currentGameDate
+        );
+        
+        // Automatically attend due events
+        if (dueEvents.length > 0) {
+          for (const event of dueEvents) {
+            get().attendEvent(event.id);
+          }
+        }
         
         // Remove expired events
         const updatedEvents = events.filter(event => 
