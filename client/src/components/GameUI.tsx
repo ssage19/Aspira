@@ -814,135 +814,15 @@ export function GameUI() {
         </div>
       </div>
       
-      {/* Bottom navigation - fixed at bottom of viewport */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background/90 backdrop-blur-lg border-t border-border/40 text-foreground p-3 flex justify-around pointer-events-auto z-50">
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/')}
-          onMouseEnter={() => setShowTooltip('dashboard')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Dashboard"
-        >
-          <div className="p-2 rounded-full bg-secondary/10 mr-2">
-            <Briefcase className="h-5 w-5 text-secondary" />
-          </div>
-          <span className="text-base">Dashboard</span>
-          {showTooltip === 'dashboard' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Dashboard
-            </span>
-          )}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/job')}
-          onMouseEnter={() => setShowTooltip('job')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Job"
-        >
-          <div className="p-2 rounded-full bg-indigo-500/10 mr-2">
-            <GraduationCap className="h-5 w-5 text-indigo-500" />
-          </div>
-          <span className="text-base">Career</span>
-          {showTooltip === 'job' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Career
-            </span>
-          )}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/investments')}
-          onMouseEnter={() => setShowTooltip('investments')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Investments"
-        >
-          <div className="p-2 rounded-full bg-quaternary/10 mr-2">
-            <ChartBar className="h-5 w-5 text-quaternary" />
-          </div>
-          <span className="text-base">Investments</span>
-          {showTooltip === 'investments' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Investments
-            </span>
-          )}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/properties')}
-          onMouseEnter={() => setShowTooltip('properties')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Properties"
-        >
-          <div className="p-2 rounded-full bg-quinary/10 mr-2">
-            <Home className="h-5 w-5 text-quinary" />
-          </div>
-          <span className="text-base">Properties</span>
-          {showTooltip === 'properties' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Properties
-            </span>
-          )}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/lifestyle')}
-          onMouseEnter={() => setShowTooltip('lifestyle')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Lifestyle"
-        >
-          <div className="p-2 rounded-full bg-tertiary/10 mr-2">
-            <ShoppingBag className="h-5 w-5 text-tertiary" />
-          </div>
-          <span className="text-base">Lifestyle</span>
-          {showTooltip === 'lifestyle' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Lifestyle
-            </span>
-          )}
-        </Button>
-        
-        <Button 
-          variant="ghost" 
-          size="lg" 
-          onClick={() => navigate('/achievements')}
-          onMouseEnter={() => setShowTooltip('achievements')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative py-4 glass-effect hover:bg-secondary/60"
-          aria-label="Go to Achievements"
-        >
-          <div className="p-2 rounded-full bg-yellow-500/10 mr-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-          </div>
-          <span className="text-base">Achievements</span>
-          {showTooltip === 'achievements' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40">
-              Achievements
-            </span>
-          )}
-        </Button>
-        
+      {/* Sound control button - fixed at bottom right of viewport */}
+      <div className="fixed bottom-4 right-4 pointer-events-auto z-50">
         <Button 
           variant="ghost" 
           size="sm" 
           onClick={() => audioState.setMuted && audioState.setMuted(!isMuted)}
           onMouseEnter={() => setShowTooltip('sound')}
           onMouseLeave={() => setShowTooltip('')}
-          className="relative glass-effect h-14 w-14 rounded-full p-0"
+          className="relative glass-effect h-14 w-14 rounded-full p-0 bg-background/60 backdrop-blur-lg border border-border/40"
           aria-label={isMuted ? "Unmute sound" : "Mute sound"}
         >
           <div className={`p-3 rounded-full ${isMuted ? 'bg-destructive/10' : 'bg-secondary/10'}`}>
