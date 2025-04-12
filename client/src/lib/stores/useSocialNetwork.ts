@@ -819,8 +819,23 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       socialCapital: 100,
       lastNetworkingActivity: Date.now(),
       
-      // Add a new connection of specified type
+      // Add a new connection of specified type (with maximum limit of 5 connections)
       addConnection: (type: ConnectionType) => {
+        const { connections } = get();
+        
+        // Enforce connection limit of 5
+        const MAX_CONNECTIONS = 5;
+        
+        // Check if we're at the connection limit
+        if (connections.length >= MAX_CONNECTIONS) {
+          toast.info(`Network at capacity (${MAX_CONNECTIONS} max). Remove connections to add new ones.`, {
+            duration: 5000
+          });
+          // Return a dummy connection that shouldn't be added to state
+          // We need to return something to keep our types consistent
+          return createRandomConnection(type);
+        }
+        
         const newConnection = createRandomConnection(type);
         
         set(state => ({
@@ -1104,10 +1119,26 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         return true;
       },
       
-      // Add random connections to your network
+      // Add random connections to your network with a maximum limit of 5 connections
       addRandomConnections: (count = 1) => {
         const { connections } = get();
         const newConnections: SocialConnection[] = [];
+        
+        // Enforce connection limit of 5
+        const MAX_CONNECTIONS = 5;
+        
+        // Check if we're at the connection limit
+        if (connections.length >= MAX_CONNECTIONS) {
+          // We're at capacity, can't add more without removing
+          toast.info(`Network at capacity (${MAX_CONNECTIONS} max). Remove connections to add new ones.`, {
+            duration: 5000
+          });
+          return [];
+        }
+        
+        // Calculate how many connections we can still add
+        const availableSlots = MAX_CONNECTIONS - connections.length;
+        const actualCount = Math.min(availableSlots, count);
         
         // Get all possible connection types for random selection
         const connectionTypes: ConnectionType[] = [
@@ -1124,25 +1155,26 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           connectionTypes.push('rival');
         }
         
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < actualCount; i++) {
           // Select a random connection type
           const randomType = getRandomElement(connectionTypes);
           
           // Create a new connection of this type
           const newConnection = createRandomConnection(randomType);
           newConnections.push(newConnection);
-          
-          // Connection is added but no notification here
-          // We'll show a combined notification below
         }
         
         set({ 
           connections: [...connections, ...newConnections],
-          socialCapital: Math.max(0, get().socialCapital - (10 * count)) // Cost social capital to add connections
+          socialCapital: Math.max(0, get().socialCapital - (10 * actualCount)) // Cost social capital to add connections
         });
         
-        // We no longer need toast notifications here since the ConnectionNotificationManager handles this
-        // The ConnectionNotificationManager will show each new connection with a proper UI card
+        // Show notification about connection limit if we couldn't add all requested connections
+        if (actualCount < count) {
+          toast.info(`Added ${actualCount} connections. Network limit is ${MAX_CONNECTIONS} connections.`, {
+            duration: 5000
+          });
+        }
         
         return newConnections;
       },
