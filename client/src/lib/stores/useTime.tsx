@@ -207,10 +207,13 @@ export const useTime = create<TimeState>()(
           // We need to wait until after the state is updated before processing events
           setTimeout(() => {
             // Import dynamically to avoid circular dependencies
-            const { default: useSocialNetwork } = require('./useSocialNetwork');
-            if (useSocialNetwork && useSocialNetwork.getState) {
-              useSocialNetwork.getState().checkForExpiredContent();
-            }
+            // Use dynamic import instead of require
+            import('./useSocialNetwork').then((module) => {
+              const useSocialNetwork = module.useSocialNetwork;
+              if (useSocialNetwork && useSocialNetwork.getState) {
+                useSocialNetwork.getState().checkForExpiredContent();
+              }
+            }).catch(e => console.error("Failed to load social network module:", e));
           }, 0);
         } catch (error) {
           console.error("Error processing social network events:", error);
