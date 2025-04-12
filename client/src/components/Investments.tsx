@@ -12,10 +12,10 @@ import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarCha
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
 import { formatCurrency, formatPercentage } from '../lib/utils';
-import { VolatilityLevel, Stock, bonds } from '../lib/data/investments';
+import { VolatilityLevel, Stock, bonds, cryptoCurrencies } from '../lib/data/investments';
 import { startupInvestments } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
-import { cryptoTypes, bondTypes } from '../lib/data/assets';
+import { bondTypes } from '../lib/data/assets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 
 export function Investments() {
@@ -40,7 +40,7 @@ export function Investments() {
   
   // Crypto state
   const [cryptoPrices, setCryptoPrices] = useState<Record<string, number>>({});
-  const [selectedCrypto, setSelectedCrypto] = useState(cryptoTypes[0]);
+  const [selectedCrypto, setSelectedCrypto] = useState(cryptoCurrencies[0]);
   const [cryptoAmount, setCryptoAmount] = useState<number>(0);
   
   // Bond state
@@ -155,7 +155,7 @@ export function Investments() {
     // Initialize with the last known prices to prevent jumpiness
     const updatedPrices: Record<string, number> = {...cryptoPrices};
     
-    cryptoTypes.forEach(crypto => {
+    cryptoCurrencies.forEach(crypto => {
       // Crypto is more volatile than stocks
       const volatilityFactor = 
         crypto.volatility === 'extreme' ? 1.0 :
@@ -1255,7 +1255,7 @@ export function Investments() {
                 aria-labelledby="available-crypto-heading"
                 role="listbox"
               >
-                {cryptoTypes.map((crypto, index) => (
+                {cryptoCurrencies.map((crypto, index) => (
                   <div 
                     key={`crypto-${crypto.id}-${index}`}
                     role="option"

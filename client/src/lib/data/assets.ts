@@ -72,14 +72,14 @@ export const bondTypes = [
   }
 ];
 
-// Cryptocurrency types
+// Cryptocurrency types - basic categories for the system
 export const cryptoTypes = [
   {
     id: 'bitcoin',
     name: 'Bitcoin',
     symbol: 'BTC',
     volatility: 'very_high',
-    basePrice: 45000,
+    basePrice: 65000,
     description: 'The original cryptocurrency known for store of value'
   },
   {
@@ -87,7 +87,7 @@ export const cryptoTypes = [
     name: 'Ethereum',
     symbol: 'ETH',
     volatility: 'high',
-    basePrice: 3000,
+    basePrice: 3500,
     description: 'Smart contract platform with diverse applications'
   },
   {
@@ -105,6 +105,47 @@ export const cryptoTypes = [
     volatility: 'extreme',
     basePrice: 10,
     description: 'Newer coins with high risk and potential reward'
+  },
+  // Additional categories
+  {
+    id: 'defi',
+    name: 'DeFi Token',
+    symbol: 'DEFI',
+    volatility: 'very_high',
+    basePrice: 25,
+    description: 'Tokens used in decentralized finance applications'
+  },
+  {
+    id: 'gaming',
+    name: 'Gaming Token',
+    symbol: 'GAME',
+    volatility: 'extreme',
+    basePrice: 3,
+    description: 'Tokens used in blockchain gaming ecosystems'
+  },
+  {
+    id: 'privacy',
+    name: 'Privacy Coin',
+    symbol: 'PRIV',
+    volatility: 'high',
+    basePrice: 150,
+    description: 'Cryptocurrencies focused on transaction privacy'
+  },
+  {
+    id: 'layer1',
+    name: 'Layer 1 Blockchain',
+    symbol: 'L1',
+    volatility: 'high',
+    basePrice: 40,
+    description: 'Base blockchains that provide security and consensus'
+  },
+  {
+    id: 'layer2',
+    name: 'Layer 2 Solution',
+    symbol: 'L2',
+    volatility: 'very_high',
+    basePrice: 2,
+    description: 'Scaling solutions built on top of layer 1 blockchains'
   }
 ];
 
