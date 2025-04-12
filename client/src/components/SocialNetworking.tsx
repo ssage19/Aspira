@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSocialNetwork, ConnectionType, SocialConnection, SocialEvent, ConnectionBenefit } from '../lib/stores/useSocialNetwork';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { usePrestige } from '../lib/stores/usePrestige';
+import { useTime } from '../lib/stores/useTime';
 import { formatCurrency, formatDate } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -297,6 +298,7 @@ interface EventCardProps {
   canAttend: boolean;
   onAttend: (id: string) => void;
   onRemove: (id: string) => void;
+  onReserve?: (id: string) => void; // New prop for reserving events
 }
 
 const EventCard: React.FC<EventCardProps> = ({ 
@@ -304,7 +306,8 @@ const EventCard: React.FC<EventCardProps> = ({
   canAfford, 
   canAttend,
   onAttend,
-  onRemove
+  onRemove,
+  onReserve
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   
@@ -313,6 +316,12 @@ const EventCard: React.FC<EventCardProps> = ({
   
   // Calculate days remaining
   const daysRemaining = Math.ceil((event.date - Date.now()) / (1000 * 60 * 60 * 24));
+  
+  // Check if this is a future event (>0 days) or today's event (0 days)
+  const isFutureEvent = daysRemaining > 0;
+  
+  // Status indicators
+  const isReserved = event.reserved;
   
   return (
     <Card className="mb-4 bg-card">
@@ -406,13 +415,28 @@ const EventCard: React.FC<EventCardProps> = ({
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <div>
-                      <Button
-                        variant="default"
-                        disabled={!canAttend || !canAfford}
-                        onClick={() => onAttend(event.id)}
-                      >
-                        Attend Event
-                      </Button>
+                      {/* Show different buttons based on event timing and reservation status */}
+                      {isReserved ? (
+                        <Button variant="secondary" disabled>
+                          Reserved
+                        </Button>
+                      ) : isFutureEvent && onReserve ? (
+                        <Button
+                          variant="default"
+                          disabled={!canAttend || !canAfford}
+                          onClick={() => onReserve(event.id)}
+                        >
+                          Reserve Spot
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="default"
+                          disabled={!canAttend || !canAfford}
+                          onClick={() => onAttend(event.id)}
+                        >
+                          Attend Event
+                        </Button>
+                      )}
                     </div>
                   </TooltipTrigger>
                   {(!canAttend || !canAfford) && (
@@ -472,23 +496,34 @@ interface ConfirmEventDialogProps {
   onOpenChange: (open: boolean) => void;
   event: SocialEvent | null;
   onConfirm: () => void;
+  isReservation?: boolean;
 }
 
 const ConfirmEventDialog: React.FC<ConfirmEventDialogProps> = ({
   open,
   onOpenChange,
   event,
-  onConfirm
+  onConfirm,
+  isReservation = false
 }) => {
   if (!event) return null;
+  
+  // Calculate if this is a future event
+  const daysRemaining = Math.ceil((event.date - Date.now()) / (1000 * 60 * 60 * 24));
+  const isFutureEvent = daysRemaining > 0;
   
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Attend {event.name}?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isFutureEvent ? `Attend ${event.name}?` : `Attend ${event.name} now?`}
+          </AlertDialogTitle>
           <AlertDialogDescription>
             This will cost {formatCurrency(event.entryFee)}. You'll have the opportunity to make new connections and gain social capital.
+            {isFutureEvent && (
+              <p className="mt-2">This event is scheduled for {formatDate(new Date(event.date))} ({daysRemaining} days from now).</p>
+            )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -671,6 +706,16 @@ export function SocialNetworking() {
         toast.success(`You attended the event and met ${result.newConnections.length} new connections!`);
       }
       setShowEventDialog(false);
+    }
+  };
+  
+  // Handler for reserving events
+  const handleReserveEvent = (eventId: string) => {
+    const result = reserveEvent(eventId);
+    if (result.success) {
+      toast.success("Event successfully reserved! You'll automatically attend on the scheduled date.");
+    } else {
+      toast.error("Unable to reserve this event.");
     }
   };
   
@@ -893,6 +938,7 @@ export function SocialNetworking() {
                     canAttend={prestigeLevel >= event.prestigeRequired}
                     onAttend={handleOpenEventDialog}
                     onRemove={handleRemoveEvent}
+                    onReserve={handleReserveEvent}
                   />
                 ))}
               </div>
