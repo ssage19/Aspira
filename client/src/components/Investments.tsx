@@ -1320,25 +1320,25 @@ export function Investments() {
                       const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
                       const totalValue = shareQuantity * stockPrice;
                       
-                      // Sell stock in character store
-                      sellAsset({
-                        id: selectedStock.id,
-                        type: 'stock',
-                        quantity: shareQuantity,
-                        sellPrice: stockPrice
-                      });
+                      // Get current owned quantity
+                      const ownedQuantity = getOwnedStockQuantity(selectedStock.id);
                       
-                      // Also update the AssetTracker store
-                      assetTracker.sellStock({
-                        id: selectedStock.id,
-                        shares: shareQuantity,
-                        sellPrice: stockPrice
-                      });
+                      // Sell stock in character store - need to pass id and quantity
+                      sellAsset(selectedStock.id, shareQuantity, stockPrice);
                       
-                      addWealth(totalValue);
+                      // If selling all shares, remove from tracker
+                      if (shareQuantity >= ownedQuantity) {
+                        assetTracker.removeStock(selectedStock.id);
+                      } else {
+                        // Update AssetTracker with the new number of shares
+                        const remainingShares = ownedQuantity - shareQuantity;
+                        assetTracker.updateStock(selectedStock.id, remainingShares, stockPrice);
+                      }
+                      
+                      // Note: We don't need to call addWealth as sellAsset already adds to wealth
                       
                       toast.success(`Successfully sold ${shareQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(totalValue)}`);
-                      playCoin();
+                      playSuccess();
                       
                       // Reset input after sale
                       setShareQuantity(0);
