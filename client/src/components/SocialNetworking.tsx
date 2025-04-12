@@ -8,7 +8,7 @@ import {
   User, Users, UserPlus, UserMinus, Calendar, Award,
   TrendingUp, MessageCircle, Gift, Briefcase, 
   CreditCard, AlertTriangle, Star, Clock, ArrowUpRight,
-  ChevronLeft, HelpCircle
+  ChevronLeft, HelpCircle, X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -693,6 +693,14 @@ export function SocialNetworking() {
     // No toast here - let the notification manager handle it
   };
   
+  // Handler for cancelling/removing events
+  const handleRemoveEvent = (eventId: string) => {
+    const success = removeEvent(eventId);
+    if (success) {
+      toast.success("Event cancelled successfully.");
+    }
+  };
+  
   // Get navigate function from react-router-dom
   const navigate = useNavigate();
 
@@ -875,6 +883,7 @@ export function SocialNetworking() {
                     canAfford={wealth >= event.entryFee}
                     canAttend={prestigeLevel >= event.prestigeRequired}
                     onAttend={handleOpenEventDialog}
+                    onRemove={handleRemoveEvent}
                   />
                 ))}
               </div>
