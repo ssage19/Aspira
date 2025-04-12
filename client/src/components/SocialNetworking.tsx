@@ -456,7 +456,7 @@ const AddConnectionDialog: React.FC<AddConnectionDialogProps> = ({
   const connectionTypes: {type: ConnectionType, description: string}[] = [
     {type: 'mentor', description: 'A seasoned professional who can teach you valuable skills and provide guidance.'},
     {type: 'businessContact', description: 'A professional connection who can provide business opportunities and partnerships.'},
-    {type: 'investor', description: 'Someone with capital who's looking for investment opportunities.'},
+    {type: 'investor', description: 'Someone with capital who is looking for investment opportunities.'},
     {type: 'industry', description: 'An industry expert with deep knowledge of trends and regulations.'},
     {type: 'celebrity', description: 'A public figure whose endorsement can boost your reputation.'},
     {type: 'influencer', description: 'Someone with a large social media following who can promote your business.'}

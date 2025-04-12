@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useSocialNetwork, SocialConnection } from '../lib/stores/useSocialNetwork';
-import { X, User, Calendar, MessageCircle } from 'lucide-react';
+import { X, User, Star } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ConnectionNotificationProps {
   connection: SocialConnection;
   onClose: () => void;
-  onRespond: () => void;
+  onView: () => void;
 }
 
-export function ConnectionNotification({ connection, onClose, onRespond }: ConnectionNotificationProps) {
+export function ConnectionNotification({ connection, onClose, onView }: ConnectionNotificationProps) {
   // Get connection type color
   const getColorByType = () => {
     switch (connection.type) {
@@ -34,10 +34,15 @@ export function ConnectionNotification({ connection, onClose, onRespond }: Conne
   };
 
   // Format connection type for display
-  const formatType = (type: string) => {
-    if (type === 'businessContact') return 'Business Contact';
-    if (type === 'industry') return 'Industry Expert';
-    return type.charAt(0).toUpperCase() + type.slice(1);
+  const formatConnectionType = (type: string): string => {
+    switch (type) {
+      case 'businessContact':
+        return 'Business Contact';
+      case 'industry':
+        return 'Industry Expert';
+      default:
+        return type.charAt(0).toUpperCase() + type.slice(1);
+    }
   };
 
   return (
@@ -52,9 +57,9 @@ export function ConnectionNotification({ connection, onClose, onRespond }: Conne
           <User className="h-5 w-5" />
         </div>
         <div className="ml-3 flex-1">
-          <p className="font-medium">{connection.name} wants to meet</p>
+          <p className="font-medium">New Connection: {connection.name}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            {formatType(connection.type)} • {connection.expertise.charAt(0).toUpperCase() + connection.expertise.slice(1)}
+            {formatConnectionType(connection.type)} • {connection.expertise.charAt(0).toUpperCase() + connection.expertise.slice(1)}
           </p>
         </div>
         <button
@@ -65,23 +70,30 @@ export function ConnectionNotification({ connection, onClose, onRespond }: Conne
         </button>
       </div>
       
+      <div className="mt-3 text-sm text-muted-foreground">
+        <div className="flex items-center">
+          <Star className="h-4 w-4 mr-1 text-yellow-500" />
+          {connection.benefits.length} potential benefits
+        </div>
+      </div>
+      
       <div className="mt-4 flex space-x-2">
         <Button
           variant="outline"
           className="flex-1"
           onClick={onClose}
         >
-          Ignore
+          Dismiss
         </Button>
         <Button
           className="flex-1"
           onClick={() => {
-            onRespond();
+            onView();
             onClose();
           }}
         >
-          <Calendar className="h-4 w-4 mr-2" />
-          Respond
+          <User className="h-4 w-4 mr-2" />
+          View Connection
         </Button>
       </div>
     </motion.div>
@@ -91,26 +103,37 @@ export function ConnectionNotification({ connection, onClose, onRespond }: Conne
 export function ConnectionNotificationManager() {
   const { connections } = useSocialNetwork();
   const [notification, setNotification] = useState<SocialConnection | null>(null);
+  const [shownConnectionIds, setShownConnectionIds] = useState<Set<string>>(new Set());
 
-  // Check for new pending meetings
+  // Check for new connections
   useEffect(() => {
-    // Find connections with pending meetings
-    const pendingConnections = connections.filter(c => c.pendingMeeting);
+    // Find connections that haven't been shown yet
+    const newConnections = connections.filter(
+      c => !shownConnectionIds.has(c.id)
+    );
     
-    // If there's a pending connection that we're not already showing, show it
-    if (pendingConnections.length > 0 && !notification) {
-      setNotification(pendingConnections[0]);
+    // If there's a new connection that we're not already showing, show it
+    if (newConnections.length > 0 && !notification) {
+      const connectionToShow = newConnections[0];
+      setNotification(connectionToShow);
+      
+      // Mark this connection as shown
+      setShownConnectionIds(prev => {
+        const updated = new Set(prev);
+        updated.add(connectionToShow.id);
+        return updated;
+      });
     }
-  }, [connections, notification]);
+  }, [connections, notification, shownConnectionIds]);
 
-  // Handle responding to the connection
-  const handleRespond = () => {
+  // Handle viewing connection details
+  const handleViewConnection = () => {
     if (notification) {
       // Navigate to the networking screen (this would need to be implemented)
-      console.log(`Responding to ${notification.name}`);
+      console.log(`Viewing connection: ${notification.name}`);
       
-      // You might want to navigate to the social networking screen here
-      // history.push('/networking');
+      // You might want to navigate to the connections tab of the social networking screen here
+      // history.push('/networking?tab=connections');
     }
   };
 
@@ -120,7 +143,7 @@ export function ConnectionNotificationManager() {
         <ConnectionNotification
           connection={notification}
           onClose={() => setNotification(null)}
-          onRespond={handleRespond}
+          onView={handleViewConnection}
         />
       )}
     </AnimatePresence>

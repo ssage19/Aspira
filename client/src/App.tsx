@@ -292,6 +292,7 @@ function App() {
                 <Route path="/challenges" element={<ChallengesScreen />} />
                 <Route path="/prestige" element={<PrestigeScreen />} />
                 <Route path="/business" element={<BusinessScreen />} />
+                <Route path="/networking" element={<NetworkingScreen />} />
                 <Route path="/test" element={<TestPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
@@ -307,6 +308,9 @@ function App() {
               <MarketPriceUpdater />
               <ChallengeTracker />
               <ChallengeNotificationManager />
+              <NetworkTracker />
+              <ConnectionNotificationManager />
+              <EventNotificationManager />
               
               {/* Emergency hack to reset time if needed */}
               <TimeResetHack />

@@ -5,6 +5,18 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Returns a random element from an array
+ * @param array The array to select from
+ * @returns A random element from the array
+ */
+export function getRandomElement<T>(array: T[]): T {
+  if (!array || array.length === 0) {
+    throw new Error("Cannot get random element from empty or undefined array");
+  }
+  return array[Math.floor(Math.random() * array.length)];
+}
+
 // Flag to indicate a reset is in progress
 // This will be used to prevent loading stale data during reset
 let resetInProgress = false;
