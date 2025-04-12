@@ -1314,24 +1314,20 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       },
       
       // Regenerate social capital over time
-      regenerateSocialCapital: () => {
+      regenerateSocialCapital: (isMonthlyBoost = false) => {
         const { socialCapital, lastNetworkingActivity, networkingLevel } = get();
         const now = Date.now();
-        const timeSinceLastActivity = now - lastNetworkingActivity;
         
-        // Only regenerate if it's been at least an hour
-        if (timeSinceLastActivity >= 60 * 60 * 1000) {
-          // Base regeneration amount
-          const baseRegeneration = 5;
+        // For monthly boosts, provide a significant amount of social capital
+        if (isMonthlyBoost) {
+          // Base monthly amount is much larger 
+          const baseMonthlyAmount = 30; // 30 base social capital per month
           
-          // Bonus based on networking level
-          const levelBonus = Math.floor(networkingLevel / 10);
+          // Significant bonus based on networking level
+          const levelBonus = Math.floor(networkingLevel / 5); // 1 point per 5 networking levels
           
-          // Calculate how many hours have passed (capped at 24)
-          const hoursPassed = Math.min(24, timeSinceLastActivity / (60 * 60 * 1000));
-          
-          // Calculate total regeneration
-          const regenerationAmount = Math.floor((baseRegeneration + levelBonus) * hoursPassed);
+          // Calculate monthly regeneration (more impactful)
+          const regenerationAmount = baseMonthlyAmount + levelBonus;
           
           // Update social capital (capped at 300)
           const newSocialCapital = Math.min(300, socialCapital + regenerationAmount);
@@ -1341,8 +1337,56 @@ export const useSocialNetwork = create<SocialNetworkState>()(
               socialCapital: newSocialCapital,
               lastNetworkingActivity: now
             });
+            
+            // Show notification to player
+            toast.success(`Monthly Social Capital Boost: +${regenerationAmount} (Total: ${newSocialCapital})`, {
+              duration: 5000
+            });
+            
+            return { 
+              success: true,
+              amount: regenerationAmount, 
+              newTotal: newSocialCapital 
+            };
+          }
+        } 
+        // For the standard time-based regeneration
+        else {
+          const timeSinceLastActivity = now - lastNetworkingActivity;
+          
+          // Only regenerate if it's been at least an hour
+          if (timeSinceLastActivity >= 60 * 60 * 1000) {
+            // Reduced base regeneration amount (since we now have the monthly boost)
+            const baseRegeneration = 3;
+            
+            // Bonus based on networking level
+            const levelBonus = Math.floor(networkingLevel / 20); // Reduced from /10 to /20
+            
+            // Calculate how many hours have passed (capped at 24)
+            const hoursPassed = Math.min(24, timeSinceLastActivity / (60 * 60 * 1000));
+            
+            // Calculate total regeneration
+            const regenerationAmount = Math.floor((baseRegeneration + levelBonus) * hoursPassed);
+            
+            // Update social capital (capped at 300)
+            const newSocialCapital = Math.min(300, socialCapital + regenerationAmount);
+            
+            if (newSocialCapital > socialCapital) {
+              set({ 
+                socialCapital: newSocialCapital,
+                lastNetworkingActivity: now
+              });
+              
+              return { 
+                success: true,
+                amount: regenerationAmount, 
+                newTotal: newSocialCapital 
+              };
+            }
           }
         }
+        
+        return { success: false, amount: 0, newTotal: socialCapital };
       },
       
       // Reset the social network system

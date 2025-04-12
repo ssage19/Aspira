@@ -663,7 +663,8 @@ export function SocialNetworking() {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Used to schedule meetings and find new connections
-              <br /><span className="text-primary">Regenerates daily (+{5 + Math.floor(networkingLevel / 10)} points) and from attending events</span>
+              <br /><span className="text-primary">Monthly boost: +{30 + Math.floor(networkingLevel / 5)} points</span>
+              <br /><span className="text-primary">Also regenerates over time and from attending events</span>
             </p>
           </CardContent>
         </Card>
