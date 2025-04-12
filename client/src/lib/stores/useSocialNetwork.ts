@@ -97,6 +97,7 @@ export interface SocialEvent {
     skillBoostAmount?: number; // Amount of boost
   };
   attended: boolean;
+  reserved: boolean; // Whether player has reserved to attend this event
   availableUntil: number; // When the event expires if not attended
 }
 
@@ -875,6 +876,7 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
       potentialConnections: 1
     },
     attended: false,
+    reserved: false, // Events start as not reserved
     availableUntil
   };
 }
@@ -896,6 +898,7 @@ interface SocialNetworkState {
   useBenefit: (connectionId: string, benefitId: string) => boolean;
   generateNewEvents: (count?: number) => SocialEvent[];
   removeEvent: (eventId: string) => boolean; // New method to remove/cancel events
+  reserveEvent: (eventId: string) => {success: boolean}; // New method to reserve events
   attendEvent: (eventId: string) => {success: boolean, newConnections: SocialConnection[]};
   checkForExpiredContent: () => void;
   regenerateSocialCapital: (isMonthlyBoost?: boolean) => void;
@@ -1385,6 +1388,71 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         return newEvents;
       },
+
+      // Reserve a social event
+      reserveEvent: (eventId: string) => {
+        const { events } = get();
+        const character = useCharacter.getState();
+        const { level: prestigeLevel = 1 } = usePrestige.getState() || { level: 1 };
+        const { currentDay, currentMonth, currentYear } = useTime.getState();
+        
+        // Find the event
+        const event = events.find(e => e.id === eventId);
+        if (!event) {
+          toast.error("Event not found.");
+          return { success: false };
+        }
+        
+        // Check if event has already been attended
+        if (event.attended) {
+          toast.error("You've already attended this event.");
+          return { success: false };
+        }
+        
+        // Check if event is already reserved
+        if (event.reserved) {
+          toast.info("You've already reserved this event.");
+          return { success: false };
+        }
+        
+        // Check if player can afford the entry fee
+        if (character.wealth < event.entryFee) {
+          toast.error(`You need ${formatCurrency(event.entryFee)} to reserve this event.`);
+          return { success: false };
+        }
+        
+        // Check prestige requirement
+        if (event.prestigeRequired > prestigeLevel) {
+          toast.error(`You need prestige level ${event.prestigeRequired} to attend this event.`);
+          return { success: false };
+        }
+        
+        // Get dates for comparison
+        const eventDate = new Date(event.date);
+        const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+        const daysUntil = Math.ceil((eventDate.getTime() - currentGameDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Check if event is in the past
+        if (currentGameDate > eventDate) {
+          toast.error("This event has already passed.");
+          return { success: false };
+        }
+        
+        // Charge the entry fee
+        character.addWealth(-event.entryFee);
+        
+        // Mark as reserved in our state
+        const updatedEvents = events.map(e => 
+          e.id === eventId
+            ? { ...e, reserved: true }
+            : e
+        );
+        
+        set({ events: updatedEvents });
+        
+        toast.success(`Event reserved! You'll attend "${event.name}" in ${daysUntil} days.`);
+        return { success: true };
+      },
       
       // Attend a social event
       attendEvent: (eventId: string) => {
@@ -1400,101 +1468,132 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           return { success: false, newConnections: [] };
         }
         
+        // Check if event has already been attended
+        if (event.attended) {
+          toast.error("You've already attended this event.");
+          return { success: false, newConnections: [] };
+        }
+        
+        // Check if player can afford the entry fee 
+        // (we charge at reservation time)
+        if (!event.reserved && character.wealth < event.entryFee) {
+          toast.error(`You need ${formatCurrency(event.entryFee)} to reserve this event.`);
+          return { success: false, newConnections: [] };
+        }
+        
         // Check prestige requirement
         if (event.prestigeRequired > prestigeLevel) {
           toast.error(`You need prestige level ${event.prestigeRequired} to attend this event.`);
           return { success: false, newConnections: [] };
         }
         
-        // Check if player can afford the entry fee
-        if (character.wealth < event.entryFee) {
-          toast.error(`You need ${formatCurrency(event.entryFee)} to attend this event.`);
-          return { success: false, newConnections: [] };
-        }
-        
-        // Check if the event date has arrived (using game time)
+        // Get dates for comparison
         const eventDate = new Date(event.date);
         const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+        const daysUntil = Math.ceil((eventDate.getTime() - currentGameDate.getTime()) / (1000 * 60 * 60 * 24));
         
-        if (currentGameDate < eventDate) {
-          const daysUntil = Math.ceil((eventDate.getTime() - currentGameDate.getTime()) / (1000 * 60 * 60 * 24));
-          toast.error(`This event isn't happening yet. It's scheduled for ${daysUntil} days from now.`);
-          return { success: false, newConnections: [] };
+        // Handle reservation case
+        if (currentGameDate < eventDate && !event.reserved) {
+          // Reserve the event and charge the fee
+          character.addWealth(-event.entryFee);
+          
+          // Mark as reserved in our state
+          const updatedEvents = events.map(e => 
+            e.id === eventId
+              ? { ...e, reserved: true }
+              : e
+          );
+          
+          set({ events: updatedEvents });
+          
+          toast.success(`Event reserved! You'll attend "${event.name}" in ${daysUntil} days.`);
+          return { success: true, newConnections: [] };
         }
         
-        // Deduct entry fee
-        character.addWealth(-event.entryFee);
-        
-        // Enforce connection limit of 5
-        const MAX_CONNECTIONS = 5;
-        
-        // Calculate how many new connections to make based on event benefits AND the available network slots
-        const baseConnectionCount = event.benefits.potentialConnections;
-        const networkingBonus = Math.floor(get().networkingLevel / 20); // +1 per 20 levels
-        const potentialConnections = Math.min(5, baseConnectionCount + networkingBonus);
-        
-        // Check how many connection slots are available
-        const availableSlots = Math.max(0, MAX_CONNECTIONS - connections.length);
-        const actualConnectionCount = Math.min(availableSlots, potentialConnections);
-        
-        // Create new connections
-        const newConnections: SocialConnection[] = [];
-        const connectionTypes: ConnectionType[] = ['businessContact', 'investor', 'industry', 'mentor'];
-        
-        // Add possible celebrity or influencer for high-prestige events
-        if (event.prestigeRequired >= 10) {
-          connectionTypes.push('celebrity', 'influencer');
+        // Handle attendance case - both automatic (time reached) and manual attendance
+        if ((event.reserved && currentGameDate >= eventDate) || 
+            (!event.reserved && currentGameDate >= eventDate)) {
+          
+          // Charge entry fee if not already reserved
+          if (!event.reserved) {
+            character.addWealth(-event.entryFee);
+          }
+          
+          // Enforce connection limit of 5
+          const MAX_CONNECTIONS = 5;
+          
+          // Calculate how many new connections to make based on event benefits AND the available network slots
+          const baseConnectionCount = event.benefits.potentialConnections;
+          const networkingBonus = Math.floor(get().networkingLevel / 20); // +1 per 20 levels
+          const potentialConnections = Math.min(5, baseConnectionCount + networkingBonus);
+          
+          // Check how many connection slots are available
+          const availableSlots = Math.max(0, MAX_CONNECTIONS - connections.length);
+          const actualConnectionCount = Math.min(availableSlots, potentialConnections);
+          
+          // Create new connections
+          const newConnections: SocialConnection[] = [];
+          const connectionTypes: ConnectionType[] = ['businessContact', 'investor', 'industry', 'mentor'];
+          
+          // Add possible celebrity or influencer for high-prestige events
+          if (event.prestigeRequired >= 10) {
+            connectionTypes.push('celebrity', 'influencer');
+          }
+          
+          // Add possible rival (with lower chance)
+          if (Math.random() < 0.2) { // 20% chance
+            connectionTypes.push('rival');
+          }
+          
+          for (let i = 0; i < actualConnectionCount; i++) {
+            const type = getRandomElement(connectionTypes);
+            const newConnection = createRandomConnection(type);
+            newConnections.push(newConnection);
+          }
+          
+          // Mark event as attended and add new connections
+          const updatedEvents = events.map(e => 
+            e.id === eventId
+              ? { ...e, attended: true }
+              : e
+          );
+          
+          // Apply networking level increase based on event benefits
+          const networkingLevelBoost = Math.floor(event.benefits.networkingPotential / 10);
+          const newNetworkingLevel = Math.min(100, get().networkingLevel + networkingLevelBoost);
+          
+          // Apply social capital boost
+          const socialCapitalBoost = 20 + Math.floor(event.benefits.networkingPotential / 5);
+          
+          // Apply skill boost if applicable
+          if (event.benefits.skillBoost && event.benefits.skillBoostAmount) {
+            // Add wealth as a fallback if skill system isn't fully implemented
+            character.addWealth(event.benefits.skillBoostAmount * 500);
+            toast.success(`You gained valuable ${event.benefits.skillBoost} skills at the event worth ${formatCurrency(event.benefits.skillBoostAmount * 500)}!`);
+          }
+          
+          // Update state
+          set({ 
+            events: updatedEvents,
+            connections: [...connections, ...newConnections],
+            networkingLevel: newNetworkingLevel,
+            socialCapital: get().socialCapital + socialCapitalBoost,
+            lastNetworkingActivity: Date.now()
+          });
+          
+          // Show notification about connections gained, or if some were missed due to network capacity
+          if (potentialConnections > availableSlots) {
+            toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts! (Network at ${connections.length + newConnections.length}/${MAX_CONNECTIONS} capacity)`);
+          } else {
+            toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts!`);
+          }
+          
+          return { success: true, newConnections: newConnections };
         }
         
-        // Add possible rival (with lower chance)
-        if (Math.random() < 0.2) { // 20% chance
-          connectionTypes.push('rival');
-        }
-        
-        for (let i = 0; i < actualConnectionCount; i++) {
-          const type = getRandomElement(connectionTypes);
-          const newConnection = createRandomConnection(type);
-          newConnections.push(newConnection);
-        }
-        
-        // Mark event as attended and add new connections
-        const updatedEvents = events.map(e => 
-          e.id === eventId
-            ? { ...e, attended: true }
-            : e
-        );
-        
-        // Apply networking level increase based on event benefits
-        const networkingLevelBoost = Math.floor(event.benefits.networkingPotential / 10);
-        const newNetworkingLevel = Math.min(100, get().networkingLevel + networkingLevelBoost);
-        
-        // Apply social capital boost
-        const socialCapitalBoost = 20 + Math.floor(event.benefits.networkingPotential / 5);
-        
-        // Apply skill boost if applicable
-        if (event.benefits.skillBoost && event.benefits.skillBoostAmount) {
-          // Add wealth as a fallback if skill system isn't fully implemented
-          character.addWealth(event.benefits.skillBoostAmount * 500);
-          toast.success(`You gained valuable ${event.benefits.skillBoost} skills at the event worth ${formatCurrency(event.benefits.skillBoostAmount * 500)}!`);
-        }
-        
-        // Update state
-        set({ 
-          events: updatedEvents,
-          connections: [...connections, ...newConnections],
-          networkingLevel: newNetworkingLevel,
-          socialCapital: get().socialCapital + socialCapitalBoost,
-          lastNetworkingActivity: Date.now()
-        });
-        
-        // Show notification about connections gained, or if some were missed due to network capacity
-        if (potentialConnections > availableSlots) {
-          toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts! (Network at ${connections.length + newConnections.length}/${MAX_CONNECTIONS} capacity)`);
-        } else {
-          toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts!`);
-        }
-        
-        return { success: true, newConnections };
+        // Should not reach here - event is in the future and not reserved
+        toast.info(`This event is scheduled for ${daysUntil} days from now. You can reserve it now and attend when the date arrives.`);
+        return { success: false, newConnections: [] };
       },
       
       // Check for expired content (old events, expired benefits)
