@@ -19,6 +19,7 @@ import JobScreen from "./pages/JobScreen";
 import ChallengesScreen from "./pages/ChallengesScreen";
 import PrestigeScreen from "./pages/PrestigeScreen";
 import BusinessScreen from "./pages/BusinessScreen";
+import { NetworkingScreen } from "./pages/NetworkingScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
@@ -27,6 +28,9 @@ import { ActiveEventsIndicator } from "./components/ActiveEventsIndicator";
 import AchievementNotification from "./components/AchievementNotification";
 import { ChallengeNotificationManager } from "./components/ChallengeNotification";
 import { ChallengeTracker } from "./components/ChallengeTracker";
+import { NetworkTracker } from "./components/NetworkTracker";
+import { ConnectionNotificationManager } from "./components/ConnectionNotification";
+import { EventNotificationManager } from "./components/EventNotification";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
