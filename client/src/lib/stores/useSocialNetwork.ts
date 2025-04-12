@@ -335,6 +335,18 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
 const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
   charity: [
     {
+      name: "Local Charity Fun Run",
+      description: "A community event raising money for local causes. Perfect for beginners looking to network while supporting a good cause.",
+      prestigeRequired: 0,
+      entryFee: 100,
+      location: "City Park",
+      benefits: {
+        networkingPotential: 50,
+        reputationGain: 40,
+        potentialConnections: 1
+      }
+    },
+    {
       name: "Annual Children's Hospital Gala",
       description: "A black-tie fundraiser supporting the Children's Hospital. Attended by wealthy philanthropists and local celebrities.",
       prestigeRequired: 5,
@@ -755,9 +767,10 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
   const eligibleTemplates = templates.filter(t => (t.prestigeRequired || 0) <= prestigeLevel);
   
   // If no eligible templates, adjust the first template to match the prestige level
+  // Allow for prestigeLevel 0 (no stars) by removing the Math.max constraint
   const template = eligibleTemplates.length > 0 
     ? getRandomElement(eligibleTemplates) 
-    : { ...templates[0], prestigeRequired: Math.max(1, prestigeLevel - 2) };
+    : { ...templates[0], prestigeRequired: prestigeLevel > 0 ? Math.max(0, prestigeLevel - 2) : 0 };
   
   // Calculate event date (5-25 days in the future)
   // This spreads events better across the month rather than clustering them
@@ -775,7 +788,7 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
     type,
     date: eventDate,
     attendees: [],
-    prestigeRequired: template.prestigeRequired || 1,
+    prestigeRequired: template.prestigeRequired !== undefined ? template.prestigeRequired : 0, // Default to 0 instead of 1
     entryFee: template.entryFee || 1000,
     location: template.location || 'Convention Center',
     benefits: template.benefits || {
