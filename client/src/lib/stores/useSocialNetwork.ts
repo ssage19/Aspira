@@ -1616,10 +1616,39 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           }
         }
         
-        // Remove expired events
-        const updatedEvents = events.filter(event => 
-          !event.attended && event.availableUntil > now
-        );
+        // Keep track of events that are removed due to passing their date without reservation
+        const missedEvents: SocialEvent[] = [];
+        
+        // Remove expired events: both events that have passed their availableUntil time
+        // AND events whose scheduled date has passed without being reserved
+        const updatedEvents = events.filter(event => {
+          // Keep the event if it hasn't been attended yet AND has not expired
+          const notExpired = !event.attended && event.availableUntil > now;
+          
+          // If the event date has passed but it wasn't reserved, don't keep it
+          const scheduledDate = new Date(event.date);
+          const dateHasPassed = scheduledDate <= currentGameDate;
+          
+          // If date has passed and it's not reserved, we should remove it (return false)
+          if (dateHasPassed && !event.reserved) {
+            missedEvents.push(event); // Track missed events
+            return false;
+          }
+          
+          // Otherwise, apply the original filter condition
+          return notExpired;
+        });
+        
+        // Show a notification if any events were missed
+        if (missedEvents.length > 0) {
+          // Only show notification for the first missed event if multiple
+          const missedEvent = missedEvents[0];
+          if (missedEvents.length === 1) {
+            toast.info(`You missed the "${missedEvent.name}" event. It has been removed from your calendar.`);
+          } else {
+            toast.info(`You missed ${missedEvents.length} events, including "${missedEvent.name}". They have been removed from your calendar.`);
+          }
+        }
         
         // Process expired benefits
         const updatedConnections = connections.map(connection => {
