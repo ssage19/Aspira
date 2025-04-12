@@ -128,7 +128,7 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
           </div>
           
           {/* Action buttons */}
-          <div>
+          <div className="flex space-x-2">
             {pendingMeeting ? (
               <Button 
                 variant="default" 
@@ -148,6 +148,18 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
               >
                 <Calendar className="mr-1 h-4 w-4" />
                 Schedule Meeting
+              </Button>
+            )}
+            
+            {/* Remove connection button */}
+            {onRemove && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onRemove(id)}
+                className="flex items-center text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <UserMinus className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -514,6 +526,7 @@ export function SocialNetworking() {
     useBenefit,
     attendEvent,
     addConnection,
+    removeConnection,
     generateNewEvents
   } = useSocialNetwork();
   
@@ -746,6 +759,7 @@ export function SocialNetworking() {
                           onScheduleMeeting={handleScheduleMeeting}
                           onAttendMeeting={handleAttendMeeting}
                           onUseBenefit={handleOpenBenefitDialog}
+                          onRemove={removeConnection}
                         />
                       ))
                     }
@@ -763,6 +777,7 @@ export function SocialNetworking() {
                       onScheduleMeeting={handleScheduleMeeting}
                       onAttendMeeting={handleAttendMeeting}
                       onUseBenefit={handleOpenBenefitDialog}
+                      onRemove={removeConnection}
                     />
                   ))
                 }
