@@ -77,13 +77,15 @@ interface ConnectionCardProps {
   onScheduleMeeting: (id: string) => void;
   onAttendMeeting: (id: string) => void;
   onUseBenefit: (connectionId: string, benefitId: string) => void;
+  onRemove?: (id: string) => void; // Optional remove action
 }
 
 const ConnectionCard: React.FC<ConnectionCardProps> = ({ 
   connection, 
   onScheduleMeeting, 
   onAttendMeeting,
-  onUseBenefit
+  onUseBenefit,
+  onRemove
 }) => {
   const [expanded, setExpanded] = useState(false);
 

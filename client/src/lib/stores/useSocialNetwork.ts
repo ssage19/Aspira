@@ -798,6 +798,7 @@ interface SocialNetworkState {
   
   // Actions
   addConnection: (type: ConnectionType) => SocialConnection;
+  removeConnection: (connectionId: string) => boolean; // New method to remove connections
   addRandomConnections: (count?: number) => SocialConnection[];
   scheduleInteraction: (connectionId: string) => boolean;
   attendMeeting: (connectionId: string) => {success: boolean, benefit?: ConnectionBenefit};
@@ -844,6 +845,29 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         toast.success(`Added ${newConnection.name} to your network!`);
         return newConnection;
+      },
+      
+      // Remove a connection from your network
+      removeConnection: (connectionId: string) => {
+        const { connections } = get();
+        
+        // Find the connection to remove
+        const connection = connections.find(c => c.id === connectionId);
+        if (!connection) {
+          toast.error("Connection not found.");
+          return false;
+        }
+        
+        // Filter out the connection
+        const updatedConnections = connections.filter(c => c.id !== connectionId);
+        
+        // Update state
+        set({ 
+          connections: updatedConnections
+        });
+        
+        toast.success(`Removed ${connection.name} from your network.`);
+        return true;
       },
       
       // Schedule a meeting with a connection
@@ -1179,10 +1203,28 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         return newConnections;
       },
       
-      // Generate new social events
+      // Generate new social events (with maximum limit of 10 events)
       generateNewEvents: (count = 3) => {
         const { events } = get();
         const { level: prestigeLevel = 1 } = usePrestige.getState() || { level: 1 };
+        
+        // Enforce event limit of 10
+        const MAX_EVENTS = 10;
+        
+        // Calculate unattended events only (ones the player can still attend)
+        const unattendedEvents = events.filter(e => !e.attended);
+        
+        // Check if we're at the event limit
+        if (unattendedEvents.length >= MAX_EVENTS) {
+          toast.info(`Event calendar full (${MAX_EVENTS} max). Attend or wait for events to expire.`, {
+            duration: 5000
+          });
+          return [];
+        }
+        
+        // Calculate how many events we can still add
+        const availableSlots = MAX_EVENTS - unattendedEvents.length;
+        const actualCount = Math.min(availableSlots, count);
         
         // Event types weighted by frequency
         const eventTypeWeights: [SocialEvent['type'], number][] = [
@@ -1205,7 +1247,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         // Generate new events
         const newEvents: SocialEvent[] = [];
-        for (let i = 0; i < count; i++) {
+        for (let i = 0; i < actualCount; i++) {
           const eventType = getRandomElement(weightedTypes);
           const newEvent = createRandomEvent(eventType, prestigeLevel);
           newEvents.push(newEvent);
@@ -1213,8 +1255,12 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         set({ events: [...events, ...newEvents] });
         
-        // We no longer need toast notifications here since the EventNotificationManager handles this
-        // The EventNotificationManager will show each new event with a proper UI card
+        // Show notification about event limit if we couldn't add all requested events
+        if (actualCount < count) {
+          toast.info(`Added ${actualCount} events. Calendar limit is ${MAX_EVENTS} events.`, {
+            duration: 5000
+          });
+        }
         
         return newEvents;
       },
@@ -1247,10 +1293,17 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         // Deduct entry fee
         character.addWealth(-event.entryFee);
         
-        // Calculate how many new connections to make based on event benefits
+        // Enforce connection limit of 5
+        const MAX_CONNECTIONS = 5;
+        
+        // Calculate how many new connections to make based on event benefits AND the available network slots
         const baseConnectionCount = event.benefits.potentialConnections;
         const networkingBonus = Math.floor(get().networkingLevel / 20); // +1 per 20 levels
-        const actualConnectionCount = Math.min(5, baseConnectionCount + networkingBonus);
+        const potentialConnections = Math.min(5, baseConnectionCount + networkingBonus);
+        
+        // Check how many connection slots are available
+        const availableSlots = Math.max(0, MAX_CONNECTIONS - connections.length);
+        const actualConnectionCount = Math.min(availableSlots, potentialConnections);
         
         // Create new connections
         const newConnections: SocialConnection[] = [];
@@ -1301,7 +1354,12 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           lastNetworkingActivity: Date.now()
         });
         
-        toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts!`);
+        // Show notification about connections gained, or if some were missed due to network capacity
+        if (potentialConnections > availableSlots) {
+          toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts! (Network at ${connections.length + newConnections.length}/${MAX_CONNECTIONS} capacity)`);
+        } else {
+          toast.success(`You attended ${event.name} and met ${newConnections.length} new contacts!`);
+        }
         
         return { success: true, newConnections };
       },
