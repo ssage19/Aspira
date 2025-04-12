@@ -202,6 +202,20 @@ export const useTime = create<TimeState>()(
         // Save to local storage
         setLocalStorage(STORAGE_KEY, newState);
         
+        // Process events when the day advances - execute this outside of setState to avoid issues
+        try {
+          // We need to wait until after the state is updated before processing events
+          setTimeout(() => {
+            // Import dynamically to avoid circular dependencies
+            const { default: useSocialNetwork } = require('./useSocialNetwork');
+            if (useSocialNetwork && useSocialNetwork.getState) {
+              useSocialNetwork.getState().checkForExpiredContent();
+            }
+          }, 0);
+        } catch (error) {
+          console.error("Error processing social network events:", error);
+        }
+        
         return newState;
       }),
       

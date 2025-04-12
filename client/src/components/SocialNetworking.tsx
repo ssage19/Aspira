@@ -568,14 +568,23 @@ export function SocialNetworking() {
     attendMeeting,
     useBenefit,
     attendEvent,
+    reserveEvent,
     addConnection,
     removeConnection,
     removeEvent,
-    generateNewEvents
+    generateNewEvents,
+    checkForExpiredContent
   } = useSocialNetwork();
   
   const { wealth } = useCharacter();
   const { level: prestigeLevel = 1 } = usePrestige.getState() || { level: 1 };
+  const { currentDay, currentMonth, currentYear } = useTime.getState();
+  
+  // Check for reserved events that are due when this component mounts or is revisited
+  useEffect(() => {
+    // Run the check for expired/due content
+    checkForExpiredContent();
+  }, [checkForExpiredContent, currentDay, currentMonth, currentYear]);
   
   // Local state for dialog controls
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
