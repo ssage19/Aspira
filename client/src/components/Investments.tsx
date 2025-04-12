@@ -54,6 +54,7 @@ export function Investments() {
   // UI state for buy/sell dialogs and actions
   const [activeTab, setActiveTab] = useState('stocks');
   const [showSellDialog, setShowSellDialog] = useState(false);
+  const [openBuySellPanels, setOpenBuySellPanels] = useState<Record<string, boolean>>({});
 
   // Check if market is open (function set by MarketPriceUpdater)
   const isMarketOpen = () => {
@@ -1623,39 +1624,122 @@ export function Investments() {
                                   <span className="text-muted-foreground">
                                     Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
                                   </span>
-                                  <div className="flex space-x-1">
+                                  <div>
                                     <button 
                                       onClick={(e) => {
                                         e.stopPropagation();
+                                        // Show the buy/sell panel for this stock
+                                        setOpenBuySellPanels(prev => {
+                                          // Close all others, open just this one
+                                          const newState = {...prev};
+                                          Object.keys(newState).forEach(key => {
+                                            newState[key] = false;
+                                          });
+                                          newState[asset.id] = true;
+                                          return newState;
+                                        });
+                                        
                                         const stockData = expandedStockMarket.find(s => s.id === asset.id);
                                         if (stockData) {
                                           setSelectedStock(stockData);
                                           setBuyMode('shares');
-                                          // Initialize with 10% of current quantity for buying more
+                                          // Initialize with a reasonable quantity
                                           setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.1)));
                                         }
                                       }}
-                                      className="px-2 py-0.5 bg-accessible-green/10 text-accessible-green rounded hover:bg-accessible-green/20 transition-colors"
+                                      className="px-2 py-0.5 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
                                     >
-                                      Buy
-                                    </button>
-                                    <button 
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                                        if (stockData) {
-                                          setSelectedStock(stockData);
-                                          setBuyMode('shares');
-                                          // Initialize with 50% of current quantity for selling
-                                          setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.5)));
-                                        }
-                                      }}
-                                      className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
-                                    >
-                                      Sell
+                                      Trade
                                     </button>
                                   </div>
                                 </div>
+                                
+                                {/* Expandable Buy/Sell Panel */}
+                                {openBuySellPanels[asset.id] && (
+                                  <div className="mt-3 p-3 bg-background rounded-md border border-border animate-in fade-in duration-200">
+                                    <div className="grid grid-cols-2 gap-4 mb-3">
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Current Price</p>
+                                        <p className="font-semibold">${currentPrice.toFixed(2)}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Owned Value</p>
+                                        <p className="font-semibold">{formatCurrency(asset.quantity * currentPrice)}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-2 items-end">
+                                      <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-1">Amount to Buy/Sell:</p>
+                                        <input 
+                                          type="number"
+                                          className="w-full p-2 bg-muted border border-border rounded"
+                                          value={shareQuantity}
+                                          min={0.01}
+                                          max={asset.quantity > 0 ? asset.quantity : undefined}
+                                          step={0.01}
+                                          onChange={(e) => {
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value) && value > 0) {
+                                              setShareQuantity(value);
+                                            } else {
+                                              setShareQuantity(0);
+                                            }
+                                          }}
+                                        />
+                                        <p className="text-xs text-right mt-1">
+                                          {stock.symbol} &nbsp;•&nbsp; Cost: {formatCurrency(shareQuantity * currentPrice)}
+                                        </p>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                          variant="default"
+                                          className="bg-accessible-green hover:bg-accessible-green/90 p-2 h-auto"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Set up for buying
+                                            if (shareQuantity <= 0) return;
+                                            
+                                            const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                            if (stockData) {
+                                              setSelectedStock(stockData);
+                                              setBuyMode('shares');
+                                              handleBuy();
+                                            }
+                                            
+                                            // Close the panel after action
+                                            setOpenBuySellPanels(prev => ({...prev, [asset.id]: false}));
+                                          }}
+                                          disabled={shareQuantity <= 0 || shareQuantity * currentPrice > wealth}
+                                        >
+                                          Buy
+                                        </Button>
+                                        <Button
+                                          variant="default"
+                                          className="bg-accessible-red hover:bg-accessible-red/90 p-2 h-auto"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Set up for selling
+                                            if (shareQuantity <= 0 || shareQuantity > asset.quantity) return;
+                                            
+                                            const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                            if (stockData) {
+                                              setSelectedStock(stockData);
+                                              setBuyMode('shares');
+                                              handleSell();
+                                            }
+                                            
+                                            // Close the panel after action
+                                            setOpenBuySellPanels(prev => ({...prev, [asset.id]: false}));
+                                          }}
+                                          disabled={shareQuantity <= 0 || shareQuantity > asset.quantity}
+                                        >
+                                          Sell
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             );
                           })
@@ -1760,21 +1844,111 @@ export function Investments() {
                                   <span className="text-muted-foreground">
                                     Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
                                   </span>
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      // Set selected crypto and amount for selling
-                                      const cryptoData = cryptoCurrencies.find(c => c.id === asset.id);
-                                      if (cryptoData) {
-                                        setSelectedCrypto(cryptoData);
-                                        setCryptoAmount(asset.quantity);
-                                      }
-                                    }}
-                                    className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
-                                  >
-                                    Sell
-                                  </button>
+                                  <div>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        // Show the buy/sell panel for this crypto
+                                        setOpenBuySellPanels(prev => {
+                                          // Close all others, open just this one
+                                          const newState = {...prev};
+                                          Object.keys(newState).forEach(key => {
+                                            newState[key] = false;
+                                          });
+                                          newState[asset.id] = true;
+                                          return newState;
+                                        });
+                                        
+                                        const cryptoData = cryptoCurrencies.find(c => c.id === asset.id);
+                                        if (cryptoData) {
+                                          setSelectedCrypto(cryptoData);
+                                          // Initialize with a reasonable quantity
+                                          setCryptoAmount(Math.max(0.01, asset.quantity * 0.1));
+                                        }
+                                      }}
+                                      className="px-2 py-0.5 bg-primary/10 text-primary rounded hover:bg-primary/20 transition-colors"
+                                    >
+                                      Trade
+                                    </button>
+                                  </div>
                                 </div>
+                                
+                                {/* Expandable Buy/Sell Panel */}
+                                {openBuySellPanels[asset.id] && (
+                                  <div className="mt-3 p-3 bg-background rounded-md border border-border animate-in fade-in duration-200">
+                                    <div className="grid grid-cols-2 gap-4 mb-3">
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Current Price</p>
+                                        <p className="font-semibold">${currentPrice.toFixed(2)}</p>
+                                      </div>
+                                      <div>
+                                        <p className="text-xs text-muted-foreground mb-1">Owned Value</p>
+                                        <p className="font-semibold">{formatCurrency(asset.quantity * currentPrice)}</p>
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-3 gap-2 items-end">
+                                      <div className="col-span-2">
+                                        <p className="text-xs text-muted-foreground mb-1">Amount to Buy/Sell:</p>
+                                        <input 
+                                          type="number"
+                                          className="w-full p-2 bg-muted border border-border rounded"
+                                          value={cryptoAmount}
+                                          min={0.01}
+                                          max={asset.quantity > 0 ? asset.quantity : undefined}
+                                          step={0.01}
+                                          onChange={(e) => {
+                                            const value = parseFloat(e.target.value);
+                                            if (!isNaN(value) && value > 0) {
+                                              setCryptoAmount(value);
+                                            } else {
+                                              setCryptoAmount(0);
+                                            }
+                                          }}
+                                        />
+                                        <p className="text-xs text-right mt-1">
+                                          {crypto.symbol} &nbsp;•&nbsp; Cost: {formatCurrency(cryptoAmount * currentPrice)}
+                                        </p>
+                                      </div>
+                                      <div className="grid grid-cols-2 gap-2">
+                                        <Button
+                                          variant="default"
+                                          className="bg-accessible-green hover:bg-accessible-green/90 p-2 h-auto"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Set up for buying
+                                            if (cryptoAmount <= 0) return;
+                                            
+                                            handleBuyCrypto();
+                                            
+                                            // Close the panel after action
+                                            setOpenBuySellPanels(prev => ({...prev, [asset.id]: false}));
+                                          }}
+                                          disabled={cryptoAmount <= 0 || cryptoAmount * currentPrice > wealth}
+                                        >
+                                          Buy
+                                        </Button>
+                                        <Button
+                                          variant="default"
+                                          className="bg-accessible-red hover:bg-accessible-red/90 p-2 h-auto"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Set up for selling
+                                            if (cryptoAmount <= 0 || cryptoAmount > asset.quantity) return;
+                                            
+                                            handleSellCrypto();
+                                            
+                                            // Close the panel after action
+                                            setOpenBuySellPanels(prev => ({...prev, [asset.id]: false}));
+                                          }}
+                                          disabled={cryptoAmount <= 0 || cryptoAmount > asset.quantity}
+                                        >
+                                          Sell
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             );
                           })
