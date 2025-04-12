@@ -105,6 +105,23 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
     influenceLevel,
     businessSuccessLevel
   } = connection;
+  
+  // Calculate meeting cost based on connection type and status
+  const baseInteractionCost = 10;
+  const typeMultiplier = 
+    type === 'celebrity' ? 3.0 :
+    type === 'investor' ? 2.5 :
+    type === 'mentor' ? 2.0 :
+    1.0;
+  
+  const statusMultiplier =
+    status === 'close' ? 0.7 : // Closer connections are easier to meet
+    status === 'friend' ? 0.8 :
+    status === 'associate' ? 1.0 :
+    status === 'contact' ? 1.2 :
+    1.5; // Acquaintances are hardest to meet
+  
+  const meetingCost = Math.round(baseInteractionCost * typeMultiplier * statusMultiplier);
 
   // Get unused benefits
   const unusedBenefits = benefits.filter(b => !b.used);
@@ -140,15 +157,27 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
                 Meet Now
               </Button>
             ) : (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => onScheduleMeeting(id)}
-                className="flex items-center"
-              >
-                <Calendar className="mr-1 h-4 w-4" />
-                Schedule Meeting
-              </Button>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => onScheduleMeeting(id)}
+                      className="flex items-center"
+                    >
+                      <Calendar className="mr-1 h-4 w-4" />
+                      <span>Schedule</span>
+                      <MessageCircle className="ml-1 h-3 w-3" />
+                      <span className="ml-1 text-xs">{meetingCost}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom">
+                    <p>Cost: {meetingCost} social capital</p>
+                    <p className="text-xs text-muted-foreground">Better relationships → Lower costs</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             
             {/* Remove connection button */}
@@ -556,8 +585,29 @@ export function SocialNetworking() {
   
   // Handler functions
   const handleScheduleMeeting = (connectionId: string) => {
-    if (socialCapital < 10) {
-      toast.error("You need more social capital to schedule this meeting.");
+    // Find the connection to get its meeting cost
+    const connection = connections.find(c => c.id === connectionId);
+    if (!connection) return;
+    
+    // Calculate the meeting cost (same formula as in the ConnectionCard and useSocialNetwork store)
+    const baseInteractionCost = 10;
+    const typeMultiplier = 
+      connection.type === 'celebrity' ? 3.0 :
+      connection.type === 'investor' ? 2.5 :
+      connection.type === 'mentor' ? 2.0 :
+      1.0;
+    
+    const statusMultiplier =
+      connection.status === 'close' ? 0.7 : // Closer connections are easier to meet
+      connection.status === 'friend' ? 0.8 :
+      connection.status === 'associate' ? 1.0 :
+      connection.status === 'contact' ? 1.2 :
+      1.5; // Acquaintances are hardest to meet
+    
+    const meetingCost = Math.round(baseInteractionCost * typeMultiplier * statusMultiplier);
+    
+    if (socialCapital < meetingCost) {
+      toast.error(`You need ${meetingCost} social capital to schedule this meeting.`);
       return;
     }
     

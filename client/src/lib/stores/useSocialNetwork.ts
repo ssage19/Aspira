@@ -904,10 +904,17 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           return false;
         }
         
-        // Update connection
+        // Calculate relationship increase for scheduling
+        const scheduleRelationshipIncrease = 2; // Small increase just for scheduling
+        
+        // Update connection - increase relationship and set pending meeting
         const updatedConnections = connections.map(c => 
           c.id === connectionId
-            ? { ...c, pendingMeeting: true }
+            ? { 
+                ...c, 
+                pendingMeeting: true,
+                relationshipLevel: Math.min(100, c.relationshipLevel + scheduleRelationshipIncrease)
+              }
             : c
         );
         
