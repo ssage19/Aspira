@@ -314,8 +314,12 @@ const EventCard: React.FC<EventCardProps> = ({
   // Format event date
   const formattedDate = formatDate(new Date(event.date));
   
-  // Calculate days remaining
-  const daysRemaining = Math.ceil((event.date - Date.now()) / (1000 * 60 * 60 * 24));
+  // Get current game time
+  const { currentGameDate } = useTime.getState();
+  const gameTime = currentGameDate.getTime();
+  
+  // Calculate days remaining based on game time, not real-world time
+  const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
   
   // Check if this is a future event (>0 days) or today's event (0 days)
   const isFutureEvent = daysRemaining > 0;
@@ -508,8 +512,12 @@ const ConfirmEventDialog: React.FC<ConfirmEventDialogProps> = ({
 }) => {
   if (!event) return null;
   
-  // Calculate if this is a future event
-  const daysRemaining = Math.ceil((event.date - Date.now()) / (1000 * 60 * 60 * 24));
+  // Calculate if this is a future event using game time
+  const { currentGameDate } = useTime.getState();
+  const gameTime = currentGameDate.getTime();
+  
+  // Calculate days remaining based on game time, not real-world time
+  const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
   const isFutureEvent = daysRemaining > 0;
   
   return (
