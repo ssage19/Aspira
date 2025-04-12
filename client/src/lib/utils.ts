@@ -528,6 +528,14 @@ export const performCompleteGameReset = () => {
  * @param currency The currency code (default: USD)
  * @returns Formatted currency string with no decimal places
  */
+export const formatDate = (date: Date): string => {
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+};
+
 export const formatCurrency = (amount: number, currency: string = 'USD'): string => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',

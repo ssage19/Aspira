@@ -171,8 +171,8 @@ export const usePrestige = create<PrestigeState>()(
         sessionStorage.setItem('redirect_after_reset', '/create');
         
         // Trigger game reset in character store
-        if (character.resetCharacterState) {
-          await character.resetCharacterState();
+        if (character.resetCharacter) {
+          await character.resetCharacter();
           
           // Show success message
           toast.success(`Reset successful! You gained ${newPoints} prestige points.`);
