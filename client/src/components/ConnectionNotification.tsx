@@ -129,11 +129,11 @@ export function ConnectionNotificationManager() {
   // Handle viewing connection details
   const handleViewConnection = () => {
     if (notification) {
-      // Navigate to the networking screen (this would need to be implemented)
+      // Navigate to the networking screen
       console.log(`Viewing connection: ${notification.name}`);
       
-      // You might want to navigate to the connections tab of the social networking screen here
-      // history.push('/networking?tab=connections');
+      // Use the window.location to ensure navigation happens
+      window.location.href = '/networking';
     }
   };
 

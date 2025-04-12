@@ -127,11 +127,11 @@ export function EventNotificationManager() {
   // Handle viewing event details
   const handleViewEvent = () => {
     if (notification) {
-      // Navigate to the networking screen (this would need to be implemented)
+      // Navigate to the networking screen
       console.log(`Viewing event: ${notification.name}`);
       
-      // You might want to navigate to the events tab of the social networking screen here
-      // history.push('/networking?tab=events');
+      // Use window.location for direct navigation
+      window.location.href = '/networking';
     }
   };
 

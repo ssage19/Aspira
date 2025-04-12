@@ -26,9 +26,10 @@ export function NetworkTracker() {
     // This provides a daily amount of social capital for the player
     regenerateSocialCapital();
     
-    // 25% chance to generate a new event each day
-    const shouldGenerateEvent = Math.random() < 0.25;
+    // 15% chance to generate a new event each day (reduced from 25% to avoid overwhelming the player)
+    const shouldGenerateEvent = Math.random() < 0.15;
     if (shouldGenerateEvent) {
+      // Limit to 1 event at a time
       generateNewEvents(1);
     }
   }, [currentDay, currentMonth, currentYear, regenerateSocialCapital, generateNewEvents]);
