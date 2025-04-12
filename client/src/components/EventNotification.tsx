@@ -4,6 +4,7 @@ import { X, Calendar, Star, DollarSign } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../lib/utils';
+import useGame from '../lib/stores/useGame';
 
 interface EventNotificationProps {
   event: SocialEvent;
@@ -100,6 +101,7 @@ export function EventNotification({ event, onClose, onView }: EventNotificationP
 
 export function EventNotificationManager() {
   const { events } = useSocialNetwork();
+  const { phase } = useGame();
   const [notification, setNotification] = useState<SocialEvent | null>(null);
   
   // Track when the user first sees events by storing timestamp
