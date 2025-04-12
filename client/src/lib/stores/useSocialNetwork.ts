@@ -1396,6 +1396,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         const { events, connections } = get();
         const character = useCharacter.getState();
         const { level: prestigeLevel = 1 } = usePrestige.getState() || { level: 1 };
+        const { currentDay, currentMonth, currentYear } = useTime.getState();
         
         // Find the event
         const event = events.find(e => e.id === eventId);
@@ -1413,6 +1414,16 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         // Check if player can afford the entry fee
         if (character.wealth < event.entryFee) {
           toast.error(`You need ${formatCurrency(event.entryFee)} to attend this event.`);
+          return { success: false, newConnections: [] };
+        }
+        
+        // Check if the event date has arrived (using game time)
+        const eventDate = new Date(event.date);
+        const currentGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+        
+        if (currentGameDate < eventDate) {
+          const daysUntil = Math.ceil((eventDate.getTime() - currentGameDate.getTime()) / (1000 * 60 * 60 * 24));
+          toast.error(`This event isn't happening yet. It's scheduled for ${daysUntil} days from now.`);
           return { success: false, newConnections: [] };
         }
         
@@ -1466,9 +1477,10 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         const socialCapitalBoost = 20 + Math.floor(event.benefits.networkingPotential / 5);
         
         // Apply skill boost if applicable
-        if (event.benefits.skillBoost && event.benefits.skillBoostAmount && character.addSkillPoints) {
-          character.addSkillPoints(event.benefits.skillBoostAmount);
-          toast.success(`You gained ${event.benefits.skillBoostAmount} ${event.benefits.skillBoost} skill points at the event!`);
+        if (event.benefits.skillBoost && event.benefits.skillBoostAmount) {
+          // Add wealth as a fallback if skill system isn't fully implemented
+          character.addWealth(event.benefits.skillBoostAmount * 500);
+          toast.success(`You gained valuable ${event.benefits.skillBoost} skills at the event worth ${formatCurrency(event.benefits.skillBoostAmount * 500)}!`);
         }
         
         // Update state
