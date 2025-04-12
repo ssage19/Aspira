@@ -895,6 +895,7 @@ interface SocialNetworkState {
   attendMeeting: (connectionId: string) => {success: boolean, benefit?: ConnectionBenefit};
   useBenefit: (connectionId: string, benefitId: string) => boolean;
   generateNewEvents: (count?: number) => SocialEvent[];
+  removeEvent: (eventId: string) => boolean; // New method to remove/cancel events
   attendEvent: (eventId: string) => {success: boolean, newConnections: SocialConnection[]};
   checkForExpiredContent: () => void;
   regenerateSocialCapital: (isMonthlyBoost?: boolean) => void;
@@ -958,6 +959,33 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         });
         
         toast.success(`Removed ${connection.name} from your network.`);
+        return true;
+      },
+      
+      // Remove/cancel an event
+      removeEvent: (eventId: string) => {
+        const { events } = get();
+        
+        // Find the event to remove
+        const event = events.find(e => e.id === eventId);
+        if (!event) {
+          toast.error("Event not found.");
+          return false;
+        }
+        
+        // Don't allow removing already attended events
+        if (event.attended) {
+          toast.error("Cannot remove an event you've already attended.");
+          return false;
+        }
+        
+        // Filter out the event
+        const updatedEvents = events.filter(e => e.id !== eventId);
+        
+        // Update state
+        set({ events: updatedEvents });
+        
+        toast.success(`Removed "${event.name}" from your calendar.`);
         return true;
       },
       
@@ -1314,7 +1342,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         // Check if we're at the event limit
         if (unattendedEvents.length >= MAX_EVENTS) {
-          toast.info(`Event calendar full (${MAX_EVENTS} max). Attend or wait for events to expire.`, {
+          toast.info(`Event calendar full (${MAX_EVENTS} max). Cancel events or wait for them to expire.`, {
             duration: 5000
           });
           return [];
