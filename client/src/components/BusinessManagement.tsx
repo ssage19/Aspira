@@ -446,7 +446,7 @@ const HireEmployeeDialog: React.FC<HireEmployeeDialogProps> = ({
       'Marketing Specialist': 4500,
       
       // Creative
-      'Designer': 5500,
+      'Creative Designer': 5500,
       'Creative Director': 9000,
       'Copywriter': 4500,
       'Artist': 4000,

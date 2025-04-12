@@ -425,6 +425,16 @@ export default function ReliableDashboard() {
                     <Star className="h-5 w-5 mb-2 text-purple-500" />
                     Prestige
                   </Button>
+
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-green-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/business')}
+                  >
+                    <Briefcase className="h-5 w-5 mb-2 text-green-500" />
+                    Business
+                  </Button>
                 </div>
               </TabsContent>
               
