@@ -18,6 +18,7 @@ import AchievementsScreen from "./pages/AchievementsScreen";
 import JobScreen from "./pages/JobScreen";
 import ChallengesScreen from "./pages/ChallengesScreen";
 import PrestigeScreen from "./pages/PrestigeScreen";
+import BusinessScreen from "./pages/BusinessScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
@@ -286,6 +287,7 @@ function App() {
                 <Route path="/achievements" element={<AchievementsScreen />} />
                 <Route path="/challenges" element={<ChallengesScreen />} />
                 <Route path="/prestige" element={<PrestigeScreen />} />
+                <Route path="/business" element={<BusinessScreen />} />
                 <Route path="/test" element={<TestPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
