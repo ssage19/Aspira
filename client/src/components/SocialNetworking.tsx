@@ -296,13 +296,15 @@ interface EventCardProps {
   canAfford: boolean;
   canAttend: boolean;
   onAttend: (id: string) => void;
+  onRemove: (id: string) => void;
 }
 
 const EventCard: React.FC<EventCardProps> = ({ 
   event, 
   canAfford, 
   canAttend,
-  onAttend 
+  onAttend,
+  onRemove
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   
@@ -389,26 +391,38 @@ const EventCard: React.FC<EventCardProps> = ({
               {daysRemaining} days remaining
             </div>
             
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div>
-                    <Button
-                      variant="default"
-                      disabled={!canAttend || !canAfford}
-                      onClick={() => onAttend(event.id)}
-                    >
-                      Attend Event
-                    </Button>
-                  </div>
-                </TooltipTrigger>
-                {(!canAttend || !canAfford) && (
-                  <TooltipContent>
-                    {!canAttend ? `You need prestige level ${event.prestigeRequired} to attend` : `You need ${formatCurrency(event.entryFee)} to attend`}
-                  </TooltipContent>
-                )}
-              </Tooltip>
-            </TooltipProvider>
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-destructive border-destructive hover:bg-destructive/10"
+                onClick={() => onRemove(event.id)}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Cancel
+              </Button>
+              
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div>
+                      <Button
+                        variant="default"
+                        disabled={!canAttend || !canAfford}
+                        onClick={() => onAttend(event.id)}
+                      >
+                        Attend Event
+                      </Button>
+                    </div>
+                  </TooltipTrigger>
+                  {(!canAttend || !canAfford) && (
+                    <TooltipContent>
+                      {!canAttend ? `You need prestige level ${event.prestigeRequired} to attend` : `You need ${formatCurrency(event.entryFee)} to attend`}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </div>
       </CardFooter>
@@ -556,6 +570,7 @@ export function SocialNetworking() {
     attendEvent,
     addConnection,
     removeConnection,
+    removeEvent,
     generateNewEvents
   } = useSocialNetwork();
   
