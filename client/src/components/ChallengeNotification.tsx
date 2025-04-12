@@ -4,6 +4,7 @@ import { useChallenges, Challenge } from '../lib/stores/useChallenges';
 import { Button } from './ui/button';
 import { Progress } from './ui/progress';
 import { X } from 'lucide-react';
+import { useGame } from '../lib/stores/useGame';
 
 interface ChallengeNotificationProps {
   challenge: Challenge;
@@ -60,12 +61,14 @@ export function ChallengeNotification({ challenge, onClose }: ChallengeNotificat
 
 export function ChallengeNotificationManager() {
   const { activeChallenges, completedChallenges } = useChallenges();
+  const { phase } = useGame();
   const [shownCompletions, setShownCompletions] = useState<string[]>([]);
   const [shownStarts, setShownStarts] = useState<string[]>([]);
   
   // Track and notify of newly active challenges
   useEffect(() => {
-    if (activeChallenges.length === 0) return;
+    // Don't show notifications during character creation
+    if (activeChallenges.length === 0 || phase !== "playing") return;
     
     // Check for newly activated challenges
     activeChallenges.forEach(challenge => {
@@ -82,11 +85,12 @@ export function ChallengeNotificationManager() {
         setShownStarts(prev => [...prev, challenge.id]);
       }
     });
-  }, [activeChallenges, shownStarts]);
+  }, [activeChallenges, shownStarts, phase]);
   
   // Track and notify of newly completed challenges
   useEffect(() => {
-    if (completedChallenges.length === 0) return;
+    // Don't show notifications during character creation
+    if (completedChallenges.length === 0 || phase !== "playing") return;
     
     // Check for newly completed challenges
     completedChallenges.forEach(challenge => {
@@ -103,7 +107,7 @@ export function ChallengeNotificationManager() {
         setShownCompletions(prev => [...prev, challenge.id]);
       }
     });
-  }, [completedChallenges, shownCompletions]);
+  }, [completedChallenges, shownCompletions, phase]);
   
   return null; // This component doesn't render anything
 }
