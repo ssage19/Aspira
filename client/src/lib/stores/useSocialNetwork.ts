@@ -79,11 +79,28 @@ export interface SocialConnection {
 }
 
 // Social event interface
+export type EventType = 
+  'charity' | 
+  'business' | 
+  'gala' | 
+  'conference' | 
+  'club' | 
+  'party' | 
+  'networking' | 
+  'workshop' | 
+  'seminar' | 
+  'award' | 
+  'product_launch' | 
+  'trade_show' | 
+  'retreat' | 
+  'vip_dinner' | 
+  'sporting_event';
+
 export interface SocialEvent {
   id: string;
   name: string;
   description: string;
-  type: 'charity' | 'business' | 'gala' | 'conference' | 'club' | 'party' | 'networking';
+  type: EventType;
   date: number; // When the event will occur
   attendees: string[]; // IDs of connections who will attend
   prestigeRequired: number; // Minimum prestige level to attend
@@ -333,7 +350,7 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
 };
 
 // Templates for different types of social events
-const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
+const eventTemplates: Record<EventType, Partial<SocialEvent>[]> = {
   charity: [
     {
       name: "Local Charity Fun Run",
@@ -707,6 +724,446 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
         potentialConnections: 3,
         skillBoost: "innovation",
         skillBoostAmount: 6
+      }
+    }
+  ],
+  workshop: [
+    {
+      name: "Community Financial Literacy Workshop",
+      description: "A free workshop teaching basic financial concepts to community members. A great opportunity to network with people interested in improving their financial knowledge.",
+      prestigeRequired: 0,
+      entryFee: 0,
+      location: "Community Center",
+      benefits: {
+        networkingPotential: 40,
+        reputationGain: 30,
+        potentialConnections: 1,
+        skillBoost: "finance",
+        skillBoostAmount: 5
+      }
+    },
+    {
+      name: "Advanced Investing Strategies Workshop",
+      description: "A focused workshop led by top investment professionals sharing advanced techniques for portfolio management.",
+      prestigeRequired: 5,
+      entryFee: 1000,
+      location: "Financial District Learning Center",
+      benefits: {
+        networkingPotential: 75,
+        reputationGain: 50,
+        potentialConnections: 2,
+        skillBoost: "investing",
+        skillBoostAmount: 12
+      }
+    },
+    {
+      name: "Executive Leadership Workshop",
+      description: "An intensive two-day program focused on leadership skills for C-suite executives and aspiring leaders.",
+      prestigeRequired: 10,
+      entryFee: 5000,
+      location: "Executive Training Institute",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 70,
+        potentialConnections: 3,
+        skillBoost: "leadership",
+        skillBoostAmount: 15
+      }
+    },
+    {
+      name: "Negotiation Mastery Workshop",
+      description: "Learn advanced negotiation techniques from experienced business negotiators who have closed multi-million dollar deals.",
+      prestigeRequired: 7,
+      entryFee: 3000,
+      location: "Business School Executive Education Center",
+      benefits: {
+        networkingPotential: 70,
+        reputationGain: 60,
+        potentialConnections: 2,
+        skillBoost: "negotiation",
+        skillBoostAmount: 10
+      }
+    }
+  ],
+  seminar: [
+    {
+      name: "First-Time Entrepreneur Seminar",
+      description: "A beginner-friendly seminar covering the basics of starting your first business, with networking opportunities afterward.",
+      prestigeRequired: 0,
+      entryFee: 50,
+      location: "Small Business Development Center",
+      benefits: {
+        networkingPotential: 50,
+        reputationGain: 30,
+        potentialConnections: 1,
+        skillBoost: "entrepreneurship",
+        skillBoostAmount: 4
+      }
+    },
+    {
+      name: "Wealth Management Strategies Seminar",
+      description: "A comprehensive overview of advanced wealth preservation and growth strategies for high-net-worth individuals.",
+      prestigeRequired: 12,
+      entryFee: 7500,
+      location: "Luxury Hotel Ballroom",
+      benefits: {
+        networkingPotential: 90,
+        reputationGain: 75,
+        potentialConnections: 3,
+        skillBoost: "wealth_management",
+        skillBoostAmount: 12
+      }
+    },
+    {
+      name: "Commercial Real Estate Investment Seminar",
+      description: "A detailed exploration of commercial real estate opportunities, featuring industry experts and property developers.",
+      prestigeRequired: 8,
+      entryFee: 4000,
+      location: "Real Estate Investors Association",
+      benefits: {
+        networkingPotential: 80,
+        reputationGain: 60,
+        potentialConnections: 2,
+        skillBoost: "realestate",
+        skillBoostAmount: 10
+      }
+    },
+    {
+      name: "Digital Marketing Excellence Seminar",
+      description: "An in-depth seminar on cutting-edge digital marketing strategies to help grow your business online.",
+      prestigeRequired: 5,
+      entryFee: 2000,
+      location: "Digital Marketing Academy",
+      benefits: {
+        networkingPotential: 70,
+        reputationGain: 50,
+        potentialConnections: 2,
+        skillBoost: "marketing",
+        skillBoostAmount: 8
+      }
+    }
+  ],
+  award: [
+    {
+      name: "Community Small Business Recognition",
+      description: "A modest ceremony recognizing local small businesses for their contributions to the community.",
+      prestigeRequired: 0,
+      entryFee: 75,
+      location: "Town Hall",
+      benefits: {
+        networkingPotential: 45,
+        reputationGain: 40,
+        potentialConnections: 1
+      }
+    },
+    {
+      name: "Global Innovation Awards",
+      description: "A prestigious ceremony recognizing breakthrough innovations across multiple industries, attended by tech leaders and venture capitalists.",
+      prestigeRequired: 15,
+      entryFee: 10000,
+      location: "Grand Convention Center",
+      benefits: {
+        networkingPotential: 95,
+        reputationGain: 90,
+        potentialConnections: 4
+      }
+    },
+    {
+      name: "Industry Excellence Awards",
+      description: "A well-respected award ceremony highlighting exceptional achievements in specific industry sectors.",
+      prestigeRequired: 10,
+      entryFee: 7500,
+      location: "Luxury Hotel Grand Ballroom",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 80,
+        potentialConnections: 3
+      }
+    },
+    {
+      name: "Entrepreneurial Spirit Awards",
+      description: "An inspiring celebration of entrepreneurial achievement, particularly for founders who overcame significant challenges.",
+      prestigeRequired: 7,
+      entryFee: 5000,
+      location: "Business School Auditorium",
+      benefits: {
+        networkingPotential: 80,
+        reputationGain: 75,
+        potentialConnections: 2
+      }
+    }
+  ],
+  product_launch: [
+    {
+      name: "Local Store Grand Opening",
+      description: "A celebration of a new small business opening in the community. A good opportunity to meet local entrepreneurs and customers.",
+      prestigeRequired: 0,
+      entryFee: 0,
+      location: "New Retail Space, Downtown",
+      benefits: {
+        networkingPotential: 40,
+        reputationGain: 25,
+        potentialConnections: 1
+      }
+    },
+    {
+      name: "Luxury Vehicle Launch Gala",
+      description: "An exclusive unveiling of a new luxury car model, attended by high-net-worth individuals and industry executives.",
+      prestigeRequired: 15,
+      entryFee: 15000,
+      location: "Luxury Automobile Showroom",
+      benefits: {
+        networkingPotential: 90,
+        reputationGain: 75,
+        potentialConnections: 3
+      }
+    },
+    {
+      name: "Tech Startup Product Reveal",
+      description: "An exciting unveiling of a new technology product with potential to disrupt its market. Attended by tech insiders and investors.",
+      prestigeRequired: 8,
+      entryFee: 5000,
+      location: "Innovation Hub Presentation Space",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 60,
+        potentialConnections: 3,
+        skillBoost: "technology",
+        skillBoostAmount: 7
+      }
+    },
+    {
+      name: "Investment Fund Launch Reception",
+      description: "A sophisticated gathering to announce a new investment fund, with opportunities to meet fund managers and early investors.",
+      prestigeRequired: 10,
+      entryFee: 8000,
+      location: "Financial District Penthouse",
+      benefits: {
+        networkingPotential: 80,
+        reputationGain: 65,
+        potentialConnections: 2,
+        skillBoost: "finance",
+        skillBoostAmount: 8
+      }
+    }
+  ],
+  trade_show: [
+    {
+      name: "Community Business Expo",
+      description: "A small-scale exhibition of local businesses showcasing their products and services. A good place to meet local entrepreneurs.",
+      prestigeRequired: 0,
+      entryFee: 25,
+      location: "Community Center Exhibition Hall",
+      benefits: {
+        networkingPotential: 50,
+        reputationGain: 30,
+        potentialConnections: 2
+      }
+    },
+    {
+      name: "International Technology Trade Show",
+      description: "A massive showcase of the latest technology innovations from around the world, attended by industry leaders and investors.",
+      prestigeRequired: 10,
+      entryFee: 5000,
+      location: "Convention Center",
+      benefits: {
+        networkingPotential: 90,
+        reputationGain: 70,
+        potentialConnections: 4,
+        skillBoost: "technology",
+        skillBoostAmount: 10
+      }
+    },
+    {
+      name: "Luxury Goods Exhibition",
+      description: "An elegant showcase of high-end products and services, from yachts to private jets to exclusive real estate opportunities.",
+      prestigeRequired: 15,
+      entryFee: 12000,
+      location: "Luxury Exhibition Center",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 75,
+        potentialConnections: 3
+      }
+    },
+    {
+      name: "Sustainable Business Innovation Fair",
+      description: "A forward-thinking exhibition focused on eco-friendly business practices and sustainable product innovations.",
+      prestigeRequired: 5,
+      entryFee: 2000,
+      location: "Green Business Center",
+      benefits: {
+        networkingPotential: 75,
+        reputationGain: 65,
+        potentialConnections: 3,
+        skillBoost: "innovation",
+        skillBoostAmount: 8
+      }
+    }
+  ],
+  retreat: [
+    {
+      name: "Weekend Business Vision Retreat",
+      description: "A modest weekend retreat for small business owners to reflect on their business goals and connect with peers.",
+      prestigeRequired: 0,
+      entryFee: 500,
+      location: "Local Retreat Center",
+      benefits: {
+        networkingPotential: 60,
+        reputationGain: 40,
+        potentialConnections: 2,
+        skillBoost: "business",
+        skillBoostAmount: 5
+      }
+    },
+    {
+      name: "Billionaire's Exclusive Mountain Retreat",
+      description: "An ultra-exclusive gathering of the world's wealthiest individuals at a remote mountain resort, with activities and discussions.",
+      prestigeRequired: 25,
+      entryFee: 50000,
+      location: "Private Mountain Resort",
+      benefits: {
+        networkingPotential: 100,
+        reputationGain: 95,
+        potentialConnections: 3,
+        skillBoost: "wealth_management",
+        skillBoostAmount: 20
+      }
+    },
+    {
+      name: "Executive Leadership Desert Retreat",
+      description: "A transformative five-day experience for C-suite executives focused on strategic thinking and leadership renewal.",
+      prestigeRequired: 15,
+      entryFee: 20000,
+      location: "Luxury Desert Resort",
+      benefits: {
+        networkingPotential: 90,
+        reputationGain: 80,
+        potentialConnections: 3,
+        skillBoost: "leadership",
+        skillBoostAmount: 15
+      }
+    },
+    {
+      name: "Innovation Think Tank Island Getaway",
+      description: "A creative retreat bringing together innovative thinkers from various industries to brainstorm future trends and opportunities.",
+      prestigeRequired: 12,
+      entryFee: 15000,
+      location: "Private Island Resort",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 70,
+        potentialConnections: 4,
+        skillBoost: "innovation",
+        skillBoostAmount: 12
+      }
+    }
+  ],
+  vip_dinner: [
+    {
+      name: "Local Business Leaders Dinner",
+      description: "A modest dinner gathering with successful local entrepreneurs sharing their experiences and advice.",
+      prestigeRequired: 0,
+      entryFee: 200,
+      location: "Local Restaurant Private Room",
+      benefits: {
+        networkingPotential: 55,
+        reputationGain: 35,
+        potentialConnections: 1,
+        skillBoost: "business",
+        skillBoostAmount: 3
+      }
+    },
+    {
+      name: "Private Dinner with Billionaire Investor",
+      description: "An extremely exclusive dinner with one of the world's most successful investors, limited to just 10 guests.",
+      prestigeRequired: 20,
+      entryFee: 25000,
+      location: "Secret Luxury Venue",
+      benefits: {
+        networkingPotential: 95,
+        reputationGain: 90,
+        potentialConnections: 2,
+        skillBoost: "investing",
+        skillBoostAmount: 20
+      }
+    },
+    {
+      name: "CEO Roundtable Dinner",
+      description: "An intimate dinner with CEOs from major corporations discussing current business challenges and opportunities.",
+      prestigeRequired: 15,
+      entryFee: 15000,
+      location: "5-Star Restaurant Private Dining Suite",
+      benefits: {
+        networkingPotential: 90,
+        reputationGain: 85,
+        potentialConnections: 3,
+        skillBoost: "leadership",
+        skillBoostAmount: 12
+      }
+    },
+    {
+      name: "Tech Visionaries Supper Club",
+      description: "A forward-looking dinner with technology pioneers discussing the future of innovation and digital transformation.",
+      prestigeRequired: 10,
+      entryFee: 10000,
+      location: "Modernist Restaurant Experience",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 75,
+        potentialConnections: 2,
+        skillBoost: "technology",
+        skillBoostAmount: 10
+      }
+    }
+  ],
+  sporting_event: [
+    {
+      name: "Charity Golf Tournament",
+      description: "A community golf event raising funds for local charities. A relaxed environment to meet other business people.",
+      prestigeRequired: 0,
+      entryFee: 300,
+      location: "Public Golf Course",
+      benefits: {
+        networkingPotential: 60,
+        reputationGain: 40,
+        potentialConnections: 2
+      }
+    },
+    {
+      name: "Championship Tennis Match VIP Box",
+      description: "Exclusive box seats at a major tennis championship, with opportunity to mingle with celebrity athletes and executives.",
+      prestigeRequired: 12,
+      entryFee: 15000,
+      location: "National Tennis Center",
+      benefits: {
+        networkingPotential: 85,
+        reputationGain: 75,
+        potentialConnections: 2
+      }
+    },
+    {
+      name: "Private Yacht Racing Experience",
+      description: "Join a competitive yacht racing team for a day of sailing and socializing with wealthy sailing enthusiasts.",
+      prestigeRequired: 18,
+      entryFee: 20000,
+      location: "Exclusive Yacht Club",
+      benefits: {
+        networkingPotential: 80,
+        reputationGain: 85,
+        potentialConnections: 2
+      }
+    },
+    {
+      name: "VIP Box at the Championship Game",
+      description: "Premium access to a major sporting event in a luxury box, with gourmet catering and exclusive networking opportunities.",
+      prestigeRequired: 15,
+      entryFee: 18000,
+      location: "Major Sports Stadium",
+      benefits: {
+        networkingPotential: 75,
+        reputationGain: 80,
+        potentialConnections: 3
       }
     }
   ]
@@ -1351,18 +1808,26 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         const actualCount = Math.min(availableSlots, count);
         
         // Event types weighted by frequency
-        const eventTypeWeights: [SocialEvent['type'], number][] = [
+        const eventTypeWeights: [EventType, number][] = [
           ['business', 3],
           ['networking', 3],
           ['charity', 2],
           ['conference', 2],
+          ['workshop', 2.5],
+          ['seminar', 2],
           ['gala', 1.5],
           ['club', 1],
-          ['party', 1]
+          ['party', 1],
+          ['award', 1],
+          ['product_launch', 1.5],
+          ['trade_show', 1.5],
+          ['retreat', 0.8],
+          ['vip_dinner', 1.2],
+          ['sporting_event', 1]
         ];
         
         // Build weighted list
-        const weightedTypes: SocialEvent['type'][] = [];
+        const weightedTypes: EventType[] = [];
         eventTypeWeights.forEach(([type, weight]) => {
           for (let i = 0; i < weight; i++) {
             weightedTypes.push(type);
