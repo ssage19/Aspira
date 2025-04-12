@@ -15,22 +15,22 @@ export function NetworkingScreen() {
       <NetworkTracker />
       
       {/* Header with navigation */}
-      <GameUI>
-        <div className="container mx-auto px-4 pt-4 pb-6">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => navigate('/dashboard')}
-            className="mb-4"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
-          
-          {/* Main content */}
-          <SocialNetworking />
-        </div>
-      </GameUI>
+      <GameUI />
+      
+      <div className="container mx-auto px-4 pt-4 pb-6">
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={() => navigate('/dashboard')}
+          className="mb-4"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Dashboard
+        </Button>
+        
+        {/* Main content */}
+        <SocialNetworking />
+      </div>
     </div>
   );
 }

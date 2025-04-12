@@ -15,6 +15,8 @@ import { GameUI } from '../components/GameUI';
 import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
+import { UpcomingEventsWidget } from '../components/UpcomingEventsWidget';
+import { ConnectionsWidget } from '../components/ConnectionsWidget';
 import { AchievementsWidget } from '../components/AchievementsWidget';
 import { ThemeControls } from '../components/ThemeControls';
 
@@ -30,7 +32,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
 // Import icons
 import { Calendar, Settings, DollarSign, Crown, ChartBar, 
   Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
-  Upload, Trash2, RotateCcw, HeartPulse, Target, Palette, Trophy, Star } from 'lucide-react';
+  Upload, Trash2, RotateCcw, HeartPulse, Target, Palette, Trophy, Star, Users } from 'lucide-react';
 
 // Import data stores directly (for direct access)
 import useAssetTracker from '../lib/stores/useAssetTracker';
@@ -351,8 +353,15 @@ export default function ReliableDashboard() {
                   {/* Use our completely rewritten component for better reliability */}
                   <SimplePortfolioBreakdown key={`portfolio-${refreshTrigger}`} />
                 </Card>
-                
-                {/* Achievements Widget removed as requested */}
+
+                {/* Networking Widgets */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {/* Upcoming Events Widget */}
+                  <UpcomingEventsWidget />
+                  
+                  {/* Connections Widget */}
+                  <ConnectionsWidget />
+                </div>
                 
                 {/* Quick Action Buttons */}
                 <div className="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 gap-6">
@@ -434,6 +443,16 @@ export default function ReliableDashboard() {
                   >
                     <Briefcase className="h-5 w-5 mb-2 text-green-500" />
                     Business
+                  </Button>
+                  
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    className="w-full h-20 futuristic-card card-hover border border-cyan-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/networking')}
+                  >
+                    <Users className="h-5 w-5 mb-2 text-cyan-500" />
+                    Networking
                   </Button>
                 </div>
               </TabsContent>
