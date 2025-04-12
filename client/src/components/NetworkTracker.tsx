@@ -20,17 +20,28 @@ export function NetworkTracker() {
   
   const { currentDay, currentMonth, currentYear } = useTime();
   
-  // Check for date changes to regenerate social capital
+  // Check for date changes to regenerate social capital and create events weekly
   useEffect(() => {
     // If we've changed to a new day, regenerate social capital
     // This provides a daily amount of social capital for the player
     regenerateSocialCapital();
     
-    // 15% chance to generate a new event each day (reduced from 25% to avoid overwhelming the player)
-    const shouldGenerateEvent = Math.random() < 0.15;
-    if (shouldGenerateEvent) {
-      // Limit to 1 event at a time
-      generateNewEvents(1);
+    // Check if it's the start of a new week (Monday)
+    const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+    const isMonday = currentDate.getDay() === 1; // 0 is Sunday, 1 is Monday
+    
+    if (isMonday) {
+      // Generate events weekly instead of daily, capped at 2 events
+      const eventCount = Math.floor(Math.random() * 2) + 1; // 1-2 events per week
+      generateNewEvents(eventCount);
+      
+      // 50% chance to get a new connection each week, capped at 1
+      const shouldGenerateConnection = Math.random() < 0.5;
+      if (shouldGenerateConnection) {
+        // We would call a function like addRandomConnection(1) here
+        // This would be implemented in the social network store
+        console.log("Weekly connection opportunity available");
+      }
     }
   }, [currentDay, currentMonth, currentYear, regenerateSocialCapital, generateNewEvents]);
   
