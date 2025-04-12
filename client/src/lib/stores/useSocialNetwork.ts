@@ -797,12 +797,14 @@ interface SocialNetworkState {
   
   // Actions
   addConnection: (type: ConnectionType) => SocialConnection;
+  addRandomConnections: (count?: number) => SocialConnection[];
   scheduleInteraction: (connectionId: string) => boolean;
   attendMeeting: (connectionId: string) => {success: boolean, benefit?: ConnectionBenefit};
   useBenefit: (connectionId: string, benefitId: string) => boolean;
   generateNewEvents: (count?: number) => SocialEvent[];
   attendEvent: (eventId: string) => {success: boolean, newConnections: SocialConnection[]};
   checkForExpiredContent: () => void;
+  regenerateSocialCapital: () => void;
   resetSocialNetwork: () => void;
 }
 
@@ -1099,6 +1101,46 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         set({ connections: updatedConnections });
         return true;
+      },
+      
+      // Add random connections to your network
+      addRandomConnections: (count = 1) => {
+        const { connections } = get();
+        const newConnections: SocialConnection[] = [];
+        
+        // Get all possible connection types for random selection
+        const connectionTypes: ConnectionType[] = [
+          'businessContact', 
+          'investor', 
+          'industry', 
+          'mentor',
+          'celebrity', 
+          'influencer'
+        ];
+        
+        // Add possible rival (with lower chance)
+        if (Math.random() < 0.2) { // 20% chance
+          connectionTypes.push('rival');
+        }
+        
+        for (let i = 0; i < count; i++) {
+          // Select a random connection type
+          const randomType = getRandomElement(connectionTypes);
+          
+          // Create a new connection of this type
+          const newConnection = createRandomConnection(randomType);
+          newConnections.push(newConnection);
+          
+          // Show notification for the new connection
+          toast.success(`New connection opportunity: ${newConnection.name} (${newConnection.type})`);
+        }
+        
+        set({ 
+          connections: [...connections, ...newConnections],
+          socialCapital: Math.max(0, get().socialCapital - (10 * count)) // Cost social capital to add connections
+        });
+        
+        return newConnections;
       },
       
       // Generate new social events

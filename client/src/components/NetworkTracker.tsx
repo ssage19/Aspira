@@ -38,9 +38,9 @@ export function NetworkTracker() {
       // 50% chance to get a new connection each week, capped at 1
       const shouldGenerateConnection = Math.random() < 0.5;
       if (shouldGenerateConnection) {
-        // We would call a function like addRandomConnection(1) here
-        // This would be implemented in the social network store
-        console.log("Weekly connection opportunity available");
+        // Add a single random connection (capped at 1 per week)
+        // This uses our new addRandomConnections function
+        useSocialNetwork.getState().addRandomConnections(1);
       }
     }
   }, [currentDay, currentMonth, currentYear, regenerateSocialCapital, generateNewEvents]);
