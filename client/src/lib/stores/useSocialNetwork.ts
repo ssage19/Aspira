@@ -1131,14 +1131,28 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           const newConnection = createRandomConnection(randomType);
           newConnections.push(newConnection);
           
-          // Show notification for the new connection
-          toast.success(`New connection opportunity: ${newConnection.name} (${newConnection.type})`);
+          // Connection is added but no notification here
+          // We'll show a combined notification below
         }
         
         set({ 
           connections: [...connections, ...newConnections],
           socialCapital: Math.max(0, get().socialCapital - (10 * count)) // Cost social capital to add connections
         });
+        
+        // Show a single notification for all new connections
+        if (newConnections.length > 0) {
+          if (newConnections.length === 1) {
+            const conn = newConnections[0];
+            toast.success(`New connection: ${conn.name} (${conn.type})`, {
+              duration: 5000
+            });
+          } else {
+            toast.success(`${newConnections.length} new connections added to your network`, {
+              duration: 5000
+            });
+          }
+        }
         
         return newConnections;
       },
@@ -1177,8 +1191,24 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         set({ events: [...events, ...newEvents] });
         
+        // Show toast notifications only for the specific new events
+        // Rather than saying how many are available, we show each new event individually
         if (newEvents.length > 0) {
-          toast.success(`${newEvents.length} new social events are available!`);
+          // Show a maximum of 2 notifications to avoid overwhelming the player
+          const eventsToShow = newEvents.slice(0, 2);
+          
+          eventsToShow.forEach(event => {
+            toast.info(`New networking opportunity: ${event.name}`, {
+              duration: 5000 // Show for 5 seconds
+            });
+          });
+          
+          // If there are more events than we're showing, add a single summary notification
+          if (newEvents.length > eventsToShow.length) {
+            toast.info(`${newEvents.length - eventsToShow.length} more networking opportunities available`, {
+              duration: 5000
+            });
+          }
         }
         
         return newEvents;
