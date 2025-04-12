@@ -22,7 +22,7 @@ export function NetworkingScreen() {
         <Button 
           variant="outline" 
           size="default" 
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
           className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
         >
           <ChevronLeft className="h-5 w-5 mr-2" />

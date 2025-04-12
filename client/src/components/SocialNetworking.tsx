@@ -627,7 +627,7 @@ export function SocialNetworking() {
           <Button 
             variant="secondary" 
             size="sm" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate('/')}
             className="bg-primary/10 hover:bg-primary/20 text-primary"
           >
             <ChevronLeft className="h-4 w-4 mr-1" />

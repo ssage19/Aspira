@@ -130,7 +130,7 @@ export function EventNotificationManager() {
       // Navigate to the networking screen
       console.log(`Viewing event: ${notification.name}`);
       
-      // Use window.location for direct navigation
+      // Use window.location for direct navigation - make sure to use correct route
       window.location.href = '/networking';
     }
   };
