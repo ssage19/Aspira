@@ -48,9 +48,20 @@ export function AchievementsWidget() {
               <Trophy className="mr-2 h-5 w-5 text-amber-400" />
               Recent Achievements
             </span>
-            <Button variant="ghost" size="sm" onClick={() => navigate('/achievements')}>
-              View All <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
+            <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("Navigating to achievements page from empty state");
+                  window.location.href = '/achievements';
+                }}
+                asChild
+              >
+                <a href="/achievements">
+                  View All <ArrowRight className="ml-1 h-4 w-4" />
+                </a>
+              </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="py-4 text-center text-muted-foreground">
@@ -68,8 +79,19 @@ export function AchievementsWidget() {
             <Trophy className="mr-2 h-5 w-5 text-amber-400" />
             Recent Achievements
           </span>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/achievements')}>
-            View All <ArrowRight className="ml-1 h-4 w-4" />
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={(e) => {
+              e.preventDefault();
+              console.log("Navigating to achievements page");
+              window.location.href = '/achievements';
+            }}
+            asChild
+          >
+            <a href="/achievements">
+              View All <ArrowRight className="ml-1 h-4 w-4" />
+            </a>
           </Button>
         </CardTitle>
       </CardHeader>
