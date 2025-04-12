@@ -594,9 +594,9 @@ export function SocialNetworking() {
     // Deduct social capital cost for actively searching
     useSocialNetwork.setState({ socialCapital: socialCapital - 25 });
     
-    // Add the connection
+    // Add the connection - the ConnectionNotificationManager will handle displaying the notification
     const newConnection = addConnection(type);
-    toast.success(`You connected with ${newConnection.name}!`);
+    // No toast here - let the notification manager handle it
   };
   
   const handleGenerateEvents = () => {
@@ -608,9 +608,9 @@ export function SocialNetworking() {
     // Deduct social capital cost
     useSocialNetwork.setState({ socialCapital: socialCapital - 15 });
     
-    // Generate new events
+    // Generate new events - the EventNotificationManager will handle displaying the notification
     const newEvents = generateNewEvents(2);
-    toast.success(`You discovered ${newEvents.length} new events!`);
+    // No toast here - let the notification manager handle it
   };
   
   // Get navigate function from react-router-dom

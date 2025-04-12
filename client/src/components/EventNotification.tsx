@@ -101,28 +101,69 @@ export function EventNotification({ event, onClose, onView }: EventNotificationP
 export function EventNotificationManager() {
   const { events } = useSocialNetwork();
   const [notification, setNotification] = useState<SocialEvent | null>(null);
-  const [shownEventIds, setShownEventIds] = useState<Set<string>>(new Set());
+  
+  // Track when the user first sees events by storing timestamp
+  // This ensures only newly added events are shown after game restarts
+  const [shownEvents, setShownEvents] = useState<Map<string, number>>(
+    () => {
+      // Try to load from localStorage
+      try {
+        const saved = localStorage.getItem('shown-events');
+        if (saved) {
+          return new Map(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error('Failed to load shown events from localStorage', e);
+      }
+      return new Map();
+    }
+  );
+
+  // Persist shown events to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('shown-events', 
+        JSON.stringify(Array.from(shownEvents.entries()))
+      );
+    } catch (e) {
+      console.error('Failed to save shown events to localStorage', e);
+    }
+  }, [shownEvents]);
 
   // Check for new events
   useEffect(() => {
-    // Find events that haven't been shown yet
-    const newEvents = events.filter(
-      e => !e.attended && !shownEventIds.has(e.id)
-    );
+    if (notification) return; // Already showing a notification
     
-    // If there's a new event that we're not already showing, show it
-    if (newEvents.length > 0 && !notification) {
+    // Find new events the user hasn't been notified about yet
+    const currentTime = Date.now();
+    const newEvents = events.filter(e => {
+      // Skip events that have already been attended
+      if (e.attended) return false;
+      
+      // Get when this event was created (estimate date as creation time)
+      const eventCreatedTime = e.availableUntil - (30 * 24 * 60 * 60 * 1000); // 30 days back from expiry
+      
+      // Get when this event was first shown to the user (or 0 if never shown)
+      const firstShownTime = shownEvents.get(e.id) || 0;
+      
+      // This is a new event if it was created after it was last shown
+      // Or if it has never been shown at all
+      return firstShownTime === 0 || eventCreatedTime > firstShownTime;
+    });
+    
+    // If there's a new event, show notification for it
+    if (newEvents.length > 0) {
       const eventToShow = newEvents[0];
       setNotification(eventToShow);
       
-      // Mark this event as shown
-      setShownEventIds(prev => {
-        const updated = new Set(prev);
-        updated.add(eventToShow.id);
+      // Mark this event as shown with current timestamp
+      setShownEvents(prev => {
+        const updated = new Map(prev);
+        updated.set(eventToShow.id, currentTime);
         return updated;
       });
     }
-  }, [events, notification, shownEventIds]);
+  }, [events, notification, shownEvents]);
 
   // Handle viewing event details
   const handleViewEvent = () => {

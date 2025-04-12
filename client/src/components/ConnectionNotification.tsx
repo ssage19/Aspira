@@ -103,28 +103,66 @@ export function ConnectionNotification({ connection, onClose, onView }: Connecti
 export function ConnectionNotificationManager() {
   const { connections } = useSocialNetwork();
   const [notification, setNotification] = useState<SocialConnection | null>(null);
-  const [shownConnectionIds, setShownConnectionIds] = useState<Set<string>>(new Set());
+  
+  // Track when the user first sees connections by storing timestamp
+  // This ensures only newly added connections are shown after game restarts
+  const [shownConnections, setShownConnections] = useState<Map<string, number>>(
+    () => {
+      // Try to load from localStorage
+      try {
+        const saved = localStorage.getItem('shown-connections');
+        if (saved) {
+          return new Map(JSON.parse(saved));
+        }
+      } catch (e) {
+        console.error('Failed to load shown connections from localStorage', e);
+      }
+      return new Map();
+    }
+  );
+
+  // Persist shown connections to localStorage
+  useEffect(() => {
+    try {
+      localStorage.setItem('shown-connections', 
+        JSON.stringify(Array.from(shownConnections.entries()))
+      );
+    } catch (e) {
+      console.error('Failed to save shown connections to localStorage', e);
+    }
+  }, [shownConnections]);
 
   // Check for new connections
   useEffect(() => {
-    // Find connections that haven't been shown yet
-    const newConnections = connections.filter(
-      c => !shownConnectionIds.has(c.id)
-    );
+    if (notification) return; // Already showing a notification
     
-    // If there's a new connection that we're not already showing, show it
-    if (newConnections.length > 0 && !notification) {
+    // Find new connections the user hasn't been notified about yet
+    const currentTime = Date.now();
+    const newConnections = connections.filter(c => {
+      // Get when this connection was created (or use current time if we don't know)
+      const connectionTime = c.lastInteractionDate;
+      
+      // Get when this connection was first shown to the user (or 0 if never shown)
+      const firstShownTime = shownConnections.get(c.id) || 0;
+      
+      // This is a new connection if it was created after it was last shown
+      // Or if it has never been shown at all
+      return firstShownTime === 0 || connectionTime > firstShownTime;
+    });
+    
+    // If there's a new connection, show notification for it
+    if (newConnections.length > 0) {
       const connectionToShow = newConnections[0];
       setNotification(connectionToShow);
       
-      // Mark this connection as shown
-      setShownConnectionIds(prev => {
-        const updated = new Set(prev);
-        updated.add(connectionToShow.id);
+      // Mark this connection as shown with current timestamp
+      setShownConnections(prev => {
+        const updated = new Map(prev);
+        updated.set(connectionToShow.id, currentTime);
         return updated;
       });
     }
-  }, [connections, notification, shownConnectionIds]);
+  }, [connections, notification, shownConnections]);
 
   // Handle viewing connection details
   const handleViewConnection = () => {
