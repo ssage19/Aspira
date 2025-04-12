@@ -1000,8 +1000,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           
           set({ 
             connections: updatedConnections,
-            networkingLevel: Math.min(100, networkingLevel + 1),
-            socialCapital: get().socialCapital + 5 // Small social capital gain from any meeting
+            networkingLevel: Math.min(100, networkingLevel + 1)
+            // Removed social capital reward to slow down relationship progression
           });
         } else {
           // Update the connection for non-rivals
@@ -1018,11 +1018,11 @@ export const useSocialNetwork = create<SocialNetworkState>()(
               : c
           );
           
-          // Larger networking and social capital gains for non-rivals
+          // Larger networking gain for non-rivals (but no social capital gain)
           set({ 
             connections: updatedConnections,
-            networkingLevel: Math.min(100, networkingLevel + 2),
-            socialCapital: get().socialCapital + 10
+            networkingLevel: Math.min(100, networkingLevel + 2)
+            // Removed social capital reward to slow down relationship progression
           });
           
           // Special bonuses based on connection type
