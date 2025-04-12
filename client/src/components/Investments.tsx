@@ -637,6 +637,326 @@ export function Investments() {
     
     return matchesSearch && matchesSector;
   });
+  
+  // Portfolio analysis utility functions
+  const calculateTotalPortfolioReturn = (): number => {
+    // Calculate overall portfolio return
+    if (assets.length === 0) return 0;
+    
+    let totalCost = 0;
+    let totalValue = 0;
+    
+    assets.forEach(asset => {
+      totalCost += asset.purchasePrice * (asset.quantity || 1);
+      
+      if (asset.type === 'stock') {
+        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+        totalValue += currentPrice * asset.quantity;
+      } else if (asset.type === 'crypto') {
+        const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+        totalValue += currentPrice * asset.quantity;
+      } else if (asset.type === 'bond') {
+        totalValue += asset.maturityValue || asset.purchasePrice;
+      } else if (asset.type === 'other') {
+        totalValue += asset.purchasePrice; // Startups are valued at purchase price until maturity
+      }
+    });
+    
+    if (totalCost === 0) return 0;
+    return ((totalValue - totalCost) / totalCost) * 100;
+  };
+  
+  const findBestPerformingAsset = () => {
+    if (assets.length === 0) return null;
+    
+    let bestAsset = null;
+    let bestProfitPercent = -Infinity;
+    
+    assets.forEach(asset => {
+      let currentPrice = asset.purchasePrice;
+      let name = 'Unknown';
+      
+      if (asset.type === 'stock') {
+        currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+        const stock = expandedStockMarket.find(s => s.id === asset.id);
+        if (stock) name = stock.name;
+      } else if (asset.type === 'crypto') {
+        currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+        const crypto = cryptoCurrencies.find(c => c.id === asset.id);
+        if (crypto) name = crypto.name;
+      } else if (asset.type === 'bond') {
+        currentPrice = asset.currentValue || asset.purchasePrice;
+        const bond = bonds.find(b => b.id === asset.id);
+        if (bond) name = bond.name;
+      } else if (asset.type === 'other') {
+        // For startups, we use purchase price until maturity
+        currentPrice = asset.purchasePrice;
+        const startup = startupInvestments.find(s => s.id === asset.id);
+        if (startup) name = startup.name;
+      }
+      
+      const profitPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+      
+      if (profitPercent > bestProfitPercent) {
+        bestProfitPercent = profitPercent;
+        bestAsset = {
+          id: asset.id,
+          name,
+          type: asset.type,
+          profitPercent
+        };
+      }
+    });
+    
+    return bestAsset;
+  };
+  
+  const findWorstPerformingAsset = () => {
+    if (assets.length === 0) return null;
+    
+    let worstAsset = null;
+    let worstProfitPercent = Infinity;
+    
+    assets.forEach(asset => {
+      let currentPrice = asset.purchasePrice;
+      let name = 'Unknown';
+      
+      if (asset.type === 'stock') {
+        currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+        const stock = expandedStockMarket.find(s => s.id === asset.id);
+        if (stock) name = stock.name;
+      } else if (asset.type === 'crypto') {
+        currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+        const crypto = cryptoCurrencies.find(c => c.id === asset.id);
+        if (crypto) name = crypto.name;
+      } else if (asset.type === 'bond') {
+        currentPrice = asset.currentValue || asset.purchasePrice;
+        const bond = bonds.find(b => b.id === asset.id);
+        if (bond) name = bond.name;
+      } else if (asset.type === 'other') {
+        // For startups, we use purchase price until maturity
+        currentPrice = asset.purchasePrice;
+        const startup = startupInvestments.find(s => s.id === asset.id);
+        if (startup) name = startup.name;
+      }
+      
+      const profitPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+      
+      if (profitPercent < worstProfitPercent) {
+        worstProfitPercent = profitPercent;
+        worstAsset = {
+          id: asset.id,
+          name,
+          type: asset.type,
+          profitPercent
+        };
+      }
+    });
+    
+    return worstAsset;
+  };
+  
+  const calculateDiversityScore = (): number => {
+    // Calculate how well-diversified the portfolio is (0-10)
+    if (assets.length === 0) return 0;
+    
+    // Count different types of assets
+    const types = new Set(assets.map(a => a.type));
+    const typeScore = Math.min(4, types.size) * 1.5; // Max 6 points for having all 4 types
+    
+    // Count number of sectors for stocks
+    const stockSectors = new Set();
+    assets
+      .filter(a => a.type === 'stock')
+      .forEach(asset => {
+        const stock = expandedStockMarket.find(s => s.id === asset.id);
+        if (stock) stockSectors.add(stock.sector);
+      });
+    
+    const sectorScore = Math.min(4, stockSectors.size) * 0.5; // Max 2 points for sectors
+    
+    // Count number of crypto categories
+    const cryptoCategories = new Set();
+    assets
+      .filter(a => a.type === 'crypto')
+      .forEach(asset => {
+        const crypto = cryptoCurrencies.find(c => c.id === asset.id);
+        if (crypto) cryptoCategories.add(crypto.category);
+      });
+    
+    const cryptoScore = Math.min(4, cryptoCategories.size) * 0.5; // Max 2 points for crypto categories
+    
+    // Calculate final score (0-10)
+    const finalScore = Math.min(10, Math.round(typeScore + sectorScore + cryptoScore));
+    return finalScore;
+  };
+  
+  const getDiversityComment = (): string => {
+    const score = calculateDiversityScore();
+    if (score >= 8) return "Excellent diversification";
+    if (score >= 6) return "Good diversification";
+    if (score >= 4) return "Moderate diversification";
+    if (score >= 2) return "Limited diversification";
+    return "Poor diversification";
+  };
+  
+  const calculateAssetAllocation = () => {
+    // Calculate asset allocation percentages
+    const assetValues = {
+      stock: 0,
+      crypto: 0,
+      bond: 0,
+      other: 0
+    };
+    
+    // Sum up values by type
+    assets.forEach(asset => {
+      if (asset.type === 'stock') {
+        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+        assetValues.stock += asset.quantity * currentPrice;
+      } else if (asset.type === 'crypto') {
+        const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+        assetValues.crypto += asset.quantity * currentPrice;
+      } else if (asset.type === 'bond') {
+        assetValues.bond += asset.currentValue || asset.purchasePrice;
+      } else if (asset.type === 'other') {
+        assetValues.other += asset.purchasePrice;
+      }
+    });
+    
+    // Calculate total portfolio value
+    const totalValue = Object.values(assetValues).reduce((sum, value) => sum + value, 0);
+    
+    if (totalValue === 0) {
+      return [
+        { type: 'stock', label: 'Stocks', percentage: 0 },
+        { type: 'crypto', label: 'Cryptocurrencies', percentage: 0 },
+        { type: 'bond', label: 'Bonds', percentage: 0 },
+        { type: 'other', label: 'Startups', percentage: 0 }
+      ];
+    }
+    
+    // Return allocation percentages
+    return [
+      { type: 'stock', label: 'Stocks', percentage: (assetValues.stock / totalValue) * 100 },
+      { type: 'crypto', label: 'Cryptocurrencies', percentage: (assetValues.crypto / totalValue) * 100 },
+      { type: 'bond', label: 'Bonds', percentage: (assetValues.bond / totalValue) * 100 },
+      { type: 'other', label: 'Startups', percentage: (assetValues.other / totalValue) * 100 }
+    ].filter(item => item.percentage > 0);
+  };
+  
+  const calculatePortfolioRiskLevel = (): number => {
+    // Calculate portfolio risk level (0-1 where 0 is lowest risk, 1 is highest)
+    if (assets.length === 0) return 0;
+    
+    // Define risk weights for each asset type (0-1)
+    const riskWeights = {
+      bond: 0.2,  // Lowest risk
+      stock: 0.5, // Medium risk
+      crypto: 0.8, // High risk
+      other: 0.9   // Highest risk (startups)
+    };
+    
+    let weightedRiskSum = 0;
+    let totalValue = 0;
+    
+    // Calculate weighted risk based on portfolio value
+    assets.forEach(asset => {
+      let value = 0;
+      
+      if (asset.type === 'stock') {
+        const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+        value = asset.quantity * currentPrice;
+      } else if (asset.type === 'crypto') {
+        const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+        value = asset.quantity * currentPrice;
+      } else if (asset.type === 'bond') {
+        value = asset.currentValue || asset.purchasePrice;
+      } else if (asset.type === 'other') {
+        value = asset.purchasePrice;
+      }
+      
+      weightedRiskSum += value * riskWeights[asset.type as keyof typeof riskWeights];
+      totalValue += value;
+    });
+    
+    if (totalValue === 0) return 0;
+    return weightedRiskSum / totalValue;
+  };
+  
+  const getRiskComment = (): string => {
+    const riskLevel = calculatePortfolioRiskLevel();
+    
+    if (riskLevel >= 0.8) return "Very high risk portfolio - potential for significant gains or losses";
+    if (riskLevel >= 0.6) return "High risk portfolio - focused on growth assets";
+    if (riskLevel >= 0.4) return "Moderate risk portfolio - balanced approach";
+    if (riskLevel >= 0.2) return "Low risk portfolio - conservative approach";
+    return "Very low risk portfolio - focus on capital preservation";
+  };
+  
+  const getDiversificationRecommendation = (): string => {
+    const assetAllocation = calculateAssetAllocation();
+    const types = new Set(assets.map(a => a.type));
+    
+    if (types.size === 0) {
+      return "Start your investment journey by diversifying across stocks, bonds, and other assets based on your risk tolerance.";
+    }
+    
+    if (types.size === 1) {
+      const onlyType = Array.from(types)[0];
+      if (onlyType === 'stock') {
+        return "Your portfolio only contains stocks. Consider adding bonds for stability, cryptocurrencies for growth potential, and startups for long-term opportunities.";
+      } else if (onlyType === 'crypto') {
+        return "Your portfolio only contains cryptocurrencies. Consider adding less volatile assets like stocks and bonds to reduce overall risk.";
+      } else if (onlyType === 'bond') {
+        return "Your portfolio only contains bonds. Consider adding stocks and other assets for better growth potential.";
+      } else {
+        return "Your portfolio only contains startup investments. Consider adding more liquid assets like stocks and bonds to balance risk.";
+      }
+    }
+    
+    // Find dominant asset types (>70% allocation)
+    const dominantTypes = assetAllocation.filter(a => a.percentage > 70);
+    if (dominantTypes.length > 0) {
+      const type = dominantTypes[0].type;
+      if (type === 'stock') {
+        return "Your portfolio is heavily weighted towards stocks. Consider increasing your allocation to bonds for better stability.";
+      } else if (type === 'crypto') {
+        return "Your portfolio is heavily weighted towards cryptocurrencies. Consider increasing your allocation to less volatile assets.";
+      } else if (type === 'bond') {
+        return "Your portfolio is heavily weighted towards bonds. Consider increasing your allocation to stocks for better growth potential.";
+      } else {
+        return "Your portfolio is heavily weighted towards startup investments. Consider increasing more liquid assets for better flexibility.";
+      }
+    }
+    
+    // Check if missing any major asset classes
+    if (!types.has('stock')) {
+      return "Consider adding stocks to your portfolio for better growth potential and liquidity.";
+    }
+    if (!types.has('bond') && calculatePortfolioRiskLevel() > 0.6) {
+      return "Your portfolio has high risk. Consider adding bonds to reduce volatility and provide steady income.";
+    }
+    
+    return "Your portfolio has good diversification across asset classes. Continue monitoring performance and rebalance as needed.";
+  };
+  
+  const calculateTimedInvestmentScore = (): number => {
+    // Calculate how well investments are timed (0-1)
+    // Higher score means better timing
+    
+    if (assets.length === 0) return 0;
+    
+    let totalScore = 0;
+    
+    assets.forEach(asset => {
+      // For now, just a placeholder that returns a random score
+      // In a real implementation, this would analyze purchase timing vs market conditions
+      totalScore += Math.random();
+    });
+    
+    return totalScore / assets.length;
+  };
 
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg animate-scale-in border border-border">
