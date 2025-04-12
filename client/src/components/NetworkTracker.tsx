@@ -27,7 +27,7 @@ export function NetworkTracker() {
     
     if (isFirstDayOfMonth) {
       // Monthly social capital regeneration - moved from daily to monthly for larger, less frequent boosts
-      const regenerationResult = regenerateSocialCapital(true); // Pass true to indicate monthly regeneration
+      regenerateSocialCapital(); // No arguments needed
       
       // Generate events monthly, capped at 2 events
       const eventCount = Math.floor(Math.random() * 2) + 1; // 1-2 events per month
@@ -43,7 +43,7 @@ export function NetworkTracker() {
     
     // Run the standard regeneration check - this will handle the time-based regeneration
     // independent of the new monthly boost
-    regenerateSocialCapital(false);
+    regenerateSocialCapital();
   }, [currentDay, currentMonth, currentYear, regenerateSocialCapital, generateNewEvents]);
   
   // This is a background component that doesn't render anything

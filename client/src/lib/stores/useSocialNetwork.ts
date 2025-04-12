@@ -385,6 +385,20 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
   ],
   business: [
     {
+      name: "Local Business Meetup",
+      description: "An informal gathering of local business owners and entrepreneurs. A great starting point for those new to networking.",
+      prestigeRequired: 0,
+      entryFee: 50,
+      location: "Community Center",
+      benefits: {
+        networkingPotential: 40,
+        reputationGain: 30,
+        potentialConnections: 1,
+        skillBoost: "communication",
+        skillBoostAmount: 2
+      }
+    },
+    {
       name: "Venture Capital Pitch Night",
       description: "An exclusive event where promising startups pitch to a room of investors. Great for connecting with the financial community.",
       prestigeRequired: 7,
@@ -429,6 +443,18 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
   ],
   gala: [
     {
+      name: "Local Business Association Awards",
+      description: "A modest annual celebration honoring local business achievements. A great first networking event for new entrepreneurs.",
+      prestigeRequired: 0,
+      entryFee: 150,
+      location: "Community Hall",
+      benefits: {
+        networkingPotential: 50,
+        reputationGain: 30,
+        potentialConnections: 1
+      }
+    },
+    {
       name: "Mayor's Annual Business Excellence Gala",
       description: "The city's premier event recognizing outstanding business achievements. Attended by political figures and business elites.",
       prestigeRequired: 12,
@@ -466,6 +492,20 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
     }
   ],
   conference: [
+    {
+      name: "Free Career Development Workshop",
+      description: "A community-sponsored workshop featuring local business owners sharing their journeys and advice. Perfect for beginners.",
+      prestigeRequired: 0,
+      entryFee: 0,
+      location: "Public Library Conference Room",
+      benefits: {
+        networkingPotential: 40,
+        reputationGain: 25,
+        potentialConnections: 1,
+        skillBoost: "business",
+        skillBoostAmount: 3
+      }
+    },
     {
       name: "Global Investment Summit",
       description: "A three-day conference featuring talks from financial leaders and investment workshops. Essential for serious investors.",
@@ -511,6 +551,18 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
   ],
   club: [
     {
+      name: "Community Book Club",
+      description: "A relaxed gathering of readers and thinkers discussing business and self-improvement books. Many attendees are aspiring entrepreneurs.",
+      prestigeRequired: 0,
+      entryFee: 20,
+      location: "Local Bookstore",
+      benefits: {
+        networkingPotential: 30,
+        reputationGain: 20,
+        potentialConnections: 1
+      }
+    },
+    {
       name: "The Excelsior Club Monthly Dinner",
       description: "A tradition-rich gathering at the city's most exclusive private club. Membership is by invitation only, and the connections made here can last a lifetime.",
       prestigeRequired: 20,
@@ -551,6 +603,18 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
   ],
   party: [
     {
+      name: "Community Center Opening Celebration",
+      description: "A simple gathering to celebrate the opening of a new community center. Local business owners and residents will attend.",
+      prestigeRequired: 0,
+      entryFee: 25,
+      location: "New Community Center",
+      benefits: {
+        networkingPotential: 35,
+        reputationGain: 20,
+        potentialConnections: 1
+      }
+    },
+    {
       name: "Billionaire's Birthday Bash",
       description: "An extravagant celebration at the mansion of a well-known billionaire. Invitation is a mark of having 'arrived' in high society.",
       prestigeRequired: 18,
@@ -588,6 +652,20 @@ const eventTemplates: Record<SocialEvent['type'], Partial<SocialEvent>[]> = {
     }
   ],
   networking: [
+    {
+      name: "Neighborhood Coffee Connections",
+      description: "A casual morning coffee meetup for local professionals to exchange ideas and make connections in a relaxed atmosphere.",
+      prestigeRequired: 0,
+      entryFee: 10,
+      location: "Local Coffee Shop",
+      benefits: {
+        networkingPotential: 45,
+        reputationGain: 25,
+        potentialConnections: 1,
+        skillBoost: "communication",
+        skillBoostAmount: 2
+      }
+    },
     {
       name: "Executive Breakfast Series",
       description: "A monthly morning meetup of executives sharing insights over gourmet breakfast. Known for its quality conversations and absence of hard selling.",
@@ -819,7 +897,7 @@ interface SocialNetworkState {
   generateNewEvents: (count?: number) => SocialEvent[];
   attendEvent: (eventId: string) => {success: boolean, newConnections: SocialConnection[]};
   checkForExpiredContent: () => void;
-  regenerateSocialCapital: () => void;
+  regenerateSocialCapital: (isMonthlyBoost?: boolean) => void;
   resetSocialNetwork: () => void;
 }
 
