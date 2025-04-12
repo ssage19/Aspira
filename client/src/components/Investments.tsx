@@ -50,6 +50,10 @@ export function Investments() {
   // Startup/Other investment state
   const [selectedStartup, setSelectedStartup] = useState(startupInvestments[0]);
   const [startupAmount, setStartupAmount] = useState<number>(selectedStartup.minInvestment);
+  
+  // UI state for buy/sell dialogs and actions
+  const [activeTab, setActiveTab] = useState('stocks');
+  const [showSellDialog, setShowSellDialog] = useState(false);
 
   // Check if market is open (function set by MarketPriceUpdater)
   const isMarketOpen = () => {
@@ -1619,20 +1623,42 @@ export function Investments() {
                                   <span className="text-muted-foreground">
                                     Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
                                   </span>
-                                  <button 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                                      if (stockData) {
-                                        setSelectedStock(stockData);
-                                        setBuyMode('shares');
-                                        setShareQuantity(asset.quantity);
-                                      }
-                                    }}
-                                    className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
-                                  >
-                                    Sell
-                                  </button>
+                                  <div className="flex space-x-1">
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                        if (stockData) {
+                                          setSelectedStock(stockData);
+                                          setBuyMode('shares');
+                                          // Initialize with 10% of current quantity for buying more
+                                          setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.1)));
+                                          // Focus on buy panel
+                                          setActiveTab('stocks');
+                                        }
+                                      }}
+                                      className="px-2 py-0.5 bg-accessible-green/10 text-accessible-green rounded hover:bg-accessible-green/20 transition-colors"
+                                    >
+                                      Buy
+                                    </button>
+                                    <button 
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                        if (stockData) {
+                                          setSelectedStock(stockData);
+                                          setBuyMode('shares');
+                                          // Initialize with 50% of current quantity for selling
+                                          setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.5)));
+                                          // Open sell dialog
+                                          setShowSellDialog(true);
+                                        }
+                                      }}
+                                      className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
+                                    >
+                                      Sell
+                                    </button>
+                                  </div>
                                 </div>
                               </div>
                             );
