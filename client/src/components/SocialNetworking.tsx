@@ -401,7 +401,12 @@ const EventCard: React.FC<EventCardProps> = ({
           <div className="flex justify-between items-center mb-2">
             <div className="text-sm text-muted-foreground flex items-center">
               <Clock className="h-4 w-4 mr-1" />
-              {daysRemaining} days remaining
+              {daysRemaining > 0 ? 
+                `${daysRemaining} days remaining` : 
+                daysRemaining === 0 ? 
+                  "Today" : 
+                  "Expired"
+              }
             </div>
             
             <div className="flex items-center space-x-2">
@@ -536,8 +541,14 @@ const ConfirmEventDialog: React.FC<ConfirmEventDialogProps> = ({
             This will cost {formatCurrency(event.entryFee)}. You'll have the opportunity to make new connections and gain social capital.
             {isFutureEvent && (
               <p className="mt-2">
-                This event is scheduled for {formatDate(new Date(event.date))} ({daysRemaining} days from now).
-                {isReservation && (
+                This event is scheduled for {formatDate(new Date(event.date))} 
+                {daysRemaining > 0 
+                  ? ` (${daysRemaining} days from now)`
+                  : daysRemaining === 0
+                    ? ` (today)`
+                    : ` (event date has passed)`
+                }.
+                {isReservation && daysRemaining > 0 && (
                   <span className="block text-sm mt-1 font-medium text-primary">
                     You'll automatically attend on the scheduled date.
                   </span>
@@ -721,6 +732,22 @@ export function SocialNetworking() {
   
   // Handler for opening the dialog to attend an event
   const handleOpenEventDialog = (eventId: string) => {
+    // Get the event
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+    
+    // Get current game time
+    const { currentGameDate } = useTime.getState();
+    const gameTime = currentGameDate.getTime();
+    
+    // Check if event has already passed based on game time (more than 1 day ago)
+    const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+    if (daysRemaining < -1) {
+      // If the event has passed by more than a day, it can't be attended anymore
+      toast.error("This event has already passed and cannot be attended.");
+      return;
+    }
+    
     setSelectedEventId(eventId);
     setIsEventReservation(false);
     setShowEventDialog(true);
@@ -728,6 +755,22 @@ export function SocialNetworking() {
   
   // Handler for opening the dialog to reserve an event
   const handleOpenReserveDialog = (eventId: string) => {
+    // Get the event
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+    
+    // Get current game time
+    const { currentGameDate } = useTime.getState();
+    const gameTime = currentGameDate.getTime();
+    
+    // Check if event has already passed based on game time
+    const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+    if (daysRemaining < 0) {
+      // If the event has passed, show an error message
+      toast.error("This event has already passed and cannot be reserved.");
+      return;
+    }
+    
     setSelectedEventId(eventId);
     setIsEventReservation(true);
     setShowEventDialog(true);
@@ -760,6 +803,22 @@ export function SocialNetworking() {
   
   // Handler for direct reservation (without dialog)
   const handleReserveEvent = (eventId: string) => {
+    // Get the event
+    const event = events.find(e => e.id === eventId);
+    if (!event) return;
+    
+    // Get current game time
+    const { currentGameDate } = useTime.getState();
+    const gameTime = currentGameDate.getTime();
+    
+    // Check if event has already passed based on game time
+    const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+    if (daysRemaining < 0) {
+      // If the event has passed, show an error message
+      toast.error("This event has already passed and cannot be reserved.");
+      return;
+    }
+    
     // We're now using the dialog approach for better UX
     setSelectedEventId(eventId);
     setIsEventReservation(true);

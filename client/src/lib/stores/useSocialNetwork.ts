@@ -1620,23 +1620,30 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         const missedEvents: SocialEvent[] = [];
         
         // Remove expired events: both events that have passed their availableUntil time
-        // AND events whose scheduled date has passed without being reserved
+        // AND events whose scheduled date has passed (regardless of reservation status)
         const updatedEvents = events.filter(event => {
-          // Keep the event if it hasn't been attended yet AND has not expired
-          const notExpired = !event.attended && event.availableUntil > now;
+          // If already attended, filter it out
+          if (event.attended) return false;
           
-          // If the event date has passed but it wasn't reserved, don't keep it
+          // Check if scheduled date has passed based on game time
           const scheduledDate = new Date(event.date);
           const dateHasPassed = scheduledDate <= currentGameDate;
           
-          // If date has passed and it's not reserved, we should remove it (return false)
-          if (dateHasPassed && !event.reserved) {
-            missedEvents.push(event); // Track missed events
-            return false;
+          // If the event date has passed, don't keep it (regardless of reservation status)
+          if (dateHasPassed) {
+            // If it was reserved, automatically attend it
+            if (event.reserved) {
+              // Will be handled by the dueEvents logic above
+              return false;
+            } else {
+              // If not reserved, it's a missed event
+              missedEvents.push(event);
+              return false;
+            }
           }
           
-          // Otherwise, apply the original filter condition
-          return notExpired;
+          // For future events, check if they're still available
+          return event.availableUntil > now;
         });
         
         // Show a notification if any events were missed
