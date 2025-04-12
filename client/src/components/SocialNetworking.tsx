@@ -517,18 +517,32 @@ const ConfirmEventDialog: React.FC<ConfirmEventDialogProps> = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {isFutureEvent ? `Attend ${event.name}?` : `Attend ${event.name} now?`}
+            {isReservation
+              ? `Reserve spot at ${event.name}?`
+              : isFutureEvent
+                ? `Attend ${event.name}?`
+                : `Attend ${event.name} now?`
+            }
           </AlertDialogTitle>
           <AlertDialogDescription>
             This will cost {formatCurrency(event.entryFee)}. You'll have the opportunity to make new connections and gain social capital.
             {isFutureEvent && (
-              <p className="mt-2">This event is scheduled for {formatDate(new Date(event.date))} ({daysRemaining} days from now).</p>
+              <p className="mt-2">
+                This event is scheduled for {formatDate(new Date(event.date))} ({daysRemaining} days from now).
+                {isReservation && (
+                  <span className="block text-sm mt-1 font-medium text-primary">
+                    You'll automatically attend on the scheduled date.
+                  </span>
+                )}
+              </p>
             )}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
-          <AlertDialogAction onClick={onConfirm}>Attend</AlertDialogAction>
+          <AlertDialogAction onClick={onConfirm}>
+            {isReservation ? 'Reserve Spot' : 'Attend'}
+          </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -694,8 +708,20 @@ export function SocialNetworking() {
     }
   };
   
+  // State to track if we're reserving (true) or attending (false) in the dialog
+  const [isEventReservation, setIsEventReservation] = useState(false);
+  
+  // Handler for opening the dialog to attend an event
   const handleOpenEventDialog = (eventId: string) => {
     setSelectedEventId(eventId);
+    setIsEventReservation(false);
+    setShowEventDialog(true);
+  };
+  
+  // Handler for opening the dialog to reserve an event
+  const handleOpenReserveDialog = (eventId: string) => {
+    setSelectedEventId(eventId);
+    setIsEventReservation(true);
     setShowEventDialog(true);
   };
   
@@ -704,19 +730,32 @@ export function SocialNetworking() {
       const result = attendEvent(selectedEventId);
       if (result.success) {
         toast.success(`You attended the event and met ${result.newConnections.length} new connections!`);
+      } else {
+        toast.error("Unable to attend this event.");
       }
       setShowEventDialog(false);
     }
   };
   
-  // Handler for reserving events
-  const handleReserveEvent = (eventId: string) => {
-    const result = reserveEvent(eventId);
-    if (result.success) {
-      toast.success("Event successfully reserved! You'll automatically attend on the scheduled date.");
-    } else {
-      toast.error("Unable to reserve this event.");
+  // Handler for dialog confirmation to reserve an event
+  const handleConfirmReserveEvent = () => {
+    if (selectedEventId) {
+      const result = reserveEvent(selectedEventId);
+      if (result.success) {
+        toast.success("Event successfully reserved! You'll automatically attend on the scheduled date.");
+      } else {
+        toast.error("Unable to reserve this event.");
+      }
+      setShowEventDialog(false);
     }
+  };
+  
+  // Handler for direct reservation (without dialog)
+  const handleReserveEvent = (eventId: string) => {
+    // We're now using the dialog approach for better UX
+    setSelectedEventId(eventId);
+    setIsEventReservation(true);
+    setShowEventDialog(true);
   };
   
   const handleAddConnection = (type: ConnectionType) => {
@@ -960,7 +999,8 @@ export function SocialNetworking() {
         open={showEventDialog}
         onOpenChange={setShowEventDialog}
         event={selectedEvent}
-        onConfirm={handleConfirmAttendEvent}
+        onConfirm={isEventReservation ? handleConfirmReserveEvent : handleConfirmAttendEvent}
+        isReservation={isEventReservation}
       />
       
       <AddConnectionDialog
