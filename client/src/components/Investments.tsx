@@ -1277,6 +1277,8 @@ export function Investments() {
                         purchaseDate: `${currentDay}`
                       });
                       
+                      // Note: We don't need to call subtractWealth as addAsset already does this
+                      
                       // Also update the AssetTracker store
                       assetTracker.addStock({
                         id: selectedStock.id,
@@ -1285,8 +1287,6 @@ export function Investments() {
                         purchasePrice: stockPrice,
                         currentPrice: stockPrice
                       });
-                      
-                      subtractWealth(totalCost);
                       
                       toast.success(`Successfully purchased ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`);
                       playSuccess();
@@ -2827,163 +2827,20 @@ export function Investments() {
         </div>
       )}
       
-      <div className="border-t pt-4">
-        <h3 className="font-semibold mb-3 text-lg">Make Investment</h3>
-        <div className="mb-4">
-          <div className="flex justify-between mb-3">
-            <div 
-              onClick={() => setBuyMode('amount')} 
-              className={`px-4 py-2 rounded-l-md border text-center w-1/2 cursor-pointer ${
-                buyMode === 'amount' 
-                  ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
-                  : 'bg-muted border-gray-200'
-              }`}
-            >
-              By Amount
-            </div>
-            <div 
-              onClick={() => setBuyMode('shares')} 
-              className={`px-4 py-2 rounded-r-md border text-center w-1/2 cursor-pointer ${
-                buyMode === 'shares' 
-                  ? 'bg-accessible-blue/10 border-accessible-blue text-accessible-blue font-medium' 
-                  : 'bg-muted border-gray-200'
-              }`}
-            >
-              By Shares
-            </div>
+      {isVolatilityWarning && (
+        <div className="mt-3 flex items-start gap-2 bg-accessible-orange/10 text-accessible-orange p-3 rounded-md border border-accessible-orange">
+          <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">{selectedStock.volatility === 'extreme' ? 'Extreme' : 'High'} Volatility Warning</p>
+            <p className="text-sm mt-1">
+              This stock has {
+                selectedStock.volatility === 'extreme' ? 'extremely unpredictable' : 
+                selectedStock.volatility === 'very_high' ? 'extremely high' : 'high'
+              } volatility. While potential returns may be significant, there's also a greater risk of substantial losses.
+            </p>
           </div>
-          
-          {buyMode === 'amount' ? (
-            <div className="bg-muted p-3 rounded-md">
-              <label className="block text-sm font-medium mb-2" id="investment-amount-label">
-                Investment Amount: <span className="font-semibold">{formatCurrency(investmentAmount)}</span>
-              </label>
-              <div className="flex items-center gap-3">
-                <Slider
-                  value={[investmentAmount]}
-                  max={Math.min(100000, wealth)}
-                  step={100}
-                  onValueChange={(vals) => setInvestmentAmount(vals[0])}
-                  aria-labelledby="investment-amount-label"
-                  className="flex-1"
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setInvestmentAmount(wealth)}
-                  className="px-4"
-                  aria-label={`Set maximum investment amount of ${formatCurrency(wealth)}`}
-                >
-                  Max
-                </Button>
-              </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500">
-                  Your available funds: {formatCurrency(wealth)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Shares to buy: <span className="font-medium">{shareQuantity.toFixed(2)}</span>
-                </p>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-muted p-3 rounded-md">
-              <label className="block text-sm font-medium mb-2" id="shares-quantity-label">
-                Number of Shares: <span className="font-semibold">{shareQuantity.toFixed(2)}</span>
-              </label>
-              <div className="flex items-center gap-3">
-                <input 
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={shareQuantity}
-                  onChange={(e) => setShareQuantity(parseFloat(e.target.value) || 0)}
-                  className="p-2 border rounded-md w-full"
-                  aria-labelledby="shares-quantity-label"
-                />
-                
-                {getOwnedStockQuantity(selectedStock.id) > 0 && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShareQuantity(getOwnedStockQuantity(selectedStock.id))}
-                    className="px-3 whitespace-nowrap"
-                  >
-                    Max Owned
-                  </Button>
-                )}
-              </div>
-              
-              <div className="flex justify-between items-center mt-2">
-                <p className="text-xs text-gray-500">
-                  Cost: {formatCurrency(investmentAmount)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Your funds: {formatCurrency(wealth)}
-                </p>
-              </div>
-            </div>
-          )}
         </div>
-        
-        <div className="flex gap-3">
-          <Button 
-            onClick={handleBuy}
-            disabled={
-              buyMode === 'amount'
-                ? (investmentAmount <= 0 || investmentAmount > wealth)
-                : (shareQuantity <= 0 || calculateAmountFromShares(shareQuantity) > wealth)
-            }
-            className="flex-1 py-3 text-base font-medium"
-            aria-label={
-              buyMode === 'amount'
-                ? `Buy shares of ${selectedStock.name} for ${formatCurrency(investmentAmount)}`
-                : `Buy ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`
-            }
-          >
-            <span className="flex items-center">
-              Buy Shares
-              <TrendingUp className="ml-2 h-4 w-4" />
-            </span>
-          </Button>
-          
-          <Button 
-            onClick={handleSell}
-            disabled={getOwnedStockQuantity(selectedStock.id) <= 0}
-            variant="outline"
-            className="flex-1 py-3 text-base font-medium"
-            aria-label={
-              buyMode === 'shares' && shareQuantity > 0 && shareQuantity < getOwnedStockQuantity(selectedStock.id)
-                ? `Sell ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`
-                : `Sell all ${getOwnedStockQuantity(selectedStock.id).toFixed(2)} shares of ${selectedStock.name}`
-            }
-          >
-            <span className="flex items-center">
-              {buyMode === 'shares' && shareQuantity > 0 && shareQuantity < getOwnedStockQuantity(selectedStock.id)
-                ? `Sell ${shareQuantity.toFixed(2)} Shares`
-                : 'Sell All Shares'
-              }
-              <TrendingDown className="ml-2 h-4 w-4" />
-            </span>
-          </Button>
-        </div>
-        
-        {isVolatilityWarning && (
-          <div className="mt-3 flex items-start gap-2 bg-accessible-orange/10 text-accessible-orange p-3 rounded-md">
-            <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="font-medium">{selectedStock.volatility === 'extreme' ? 'Extreme' : 'High'} Volatility Warning</p>
-              <p className="text-sm mt-1">
-                This stock has {
-                  selectedStock.volatility === 'extreme' ? 'extremely unpredictable' : 
-                  selectedStock.volatility === 'very_high' ? 'extremely high' : 'high'
-                } volatility. While potential returns may be significant, there's also a greater risk of substantial losses.
-              </p>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
