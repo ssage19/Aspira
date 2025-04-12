@@ -1212,16 +1212,162 @@ export function Investments() {
                 />
               </div>
               <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
-              <div className="grid grid-cols-2 gap-3 mb-2">
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="bg-muted p-2 rounded">
-                  <p className="text-xs text-gray-500">Current Price</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Current Price</p>
                   <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
                 </div>
                 <div className="bg-muted p-2 rounded">
-                  <p className="text-xs text-gray-500">Owned Value</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Owned Value</p>
                   <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
                 </div>
               </div>
+              
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium mb-1" htmlFor="stock-amount">
+                    Amount to Buy/Sell:
+                  </label>
+                  <div className="flex rounded-md">
+                    <input 
+                      type="number" 
+                      id="stock-amount"
+                      value={shareQuantity} 
+                      onChange={(e) => setShareQuantity(parseFloat(e.target.value) || 0)}
+                      className="flex-1 p-2 border border-input bg-background rounded-l-md text-sm text-foreground"
+                      min="0.0001"
+                      step="0.0001"
+                    />
+                    <div className="px-3 py-2 border border-l-0 border-input bg-muted rounded-r-md">
+                      shares
+                    </div>
+                  </div>
+                  <p className="mt-1 text-xs text-right">
+                    Cost: {formatCurrency(shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice))}
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <Button 
+                    onClick={() => {
+                      // Direct buy using handleBuy logic but simplified for direct purchase
+                      if (shareQuantity <= 0) {
+                        toast.error("Please enter a valid number of shares");
+                        return;
+                      }
+                      
+                      const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
+                      const totalCost = shareQuantity * stockPrice;
+                      
+                      if (totalCost > wealth) {
+                        toast.error("Not enough funds");
+                        playHit();
+                        return;
+                      }
+                      
+                      // Buy stock in character store
+                      addAsset({
+                        id: selectedStock.id,
+                        name: selectedStock.name,
+                        type: 'stock',
+                        quantity: shareQuantity,
+                        purchasePrice: stockPrice,
+                        currentPrice: stockPrice,
+                        purchaseDate: `${currentDay}`
+                      });
+                      
+                      // Also update the AssetTracker store
+                      assetTracker.addStock({
+                        id: selectedStock.id,
+                        name: selectedStock.name,
+                        shares: shareQuantity,
+                        purchasePrice: stockPrice,
+                        currentPrice: stockPrice
+                      });
+                      
+                      subtractWealth(totalCost);
+                      
+                      toast.success(`Successfully purchased ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`);
+                      playSuccess();
+                      
+                      // Reset input after purchase
+                      setShareQuantity(0);
+                      
+                      // Trigger global price update
+                      console.log("Investments: Triggering global price update after purchase");
+                      (window as any).globalUpdateAllPrices();
+                    }}
+                    className="bg-accessible-green hover:bg-accessible-green/90"
+                    disabled={shareQuantity <= 0 || shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice) > wealth}
+                  >
+                    Buy Shares
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      // Direct sell using handleSell logic but simplified for direct selling
+                      if (shareQuantity <= 0) {
+                        toast.error("Please enter a valid number of shares");
+                        return;
+                      }
+                      
+                      const ownedAmount = getOwnedStockQuantity(selectedStock.id);
+                      if (shareQuantity > ownedAmount) {
+                        toast.error(`You only own ${ownedAmount.toFixed(2)} shares`);
+                        return;
+                      }
+                      
+                      const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
+                      const totalValue = shareQuantity * stockPrice;
+                      
+                      // Sell stock in character store
+                      sellAsset({
+                        id: selectedStock.id,
+                        type: 'stock',
+                        quantity: shareQuantity,
+                        sellPrice: stockPrice
+                      });
+                      
+                      // Also update the AssetTracker store
+                      assetTracker.sellStock({
+                        id: selectedStock.id,
+                        shares: shareQuantity,
+                        sellPrice: stockPrice
+                      });
+                      
+                      addWealth(totalValue);
+                      
+                      toast.success(`Successfully sold ${shareQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(totalValue)}`);
+                      playCoin();
+                      
+                      // Reset input after sale
+                      setShareQuantity(0);
+                      
+                      // Trigger global price update
+                      console.log("Investments: Triggering global price update after sale");
+                      (window as any).globalUpdateAllPrices();
+                    }}
+                    className="bg-accessible-red hover:bg-accessible-red/90"
+                    disabled={getOwnedStockQuantity(selectedStock.id) <= 0 || shareQuantity > getOwnedStockQuantity(selectedStock.id)}
+                  >
+                    Sell Shares
+                  </Button>
+                </div>
+              </div>
+              
+              {selectedStock.volatility === 'extreme' && (
+                <div className="mt-3 p-2 bg-red-100 dark:bg-red-900/50 text-red-800 dark:text-red-100 text-sm rounded border border-red-300 dark:border-red-800">
+                  <AlertCircle className="w-4 h-4 inline-block mr-1" />
+                  Warning: This stock has extreme volatility and high risk of significant losses.
+                </div>
+              )}
+              
+              {selectedStock.volatility === 'very_low' && (
+                <div className="mt-3 p-2 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-100 text-sm rounded border border-blue-300 dark:border-blue-800">
+                  <AlertCircle className="w-4 h-4 inline-block mr-1" />
+                  Note: This is a low-volatility stock designed to maintain more stable value with lower growth potential.
+                </div>
+              )}
             </div>
           </div>
         </TabsContent>
