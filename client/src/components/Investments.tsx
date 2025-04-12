@@ -1502,9 +1502,13 @@ export function Investments() {
                     type="number" 
                     id="bond-amount"
                     value={bondAmount} 
-                    onChange={(e) => setBondAmount(Math.max(selectedBond.minInvestment, parseFloat(e.target.value) || 0))}
+                    onChange={(e) => {
+                      // Allow empty values or any number (validation happens at purchase time)
+                      const newValue = e.target.value === '' ? '' : parseFloat(e.target.value);
+                      setBondAmount(newValue as any);
+                    }}
                     className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
-                    min={selectedBond.minInvestment}
+                    min={0}
                     step="1000"
                   />
                   <p className="mt-1 text-xs flex justify-between">
@@ -1655,9 +1659,13 @@ export function Investments() {
                     type="number" 
                     id="startup-amount"
                     value={startupAmount} 
-                    onChange={(e) => setStartupAmount(Math.max(selectedStartup.minInvestment, parseFloat(e.target.value) || 0))}
+                    onChange={(e) => {
+                      // Allow empty values or any number (validation happens at purchase time)
+                      const newValue = e.target.value === '' ? '' : parseFloat(e.target.value);
+                      setStartupAmount(newValue as any);
+                    }}
                     className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
-                    min={selectedStartup.minInvestment}
+                    min={0}
                     step="1000"
                   />
                   <p className="mt-1 text-xs flex justify-between">
