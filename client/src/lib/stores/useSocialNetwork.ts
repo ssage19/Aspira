@@ -759,9 +759,10 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
     ? getRandomElement(eligibleTemplates) 
     : { ...templates[0], prestigeRequired: Math.max(1, prestigeLevel - 2) };
   
-  // Calculate event date (2-14 days in the future)
+  // Calculate event date (5-25 days in the future)
+  // This spreads events better across the month rather than clustering them
   const now = Date.now();
-  const daysInFuture = 2 + Math.floor(Math.random() * 12);
+  const daysInFuture = 5 + Math.floor(Math.random() * 20);
   const eventDate = now + (daysInFuture * 24 * 60 * 60 * 1000);
   
   // Event is available until 1 day after the event date
