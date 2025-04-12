@@ -1145,11 +1145,11 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           });
           
           // Special bonuses based on connection type
-          if (connection.type === 'mentor' && character.addSkillPoints) {
-            // Mentors can give skill points
-            const skillPoints = 1 + Math.floor((connection.mentorshipLevel || 50) / 20); // 1-5 points based on mentorship level
-            character.addSkillPoints(skillPoints);
-            toast.success(`${connection.name} taught you valuable skills worth ${skillPoints} skill points.`);
+          if (connection.type === 'mentor') {
+            // Mentors can give skill-equivalent value
+            const skillValue = 1 + Math.floor((connection.mentorshipLevel || 50) / 20); // 1-5 points based on mentorship level
+            character.addWealth(skillValue * 1000);
+            toast.success(`${connection.name} taught you valuable skills worth ${formatCurrency(skillValue * 1000)}.`);
           }
         }
         
@@ -1195,15 +1195,10 @@ export const useSocialNetwork = create<SocialNetworkState>()(
             break;
             
           case 'skillBoost':
-            // Add skill boost logic if character has addSkillPoints
-            if (character.addSkillPoints) {
-              const skillPoints = Math.max(1, Math.floor(benefit.value / 5000));
-              character.addSkillPoints(skillPoints);
-              toast.success(`Gained ${skillPoints} skill points from ${connection.name}'s mentoring.`);
-            } else {
-              character.addWealth(benefit.value / 2); // Fallback if no skill system
-              toast.success(`Used ${connection.name}'s advice to improve your business.`);
-            }
+            // Convert benefit to wealth boost
+            const skillValue = Math.max(1, Math.floor(benefit.value / 5000));
+            character.addWealth(skillValue * 1000);
+            toast.success(`Used ${connection.name}'s advice to improve your skills, worth ${formatCurrency(skillValue * 1000)}.`);
             break;
             
           case 'lifestyleDiscount':
