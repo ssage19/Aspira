@@ -3,6 +3,7 @@ import { useSocialNetwork, SocialConnection } from '../lib/stores/useSocialNetwo
 import { X, User, Star } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useGame } from '../lib/stores/useGame';
 
 interface ConnectionNotificationProps {
   connection: SocialConnection;
@@ -102,6 +103,7 @@ export function ConnectionNotification({ connection, onClose, onView }: Connecti
 
 export function ConnectionNotificationManager() {
   const { connections } = useSocialNetwork();
+  const { phase } = useGame();
   const [notification, setNotification] = useState<SocialConnection | null>(null);
   
   // Track when the user first sees connections by storing timestamp
@@ -134,7 +136,10 @@ export function ConnectionNotificationManager() {
 
   // Check for new connections
   useEffect(() => {
-    if (notification) return; // Already showing a notification
+    // Don't show notifications if:
+    // 1. There's already an active notification
+    // 2. The game is not in playing phase (e.g., during character creation)
+    if (notification || phase !== "playing") return;
     
     // Find new connections the user hasn't been notified about yet
     const currentTime = Date.now();
@@ -162,7 +167,7 @@ export function ConnectionNotificationManager() {
         return updated;
       });
     }
-  }, [connections, notification, shownConnections]);
+  }, [connections, notification, shownConnections, phase]);
 
   // Handle viewing connection details
   const handleViewConnection = () => {

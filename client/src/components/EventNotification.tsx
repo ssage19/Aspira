@@ -4,7 +4,7 @@ import { X, Calendar, Star, DollarSign } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatCurrency } from '../lib/utils';
-import useGame from '../lib/stores/useGame';
+import { useGame } from '../lib/stores/useGame';
 
 interface EventNotificationProps {
   event: SocialEvent;
@@ -134,7 +134,10 @@ export function EventNotificationManager() {
 
   // Check for new events
   useEffect(() => {
-    if (notification) return; // Already showing a notification
+    // Don't show notifications if:
+    // 1. There's already an active notification
+    // 2. The game is not in playing phase (e.g., during character creation)
+    if (notification || phase !== "playing") return;
     
     // Find new events the user hasn't been notified about yet
     const currentTime = Date.now();
@@ -165,7 +168,7 @@ export function EventNotificationManager() {
         return updated;
       });
     }
-  }, [events, notification, shownEvents]);
+  }, [events, notification, shownEvents, phase]);
 
   // Handle viewing event details
   const handleViewEvent = () => {
