@@ -325,7 +325,7 @@ export const availableUpgrades: Record<BusinessType, Omit<BusinessUpgrade, 'purc
       cost: 25000,
       effect: {
         revenueMultiplier: 1.1,
-        reputation: 15
+        customerSatisfaction: 15
       }
     },
     {
@@ -572,7 +572,7 @@ export const useBusiness = create<BusinessState>()(
         };
         
         // Deduct the cost from player's wealth
-        character.updateWealth(-template.initialInvestment, 'Business Investment');
+        character.addWealth(-template.initialInvestment);
         
         // Add the business to the store
         set(state => ({
@@ -691,7 +691,7 @@ export const useBusiness = create<BusinessState>()(
         );
         
         // Update player's wealth
-        useCharacter.getState().updateWealth(amount, `Dividend from ${business.name}`);
+        useCharacter.getState().addWealth(amount);
         
         set({ businesses: updatedBusinesses });
         toast.success(`Withdrew ${formatCurrency(amount)} from ${business.name}.`);
@@ -720,7 +720,7 @@ export const useBusiness = create<BusinessState>()(
         );
         
         // Update player's wealth
-        character.updateWealth(-amount, `Investment in ${business.name}`);
+        character.addWealth(-amount);
         
         set({ businesses: updatedBusinesses });
         toast.success(`Invested ${formatCurrency(amount)} in ${business.name}.`);
@@ -934,7 +934,7 @@ export const useBusiness = create<BusinessState>()(
         const saleValue = business.currentValue * 0.9;
         
         // Update player's wealth
-        useCharacter.getState().updateWealth(saleValue, `Sale of ${business.name}`);
+        useCharacter.getState().addWealth(saleValue);
         
         // Remove the business
         set(state => ({
