@@ -666,10 +666,17 @@ export function Investments() {
     return ((totalValue - totalCost) / totalCost) * 100;
   };
   
-  const findBestPerformingAsset = () => {
+  interface PerformingAsset {
+    id: string;
+    name: string;
+    type: string;
+    profitPercent: number;
+  }
+  
+  const findBestPerformingAsset = (): PerformingAsset | null => {
     if (assets.length === 0) return null;
     
-    let bestAsset = null;
+    let bestAsset: PerformingAsset | null = null;
     let bestProfitPercent = -Infinity;
     
     assets.forEach(asset => {
@@ -711,10 +718,10 @@ export function Investments() {
     return bestAsset;
   };
   
-  const findWorstPerformingAsset = () => {
+  const findWorstPerformingAsset = (): PerformingAsset | null => {
     if (assets.length === 0) return null;
     
-    let worstAsset = null;
+    let worstAsset: PerformingAsset | null = null;
     let worstProfitPercent = Infinity;
     
     assets.forEach(asset => {
