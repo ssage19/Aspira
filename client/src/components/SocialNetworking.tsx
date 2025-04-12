@@ -3,10 +3,12 @@ import { useSocialNetwork, ConnectionType, SocialConnection, SocialEvent, Connec
 import { useCharacter } from '../lib/stores/useCharacter';
 import { usePrestige } from '../lib/stores/usePrestige';
 import { formatCurrency, formatDate } from '../lib/utils';
+import { useNavigate } from 'react-router-dom';
 import {
   User, Users, UserPlus, UserMinus, Calendar, Award,
   TrendingUp, MessageCircle, Gift, Briefcase, 
-  CreditCard, AlertTriangle, Star, Clock, ArrowUpRight
+  CreditCard, AlertTriangle, Star, Clock, ArrowUpRight,
+  ChevronLeft
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -611,11 +613,27 @@ export function SocialNetworking() {
     toast.success(`You discovered ${newEvents.length} new events!`);
   };
   
+  // Get navigate function from react-router-dom
+  const navigate = useNavigate();
+
   return (
     <div className="container mx-auto p-4">
       <header className="mb-6">
-        <h1 className="text-3xl font-bold">Social Networking</h1>
-        <p className="text-muted-foreground">Expand your professional network and unlock opportunities</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Social Networking</h1>
+            <p className="text-muted-foreground">Expand your professional network and unlock opportunities</p>
+          </div>
+          <Button 
+            variant="secondary" 
+            size="sm" 
+            onClick={() => navigate('/dashboard')}
+            className="bg-primary/10 hover:bg-primary/20 text-primary"
+          >
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to Dashboard
+          </Button>
+        </div>
       </header>
       
       {/* Stats bar */}

@@ -18,13 +18,14 @@ export function NetworkingScreen() {
       <GameUI />
       
       <div className="container mx-auto px-4 pt-4 pb-6">
+        {/* More prominent back button */}
         <Button 
-          variant="ghost" 
-          size="sm" 
+          variant="outline" 
+          size="default" 
           onClick={() => navigate('/dashboard')}
-          className="mb-4"
+          className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
         >
-          <ChevronLeft className="h-4 w-4 mr-1" />
+          <ChevronLeft className="h-5 w-5 mr-2" />
           Back to Dashboard
         </Button>
         
