@@ -30,7 +30,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
 // Import icons
 import { Calendar, Settings, DollarSign, Crown, ChartBar, 
   Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
-  Upload, Trash2, RotateCcw, HeartPulse, Target, Palette, Trophy, Sparkles } from 'lucide-react';
+  Upload, Trash2, RotateCcw, HeartPulse, Target, Palette, Trophy, Star } from 'lucide-react';
 
 // Import data stores directly (for direct access)
 import useAssetTracker from '../lib/stores/useAssetTracker';
@@ -422,7 +422,7 @@ export default function ReliableDashboard() {
                     className="w-full h-20 futuristic-card card-hover border border-purple-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/prestige')}
                   >
-                    <Sparkles className="h-5 w-5 mb-2 text-purple-500" />
+                    <Star className="h-5 w-5 mb-2 text-purple-500" />
                     Prestige
                   </Button>
                 </div>
