@@ -901,154 +901,773 @@ export function Investments() {
         
         {/* Portfolio Tab */}
         <TabsContent value="portfolio" className="animate-fade-in">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">My Stock Portfolio</h3>
-              
-              {/* Portfolio Summary */}
-              <div className="bg-muted p-3 rounded-md mb-3 border">
-                <div className="flex justify-between items-center">
-                  <p className="text-sm font-medium">Total Stocks:</p>
-                  <p className="font-semibold">{assets.filter(a => a.type === 'stock').length}</p>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <p className="text-sm font-medium">Total Value:</p>
-                  <p className="font-semibold">{formatCurrency(
-                    assets
-                      .filter(a => a.type === 'stock')
-                      .reduce((total, asset) => {
+          {/* Overall Portfolio Summary */}
+          <div className="bg-muted/20 p-3 rounded-md mb-4 border">
+            <h3 className="font-semibold mb-2 text-lg">Complete Investment Portfolio</h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Total Assets</p>
+                <p className="font-semibold text-lg">{
+                  assets.filter(a => ['stock', 'crypto', 'bond', 'other'].includes(a.type)).length
+                }</p>
+              </div>
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Portfolio Value</p>
+                <p className="font-semibold text-lg">{formatCurrency(
+                  assets
+                    .filter(a => ['stock', 'crypto', 'bond', 'other'].includes(a.type))
+                    .reduce((total, asset) => {
+                      if (asset.type === 'stock') {
                         const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
                         return total + (asset.quantity * currentPrice);
-                      }, 0)
-                  )}</p>
-                </div>
+                      } else if (asset.type === 'crypto') {
+                        const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+                        return total + (asset.quantity * currentPrice);
+                      } else if (asset.type === 'bond') {
+                        // For bonds, use the current value (which grows over time) or purchase price
+                        return total + (asset.currentPrice || asset.purchasePrice);
+                      } else if (asset.type === 'other') {
+                        // For startups/other, use purchase price until maturity
+                        return total + asset.purchasePrice;
+                      }
+                      return total;
+                    }, 0)
+                )}</p>
               </div>
-              
-              {/* Owned Stocks List */}
-              <div 
-                className="space-y-2 max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
-                aria-labelledby="portfolio-heading"
-                role="listbox"
-              >
-                {assets.filter(a => a.type === 'stock').length > 0 ? (
-                  assets
-                    .filter(a => a.type === 'stock')
-                    .map((asset) => {
-                      const stock = expandedStockMarket.find(s => s.id === asset.id);
-                      if (!stock) return null;
-                      
-                      const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
-                      const totalValue = asset.quantity * currentPrice;
-                      const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
-                      const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
-                      
-                      return (
-                        <div 
-                          key={`portfolio-${asset.id}`}
-                          role="option"
-                          aria-selected={selectedStock.id === asset.id}
-                          className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
-                            selectedStock.id === asset.id 
-                              ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
-                              : 'hover:bg-muted hover:border-border'
-                          }`}
-                          onClick={() => {
-                            const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                            if (stockData) setSelectedStock(stockData);
-                          }}
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
-                            <span className="font-semibold">{formatCurrency(totalValue)}</span>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-muted-foreground">
-                              Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
-                            </span>
-                            <span className={`${
-                              profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-muted-foreground'
-                            }`}>
-                              {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
-                            </span>
-                          </div>
-                          <div className="flex justify-between text-xs mt-1">
-                            <span className="text-muted-foreground">
-                              Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
-                            </span>
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                // Set selected stock and prepare for selling
-                                const stockData = expandedStockMarket.find(s => s.id === asset.id);
-                                if (stockData) {
-                                  setSelectedStock(stockData);
-                                  setBuyMode('shares');
-                                  setShareQuantity(asset.quantity);
-                                }
-                              }}
-                              className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
-                            >
-                              Sell
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })
-                ) : (
-                  <div className="p-4 text-center bg-muted rounded-md">
-                    <p className="text-gray-500">You don't own any stocks yet</p>
-                    <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
-                  </div>
-                )}
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Cash Position</p>
+                <p className="font-semibold text-lg">{formatCurrency(wealth)}</p>
+              </div>
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Asset Distribution</p>
+                <div className="flex gap-1 mt-1">
+                  {/* Stocks percentage */}
+                  <div 
+                    className="h-4 bg-accessible-blue rounded-l-sm"
+                    style={{ 
+                      width: `${assets.filter(a => a.type === 'stock').length ? 25 : 0}%`,
+                      opacity: assets.filter(a => a.type === 'stock').length ? 1 : 0.3
+                    }}
+                    title="Stocks"
+                  ></div>
+                  {/* Crypto percentage */}
+                  <div 
+                    className="h-4 bg-accessible-orange"
+                    style={{ 
+                      width: `${assets.filter(a => a.type === 'crypto').length ? 25 : 0}%`,
+                      opacity: assets.filter(a => a.type === 'crypto').length ? 1 : 0.3
+                    }}
+                    title="Crypto"
+                  ></div>
+                  {/* Bonds percentage */}
+                  <div 
+                    className="h-4 bg-accessible-green"
+                    style={{ 
+                      width: `${assets.filter(a => a.type === 'bond').length ? 25 : 0}%`,
+                      opacity: assets.filter(a => a.type === 'bond').length ? 1 : 0.3
+                    }}
+                    title="Bonds"
+                  ></div>
+                  {/* Startups percentage */}
+                  <div 
+                    className="h-4 bg-accessible-purple rounded-r-sm"
+                    style={{ 
+                      width: `${assets.filter(a => a.type === 'other').length ? 25 : 0}%`,
+                      opacity: assets.filter(a => a.type === 'other').length ? 1 : 0.3
+                    }}
+                    title="Startups"
+                  ></div>
+                </div>
               </div>
             </div>
             
-            <div>
-              <h3 className="font-semibold mb-2 text-lg flex items-center">
-                {selectedStock.name} ({selectedStock.symbol})
-                <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                  priceChangePercent > 0 
-                    ? 'bg-accessible-green/10 text-accessible-green' 
-                    : priceChangePercent < 0 
-                      ? 'bg-accessible-red/10 text-accessible-red' 
-                      : 'bg-accent-muted'
-                }`}>
-                  {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
-                </span>
-              </h3>
-              <div className="h-40 mb-3 border p-1 rounded-md bg-background">
-                <StockChart 
-                  stockId={selectedStock.id}
-                  currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
-                  basePrice={selectedStock.basePrice}
-                  volatility={selectedStock.volatility}
-                />
+            {/* Compact Asset Category Breakdown */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div 
+                className={`p-2 border rounded ${
+                  assets.filter(a => a.type === 'stock').length > 0 
+                    ? 'border-accessible-blue text-accessible-blue bg-accessible-blue/5' 
+                    : 'border-muted text-muted-foreground'
+                }`}
+              >
+                <div className="flex justify-between">
+                  <span>Stocks</span>
+                  <span>{assets.filter(a => a.type === 'stock').length}</span>
+                </div>
+                <p className="text-right text-sm font-semibold">{formatCurrency(
+                  assets
+                    .filter(a => a.type === 'stock')
+                    .reduce((total, asset) => {
+                      const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                      return total + (asset.quantity * currentPrice);
+                    }, 0)
+                )}</p>
               </div>
-              <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
-              <div className="grid grid-cols-2 gap-3 mb-2">
-                <div className="bg-muted p-2 rounded">
-                  <p className="text-xs text-gray-500">Current Price</p>
-                  <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+              
+              <div 
+                className={`p-2 border rounded ${
+                  assets.filter(a => a.type === 'crypto').length > 0 
+                    ? 'border-accessible-orange text-accessible-orange bg-accessible-orange/5' 
+                    : 'border-muted text-muted-foreground'
+                }`}
+              >
+                <div className="flex justify-between">
+                  <span>Crypto</span>
+                  <span>{assets.filter(a => a.type === 'crypto').length}</span>
                 </div>
-                <div className="bg-muted p-2 rounded">
-                  <p className="text-xs text-gray-500">Owned Value</p>
-                  <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                <p className="text-right text-sm font-semibold">{formatCurrency(
+                  assets
+                    .filter(a => a.type === 'crypto')
+                    .reduce((total, asset) => {
+                      const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+                      return total + (asset.quantity * currentPrice);
+                    }, 0)
+                )}</p>
+              </div>
+              
+              <div 
+                className={`p-2 border rounded ${
+                  assets.filter(a => a.type === 'bond').length > 0 
+                    ? 'border-accessible-green text-accessible-green bg-accessible-green/5' 
+                    : 'border-muted text-muted-foreground'
+                }`}
+              >
+                <div className="flex justify-between">
+                  <span>Bonds</span>
+                  <span>{assets.filter(a => a.type === 'bond').length}</span>
                 </div>
+                <p className="text-right text-sm font-semibold">{formatCurrency(
+                  assets
+                    .filter(a => a.type === 'bond')
+                    .reduce((total, asset) => {
+                      return total + (asset.currentPrice || asset.purchasePrice);
+                    }, 0)
+                )}</p>
+              </div>
+              
+              <div 
+                className={`p-2 border rounded ${
+                  assets.filter(a => a.type === 'other').length > 0 
+                    ? 'border-accessible-purple text-accessible-purple bg-accessible-purple/5' 
+                    : 'border-muted text-muted-foreground'
+                }`}
+              >
+                <div className="flex justify-between">
+                  <span>Startups</span>
+                  <span>{assets.filter(a => a.type === 'other').length}</span>
+                </div>
+                <p className="text-right text-sm font-semibold">{formatCurrency(
+                  assets
+                    .filter(a => a.type === 'other')
+                    .reduce((total, asset) => {
+                      return total + asset.purchasePrice;
+                    }, 0)
+                )}</p>
               </div>
             </div>
+          </div>
+          
+          {/* Asset Categories Tabs */}
+          <div className="mt-4">
+            <Tabs defaultValue="stocks" className="w-full">
+              <TabsList className="w-full grid grid-cols-4">
+                <TabsTrigger value="stocks" className="flex items-center gap-1">
+                  <BarChart3 className="h-3 w-3" />
+                  <span>Stocks</span>
+                </TabsTrigger>
+                <TabsTrigger value="crypto" className="flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  <span>Crypto</span>
+                </TabsTrigger>
+                <TabsTrigger value="bonds" className="flex items-center gap-1">
+                  <AlertCircle className="h-3 w-3" />
+                  <span>Bonds</span>
+                </TabsTrigger>
+                <TabsTrigger value="startups" className="flex items-center gap-1">
+                  <Wallet className="h-3 w-3" />
+                  <span>Startups</span>
+                </TabsTrigger>
+              </TabsList>
+              
+              {/* Stocks Tab */}
+              <TabsContent value="stocks">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">Stock Holdings</h3>
+                    
+                    <div 
+                      className="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                      aria-labelledby="portfolio-heading"
+                      role="listbox"
+                    >
+                      {assets.filter(a => a.type === 'stock').length > 0 ? (
+                        assets
+                          .filter(a => a.type === 'stock')
+                          .map((asset) => {
+                            const stock = expandedStockMarket.find(s => s.id === asset.id);
+                            if (!stock) return null;
+                            
+                            const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
+                            const totalValue = asset.quantity * currentPrice;
+                            const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
+                            const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                            
+                            return (
+                              <div 
+                                key={`portfolio-${asset.id}`}
+                                role="option"
+                                aria-selected={selectedStock.id === asset.id}
+                                className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                                  selectedStock.id === asset.id 
+                                    ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                                    : 'hover:bg-muted hover:border-border'
+                                }`}
+                                onClick={() => {
+                                  const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                  if (stockData) setSelectedStock(stockData);
+                                }}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
+                                  <span className="font-semibold">{formatCurrency(totalValue)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-1">
+                                  <span className="text-muted-foreground">
+                                    Shares: <span className="font-medium">{asset.quantity.toFixed(2)}</span>
+                                  </span>
+                                  <span className={`${
+                                    profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-muted-foreground'
+                                  }`}>
+                                    {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-1">
+                                  <span className="text-muted-foreground">
+                                    Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
+                                  </span>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const stockData = expandedStockMarket.find(s => s.id === asset.id);
+                                      if (stockData) {
+                                        setSelectedStock(stockData);
+                                        setBuyMode('shares');
+                                        setShareQuantity(asset.quantity);
+                                      }
+                                    }}
+                                    className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
+                                  >
+                                    Sell
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="p-4 text-center bg-muted rounded-md">
+                          <p className="text-gray-500">You don't own any stocks yet</p>
+                          <p className="text-gray-500 text-sm mt-1">Browse the market to start investing</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg flex items-center">
+                      {selectedStock.name} ({selectedStock.symbol})
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                        priceChangePercent > 0 
+                          ? 'bg-accessible-green/10 text-accessible-green' 
+                          : priceChangePercent < 0 
+                            ? 'bg-accessible-red/10 text-accessible-red' 
+                            : 'bg-accent-muted'
+                      }`}>
+                        {priceChangePercent > 0 ? '+' : ''}{priceChangePercent.toFixed(1)}%
+                      </span>
+                    </h3>
+                    <div className="h-40 mb-3 border p-1 rounded-md bg-background">
+                      <StockChart 
+                        stockId={selectedStock.id}
+                        currentPrice={stockPrices[selectedStock.id] || selectedStock.basePrice}
+                        basePrice={selectedStock.basePrice}
+                        volatility={selectedStock.volatility}
+                      />
+                    </div>
+                    <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
+                    <div className="grid grid-cols-2 gap-3 mb-2">
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs text-gray-500">Current Price</p>
+                        <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
+                      </div>
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs text-gray-500">Owned Value</p>
+                        <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              {/* Crypto Tab */}
+              <TabsContent value="crypto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg" id="crypto-portfolio-heading">Cryptocurrency Holdings</h3>
+                    
+                    <div 
+                      className="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100" 
+                      aria-labelledby="crypto-portfolio-heading"
+                      role="listbox"
+                    >
+                      {assets.filter(a => a.type === 'crypto').length > 0 ? (
+                        assets
+                          .filter(a => a.type === 'crypto')
+                          .map((asset) => {
+                            const crypto = cryptoCurrencies.find(c => c.id === asset.id);
+                            if (!crypto) return null;
+                            
+                            const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+                            const totalValue = asset.quantity * currentPrice;
+                            const profitLoss = (currentPrice - asset.purchasePrice) * asset.quantity;
+                            const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                            
+                            return (
+                              <div 
+                                key={`crypto-portfolio-${asset.id}`}
+                                role="option"
+                                aria-selected={selectedCrypto.id === asset.id}
+                                className={`p-3 border rounded-md cursor-pointer transition-all duration-200 ${
+                                  selectedCrypto.id === asset.id 
+                                    ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' 
+                                    : 'hover:bg-muted hover:border-border'
+                                }`}
+                                onClick={() => {
+                                  const cryptoData = cryptoCurrencies.find(c => c.id === asset.id);
+                                  if (cryptoData) setSelectedCrypto(cryptoData);
+                                }}
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium text-base">{crypto.name} ({crypto.symbol})</span>
+                                  <span className="font-semibold">{formatCurrency(totalValue)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-1">
+                                  <span className="text-muted-foreground">
+                                    Amount: <span className="font-medium">{asset.quantity.toFixed(4)}</span>
+                                  </span>
+                                  <span className={`${
+                                    profitLoss > 0 ? 'text-accessible-green' : profitLoss < 0 ? 'text-accessible-red' : 'text-muted-foreground'
+                                  }`}>
+                                    {profitLoss > 0 ? '+' : ''}{formatCurrency(profitLoss)} ({profitLossPercent > 0 ? '+' : ''}{profitLossPercent.toFixed(1)}%)
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-1">
+                                  <span className="text-muted-foreground">
+                                    Price: <span className="font-mono">${currentPrice.toFixed(2)}</span>
+                                  </span>
+                                  <button 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Set selected crypto and amount for selling
+                                      const cryptoData = cryptoCurrencies.find(c => c.id === asset.id);
+                                      if (cryptoData) {
+                                        setSelectedCrypto(cryptoData);
+                                        setCryptoAmount(asset.quantity);
+                                      }
+                                    }}
+                                    className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
+                                  >
+                                    Sell
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="p-4 text-center bg-muted rounded-md">
+                          <p className="text-gray-500">You don't own any cryptocurrencies yet</p>
+                          <p className="text-gray-500 text-sm mt-1">Browse the crypto tab to start investing</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg flex items-center">
+                      {selectedCrypto.name} ({selectedCrypto.symbol})
+                      <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                        (cryptoPrices[selectedCrypto.id] || 0) > selectedCrypto.basePrice 
+                          ? 'bg-accessible-green/10 text-accessible-green' 
+                          : (cryptoPrices[selectedCrypto.id] || 0) < selectedCrypto.basePrice 
+                            ? 'bg-accessible-red/10 text-accessible-red' 
+                            : 'bg-accent-muted'
+                      }`}>
+                        {(cryptoPrices[selectedCrypto.id] || 0) > selectedCrypto.basePrice ? '+' : ''}
+                        {((cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice) - selectedCrypto.basePrice) / selectedCrypto.basePrice * 100 > 0 ? '+' : ''}
+                        {(((cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice) - selectedCrypto.basePrice) / selectedCrypto.basePrice * 100).toFixed(1)}%
+                      </span>
+                    </h3>
+                    <div className="h-40 mb-3 border p-1 rounded-md bg-background flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="mb-2 font-semibold">Current Price</div>
+                        <div className={`text-2xl font-bold ${
+                          (cryptoPrices[selectedCrypto.id] || 0) > selectedCrypto.basePrice 
+                            ? 'text-accessible-green' 
+                            : (cryptoPrices[selectedCrypto.id] || 0) < selectedCrypto.basePrice 
+                              ? 'text-accessible-red' 
+                              : ''
+                        }`}>
+                          ${(cryptoPrices[selectedCrypto.id] || selectedCrypto.basePrice).toFixed(2)}
+                        </div>
+                        <div className="mt-2 text-sm text-muted-foreground">24/7 Trading</div>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedCrypto.description}</p>
+                    <div className="grid grid-cols-2 gap-3 mb-2">
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs text-gray-500">Volatility</p>
+                        <p className="font-semibold capitalize">{selectedCrypto.volatility.replace('_', ' ')}</p>
+                      </div>
+                      <div className="bg-muted p-2 rounded">
+                        <p className="text-xs text-gray-500">Owned Value</p>
+                        <p className="font-semibold">{formatCurrency(getOwnedCryptoValue(selectedCrypto.id))}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              {/* Bonds Tab */}
+              <TabsContent value="bonds">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg">Bond Holdings</h3>
+                    
+                    <div 
+                      className="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                    >
+                      {assets.filter(a => a.type === 'bond').length > 0 ? (
+                        assets
+                          .filter(a => a.type === 'bond')
+                          .map((asset) => {
+                            const bond = bonds.find(b => b.id === asset.id);
+                            if (!bond) return null;
+                            
+                            // Calculate maturity date
+                            const purchaseDate = new Date(asset.purchaseDate);
+                            const maturityDate = asset.maturityDate ? new Date(asset.maturityDate) : new Date(purchaseDate);
+                            if (!asset.maturityDate) {
+                              maturityDate.setFullYear(maturityDate.getFullYear() + bond.term);
+                            }
+                            
+                            // Format dates
+                            const maturityDateStr = `${maturityDate.getMonth() + 1}/${maturityDate.getDate()}/${maturityDate.getFullYear()}`;
+                            
+                            // Calculate time remaining until maturity
+                            const today = new Date();
+                            const daysRemaining = Math.max(0, Math.ceil((maturityDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                            
+                            return (
+                              <div 
+                                key={`bond-portfolio-${asset.id}`} 
+                                className="border rounded-md p-3 bg-background"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">{bond.name}</span>
+                                  <span className="px-2 py-0.5 bg-accessible-green/10 text-accessible-green rounded-full text-xs">
+                                    {((bond.yieldRate || 0) * 100).toFixed(1)}% Yield
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-2">
+                                  <span>Principal: {formatCurrency(asset.purchasePrice)}</span>
+                                  <span>Maturity: {formatCurrency(asset.maturityValue || 0)}</span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-1">
+                                  <span>Matures: {maturityDateStr}</span>
+                                  <span className="text-muted-foreground">{daysRemaining} days left</span>
+                                </div>
+                                <div className="mt-2 w-full bg-gray-200 rounded-full h-1">
+                                  <div 
+                                    className="h-1 rounded-full bg-accessible-green"
+                                    style={{ width: `${(bond.term * 365 - daysRemaining) / (bond.term * 365) * 100}%` }}
+                                  ></div>
+                                </div>
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="p-4 text-center bg-muted rounded-md">
+                          <p className="text-gray-500">You don't own any bonds yet</p>
+                          <p className="text-gray-500 text-sm mt-1">Browse the bonds tab to start investing</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg">Bond Benefits</h3>
+                    <div className="bg-muted p-3 rounded-md mb-3 border">
+                      <h4 className="font-medium mb-2">Steady Income</h4>
+                      <p className="text-sm mb-3">
+                        Bonds provide predictable returns and income over a fixed period. They're an essential part of a diversified portfolio.
+                      </p>
+                      
+                      <h4 className="font-medium mb-2">Stability & Risk Levels</h4>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Treasury Bonds</span>
+                          <span className="px-2 py-0.5 bg-accessible-green/10 text-accessible-green text-xs rounded-full">Very Low Risk</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Municipal Bonds</span>
+                          <span className="px-2 py-0.5 bg-accessible-green/20 text-accessible-green text-xs rounded-full">Low Risk</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span>Corporate Bonds</span>
+                          <span className="px-2 py-0.5 bg-accessible-orange/20 text-accessible-orange text-xs rounded-full">Medium Risk</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span>High-Yield Bonds</span>
+                          <span className="px-2 py-0.5 bg-accessible-red/20 text-accessible-red text-xs rounded-full">High Risk</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-accessible-green/5 border border-accessible-green/20 p-3 rounded-md">
+                      <h4 className="font-medium mb-2 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1 text-accessible-green" />
+                        Bond Investment Tips
+                      </h4>
+                      <ul className="text-sm space-y-1 list-disc pl-4">
+                        <li>Bonds can protect against stock market volatility</li>
+                        <li>Consider laddering bonds with different maturity dates</li>
+                        <li>Higher yield typically means higher risk</li>
+                        <li>Bonds generally perform better when interest rates fall</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+              
+              {/* Startups Tab */}
+              <TabsContent value="startups">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg">Startup Investments</h3>
+                    
+                    <div 
+                      className="space-y-2 max-h-[50vh] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100"
+                    >
+                      {assets.filter(a => a.type === 'other').length > 0 ? (
+                        assets
+                          .filter(a => a.type === 'other')
+                          .map((asset) => {
+                            const startup = startupInvestments.find(s => s.id === asset.id);
+                            if (!startup) return null;
+                            
+                            // Calculate days until outcome
+                            const maturityDay = asset.maturityDay || (parseInt(asset.purchaseDate) + (startup.maturityTimeInDays || 365));
+                            const daysRemaining = Math.max(0, maturityDay - currentDay);
+                            
+                            // Check if investment has matured
+                            const hasMatured = daysRemaining <= 0;
+                            
+                            // Potential return
+                            const potentialReturn = asset.purchasePrice * (asset.potentialReturnMultiple || startup.potentialReturnMultiple);
+                            
+                            return (
+                              <div 
+                                key={`startup-portfolio-${asset.id}`} 
+                                className="border rounded-md p-3 bg-background"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium">{startup.name}</span>
+                                  <span className="text-xs px-2 py-0.5 rounded-full bg-primary/10 text-primary">
+                                    {startup.round === 'seed' ? 'Seed' : 
+                                     startup.round === 'series_a' ? 'Series A' : 
+                                     startup.round === 'series_b' ? 'Series B' : 
+                                     'Pre-IPO'}
+                                  </span>
+                                </div>
+                                <div className="flex justify-between text-xs mt-2">
+                                  <span>Investment: {formatCurrency(asset.purchasePrice)}</span>
+                                  <span>Potential: {formatCurrency(potentialReturn)}</span>
+                                </div>
+                                {hasMatured ? (
+                                  <div className="mt-2 flex justify-between items-center">
+                                    <span className="text-xs text-accessible-blue">Investment matured</span>
+                                    {asset.outcomeProcessed ? (
+                                      <span className="text-xs">Outcome processed</span>
+                                    ) : (
+                                      <span className="text-xs font-medium text-accessible-purple">Awaiting results</span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="mt-2">
+                                    <div className="flex justify-between text-xs">
+                                      <span>Matures in: {daysRemaining} days</span>
+                                      <span>Success Rate: {(asset.successChance || startup.successChance)}%</span>
+                                    </div>
+                                    <div className="mt-1 w-full bg-gray-200 rounded-full h-1">
+                                      <div 
+                                        className="h-1 rounded-full bg-accessible-purple"
+                                        style={{ width: `${(startup.maturityTimeInDays - daysRemaining) / startup.maturityTimeInDays * 100}%` }}
+                                      ></div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                      ) : (
+                        <div className="p-4 text-center bg-muted rounded-md">
+                          <p className="text-gray-500">You don't have any startup investments yet</p>
+                          <p className="text-gray-500 text-sm mt-1">Browse startups tab to begin venture investing</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h3 className="font-semibold mb-2 text-lg">Venture Capital Strategy</h3>
+                    <div className="bg-muted p-3 rounded-md mb-3 border">
+                      <h4 className="font-medium mb-2">Risk & Reward Spectrum</h4>
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Seed Round</span>
+                            <span className="font-medium text-accessible-purple">Highest Risk/Reward</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="h-2 rounded-full bg-accessible-purple" style={{ width: '100%' }}></div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Potential return: up to 100x, but most fail</p>
+                        </div>
+                        
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Series A</span>
+                            <span className="font-medium text-accessible-blue">High Risk/Reward</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="h-2 rounded-full bg-accessible-blue" style={{ width: '75%' }}></div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Potential return: up to 30x, more stability</p>
+                        </div>
+                        
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Series B</span>
+                            <span className="font-medium text-accessible-green">Medium Risk/Reward</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="h-2 rounded-full bg-accessible-green" style={{ width: '50%' }}></div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Potential return: up to 15x, established traction</p>
+                        </div>
+                        
+                        <div>
+                          <div className="flex justify-between text-sm mb-1">
+                            <span>Pre-IPO</span>
+                            <span className="font-medium text-accessible-orange">Low Risk/Reward</span>
+                          </div>
+                          <div className="w-full bg-gray-200 rounded-full h-2">
+                            <div className="h-2 rounded-full bg-accessible-orange" style={{ width: '25%' }}></div>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Potential return: up to 5x, lower risk</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-accessible-purple/5 border border-accessible-purple/20 p-3 rounded-md">
+                      <h4 className="font-medium mb-2 flex items-center">
+                        <AlertCircle className="h-4 w-4 mr-1 text-accessible-purple" />
+                        Startup Investment Tips
+                      </h4>
+                      <ul className="text-sm space-y-1 list-disc pl-4">
+                        <li>Diversify across multiple startups to spread risk</li>
+                        <li>Earlier stages offer higher returns but higher failure rates</li>
+                        <li>Consider the industry trends and market potential</li>
+                        <li>Be prepared for illiquidity until exit events occur</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </TabsContent>
         
         {/* Analysis Tab */}
         <TabsContent value="analysis" className="animate-fade-in">
+          {/* Overall Investment Performance Summary */}
+          <div className="bg-muted/20 p-3 rounded-md mb-4 border">
+            <h3 className="font-semibold mb-2 text-lg">Portfolio Performance Analysis</h3>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {/* Overall ROI */}
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Total Portfolio ROI</p>
+                <p className={`font-semibold text-lg ${
+                  calculateTotalPortfolioReturn() > 0 
+                    ? 'text-accessible-green' 
+                    : calculateTotalPortfolioReturn() < 0 
+                      ? 'text-accessible-red' 
+                      : ''
+                }`}>
+                  {calculateTotalPortfolioReturn() > 0 ? '+' : ''}
+                  {calculateTotalPortfolioReturn().toFixed(2)}%
+                </p>
+              </div>
+              
+              {/* Best Asset */}
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Best Performing Asset</p>
+                <p className="font-semibold text-lg text-accessible-green">
+                  {findBestPerformingAsset()?.name || "None"}
+                </p>
+                {findBestPerformingAsset()?.profitPercent && (
+                  <p className="text-xs text-accessible-green">
+                    +{findBestPerformingAsset()?.profitPercent.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+              
+              {/* Worst Asset */}
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Worst Performing Asset</p>
+                <p className="font-semibold text-lg text-accessible-red">
+                  {findWorstPerformingAsset()?.name || "None"}
+                </p>
+                {findWorstPerformingAsset()?.profitPercent && (
+                  <p className="text-xs text-accessible-red">
+                    {findWorstPerformingAsset()?.profitPercent.toFixed(1)}%
+                  </p>
+                )}
+              </div>
+              
+              {/* Portfolio Diversity Score */}
+              <div className="bg-background p-3 rounded-md border">
+                <p className="text-xs text-muted-foreground">Portfolio Diversity</p>
+                <p className="font-semibold text-lg">{calculateDiversityScore()}/10</p>
+                <p className="text-xs text-muted-foreground">
+                  {getDiversityComment()}
+                </p>
+              </div>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <h3 className="font-semibold mb-2 text-lg">Performance Analysis</h3>
+              <h3 className="font-semibold mb-2 text-lg">Asset Performance</h3>
+              
+              {/* Multi-Asset Performance */}
               <div className="bg-muted p-3 rounded-md mb-3 border">
                 <h4 className="font-medium mb-2">Top Performers</h4>
-                {assets.filter(a => a.type === 'stock').length > 0 ? (
+                {assets.filter(a => ['stock', 'crypto'].includes(a.type)).length > 0 ? (
                   <div className="space-y-2">
-                    {assets
+                    {/* Combined stocks and crypto for top performers */}
+                    {[...assets
                       .filter(a => a.type === 'stock')
                       .map(asset => {
                         const stock = expandedStockMarket.find(s => s.id === asset.id);
@@ -1059,10 +1678,28 @@ export function Investments() {
                         
                         return {
                           asset,
-                          stock,
+                          name: stock.name,
+                          type: 'stock',
+                          profitLossPercent
+                        };
+                      }),
+                      ...assets
+                      .filter(a => a.type === 'crypto')
+                      .map(asset => {
+                        const crypto = cryptoCurrencies.find(c => c.id === asset.id);
+                        if (!crypto) return null;
+                        
+                        const currentPrice = cryptoPrices[asset.id] || asset.purchasePrice;
+                        const profitLossPercent = ((currentPrice - asset.purchasePrice) / asset.purchasePrice) * 100;
+                        
+                        return {
+                          asset,
+                          name: crypto.name,
+                          type: 'crypto',
                           profitLossPercent
                         };
                       })
+                    ]
                       .filter(Boolean)
                       .sort((a, b) => b!.profitLossPercent - a!.profitLossPercent)
                       .slice(0, 3)
@@ -1070,7 +1707,12 @@ export function Investments() {
                         if (!item) return null;
                         return (
                           <div key={`top-${item.asset.id}`} className="flex justify-between items-center p-2 bg-background rounded border">
-                            <span className="font-medium">{item.stock.name}</span>
+                            <div className="flex items-center">
+                              <span className={`w-2 h-2 rounded-full mr-2 ${
+                                item.type === 'stock' ? 'bg-accessible-blue' : 'bg-accessible-orange'
+                              }`}></span>
+                              <span className="font-medium">{item.name}</span>
+                            </div>
                             <span className={`text-sm font-semibold ${
                               item.profitLossPercent > 0 ? 'text-accessible-green' : 'text-accessible-red'
                             }`}>
@@ -1081,75 +1723,68 @@ export function Investments() {
                       })}
                   </div>
                 ) : (
-                  <p className="text-gray-500 text-sm text-center">No stock data available</p>
+                  <p className="text-gray-500 text-sm text-center">No performance data available</p>
                 )}
               </div>
               
+              {/* Asset Allocation - Multiple Types */}
               <div className="bg-muted p-3 rounded-md mb-3 border">
-                <h4 className="font-medium mb-2">Sector Distribution</h4>
-                {assets.filter(a => a.type === 'stock').length > 0 ? (
-                  <div className="space-y-2">
-                    {(() => {
-                      const sectorData: Record<string, {
-                        name: string,
-                        value: number,
-                        count: number
-                      }> = {};
-                      
-                      assets
-                        .filter(a => a.type === 'stock')
-                        .forEach(asset => {
-                          const stock = expandedStockMarket.find(s => s.id === asset.id);
-                          if (!stock) return;
-                          
-                          const sector = stock.sector;
-                          const currentPrice = stockPrices[asset.id] || asset.purchasePrice;
-                          const value = asset.quantity * currentPrice;
-                          
-                          if (sectorData[sector]) {
-                            sectorData[sector].value += value;
-                            sectorData[sector].count += 1;
-                          } else {
-                            sectorData[sector] = {
-                              name: sector,
-                              value,
-                              count: 1
-                            };
-                          }
-                        });
-                      
-                      const totalValue = Object.values(sectorData).reduce((sum, item) => sum + item.value, 0);
-                      
-                      return Object.values(sectorData)
-                        .sort((a, b) => b.value - a.value)
-                        .map(sector => {
-                          const percentage = (sector.value / totalValue) * 100;
-                          return (
-                            <div key={`sector-${sector.name}`} className="mb-1">
-                              <div className="flex justify-between text-sm mb-1">
-                                <span>{sector.name.charAt(0).toUpperCase() + sector.name.slice(1).replace('_', ' ')}</span>
-                                <span className="font-medium">{percentage.toFixed(1)}%</span>
-                              </div>
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="h-2 rounded-full bg-accessible-blue"
-                                  style={{ width: `${percentage}%` }}
-                                ></div>
-                              </div>
-                            </div>
-                          );
-                        });
-                    })()}
+                <h4 className="font-medium mb-2">Asset Allocation</h4>
+                <div className="space-y-3">
+                  {calculateAssetAllocation().map((allocation, index) => (
+                    <div key={`allocation-${index}`} className="mb-1">
+                      <div className="flex justify-between text-sm mb-1">
+                        <span className="flex items-center">
+                          <span className={`w-3 h-3 rounded-full mr-2 ${
+                            allocation.type === 'stock' ? 'bg-accessible-blue' : 
+                            allocation.type === 'crypto' ? 'bg-accessible-orange' :
+                            allocation.type === 'bond' ? 'bg-accessible-green' :
+                            'bg-accessible-purple'
+                          }`}></span>
+                          {allocation.label}
+                        </span>
+                        <span className="font-medium">{allocation.percentage.toFixed(1)}%</span>
+                      </div>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            allocation.type === 'stock' ? 'bg-accessible-blue' : 
+                            allocation.type === 'crypto' ? 'bg-accessible-orange' :
+                            allocation.type === 'bond' ? 'bg-accessible-green' :
+                            'bg-accessible-purple'
+                          }`}
+                          style={{ width: `${allocation.percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Risk Distribution */}
+              <div className="bg-muted p-3 rounded-md border">
+                <h4 className="font-medium mb-2">Risk Distribution</h4>
+                <div className="flex flex-col space-y-2">
+                  <div className="flex items-center">
+                    <span className="text-xs w-24 text-accessible-green">Low Risk</span>
+                    <div className="relative flex-1 h-6 bg-gradient-to-r from-accessible-green via-accessible-orange to-accessible-red rounded-full overflow-hidden">
+                      {/* Risk indicator */}
+                      <div 
+                        className="absolute top-0 bottom-0 w-1 bg-white border-2 border-primary"
+                        style={{ left: `${calculatePortfolioRiskLevel() * 100}%` }}
+                      ></div>
+                    </div>
+                    <span className="text-xs w-24 text-accessible-red text-right">High Risk</span>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-sm text-center">No sector data available</p>
-                )}
+                  <p className="text-xs text-center mt-1">{getRiskComment()}</p>
+                </div>
               </div>
             </div>
             
             <div>
-              <h3 className="font-semibold mb-2 text-lg">Market Recommendations</h3>
+              <h3 className="font-semibold mb-2 text-lg">Investment Strategy</h3>
               
+              {/* Market Trends */}
               {marketTrend === 'bull' && (
                 <div className="p-3 bg-accessible-green/10 rounded-md border border-accessible-green mb-3">
                   <h4 className="font-medium flex items-center text-accessible-green">
@@ -1157,15 +1792,13 @@ export function Investments() {
                     Bull Market Strategy
                   </h4>
                   <p className="text-sm mt-1">
-                    In a bull market, consider investing in growth stocks with higher volatility for potentially greater returns.
+                    In a bull market, consider these investment options:
                   </p>
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium">Recommended Sectors:</p>
-                    <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Technology</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Consumer Discretionary</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Communication Services</span>
-                    </div>
+                    <p className="text-xs font-medium">Stocks: Growth stocks with higher volatility</p>
+                    <p className="text-xs font-medium">Crypto: Consider higher allocations to crypto</p>
+                    <p className="text-xs font-medium">Bonds: Reduce bond holdings</p>
+                    <p className="text-xs font-medium">Startups: Good time for riskier early-stage investments</p>
                   </div>
                 </div>
               )}
@@ -1177,15 +1810,13 @@ export function Investments() {
                     Bear Market Strategy
                   </h4>
                   <p className="text-sm mt-1">
-                    During a bear market, consider defensive stocks with lower volatility and stable dividends.
+                    During a bear market, consider these protective strategies:
                   </p>
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium">Recommended Sectors:</p>
-                    <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Utilities</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Consumer Staples</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Healthcare</span>
-                    </div>
+                    <p className="text-xs font-medium">Stocks: Focus on defensive stocks with stable dividends</p>
+                    <p className="text-xs font-medium">Crypto: Reduce exposure or focus on stablecoins</p>
+                    <p className="text-xs font-medium">Bonds: Increase bond allocations for stability</p>
+                    <p className="text-xs font-medium">Startups: Focus on later-stage companies with revenue</p>
                   </div>
                 </div>
               )}
@@ -1197,48 +1828,59 @@ export function Investments() {
                     Stable Market Strategy
                   </h4>
                   <p className="text-sm mt-1">
-                    In a stable market, a balanced approach with diversification across sectors is recommended.
+                    In a stable market, consider these balanced approaches:
                   </p>
                   <div className="mt-2 space-y-1">
-                    <p className="text-xs font-medium">Recommended Approach:</p>
-                    <div className="flex flex-wrap gap-1">
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Diversification</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Value Investing</span>
-                      <span className="px-2 py-0.5 bg-accent-muted rounded-full text-xs">Mixed Portfolio</span>
-                    </div>
+                    <p className="text-xs font-medium">Stocks: Mix of growth and value stocks</p>
+                    <p className="text-xs font-medium">Crypto: Moderate exposure to established cryptocurrencies</p>
+                    <p className="text-xs font-medium">Bonds: Maintain balanced bond allocation</p>
+                    <p className="text-xs font-medium">Startups: Diversify across stages and industries</p>
                   </div>
                 </div>
               )}
               
+              {/* Risk & Return Guide */}
               <div className="bg-muted p-3 rounded-md mb-3 border">
-                <h4 className="font-medium mb-2">Volatility Spectrum</h4>
-                <div className="flex items-center mb-1">
-                  <span className="text-xs w-24">Low Risk</span>
-                  <div className="flex-1 h-2 bg-gradient-to-r from-accessible-green to-accessible-red rounded-full"></div>
-                  <span className="text-xs w-24 text-right">High Risk</span>
-                </div>
-                <div className="grid grid-cols-5 gap-1 text-center text-xs mt-2">
-                  <div>
-                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-green/10 text-accessible-green">Very Low</span>
-                    <span className="text-gray-500">Utilities</span>
+                <h4 className="font-medium mb-2">Risk & Return Guide</h4>
+                <div className="space-y-2">
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-accessible-green mr-2"></div>
+                    <span className="text-sm flex-1">Bonds</span>
+                    <span className="text-sm">Lower Risk, Lower Return</span>
                   </div>
-                  <div>
-                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-green/20 text-accessible-green">Low</span>
-                    <span className="text-gray-500">Consumer<br/>Staples</span>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-accessible-blue mr-2"></div>
+                    <span className="text-sm flex-1">Stocks</span>
+                    <span className="text-sm">Medium Risk, Medium Return</span>
                   </div>
-                  <div>
-                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-orange/20 text-accessible-orange">Medium</span>
-                    <span className="text-gray-500">Industrials</span>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-accessible-orange mr-2"></div>
+                    <span className="text-sm flex-1">Crypto</span>
+                    <span className="text-sm">High Risk, High Return</span>
                   </div>
-                  <div>
-                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-red/10 text-accessible-red">High</span>
-                    <span className="text-gray-500">Technology</span>
-                  </div>
-                  <div>
-                    <span className="block mb-1 px-1 py-0.5 rounded bg-accessible-red/20 text-accessible-red">Very High</span>
-                    <span className="text-gray-500">Growth<br/>Startups</span>
+                  <div className="flex items-center">
+                    <div className="w-3 h-3 rounded-full bg-accessible-purple mr-2"></div>
+                    <span className="text-sm flex-1">Startups</span>
+                    <span className="text-sm">Very High Risk, Very High Return</span>
                   </div>
                 </div>
+              </div>
+              
+              {/* Diversification Recommendation */}
+              <div className="bg-accessible-blue/5 border border-accessible-blue/20 p-3 rounded-md">
+                <h4 className="font-medium mb-2 flex items-center">
+                  <AlertCircle className="h-4 w-4 mr-1 text-accessible-blue" />
+                  Diversification Recommendations
+                </h4>
+                <p className="text-sm mb-2">
+                  {getDiversificationRecommendation()}
+                </p>
+                {calculateTimedInvestmentScore() < 0.7 && (
+                  <div className="text-xs bg-background p-2 rounded mt-2">
+                    <p className="font-medium mb-1">Time-based investment strategy:</p>
+                    <p>Consider dollar-cost averaging by investing smaller amounts regularly rather than all at once.</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
