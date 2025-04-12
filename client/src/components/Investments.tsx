@@ -1328,7 +1328,7 @@ export function Investments() {
                       const ownedQuantity = getOwnedStockQuantity(selectedStock.id);
                       
                       // Sell stock in character store - need to pass id and quantity
-                      sellAsset(selectedStock.id, shareQuantity, stockPrice);
+                      sellAsset(selectedStock.id, shareQuantity);
                       
                       // If selling all shares, remove from tracker
                       if (shareQuantity >= ownedQuantity) {
@@ -1633,8 +1633,6 @@ export function Investments() {
                                           setBuyMode('shares');
                                           // Initialize with 10% of current quantity for buying more
                                           setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.1)));
-                                          // Focus on buy panel
-                                          setActiveTab('stocks');
                                         }
                                       }}
                                       className="px-2 py-0.5 bg-accessible-green/10 text-accessible-green rounded hover:bg-accessible-green/20 transition-colors"
@@ -1650,8 +1648,6 @@ export function Investments() {
                                           setBuyMode('shares');
                                           // Initialize with 50% of current quantity for selling
                                           setShareQuantity(Math.max(1, Math.round(asset.quantity * 0.5)));
-                                          // Open sell dialog
-                                          setShowSellDialog(true);
                                         }
                                       }}
                                       className="px-2 py-0.5 bg-accessible-red/10 text-accessible-red rounded hover:bg-accessible-red/20 transition-colors"
