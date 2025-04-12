@@ -8,7 +8,7 @@ import {
   User, Users, UserPlus, UserMinus, Calendar, Award,
   TrendingUp, MessageCircle, Gift, Briefcase, 
   CreditCard, AlertTriangle, Star, Clock, ArrowUpRight,
-  ChevronLeft
+  ChevronLeft, HelpCircle
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -661,7 +661,10 @@ export function SocialNetworking() {
               <MessageCircle className="h-5 w-5 mr-2 text-blue-500" />
               <span className="text-2xl font-bold">{socialCapital}</span>
             </div>
-            <p className="text-xs text-muted-foreground mt-1">Used to schedule meetings and find new connections</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Used to schedule meetings and find new connections
+              <br /><span className="text-primary">Regenerates daily (+{5 + Math.floor(networkingLevel / 10)} points) and from attending events</span>
+            </p>
           </CardContent>
         </Card>
         
