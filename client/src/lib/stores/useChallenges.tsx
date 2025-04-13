@@ -587,11 +587,19 @@ const useChallengesStore = create<ChallengesState>()(
       },
       
       generateNewChallenges: () => {
-        // This will be implemented with specific challenge generation logic
-        // For now, we'll just have placeholder logic
+        // Use our enhanced challenge generation with filtering
+        // This provides more varied challenges and avoids repeating completed ones
+        console.log("Generating new challenges with enhanced system");
+        
+        // Generate a fresh set of challenges
+        const newChallenges = generateChallenges();
+        
+        // Update available challenges with the newly generated ones
         set(state => ({
-          availableChallenges: generateChallenges()
+          availableChallenges: newChallenges
         }));
+        
+        console.log(`Generated ${newChallenges.length} challenges for player`);
       },
       
       adjustDifficulty: (playerStats) => {
@@ -613,8 +621,8 @@ function generateChallenges(): Challenge[] {
   const characterState = useCharacter.getState();
   const assetTrackerState = useAssetTracker.getState();
   
-  // Basic challenges for different categories with difficulty levels
-  return [
+  // Create a comprehensive list of all possible challenges
+  const allChallenges: Challenge[] = [
     // --- WEALTH CHALLENGES ---
     {
       id: 'wealth-1',
@@ -868,6 +876,425 @@ function generateChallenges(): Challenge[] {
       getProgressValue: () => Math.min(characterState.income, 10000)
     }
   ];
+  
+  // Now let's add more advanced challenges
+  const advancedChallenges: Challenge[] = [
+    // --- MORE WEALTH CHALLENGES ---
+    {
+      id: 'wealth-4',
+      title: 'Millionaire',
+      description: 'Reach $1,000,000 in net worth',
+      category: 'wealth',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 1000000,
+      reward: {
+        type: 'cash',
+        value: 50000,
+        description: '$50,000 cash bonus'
+      },
+      checkCondition: () => characterState.netWorth >= 1000000,
+      getProgressValue: () => Math.min(characterState.netWorth, 1000000)
+    },
+    {
+      id: 'wealth-5',
+      title: 'Cash Flow Master',
+      description: 'Generate $20,000 in passive income monthly',
+      category: 'wealth',
+      difficulty: 'expert',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 20000,
+      reward: {
+        type: 'skill_points',
+        value: 250,
+        description: '250 skill points'
+      },
+      // Calculate total passive income from properties
+      checkCondition: () => {
+        const propertyIncome = characterState.properties.reduce((total, property) => {
+          return total + (property.income - property.expenses - (property.monthlyPayment || 0));
+        }, 0);
+        
+        return propertyIncome >= 20000;
+      },
+      getProgressValue: () => {
+        const propertyIncome = characterState.properties.reduce((total, property) => {
+          return total + (property.income - property.expenses - (property.monthlyPayment || 0));
+        }, 0);
+        
+        return Math.min(propertyIncome, 20000);
+      }
+    },
+    
+    // --- MORE INVESTMENT CHALLENGES ---
+    {
+      id: 'invest-3',
+      title: 'Diversified Portfolio',
+      description: 'Own assets in all investment categories (stocks, bonds, crypto, property)',
+      category: 'investment',
+      difficulty: 'intermediate',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 4, // 4 different asset types
+      reward: {
+        type: 'cash',
+        value: 15000,
+        description: '$15,000 cash bonus'
+      },
+      checkCondition: () => {
+        // Check all 4 investment types
+        const hasStocks = assetTrackerState.stocks.length > 0;
+        const hasBonds = assetTrackerState.bonds.length > 0;
+        const hasCrypto = assetTrackerState.cryptoAssets.length > 0;
+        const hasProperties = characterState.properties.length > 0;
+        
+        // Count how many types the player has
+        let count = 0;
+        if (hasStocks) count++;
+        if (hasBonds) count++;
+        if (hasCrypto) count++;
+        if (hasProperties) count++;
+        
+        return count >= 4; 
+      },
+      getProgressValue: () => {
+        // Count investment types owned
+        let count = 0;
+        if (assetTrackerState.stocks.length > 0) count++;
+        if (assetTrackerState.bonds.length > 0) count++;
+        if (assetTrackerState.cryptoAssets.length > 0) count++;
+        if (characterState.properties.length > 0) count++;
+        
+        return count;
+      }
+    },
+    {
+      id: 'invest-4',
+      title: 'Property Mogul',
+      description: 'Own 3 different properties',
+      category: 'investment',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 3,
+      reward: {
+        type: 'prestige',
+        value: 25,
+        description: '+25 Prestige'
+      },
+      checkCondition: () => characterState.properties.length >= 3,
+      getProgressValue: () => Math.min(characterState.properties.length, 3)
+    },
+    
+    // --- MORE CAREER CHALLENGES ---
+    {
+      id: 'career-3',
+      title: 'Executive Material',
+      description: 'Reach an executive-level position',
+      category: 'career',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 1,
+      reward: {
+        type: 'prestige',
+        value: 30,
+        description: '+30 Prestige'
+      },
+      checkCondition: () => characterState.job?.jobLevel === 'executive',
+      getProgressValue: () => characterState.job?.jobLevel === 'executive' ? 1 : 0
+    },
+    {
+      id: 'career-4',
+      title: 'Six-Figure Salary',
+      description: 'Earn a salary of $100,000 or more',
+      category: 'career',
+      difficulty: 'intermediate',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 100000,
+      reward: {
+        type: 'cash',
+        value: 10000,
+        description: '$10,000 cash bonus'
+      },
+      checkCondition: () => (characterState.job?.salary || 0) >= 100000,
+      getProgressValue: () => Math.min(characterState.job?.salary || 0, 100000)
+    },
+    
+    // --- MORE SKILL CHALLENGES ---
+    {
+      id: 'skills-3',
+      title: 'Creative Mind',
+      description: 'Reach 500 points in Creativity skills',
+      category: 'skills',
+      difficulty: 'intermediate',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 500,
+      reward: {
+        type: 'skill_points',
+        value: 100,
+        description: '100 skill points'
+      },
+      checkCondition: () => characterState.skills.creativity >= 500,
+      getProgressValue: () => Math.min(characterState.skills.creativity, 500)
+    },
+    {
+      id: 'skills-4',
+      title: 'People Person',
+      description: 'Reach 500 points in Charisma skills',
+      category: 'skills',
+      difficulty: 'intermediate',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 500,
+      reward: {
+        type: 'skill_points',
+        value: 100,
+        description: '100 skill points'
+      },
+      checkCondition: () => characterState.skills.charisma >= 500,
+      getProgressValue: () => Math.min(characterState.skills.charisma, 500)
+    },
+    
+    // --- MORE LIFESTYLE CHALLENGES ---
+    {
+      id: 'lifestyle-2',
+      title: 'Luxury Living',
+      description: 'Own luxury housing and a premium vehicle',
+      category: 'lifestyle',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 2,
+      reward: {
+        type: 'prestige',
+        value: 30,
+        description: '+30 Prestige'
+      },
+      checkCondition: () => {
+        const hasLuxuryHousing = characterState.housingType === 'luxury';
+        const hasPremiumVehicle = characterState.vehicleType === 'premium';
+        return hasLuxuryHousing && hasPremiumVehicle;
+      },
+      getProgressValue: () => {
+        let progress = 0;
+        if (characterState.housingType === 'luxury') progress++;
+        if (characterState.vehicleType === 'premium') progress++;
+        return progress;
+      }
+    },
+    {
+      id: 'lifestyle-3',
+      title: 'Perfect Balance',
+      description: 'Reach 85+ in health, happiness, and comfort',
+      category: 'lifestyle',
+      difficulty: 'expert',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 3, // 3 attributes
+      reward: {
+        type: 'skill_points',
+        value: 200,
+        description: '200 skill points'
+      },
+      checkCondition: () => {
+        return (
+          characterState.health >= 85 &&
+          characterState.happiness >= 85 &&
+          characterState.comfort >= 85
+        );
+      },
+      getProgressValue: () => {
+        let count = 0;
+        if (characterState.health >= 85) count++;
+        if (characterState.happiness >= 85) count++;
+        if (characterState.comfort >= 85) count++;
+        return count;
+      }
+    },
+    
+    // --- MORE SPECIAL CHALLENGES ---
+    {
+      id: 'special-2',
+      title: 'Property Empire',
+      description: 'Own properties worth a total of $1,000,000',
+      category: 'special',
+      difficulty: 'expert',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 1000000,
+      reward: {
+        type: 'cash',
+        value: 100000,
+        description: '$100,000 cash bonus'
+      },
+      checkCondition: () => {
+        const totalPropertyValue = characterState.properties.reduce((total, property) => {
+          return total + property.currentValue;
+        }, 0);
+        return totalPropertyValue >= 1000000;
+      },
+      getProgressValue: () => {
+        const totalPropertyValue = characterState.properties.reduce((total, property) => {
+          return total + property.currentValue;
+        }, 0);
+        return Math.min(totalPropertyValue, 1000000);
+      }
+    },
+    {
+      id: 'special-3',
+      title: 'Debt Free',
+      description: 'Pay off all property loans',
+      category: 'special',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 1,
+      reward: {
+        type: 'happiness',
+        value: 30,
+        description: '+30 Happiness'
+      },
+      checkCondition: () => {
+        // Only count if player owns at least one property
+        if (characterState.properties.length === 0) return false;
+        
+        // Check if all properties are paid off
+        return characterState.properties.every(property => 
+          property.loanAmount === 0 || property.loanAmount === undefined
+        );
+      },
+      getProgressValue: () => {
+        // If no properties, progress is 0
+        if (characterState.properties.length === 0) return 0;
+        
+        // Otherwise, return 1 if all properties are paid off
+        return characterState.properties.every(property => 
+          property.loanAmount === 0 || property.loanAmount === undefined
+        ) ? 1 : 0;
+      }
+    }
+  ];
+  
+  // Combine the base challenges with the advanced ones
+  const combinedChallenges = [...allChallenges, ...advancedChallenges];
+  
+  // Get the store state to check which challenges are already active or completed
+  const store = useChallengesStore.getState();
+  
+  // Create arrays for tracking active and completed challenge IDs
+  const activeIds = store.activeChallenges.map(c => c.id);
+  const completedIds = store.completedChallenges.map(c => c.id);
+  const failedIds = store.failedChallenges.map(c => c.id);
+  
+  // Filter out challenges that are already active, completed, or failed
+  const availableChallenges = combinedChallenges.filter(challenge => 
+    !activeIds.includes(challenge.id) && 
+    !completedIds.includes(challenge.id) &&
+    !failedIds.includes(challenge.id)
+  );
+  
+  // If we have enough available challenges, select a diverse set
+  if (availableChallenges.length >= 5) {
+    // Sort challenges by category and difficulty to get a good mix
+    const sortedChallenges = [...availableChallenges].sort((a, b) => {
+      // First sort by category
+      if (a.category !== b.category) {
+        return a.category.localeCompare(b.category);
+      }
+      
+      // If same category, sort by difficulty
+      const difficultyOrder = {
+        beginner: 1,
+        intermediate: 2,
+        advanced: 3,
+        expert: 4,
+        master: 5
+      };
+      return difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty];
+    });
+    
+    // Select the first 5 challenges from different categories if possible
+    const selectedChallenges: Challenge[] = [];
+    const selectedCategories = new Set<string>();
+    
+    // Try to get one challenge from each category first
+    for (const challenge of sortedChallenges) {
+      if (!selectedCategories.has(challenge.category)) {
+        selectedChallenges.push(challenge);
+        selectedCategories.add(challenge.category);
+        
+        if (selectedChallenges.length >= 5) break;
+      }
+    }
+    
+    // If we still need more challenges, add any remaining available ones
+    if (selectedChallenges.length < 5) {
+      for (const challenge of sortedChallenges) {
+        if (!selectedChallenges.some(c => c.id === challenge.id)) {
+          selectedChallenges.push(challenge);
+          
+          if (selectedChallenges.length >= 5) break;
+        }
+      }
+    }
+    
+    console.log(`Generated ${selectedChallenges.length} new, unique challenges`);
+    return selectedChallenges;
+  }
+  
+  // If we don't have enough available challenges, include some completed ones
+  // This is a fallback in case the player has completed most challenges
+  if (availableChallenges.length > 0) {
+    const neededCount = 5 - availableChallenges.length;
+    
+    // Get some completed challenges that we'll reset and reuse
+    const resetCompletedChallenges = combinedChallenges
+      .filter(challenge => completedIds.includes(challenge.id))
+      .slice(0, neededCount)
+      .map(challenge => ({
+        ...challenge,
+        isCompleted: false,
+        isActive: false,
+        isFailed: false,
+        progress: 0
+      }));
+    
+    console.log(`Generated ${availableChallenges.length} new + ${resetCompletedChallenges.length} recycled challenges`);
+    return [...availableChallenges, ...resetCompletedChallenges];
+  }
+  
+  // Last resort - just use the base challenges
+  console.log(`Falling back to base challenges (all challenges completed)`);
+  return allChallenges.slice(0, 5); // Always return at least 5 challenges
 }
 
 // Export the hook
