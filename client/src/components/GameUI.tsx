@@ -551,83 +551,12 @@ export function GameUI() {
       const totalIncome = propertyIncome + monthlySalary;
       const monthlyNet = totalIncome - totalExpenses;
       
-      // Show the end-of-month summary toast with a more comprehensive breakdown
-      toast(
-        <div className="max-w-md w-full bg-background rounded-lg pointer-events-auto border-border flex flex-col">
-          <div className="p-4">
-            <div className="flex flex-col space-y-2 text-xs">
-              <div className="flex justify-between items-center mb-2">
-                <div className="flex items-center">
-                  <Calendar className="h-5 w-5 text-primary mr-2" />
-                  <span className="font-medium">End of Month Financial Summary</span>
-                </div>
-              </div>
-              
-              {/* Income section */}
-              <div className="bg-green-500/10 rounded-md p-2 mb-1">
-                <div className="text-green-600 dark:text-green-400 font-medium mb-1">Monthly Income</div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Salary:</span>
-                  <span className="font-semibold text-green-500">+{formatCurrency(monthlySalary)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Property Income:</span>
-                  <span className="font-semibold text-green-500">+{formatCurrency(propertyIncome)}</span>
-                </div>
-                <div className="border-t border-green-500/20 mt-1 pt-1 flex justify-between">
-                  <span className="font-medium">Total Income:</span>
-                  <span className="font-semibold text-green-500">+{formatCurrency(totalIncome)}</span>
-                </div>
-              </div>
-              
-              {/* Expenses section */}
-              <div className="bg-red-500/10 rounded-md p-2 mb-1">
-                <div className="text-red-600 dark:text-red-400 font-medium mb-1">Monthly Expenses</div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Housing:</span>
-                  <span className="font-semibold text-red-500">-{formatCurrency(housingExpense)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Transportation:</span>
-                  <span className="font-semibold text-red-500">-{formatCurrency(transportationExpense)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Food & Groceries:</span>
-                  <span className="font-semibold text-red-500">-{formatCurrency(foodExpense)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-foreground/70">Lifestyle:</span>
-                  <span className="font-semibold text-red-500">-{formatCurrency(lifestyleExpenses)}</span>
-                </div>
-                <div className="border-t border-red-500/20 mt-1 pt-1 flex justify-between">
-                  <span className="font-medium">Total Expenses:</span>
-                  <span className="font-semibold text-red-500">-{formatCurrency(totalExpenses)}</span>
-                </div>
-              </div>
-              
-              {/* Final summary section */}
-              <div className="border-t border-border pt-2 mt-1 flex justify-between">
-                <span className="font-medium">Monthly Net Change:</span>
-                <span className={`font-semibold ${totalIncome - totalExpenses >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {totalIncome - totalExpenses >= 0 ? '+' : ''}{formatCurrency(totalIncome - totalExpenses)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>,
-        { 
-          duration: 15000, // Show for 15 seconds since there's more information
-          position: 'bottom-right',
-          icon: null,
-          style: {
-            backgroundColor: 'transparent',
-            boxShadow: 'none',
-            padding: 0,
-            width: 'auto',
-            border: 'none',
-          }
-        }
-      );
+      // Monthly financial summary is now shown in the dedicated widget instead of a toast
+      console.log("End of month reached:", { 
+        totalIncome, 
+        totalExpenses, 
+        monthlyNet 
+      });
     }
     
     // Check for unlockable achievements
