@@ -211,7 +211,9 @@ export const useTime = create<TimeState>()(
             import('./useSocialNetwork').then((module) => {
               const useSocialNetwork = module.useSocialNetwork;
               if (useSocialNetwork && useSocialNetwork.getState) {
-                useSocialNetwork.getState().checkForExpiredContent();
+                // Only show notifications in monthly summary, not during daily advancement
+                const showNotifications = false;
+                useSocialNetwork.getState().checkForExpiredContent?.(showNotifications);
               }
             }).catch(e => console.error("Failed to load social network module:", e));
           }, 0);

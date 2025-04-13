@@ -1357,7 +1357,7 @@ interface SocialNetworkState {
   removeEvent: (eventId: string) => boolean; // New method to remove/cancel events
   reserveEvent: (eventId: string) => {success: boolean}; // New method to reserve events
   attendEvent: (eventId: string) => {success: boolean, newConnections: SocialConnection[]};
-  checkForExpiredContent: () => void;
+  checkForExpiredContent: (showNotifications?: boolean) => void;
   regenerateSocialCapital: (isMonthlyBoost?: boolean) => void;
   resetSocialNetwork: () => void;
 }
