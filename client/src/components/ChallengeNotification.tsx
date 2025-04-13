@@ -60,34 +60,12 @@ export function ChallengeNotification({ challenge, onClose }: ChallengeNotificat
 }
 
 export function ChallengeNotificationManager() {
-  const { activeChallenges, completedChallenges } = useChallenges();
+  const { completedChallenges } = useChallenges();
   const { phase } = useGame();
   const [shownCompletions, setShownCompletions] = useState<string[]>([]);
-  const [shownStarts, setShownStarts] = useState<string[]>([]);
   
-  // Track and notify of newly active challenges
-  useEffect(() => {
-    // Don't show notifications during character creation
-    if (activeChallenges.length === 0 || phase !== "playing") return;
-    
-    // Check for newly activated challenges
-    activeChallenges.forEach(challenge => {
-      if (!shownStarts.includes(challenge.id)) {
-        // Show toast notification for new challenge
-        toast.custom((t) => (
-          <ChallengeNotification 
-            challenge={challenge} 
-            onClose={() => toast.dismiss(t)}
-          />
-        ));
-        
-        // Add to shown array
-        setShownStarts(prev => [...prev, challenge.id]);
-      }
-    });
-  }, [activeChallenges, shownStarts, phase]);
-  
-  // Track and notify of newly completed challenges
+  // Track and notify ONLY of newly completed challenges
+  // We've removed notifications for starting challenges to reduce notification clutter
   useEffect(() => {
     // Don't show notifications during character creation
     if (completedChallenges.length === 0 || phase !== "playing") return;
@@ -105,6 +83,10 @@ export function ChallengeNotificationManager() {
         
         // Add to shown array
         setShownCompletions(prev => [...prev, challenge.id]);
+        
+        // Log completion to console for debugging
+        console.log(`Challenge completed: ${challenge.title} (ID: ${challenge.id})`);
+        console.log(`Reward: ${challenge.reward.description}`);
       }
     });
   }, [completedChallenges, shownCompletions, phase]);
