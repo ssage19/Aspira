@@ -158,6 +158,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Requesting global price update");
       (window as any).globalUpdateAllPrices();
+      
+      // Schedule another update in 1 second to ensure data is fresh
+      setTimeout(() => {
+        console.log("Investments: Running delayed follow-up price refresh");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
     
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -225,6 +233,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Requesting global price update for crypto");
       (window as any).globalUpdateAllPrices();
+      
+      // Schedule another update in 1 second to ensure data is fresh
+      setTimeout(() => {
+        console.log("Investments: Running delayed follow-up crypto price refresh");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
     
   }, [currentDay, marketTrend, stockMarketHealth, assets, assetTracker]);
@@ -374,6 +390,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after purchase");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after purchase");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
 
@@ -427,6 +451,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after sale");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after sale");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
   
@@ -473,6 +505,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after crypto purchase");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after crypto purchase");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
   
