@@ -1308,13 +1308,16 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
     ? getRandomElement(eligibleTemplates) 
     : { ...templates[0], prestigeRequired: prestigeLevel > 0 ? Math.max(0, prestigeLevel - 2) : 0 };
   
+  // Get the current game time to make sure events are scheduled relative to game time, not system time
+  const { currentGameDate } = useTime.getState();
+  const gameTime = currentGameDate.getTime();
+  
   // Calculate event date (5-25 days in the future)
   // This spreads events better across the month rather than clustering them
-  const now = Date.now();
   const daysInFuture = 5 + Math.floor(Math.random() * 20);
   
-  // Create a base date for the event
-  const baseDate = new Date(now + (daysInFuture * 24 * 60 * 60 * 1000));
+  // Create a base date for the event using game time
+  const baseDate = new Date(gameTime + (daysInFuture * 24 * 60 * 60 * 1000));
   
   // Generate a random time between 8:00 AM and 7:00 PM
   // 8 + 0-11 hours = 8:00 AM to 7:00 PM

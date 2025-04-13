@@ -145,6 +145,20 @@ function App() {
               sessionStorage.setItem('time_just_reset', 'true');
               sessionStorage.setItem('time_reset_timestamp', Date.now().toString());
               
+              // Also regenerate social events after a time reset
+              console.log('Regenerating social events after date reset');
+              // Import the social network module dynamically to avoid circular dependencies
+              import('./lib/stores/useSocialNetwork').then(module => {
+                const socialNetwork = module.useSocialNetwork;
+                if (socialNetwork && socialNetwork.getState) {
+                  // First, check for expired content
+                  socialNetwork.getState().checkForExpiredContent?.(false);
+                  // Then generate new events
+                  socialNetwork.getState().generateNewEvents?.(3);
+                  console.log('Social events regenerated after time reset');
+                }
+              }).catch(e => console.error('Failed to regenerate social events:', e));
+              
               // Force a full page reload only if we haven't already reset recently
               // This prevents reload loops
               if (!sessionStorage.getItem('recent_time_reload')) {
