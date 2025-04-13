@@ -225,13 +225,17 @@ export function LivingSituationManager() {
   const handleConfirmPurchase = () => {
     if (!selectedOption) return;
     
-    // Check which type of option it is
-    if ('type' in selectedOption) {
-      if (housingOptions.some(o => o.type === selectedOption.type)) {
-        purchaseHousingOption(selectedOption as HousingOption);
-      } else {
-        purchaseVehicleOption(selectedOption as VehicleOption);
-      }
+    console.log("Confirming purchase for option:", selectedOption.name);
+    
+    // Determine if this is a housing or vehicle option by checking the id against each list
+    const isHousingOption = housingOptions.some(o => o.id === selectedOption.id);
+    
+    if (isHousingOption) {
+      console.log("Processing as housing option");
+      purchaseHousingOption(selectedOption as HousingOption);
+    } else {
+      console.log("Processing as vehicle option");
+      purchaseVehicleOption(selectedOption as VehicleOption);
     }
   };
   
