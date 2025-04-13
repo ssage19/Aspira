@@ -246,54 +246,127 @@ export function Investments() {
     
   }, [currentDay, marketTrend, stockMarketHealth, assets, assetTracker]);
   
-  // Set up a continuous price refresh interval
+  // Set up a continuous price refresh interval with more frequent updates
   useEffect(() => {
-    console.log("Investments: Setting up continuous price refresh interval (every 3 seconds)");
+    console.log("Investments: Setting up more aggressive price refresh interval (every 1 second)");
     
     // Function to refresh all prices from asset tracker
     const refreshPrices = () => {
-      // First, synchronize character store with asset tracker to ensure all prices are up to date
+      // First, force synchronize character store with asset tracker to ensure all prices are up to date
       character.syncPricesFromAssetTracker();
       
-      // Refresh stock prices from asset tracker
+      // Refresh stock prices from asset tracker with direct access to ensure we get the latest
       const updatedStockPrices: Record<string, number> = {};
       expandedStockMarket.forEach(stock => {
-        const price = assetTracker.getAssetPrice(stock.id);
-        updatedStockPrices[stock.id] = price > 0 ? price : stock.basePrice;
+        // Try to get the freshest price possible
+        let latestPrice = 0;
+        
+        // First check if we have it in the asset tracker's stock array for the most up-to-date value
+        if (assetTracker.stocks) {
+          const trackerStock = assetTracker.stocks.find((s: any) => s.id === stock.id);
+          if (trackerStock && trackerStock.currentPrice > 0) {
+            latestPrice = trackerStock.currentPrice;
+          }
+        }
+        
+        // If we didn't get a price, try the getAssetPrice method
+        if (latestPrice <= 0) {
+          latestPrice = assetTracker.getAssetPrice(stock.id);
+        }
+        
+        // If we still don't have a valid price, check owned assets directly
+        if (latestPrice <= 0) {
+          const ownedStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
+          if (ownedStock && ownedStock.currentPrice > 0) {
+            latestPrice = ownedStock.currentPrice;
+          }
+        }
+        
+        // Last resort fallback
+        if (latestPrice <= 0) {
+          latestPrice = stock.basePrice;
+        }
+        
+        updatedStockPrices[stock.id] = latestPrice;
       });
-      setStockPrices(updatedStockPrices);
       
-      // Refresh crypto prices from asset tracker
+      // Force the state update to trigger a re-render
+      setStockPrices(prev => {
+        // Only update if there are actual changes
+        const hasChanges = Object.keys(updatedStockPrices).some(
+          id => updatedStockPrices[id] !== prev[id]
+        );
+        return hasChanges ? updatedStockPrices : prev;
+      });
+      
+      // Refresh crypto prices with the same approach
       const updatedCryptoPrices: Record<string, number> = {};
       cryptoCurrencies.forEach(crypto => {
-        const price = assetTracker.getAssetPrice(crypto.id);
-        updatedCryptoPrices[crypto.id] = price > 0 ? price : crypto.basePrice;
+        let latestPrice = 0;
+        
+        // Check asset tracker crypto assets first
+        if (assetTracker.cryptoAssets) {
+          const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
+          if (trackerCrypto && trackerCrypto.currentPrice > 0) {
+            latestPrice = trackerCrypto.currentPrice;
+          }
+        }
+        
+        // Try getAssetPrice method if needed
+        if (latestPrice <= 0) {
+          latestPrice = assetTracker.getAssetPrice(crypto.id);
+        }
+        
+        // Check owned assets as fallback
+        if (latestPrice <= 0) {
+          const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
+          if (ownedCrypto && ownedCrypto.currentPrice > 0) {
+            latestPrice = ownedCrypto.currentPrice;
+          }
+        }
+        
+        // Last resort
+        if (latestPrice <= 0) {
+          latestPrice = crypto.basePrice;
+        }
+        
+        updatedCryptoPrices[crypto.id] = latestPrice;
       });
-      setCryptoPrices(updatedCryptoPrices);
       
-      console.log("Investments: Continuous price refresh completed");
+      // Force the state update to trigger a re-render
+      setCryptoPrices(prev => {
+        const hasChanges = Object.keys(updatedCryptoPrices).some(
+          id => updatedCryptoPrices[id] !== prev[id]
+        );
+        return hasChanges ? updatedCryptoPrices : prev;
+      });
+      
+      console.log("Investments: Real-time price refresh completed");
     };
     
-    // Run the initial refresh when component mounts
+    // Run the initial refresh immediately when component mounts
     refreshPrices();
     
-    // Set up the interval for continuous refresh
-    const intervalId = setInterval(() => {
-      // First call global update function to update the asset tracker
+    // Set up TWO intervals - one fast for UI updates and one for backend updates
+    
+    // Fast interval (1 second) for UI price refreshes 
+    const fastIntervalId = setInterval(refreshPrices, 1000);
+    
+    // Slower interval (3 seconds) for global market updates
+    const slowIntervalId = setInterval(() => {
+      // Call global update function to update the asset tracker
       if ((window as any).globalUpdateAllPrices) {
         (window as any).globalUpdateAllPrices();
       }
-      
-      // After a short delay, refresh the local state with updated prices
-      setTimeout(refreshPrices, 500);
     }, 3000);
     
-    // Clean up the interval on component unmount
+    // Clean up both intervals on component unmount
     return () => {
-      console.log("Investments: Cleaning up continuous price refresh interval");
-      clearInterval(intervalId);
+      console.log("Investments: Cleaning up all price refresh intervals");
+      clearInterval(fastIntervalId);
+      clearInterval(slowIntervalId);
     };
-  }, [assetTracker, character, expandedStockMarket, cryptoCurrencies]);
+  }, [assetTracker, character, expandedStockMarket, cryptoCurrencies, assets]);
   
   // Sync crypto prices with asset tracker
   const syncAssetTrackerCryptoPrices = (prices: Record<string, number>) => {
