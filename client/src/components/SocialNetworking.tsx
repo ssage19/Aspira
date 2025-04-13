@@ -1235,15 +1235,6 @@ export function SocialNetworking() {
             <h1 className="text-3xl font-bold">Social Networking</h1>
             <p className="text-muted-foreground">Expand your professional network and unlock opportunities</p>
           </div>
-          <Button 
-            variant="secondary" 
-            size="sm" 
-            onClick={() => navigate('/')}
-            className="bg-primary/10 hover:bg-primary/20 text-primary"
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Back to Dashboard
-          </Button>
         </div>
       </header>
       
