@@ -479,9 +479,10 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
   return (
     <Card className="mb-4 bg-card">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
+        {/* Redesigned card header for better mobile layout */}
+        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-2">
           <div>
-            <CardTitle className="text-xl flex items-center">
+            <CardTitle className="text-lg sm:text-xl flex flex-wrap items-center">
               {name} 
               <Badge 
                 className={`ml-2 ${getConnectionTypeColor(type)} text-white text-xs px-2`}
@@ -489,13 +490,13 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
                 {formatConnectionType(type)}
               </Badge>
             </CardTitle>
-            <CardDescription className="text-muted-foreground">
+            <CardDescription className="text-muted-foreground text-sm">
               {formatExpertiseArea(expertise)} Expert • {formatConnectionStatus(status)}
             </CardDescription>
           </div>
           
-          {/* Action buttons */}
-          <div className="flex space-x-2">
+          {/* Action buttons - responsive layout */}
+          <div className="flex flex-wrap gap-2 self-end sm:self-auto mt-2 sm:mt-0">
             {pendingMeeting ? (
               <Button 
                 variant="default" 
@@ -514,10 +515,10 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
                       variant="outline" 
                       size="sm" 
                       onClick={() => onScheduleMeeting(id)}
-                      className="flex items-center"
+                      className="flex items-center whitespace-nowrap"
                     >
                       <Calendar className="mr-1 h-4 w-4" />
-                      <span>Schedule</span>
+                      <span className="inline-block">Schedule</span>
                       <MessageCircle className="ml-1 h-3 w-3" />
                       <span className="ml-1 text-xs">{meetingCost}</span>
                     </Button>
@@ -621,15 +622,16 @@ const ConnectionCard: React.FC<ConnectionCardProps> = ({
             <Separator className="my-2" />
             <h4 className="text-sm font-medium mb-2">Available Opportunities:</h4>
             {unusedBenefits.map(benefit => (
-              <div key={benefit.id} className="flex justify-between items-center mb-2 text-sm border-l-2 border-primary pl-2">
-                <span>{benefit.description}</span>
+              <div key={benefit.id} className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3 text-sm border-l-2 border-primary pl-2">
+                <span className="mb-1 sm:mb-0 pr-4">{benefit.description}</span>
                 <Button 
                   variant="ghost" 
                   size="sm"
                   onClick={() => onUseBenefit(id, benefit.id)}
-                  className="ml-2"
+                  className="self-end sm:self-auto"
                 >
-                  <ArrowUpRight className="h-4 w-4" />
+                  <ArrowUpRight className="h-4 w-4 mr-1" />
+                  <span className="text-xs">Use</span>
                 </Button>
               </div>
             ))}
@@ -681,26 +683,27 @@ const EventCard: React.FC<EventCardProps> = ({
   return (
     <Card className="mb-4 bg-card">
       <CardHeader className="pb-2">
-        <div className="flex justify-between items-start">
+        <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-1">
           <div>
-            <CardTitle className="text-xl">{event.name}</CardTitle>
-            <CardDescription className="flex items-center">
-              <Calendar className="mr-1 h-4 w-4" />
-              {formattedDate}, {formattedTime} • {event.location}
+            <div className="flex flex-wrap items-center justify-between">
+              <CardTitle className="text-lg sm:text-xl pr-2">{event.name}</CardTitle>
+              <Badge className={
+                event.type === 'charity' ? 'bg-pink-500' :
+                event.type === 'business' ? 'bg-blue-500' :
+                event.type === 'gala' ? 'bg-purple-500' :
+                event.type === 'conference' ? 'bg-amber-500' :
+                event.type === 'club' ? 'bg-green-500' :
+                event.type === 'party' ? 'bg-indigo-500' :
+                'bg-cyan-500' // networking
+              }>
+                {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
+              </Badge>
+            </div>
+            <CardDescription className="flex items-center flex-wrap text-sm">
+              <Calendar className="mr-1 h-4 w-4 flex-shrink-0" />
+              <span className="whitespace-normal">{formattedDate}, {formattedTime} • {event.location}</span>
             </CardDescription>
           </div>
-          
-          <Badge className={
-            event.type === 'charity' ? 'bg-pink-500' :
-            event.type === 'business' ? 'bg-blue-500' :
-            event.type === 'gala' ? 'bg-purple-500' :
-            event.type === 'conference' ? 'bg-amber-500' :
-            event.type === 'club' ? 'bg-green-500' :
-            event.type === 'party' ? 'bg-indigo-500' :
-            'bg-cyan-500' // networking
-          }>
-            {event.type.charAt(0).toUpperCase() + event.type.slice(1)}
-          </Badge>
         </div>
       </CardHeader>
       
@@ -749,9 +752,9 @@ const EventCard: React.FC<EventCardProps> = ({
       
       <CardFooter className="pt-2">
         <div className="w-full">
-          <div className="flex justify-between items-center mb-2">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <div className="text-sm text-muted-foreground flex items-center">
-              <Clock className="h-4 w-4 mr-1" />
+              <Clock className="h-4 w-4 mr-1 flex-shrink-0" />
               {daysRemaining > 0 ? 
                 `${daysRemaining} days remaining` : 
                 daysRemaining === 0 ? 
@@ -760,7 +763,7 @@ const EventCard: React.FC<EventCardProps> = ({
               }
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center gap-2 self-end sm:self-auto w-full sm:w-auto">
               <Button 
                 variant="outline" 
                 size="sm"
@@ -768,16 +771,16 @@ const EventCard: React.FC<EventCardProps> = ({
                 onClick={() => onRemove(event.id)}
               >
                 <X className="h-4 w-4 mr-1" />
-                Cancel
+                <span>Cancel</span>
               </Button>
               
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div>
+                    <div className="w-full sm:w-auto">
                       {/* Show different buttons based on event timing and reservation status */}
                       {isReserved ? (
-                        <Button variant="secondary" disabled>
+                        <Button variant="secondary" disabled className="w-full sm:w-auto">
                           Reserved
                         </Button>
                       ) : isFutureEvent && onReserve ? (
@@ -785,6 +788,7 @@ const EventCard: React.FC<EventCardProps> = ({
                           variant="default"
                           disabled={!canAttend || !canAfford}
                           onClick={() => onReserve(event.id)}
+                          className="w-full sm:w-auto whitespace-nowrap"
                         >
                           Reserve Spot
                         </Button>
@@ -793,6 +797,7 @@ const EventCard: React.FC<EventCardProps> = ({
                           variant="default"
                           disabled={!canAttend || !canAfford}
                           onClick={() => onAttend(event.id)}
+                          className="w-full sm:w-auto whitespace-nowrap"
                         >
                           Attend Event
                         </Button>
