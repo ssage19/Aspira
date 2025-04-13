@@ -123,13 +123,16 @@ const CalendarEventDay: React.FC<CalendarEventDayProps> = ({
                   <TooltipTrigger asChild>
                     <div 
                       className={`
-                        px-1 py-0.5 text-xs truncate rounded flex items-center gap-1
+                        px-1 py-0.5 text-xs truncate rounded 
                         ${getEventTypeColor(event.type)}/90 text-white 
                         border ${event.reserved ? 'border-yellow-300' : 'border-white/10'}
                         cursor-pointer
                       `}
                     >
-                      <span className="truncate">{event.name}</span>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold">{format(eventDate, 'h:mm a')}</span>
+                        <span className="truncate">{event.name}</span>
+                      </div>
                     </div>
                   </TooltipTrigger>
                   <TooltipContent side="right" align="start" className="w-72 p-0">
@@ -254,6 +257,30 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
   const resetToCurrentMonth = () => {
     setCurrentMonth(startOfMonth(currentGameDate));
   };
+  
+  // Handle keyboard navigation for calendar
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Only handle events when we're viewing the events tab
+      if (document.activeElement?.tagName === 'INPUT' || 
+          document.activeElement?.tagName === 'TEXTAREA') {
+        return;
+      }
+      
+      if (e.key === 'ArrowLeft') {
+        navigateMonth('prev');
+      } else if (e.key === 'ArrowRight') {
+        navigateMonth('next');
+      } else if (e.key === 'Home') {
+        resetToCurrentMonth();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [currentGameDate]);
   
   // Get upcoming events sorted by date
   const upcomingEvents = useMemo(() => {
@@ -634,8 +661,10 @@ const EventCard: React.FC<EventCardProps> = ({
 }) => {
   const [showDetails, setShowDetails] = useState(false);
   
-  // Format event date
-  const formattedDate = formatDate(new Date(event.date));
+  // Format event date and time
+  const eventDate = new Date(event.date);
+  const formattedDate = formatDate(eventDate);
+  const formattedTime = format(eventDate, 'h:mm a');
   
   // Get current game time
   const { currentGameDate } = useTime.getState();
@@ -658,7 +687,7 @@ const EventCard: React.FC<EventCardProps> = ({
             <CardTitle className="text-xl">{event.name}</CardTitle>
             <CardDescription className="flex items-center">
               <Calendar className="mr-1 h-4 w-4" />
-              {formattedDate} • {event.location}
+              {formattedDate}, {formattedTime} • {event.location}
             </CardDescription>
           </div>
           
@@ -864,7 +893,7 @@ const ConfirmEventDialog: React.FC<ConfirmEventDialogProps> = ({
             This will cost {formatCurrency(event.entryFee)}. You'll have the opportunity to make new connections and gain social capital.
             {isFutureEvent && (
               <p className="mt-2">
-                This event is scheduled for {formatDate(new Date(event.date))} 
+                This event is scheduled for {formatDate(new Date(event.date))} at {format(new Date(event.date), 'h:mm a')}
                 {daysRemaining > 0 
                   ? ` (${daysRemaining} days from now)`
                   : daysRemaining === 0
