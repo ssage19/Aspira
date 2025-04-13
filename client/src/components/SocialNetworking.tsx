@@ -1270,11 +1270,11 @@ export function SocialNetworking() {
           <CardContent>
             <div className="flex items-center">
               <MessageCircle className="h-5 w-5 mr-2 text-blue-500" />
-              <span className="text-2xl font-bold">{socialCapital}</span>
+              <span className="text-2xl font-bold">{socialCapital}<span className="text-sm text-muted-foreground ml-1">/ 200</span></span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Used to schedule meetings and find new connections
-              <br /><span className="text-primary">Monthly boost: +{30 + Math.floor(networkingLevel / 5)} points</span>
+              <br /><span className="text-primary">Monthly boost: +100 base points + {Math.floor(networkingLevel / 10)} from network level</span>
               <br /><span className="text-primary">Also regenerates over time and from attending events</span>
             </p>
           </CardContent>
