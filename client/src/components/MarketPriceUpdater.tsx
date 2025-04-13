@@ -429,10 +429,24 @@ export function MarketPriceUpdater() {
         
         updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
       } else {
-        // If market is closed, just keep the previous price or use base price
-        const currentStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
-        const currentPrice = currentStock?.currentPrice || stock.basePrice;
-        updatedStockPrices[stock.id] = parseFloat(currentPrice.toFixed(2));
+        // If market is closed, we need to use existing global price data or fall back
+        // to ensure we don't reset prices at market close
+        
+        // First check our global tracking, which is most important for persistence
+        const globalPriceExists = stock.id in assetTracker.globalStockPrices;
+        
+        if (globalPriceExists) {
+          // If we have a tracked price, keep using it - this is critical for persistence
+          updatedStockPrices[stock.id] = assetTracker.globalStockPrices[stock.id];
+          console.log(`MarketPriceUpdater: Using persistent price for ${stock.id}: $${updatedStockPrices[stock.id]}`);
+        } else {
+          // If not, check if the player owns this stock
+          const currentStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
+          // Prefer any existing price over the base price
+          const currentPrice = currentStock?.currentPrice || stock.basePrice;
+          updatedStockPrices[stock.id] = parseFloat(currentPrice.toFixed(2));
+          console.log(`MarketPriceUpdater: No persistent price for ${stock.id}, using ${currentPrice}`);
+        }
       }
     });
     
@@ -523,31 +537,54 @@ export function MarketPriceUpdater() {
       if (wasMarketOpen && !isCurrentlyOpen) {
         console.log("MarketPriceUpdater: END OF MARKET DAY DETECTED - running closing price update");
         
-        // Only update prices once at market close
+        // Critical: Before updating anything, ensure we have a copy of all global stock prices
+        const storedPrices = {...assetTracker.globalStockPrices};
+        console.log("MarketPriceUpdater: Saved global prices before end-of-day update:", 
+          Object.keys(storedPrices).length, "stocks");
+        
+        // Run the update, which should now preserve prices due to our earlier fixes
         updateAllPrices();
         
         // Force a refresh for all components to ensure UI updates
         setTimeout(() => {
-          // 1. Update all stock prices in the tracker to ensure changes propagate
-          // Use the direct state access instead of getState() which isn't in the interface
-          assetTracker.stocks.forEach(stock => {
-            // Force the stock price to update with itself to trigger a state change
-            assetTracker.updateStock(stock.id, stock.shares, stock.currentPrice);
+          console.log("MarketPriceUpdater: VERIFYING persistent prices after market close");
+          
+          // Check if any prices got reset and restore them
+          const allStockIds = Object.keys(storedPrices);
+          
+          // Restore any values that got reset
+          allStockIds.forEach(stockId => {
+            const oldPrice = storedPrices[stockId];
+            const currentPrice = assetTracker.globalStockPrices[stockId];
+            
+            // Verify prices
+            if (!currentPrice && oldPrice) {
+              console.log(`MarketPriceUpdater: Restoring lost price for ${stockId}: ${oldPrice}`);
+              // Add back to global tracking
+              assetTracker.globalStockPrices[stockId] = oldPrice;
+            }
           });
           
-          // 2. Same for crypto assets
+          // Force an update for all owned assets to ensure everything is in sync
+          assetTracker.stocks.forEach(stock => {
+            // Get the verified persistent price
+            const persistentPrice = assetTracker.globalStockPrices[stock.id] || stock.currentPrice;
+            // Force update with the correct price
+            assetTracker.updateStock(stock.id, stock.shares, persistentPrice);
+          });
+          
+          // Same for crypto assets - they should be 24/7 but ensure persistence
           assetTracker.cryptoAssets.forEach(crypto => {
-            // Force the crypto price to update with itself to trigger a state change
             assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
           });
           
-          // 3. Force character store to sync with asset tracker
+          // Force character store to sync with asset tracker
           syncAssetsWithAssetTracker();
           
-          // 4. Make sure we recalculate totals after all these updates
+          // Make sure we recalculate totals after all these updates
           assetTracker.recalculateTotals();
           
-          console.log("MarketPriceUpdater: Completed end-of-day market price update");
+          console.log("MarketPriceUpdater: Completed end-of-day market price update with persistence checks");
         }, 250);
       }
       
@@ -577,7 +614,34 @@ export function MarketPriceUpdater() {
           (newHour >= 16 && prevHour < 16)   // Market closing
         ) {
           console.log(`MarketPriceUpdater: Market hours boundary crossed (${prevHour}:00 -> ${newHour}:00), updating prices`);
-          updateAllPrices();
+          
+          // For market closing transition specifically, preserve prices
+          if (newHour >= 16 && prevHour < 16) {
+            // Same approach as the end-of-day handler for consistency
+            const storedPrices = {...assetTracker.globalStockPrices};
+            console.log("MarketPriceUpdater: Saved global prices before market hours boundary update:", 
+              Object.keys(storedPrices).length, "stocks");
+            
+            // Run the update with our improved persistence logic
+            updateAllPrices();
+            
+            // Double-check persistence
+            setTimeout(() => {
+              // Verify all prices are still tracked
+              Object.keys(storedPrices).forEach(stockId => {
+                if (!assetTracker.globalStockPrices[stockId] && storedPrices[stockId]) {
+                  console.log(`MarketPriceUpdater: Restoring price for ${stockId} after market close`);
+                  assetTracker.globalStockPrices[stockId] = storedPrices[stockId];
+                }
+              });
+              
+              // Force sync with character store
+              syncAssetsWithAssetTracker();
+            }, 250);
+          } else {
+            // Just a normal market opening, run the update
+            updateAllPrices();
+          }
         }
       }
     );
@@ -600,7 +664,30 @@ export function MarketPriceUpdater() {
         (window as any).isStockMarketOpen = newMarketOpen;
         
         console.log(`MarketPriceUpdater: Day changed to ${isWeekend ? 'WEEKEND' : 'WEEKDAY'}, market ${newMarketOpen ? 'OPEN' : 'CLOSED'}`);
+        
+        // Preserve prices on day transitions, especially important for weekend boundaries
+        const storedPrices = {...assetTracker.globalStockPrices};
+        console.log("MarketPriceUpdater: Saved global prices before day change update:", 
+          Object.keys(storedPrices).length, "stocks");
+        
+        // Run the update with our improved persistence logic
         updateAllPrices();
+        
+        // For weekend boundaries especially, verify price persistence
+        if (isWeekend) {
+          setTimeout(() => {
+            // Make sure price persistence is maintained
+            Object.keys(storedPrices).forEach(stockId => {
+              if (!assetTracker.globalStockPrices[stockId] && storedPrices[stockId]) {
+                console.log(`MarketPriceUpdater: Restoring price for ${stockId} after weekend transition`);
+                assetTracker.globalStockPrices[stockId] = storedPrices[stockId];
+              }
+            });
+            
+            // Force sync with character store
+            syncAssetsWithAssetTracker();
+          }, 250);
+        }
       }
     );
     
