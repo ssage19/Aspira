@@ -181,14 +181,19 @@ export function MarketPriceUpdater() {
       else if (volatilityLevel === 'very_low') volatilityFactor = 0.01;
       
       // Market has more influence on volatile cryptos
-      const marketInfluence = marketTrend === 'bull' ? 1.01 : marketTrend === 'bear' ? 0.99 : 1;
+      const marketInfluence = marketTrend === 'bull' ? 1.005 : marketTrend === 'bear' ? 0.995 : 1.0;
       
-      // Calculate incremental price change (smaller movements, but still more volatile than stocks)
-      const baseChangePercent = (Math.random() * volatilityFactor * 0.6) - (volatilityFactor * 0.3);
-      const marketEffect = ((marketInfluence - 1) * 0.15); 
+      // Calculate truly random price change with even distribution between positive and negative
+      // This ensures prices can go both up and down with equal probability
+      const baseChangePercent = (Math.random() * volatilityFactor * 2) - volatilityFactor;
+      
+      // Apply market influence as a subtle bias, not a guaranteed direction
+      const marketEffect = ((marketInfluence - 1) * 0.5); 
+      
+      // Combine random movement and market influence
       const totalChangePercent = baseChangePercent + marketEffect;
       
-      // Apply small percentage change to current price (not base price)
+      // Apply percentage change to current price (not base price)
       const newPrice = currentPrice * (1 + totalChangePercent);
       
       // Apply minimum price floor
@@ -484,10 +489,14 @@ export function MarketPriceUpdater() {
         // Time-based component (very minor influence)
         const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
         
-        // Calculate incremental price movement (much smaller changes)
-        // Use previous price as base for incremental changes
-        const baseChangePercent = (Math.random() * volatilityFactor * 0.4) - (volatilityFactor * 0.2);
-        const marketEffect = ((marketFactor - 1) * 0.05); // Very small market influence per tick
+        // Calculate truly random price movement with even distribution between positive and negative
+        // Use previous price as base with neutral expected value for changes
+        const baseChangePercent = (Math.random() * volatilityFactor) - (volatilityFactor * 0.5);
+        
+        // Apply market influence as a subtle bias, not a guaranteed direction
+        const marketEffect = ((marketFactor - 1) * 0.1); // More subtle market influence
+        
+        // Combine random movement, market influence and time factor
         const totalChangePercent = baseChangePercent + marketEffect + timeFactor;
         
         // Apply small percentage change to previous price (typically ±0.1-0.3%)
