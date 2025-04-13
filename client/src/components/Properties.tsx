@@ -357,7 +357,7 @@ export function Properties() {
         <p className="text-sm text-gray-500">Current Mortgage Rate: {interestRate.toFixed(1)}%</p>
       </div>
       
-      <Tabs defaultValue="residential" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} defaultValue="residential" onValueChange={setActiveTab}>
         {isMobile ? (
           <div className="mb-4">
             <DropdownMenu>
@@ -369,19 +369,43 @@ export function Properties() {
                 <ChevronDown className="h-4 w-4 ml-2" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full min-w-[200px]">
-                <DropdownMenuItem onClick={() => setActiveTab('residential')} className="cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    console.log("Selecting residential tab");
+                    setActiveTab('residential');
+                  }} 
+                  className="cursor-pointer"
+                >
                   <Home className="h-4 w-4 mr-2" />
                   Residential
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('mansion')} className="cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    console.log("Selecting luxury tab");
+                    setActiveTab('mansion');
+                  }} 
+                  className="cursor-pointer"
+                >
                   <Castle className="h-4 w-4 mr-2" />
                   Luxury
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('commercial')} className="cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    console.log("Selecting commercial tab");
+                    setActiveTab('commercial');
+                  }} 
+                  className="cursor-pointer"
+                >
                   <Building2 className="h-4 w-4 mr-2" />
                   Commercial
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setActiveTab('industrial')} className="cursor-pointer">
+                <DropdownMenuItem 
+                  onClick={() => {
+                    console.log("Selecting industrial tab");
+                    setActiveTab('industrial');
+                  }} 
+                  className="cursor-pointer"
+                >
                   <Warehouse className="h-4 w-4 mr-2" />
                   Industrial
                 </DropdownMenuItem>
