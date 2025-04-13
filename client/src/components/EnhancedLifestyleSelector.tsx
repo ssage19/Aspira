@@ -868,7 +868,7 @@ export function EnhancedLifestyleSelector() {
         </p>
       </div>
       
-      <Tabs defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
+      <Tabs value={activeTab} defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
         <TabsList className="mb-6 flex flex-wrap">
           <TabsTrigger value="owned">
             {getCategoryIcon('owned')}
