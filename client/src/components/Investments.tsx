@@ -251,7 +251,10 @@ export function Investments() {
     
     // Function to refresh all prices from asset tracker
     const refreshPrices = () => {
-      // Refresh stock prices
+      // First, synchronize character store with asset tracker to ensure all prices are up to date
+      character.syncPricesFromAssetTracker();
+      
+      // Refresh stock prices from asset tracker
       const updatedStockPrices: Record<string, number> = {};
       expandedStockMarket.forEach(stock => {
         const price = assetTracker.getAssetPrice(stock.id);
@@ -259,7 +262,7 @@ export function Investments() {
       });
       setStockPrices(updatedStockPrices);
       
-      // Refresh crypto prices
+      // Refresh crypto prices from asset tracker
       const updatedCryptoPrices: Record<string, number> = {};
       cryptoCurrencies.forEach(crypto => {
         const price = assetTracker.getAssetPrice(crypto.id);
@@ -269,6 +272,9 @@ export function Investments() {
       
       console.log("Investments: Continuous price refresh completed");
     };
+    
+    // Run the initial refresh when component mounts
+    refreshPrices();
     
     // Set up the interval for continuous refresh
     const intervalId = setInterval(() => {
@@ -286,7 +292,7 @@ export function Investments() {
       console.log("Investments: Cleaning up continuous price refresh interval");
       clearInterval(intervalId);
     };
-  }, [assetTracker, expandedStockMarket, cryptoCurrencies]);
+  }, [assetTracker, character, expandedStockMarket, cryptoCurrencies]);
   
   // Sync crypto prices with asset tracker
   const syncAssetTrackerCryptoPrices = (prices: Record<string, number>) => {

@@ -2976,6 +2976,45 @@ export const useCharacter = create<CharacterState>()(
           console.error("Error during property value syncing:", propertyValueSyncError);
         }
         
+        // PHASE 3: CRYPTO PRICE SYNCING
+        try {
+          // For each crypto in asset tracker, update the price in character store
+          if (assetTracker.cryptoAssets && Array.isArray(assetTracker.cryptoAssets)) {
+            assetTracker.cryptoAssets.forEach(trackerCrypto => {
+              // Find the corresponding crypto in character assets
+              const characterAssetIndex = state.assets.findIndex(
+                asset => asset.type === 'crypto' && asset.id === trackerCrypto.id
+              );
+              
+              if (characterAssetIndex >= 0) {
+                const currentPrice = trackerCrypto.currentPrice;
+                const currentAsset = state.assets[characterAssetIndex];
+                
+                // Only update if the price is different and valid
+                if (currentPrice > 0 && currentPrice !== currentAsset.currentPrice) {
+                  // Create an updated asset with the new price
+                  set(state => {
+                    const updatedAssets = [...state.assets];
+                    const updatedAsset = {...updatedAssets[characterAssetIndex]};
+                    updatedAsset.currentPrice = currentPrice;
+                    updatedAssets[characterAssetIndex] = updatedAsset;
+                    
+                    console.log(`PRICE SYNC: Updated ${updatedAsset.name} crypto price in character store from ${currentAsset.currentPrice} to ${currentPrice}`);
+                    
+                    return { assets: updatedAssets };
+                  });
+                }
+              }
+            });
+            
+            console.log("PRICE SYNC: Crypto price sync complete");
+          } else {
+            console.warn("PRICE SYNC: No crypto assets found in asset tracker or invalid data structure");
+          }
+        } catch (cryptoPriceSyncError) {
+          console.error("Error during crypto price syncing:", cryptoPriceSyncError);
+        }
+        
         console.log("PRICE SYNC: Price synchronization from asset tracker to character complete");
       },
       
