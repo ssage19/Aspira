@@ -3071,18 +3071,14 @@ export const useCharacter = create<CharacterState>()(
               // Assign to dailyIncome which will be added to wealth
               dailyIncome = adjustedBiWeeklyIncome;
               
-              // Calculate formatted currency string directly using toLocaleString
+              // Calculate formatted currency string for logging only
               const formattedAmount = adjustedBiWeeklyIncome.toLocaleString('en-US', {
                 style: 'currency',
                 currency: 'USD'
               });
               
-              // Notify about paycheck
-              toast(`Paycheck received: ${formattedAmount}`, {
-                duration: 5000,
-                position: 'bottom-right',
-                icon: '💰'
-              });
+              // Log paycheck info but don't toast (reducing notifications)
+              console.log(`Paycheck received: ${formattedAmount}`);
             }
           }
           
@@ -3094,6 +3090,14 @@ export const useCharacter = create<CharacterState>()(
             dailyPropertyIncome = state.properties.reduce((total, property) => {
               return total + property.income; // Full monthly income on 1st day
             }, 0);
+            
+            // Log property income for the month but don't toast (reducing notifications)
+            if (dailyPropertyIncome > 0) {
+              console.log(`Monthly property income received: ${dailyPropertyIncome.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD'
+              })}`);
+            }
           }
           
           // Process lifestyle expenses
@@ -3237,20 +3241,8 @@ export const useCharacter = create<CharacterState>()(
           // Debug log to see health calculation (commented out in production)
           // console.log(`Health calc: needs=${basicNeedsScore.toFixed(1)}, stress=${stressScore.toFixed(1)}, target=${targetHealth.toFixed(1)}, actual=${health.toFixed(1)}`);
           
-          // Show property income notification if there's any
-          if (dailyPropertyIncome > 0) {
-            // Format the currency string directly
-            const formattedPropertyIncome = dailyPropertyIncome.toLocaleString('en-US', {
-              style: 'currency',
-              currency: 'USD'
-            });
-            
-            toast(`Monthly property income received: ${formattedPropertyIncome}`, {
-              duration: 3000,
-              position: 'bottom-right',
-              icon: '🏢'
-            });
-          }
+          // Removed property income toast notification to reduce UI clutter
+          // All financial details are now available in the Monthly Finances widget
           
           // Apply changes
           return { 
@@ -3318,7 +3310,7 @@ export const useCharacter = create<CharacterState>()(
         // This must be done before deducting expenses
         if (state.properties.length > 0) {
           // Check if any properties have been paid off this month
-          let paidOffProperties = [];
+          let paidOffProperties: string[] = [];
           
           // Process each property's mortgage payment
           const updatedProperties = state.properties.map(property => {
