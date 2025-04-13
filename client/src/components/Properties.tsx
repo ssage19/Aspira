@@ -440,8 +440,8 @@ export function Properties() {
               {getPropertiesForTab().map(property => (
                 <div 
                   key={property.id}
-                  className={`p-2 border rounded cursor-pointer transition-colors ${
-                    selectedProperty.id === property.id ? 'bg-blue-100 border-blue-500' : 'hover:bg-gray-100'
+                  className={`p-2 border rounded cursor-pointer transition-all duration-200 ${
+                    selectedProperty.id === property.id ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' : 'hover:bg-muted hover:border-border'
                   }`}
                   onClick={() => setSelectedProperty(property)}
                 >
