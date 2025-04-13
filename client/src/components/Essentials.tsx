@@ -33,7 +33,9 @@ import {
   AlertCircle,
   Wine,
   Clock,
-  Apple
+  Apple,
+  Home,
+  Car
 } from "lucide-react";
 import { formatCurrency } from "../lib/utils";
 import { 
@@ -45,6 +47,7 @@ import {
   socialActivities 
 } from "../lib/data/essentials";
 import { Alert, AlertDescription } from "./ui/alert";
+import { LivingSituationManager } from "./LivingSituationManager";
 
 export function Essentials() {
   const { 
