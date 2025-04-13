@@ -15,11 +15,18 @@ import {
 /**
  * MobileNavigation - A mobile-optimized navigation bar that appears at the bottom of the screen
  * This component is only visible on mobile devices (screen width < 768px)
+ * 
+ * The navigation is not shown on the character creation screen
  */
 export function MobileNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
   const [isExpanded, setIsExpanded] = useState(false);
+  
+  // Don't show navigation on character creation screen
+  if (location.pathname === '/create') {
+    return null;
+  }
 
   // Define our navigation items
   const navItems = [
