@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
@@ -650,19 +650,29 @@ export function Investments() {
                              selectedStock.volatility === 'very_high' ||
                              selectedStock.volatility === 'extreme';
                              
-  // Get unique sectors for filtering
-  const sectors = Array.from(new Set(expandedStockMarket.map(stock => stock.sector)));
+  // Get unique sectors for filtering - memoize this to avoid recalculation
+  const sectors = useMemo(() => {
+    return Array.from(new Set(expandedStockMarket.map(stock => stock.sector)));
+  }, [expandedStockMarket]);
   
-  // Filter stocks based on search query and selected sector
-  const filteredStocks = expandedStockMarket.filter(stock => {
-    const matchesSearch = searchQuery === '' || 
-      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase());
+  // Memoize filtered stocks to prevent unnecessary recalculations
+  const filteredStocks = useMemo(() => {
+    // Convert search query to lowercase once
+    const searchQueryLower = searchQuery.toLowerCase();
+    const isSearching = searchQuery !== '';
     
-    const matchesSector = selectedSector === 'all' || stock.sector === selectedSector;
-    
-    return matchesSearch && matchesSector;
-  });
+    return expandedStockMarket.filter(stock => {
+      // Only check search if there's a query
+      const matchesSearch = !isSearching || 
+        stock.name.toLowerCase().includes(searchQueryLower) ||
+        stock.symbol.toLowerCase().includes(searchQueryLower);
+      
+      // Optimize sector matching
+      const matchesSector = selectedSector === 'all' || stock.sector === selectedSector;
+      
+      return matchesSearch && matchesSector;
+    });
+  }, [expandedStockMarket, searchQuery, selectedSector]);
   
   // Portfolio analysis utility functions
   const calculateTotalPortfolioReturn = (): number => {
@@ -1242,7 +1252,12 @@ export function Investments() {
                 
                 <select
                   value={selectedSector}
-                  onChange={(e) => setSelectedSector(e.target.value)}
+                  onChange={(e) => {
+                    // Optimized sector selection change handler
+                    console.log(`Changing sector from ${selectedSector} to ${e.target.value}`);
+                    // Set as a separate callback to ensure it's processed in the next tick
+                    setTimeout(() => setSelectedSector(e.target.value), 0);
+                  }}
                   className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
                   aria-label="Filter by sector"
                 >
