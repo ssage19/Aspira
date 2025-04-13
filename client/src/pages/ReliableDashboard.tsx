@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import refreshAllAssets from '../lib/services/assetRefresh';
 import { useAssetRefresh } from '../components/AssetRefreshProvider';
+import { useResponsive } from '../lib/hooks/useResponsive';
 
 // Import UI components
 import { GameUI } from '../components/GameUI';
@@ -204,23 +205,26 @@ export default function ReliableDashboard() {
   // Get economy state
   const { economyState } = useEconomy();
   
+  // Use the responsive hooks
+  const { isMobile } = useResponsive();
+
   // ------------------- UI RENDERING -----------------
   return (
-    <div className="w-full min-h-screen pt-2 pb-24">
+    <div className="w-full min-h-screen pt-2 pb-24 md:pb-12">
       {/* Dashboard UI - outside of normal flow */}
       <GameUI />
         
       {/* Central Dashboard - scrollable */}
-      <div className="relative z-10 w-full max-w-5xl mx-auto p-6 mt-14">
+      <div className="relative z-10 w-full max-w-5xl mx-auto p-3 md:p-6 mt-14">
         <Card className="backdrop-blur-md border-primary/20 bg-background/30 card-hover shadow-lg rounded-xl overflow-hidden">
           {/* Soft glow elements using our new theme colors */}
           <div className="absolute -bottom-2 -right-2 h-32 w-32 bg-primary/20 blur-3xl rounded-full"></div>
           <div className="absolute -top-2 -left-2 h-24 w-24 bg-secondary/20 blur-3xl rounded-full"></div>
           
           <CardHeader className="pb-2 border-b border-primary/10">
-            <CardTitle className="text-3xl flex justify-between items-center font-bold">
-              <span className="gradient-text">Welcome, {stats.name}</span>
-              <div className="flex items-center gap-2">
+            <CardTitle className="flex flex-col md:flex-row justify-between items-start md:items-center font-bold gap-2">
+              <span className="gradient-text text-2xl md:text-3xl">Welcome, {stats.name}</span>
+              <div className="flex items-center gap-2 w-full md:w-auto">
                 <Button 
                   variant="outline" 
                   size="sm" 
@@ -229,23 +233,27 @@ export default function ReliableDashboard() {
                   disabled={isLoading}
                 >
                   <RefreshCw className={`h-3 w-3 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh Data
+                  {isMobile ? '' : 'Refresh Data'}
                 </Button>
                 <Tabs value={activeTab} onValueChange={setActiveTab} className="w-auto">
                   <TabsList className="bg-background/50 backdrop-blur-md border border-primary/20">
-                    <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">Overview</TabsTrigger>
+                    <TabsTrigger value="overview" className="text-sm data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                      {isMobile ? 'Main' : 'Overview'}
+                    </TabsTrigger>
                     <TabsTrigger value="settings" className="text-sm flex items-center data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                      <Settings className="h-3.5 w-3.5 mr-1" />
-                      Settings
+                      <Settings className="h-3.5 w-3.5 md:mr-1" />
+                      {isMobile ? '' : 'Settings'}
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
             </CardTitle>
-            <CardDescription className="text-muted-foreground flex items-center space-x-2 flex-wrap">
-              <Calendar className="h-4 w-4 text-primary" />
-              <span>{formattedDate}</span>
-              <span className="px-2 text-primary/60">•</span>
+            <CardDescription className="text-muted-foreground flex flex-wrap items-center gap-2 text-xs md:text-sm">
+              <div className="flex items-center whitespace-nowrap">
+                <Calendar className="h-4 w-4 text-primary mr-1" />
+                <span>{formattedDate}</span>
+              </div>
+              <span className="hidden md:inline px-2 text-primary/60">•</span>
               <span className={`px-2 py-1 rounded-full text-xs ${
                 economyState === 'boom' ? 'bg-green-500/20 text-green-500 border border-green-500/30' : 
                 economyState === 'recession' ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 
@@ -253,7 +261,7 @@ export default function ReliableDashboard() {
               }`}>
                 {economyState.charAt(0).toUpperCase() + economyState.slice(1)} Economy
               </span>
-              <span className="px-2 text-primary/60">•</span>
+              <span className="hidden md:inline px-2 text-primary/60">•</span>
               <ActiveEventsIndicator />
             </CardDescription>
           </CardHeader>
@@ -373,96 +381,96 @@ export default function ReliableDashboard() {
                   <ConnectionsWidget />
                 </div>
                 
-                {/* Quick Action Buttons */}
-                <div className="grid grid-cols-2 lg:grid-cols-5 md:grid-cols-3 gap-6">
+                {/* Quick Action Buttons - responsive grid */}
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4 lg:gap-6">
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-primary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-primary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/job')}
                   >
-                    <Briefcase className="h-5 w-5 mb-2 text-primary" />
-                    Career
+                    <Briefcase className="h-5 w-5 mb-1 md:mb-2 text-primary" />
+                    <span className="text-xs md:text-sm">Career</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-secondary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-secondary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/investments')}
                   >
-                    <ChartBar className="h-5 w-5 mb-2 text-secondary" />
-                    Investments
+                    <ChartBar className="h-5 w-5 mb-1 md:mb-2 text-secondary" />
+                    <span className="text-xs md:text-sm">Investments</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-tertiary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-tertiary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/properties')}
                   >
-                    <Home className="h-5 w-5 mb-2 text-tertiary" />
-                    Properties
+                    <Home className="h-5 w-5 mb-1 md:mb-2 text-tertiary" />
+                    <span className="text-xs md:text-sm">Properties</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/lifestyle')}
                   >
-                    <Crown className="h-5 w-5 mb-2" />
-                    Lifestyle
+                    <Crown className="h-5 w-5 mb-1 md:mb-2" />
+                    <span className="text-xs md:text-sm">Lifestyle</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-blue-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-blue-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/challenges')}
                   >
-                    <Target className="h-5 w-5 mb-2 text-blue-500" />
-                    Challenges
+                    <Target className="h-5 w-5 mb-1 md:mb-2 text-blue-500" />
+                    <span className="text-xs md:text-sm">Challenges</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-yellow-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-yellow-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/achievements')}
                   >
-                    <Trophy className="h-5 w-5 mb-2 text-yellow-500" />
-                    Achievements
+                    <Trophy className="h-5 w-5 mb-1 md:mb-2 text-yellow-500" />
+                    <span className="text-xs md:text-sm">Achievements</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-purple-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-purple-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/prestige')}
                   >
-                    <Star className="h-5 w-5 mb-2 text-purple-500" />
-                    Prestige
+                    <Star className="h-5 w-5 mb-1 md:mb-2 text-purple-500" />
+                    <span className="text-xs md:text-sm">Prestige</span>
                   </Button>
 
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-green-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-green-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/business')}
                   >
-                    <Briefcase className="h-5 w-5 mb-2 text-green-500" />
-                    Business
+                    <Briefcase className="h-5 w-5 mb-1 md:mb-2 text-green-500" />
+                    <span className="text-xs md:text-sm">Business</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-cyan-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-cyan-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/networking')}
                   >
-                    <Users className="h-5 w-5 mb-2 text-cyan-500" />
-                    Networking
+                    <Users className="h-5 w-5 mb-1 md:mb-2 text-cyan-500" />
+                    <span className="text-xs md:text-sm">Networking</span>
                   </Button>
                 </div>
               </TabsContent>

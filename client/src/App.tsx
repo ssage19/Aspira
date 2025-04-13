@@ -1,4 +1,4 @@
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, lazy } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -40,6 +40,9 @@ import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 import TimeResetHack from "./TimeResetHack";
 import AssetRefreshProvider from "./components/AssetRefreshProvider";
+
+// Lazy-loaded Mobile Navigation component to improve performance
+const MobileNavigation = lazy(() => import('./components/MobileNavigation'));
 
 import "@fontsource/inter";
 
@@ -330,6 +333,11 @@ function App() {
               
               {/* Emergency hack to reset time if needed */}
               <TimeResetHack />
+              
+              {/* Mobile navigation - only visible on mobile devices */}
+              <Suspense fallback={null}>
+                <MobileNavigation />
+              </Suspense>
             </AssetRefreshProvider>
           </Suspense>
         </Router>
