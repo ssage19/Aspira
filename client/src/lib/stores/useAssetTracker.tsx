@@ -11,6 +11,11 @@ export interface AssetTrackerState {
   // Cash assets
   cash: number;
   
+  // Global stock price tracking - all stocks regardless of ownership
+  globalStockPrices: {
+    [stockId: string]: number; // Maps stock IDs to current prices
+  };
+  
   // Investment assets
   stocks: {
     id: string;
@@ -150,8 +155,10 @@ const initialState: Omit<AssetTrackerState,
   | 'addProperty' | 'updateProperty' | 'removeProperty'
   | 'addLifestyleItem' | 'updateLifestyleItem' | 'removeLifestyleItem'
   | 'recalculateTotals' | 'resetAssetTracker' | 'forceUpdate' | 'getNetWorthBreakdown' | 'getAssetPrice'
+  | 'updateGlobalStockPrice' | 'updateGlobalStockPrices'
 > = {
   cash: 10000, // Default starting cash
+  globalStockPrices: {}, // Initialize empty global stock price tracking
   stocks: [],
   cryptoAssets: [],
   bonds: [],
