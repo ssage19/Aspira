@@ -58,6 +58,9 @@ export function useMonthlyFinances() {
   
   // Calculate expense values using the constants from useCharacter store
   // Use the character's getHousingExpense method for consistency
+  console.log("DEBUG: useMonthlyFinances - housingType:", characterState.housingType);
+  console.log("DEBUG: useMonthlyFinances - hasHousingFunction:", !!characterState.getHousingExpense);
+  
   const housingExpense = characterState.getHousingExpense ? 
                         characterState.getHousingExpense() : 
                         // Fallback calculation using the same constants as useCharacter
@@ -66,7 +69,12 @@ export function useMonthlyFinances() {
                         characterState.housingType === 'owned' ? EXPENSE_RATES.HOUSING.OWNED : 
                         EXPENSE_RATES.HOUSING.HOMELESS;
   
+  console.log("DEBUG: useMonthlyFinances - calculated housingExpense:", housingExpense);
+  
   // Transportation expenses using the same values as character creation
+  console.log("DEBUG: useMonthlyFinances - vehicleType:", characterState.vehicleType);
+  console.log("DEBUG: useMonthlyFinances - hasTransportationFunction:", !!characterState.getTransportationExpense);
+  
   const transportationExpense = characterState.getTransportationExpense ?
                               characterState.getTransportationExpense() :
                               // Fallback calculation using the same constants as useCharacter
@@ -76,6 +84,8 @@ export function useMonthlyFinances() {
                               characterState.vehicleType === 'premium' ? EXPENSE_RATES.TRANSPORTATION.PREMIUM :
                               characterState.vehicleType === 'bicycle' ? EXPENSE_RATES.TRANSPORTATION.BICYCLE : 
                               EXPENSE_RATES.TRANSPORTATION.NONE;
+                              
+  console.log("DEBUG: useMonthlyFinances - calculated transportationExpense:", transportationExpense);
   
   // Food expenses based on lifestyle level and constant
   const lifestyleLevel = characterState.lifestyleLevel || 1;
@@ -195,6 +205,9 @@ export function calculateMonthlyFinances(characterState: any) {
   const totalIncome = monthlySalary + propertyIncome + businessIncome + investmentIncome;
   
   // Expense calculations - use the same consistent approach as the hook
+  console.log("DEBUG: calculateMonthlyFinances - housingType:", characterState.housingType);
+  console.log("DEBUG: calculateMonthlyFinances - hasHousingFunction:", !!characterState.getHousingExpense);
+  
   const housingExpense = characterState.getHousingExpense ? 
                         characterState.getHousingExpense() : 
                         // Fallback calculation using the same constants as useCharacter
@@ -202,6 +215,11 @@ export function calculateMonthlyFinances(characterState: any) {
                         characterState.housingType === 'shared' ? EXPENSE_RATES.HOUSING.SHARED :
                         characterState.housingType === 'owned' ? EXPENSE_RATES.HOUSING.OWNED : 
                         EXPENSE_RATES.HOUSING.HOMELESS;
+  
+  console.log("DEBUG: calculateMonthlyFinances - calculated housingExpense:", housingExpense);
+  
+  console.log("DEBUG: calculateMonthlyFinances - vehicleType:", characterState.vehicleType);
+  console.log("DEBUG: calculateMonthlyFinances - hasTransportationFunction:", !!characterState.getTransportationExpense);
   
   const transportationExpense = characterState.getTransportationExpense ?
                               characterState.getTransportationExpense() :
@@ -212,6 +230,8 @@ export function calculateMonthlyFinances(characterState: any) {
                               characterState.vehicleType === 'premium' ? EXPENSE_RATES.TRANSPORTATION.PREMIUM :
                               characterState.vehicleType === 'bicycle' ? EXPENSE_RATES.TRANSPORTATION.BICYCLE : 
                               EXPENSE_RATES.TRANSPORTATION.NONE;
+                              
+  console.log("DEBUG: calculateMonthlyFinances - calculated transportationExpense:", transportationExpense);
   
   // Food expenses based on lifestyle level and constant
   const lifestyleLevel = characterState.lifestyleLevel || 1;
