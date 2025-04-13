@@ -113,26 +113,40 @@ export function MarketPriceUpdater() {
     
     console.log("MarketPriceUpdater: Updating", ownedCrypto.length, "crypto assets");
     
-    // For each owned crypto, update its price with some randomness and market influence
+    // For each owned crypto, update its price with more realistic increments
     ownedCrypto.forEach(crypto => {
       if (!crypto || crypto.quantity <= 0) return;
       
-      // Higher volatility for crypto compared to stocks
-      const volatilityFactor = 0.8; // Crypto is highly volatile
-      const marketInfluence = marketTrend === 'bull' ? 1.08 : marketTrend === 'bear' ? 0.92 : 1;
+      // Get current price to make smaller, incremental changes
+      const currentPrice = crypto.currentPrice || crypto.purchasePrice;
       
-      // Calculate price change with randomness
-      const basePrice = crypto.purchasePrice;
-      const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
-      const newPrice = basePrice * marketInfluence * (1 + randomFactor);
+      // Still higher volatility for crypto, but more reasonable movements per update
+      const volatilityFactor = 0.12; // Moderate volatility per tick
+      const marketInfluence = marketTrend === 'bull' ? 1.01 : marketTrend === 'bear' ? 0.99 : 1;
       
-      // Ensure price doesn't go too low
-      const finalPrice = Math.max(newPrice, basePrice * 0.2);
+      // Calculate incremental price change (smaller movements, but still more volatile than stocks)
+      const baseChangePercent = (Math.random() * volatilityFactor * 0.6) - (volatilityFactor * 0.3);
+      const marketEffect = ((marketInfluence - 1) * 0.15); // Market has more influence on crypto
+      const totalChangePercent = baseChangePercent + marketEffect;
+      
+      // Apply small percentage change to current price (not base price)
+      const newPrice = currentPrice * (1 + totalChangePercent);
+      
+      // Apply minimum price floor
+      const finalPrice = Math.max(newPrice, crypto.purchasePrice * 0.3);
+      
+      // Apply smoothing to avoid large jumps
+      const smoothedPrice = (finalPrice * 0.85) + (currentPrice * 0.15);
+      const roundedPrice = parseFloat(smoothedPrice.toFixed(2));
       
       // Update the asset tracker
-      assetTracker.updateCrypto(crypto.id, crypto.quantity, parseFloat(finalPrice.toFixed(2)));
+      assetTracker.updateCrypto(crypto.id, crypto.quantity, roundedPrice);
       
-      console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${finalPrice.toFixed(2)} (from $${basePrice.toFixed(2)}) - Force update enabled`);
+      // Show detailed price change information in console
+      const priceChange = ((roundedPrice - currentPrice) / currentPrice * 100).toFixed(2);
+      const direction = roundedPrice > currentPrice ? '↑' : roundedPrice < currentPrice ? '↓' : '→';
+      
+      console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${roundedPrice.toFixed(2)} (${direction}${priceChange}%) - 24/7 market`);
     });
   }, [assets, assetTracker, marketTrend]);
   
@@ -286,7 +300,10 @@ export function MarketPriceUpdater() {
         const oldPrice = stock.currentPrice || stock.purchasePrice;
         const priceChange = ((currentPrice - oldPrice) / oldPrice * 100).toFixed(2);
         const direction = currentPrice > oldPrice ? '↑' : currentPrice < oldPrice ? '↓' : '→';
-        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)} (${direction}${priceChange}%) - Force update enabled`);
+        
+        // More realistic NYSE-like logging with market status
+        const marketStatus = (window as any).isStockMarketOpen ? 'NYSE-OPEN' : 'NYSE-CLOSED';
+        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)} (${direction}${priceChange}%) - ${marketStatus}`);
       }
     });
   }, [assets, assetTracker]);
@@ -337,8 +354,8 @@ export function MarketPriceUpdater() {
     (window as any).isWeekday = isWeekday;
     (window as any).isMarketOpen = isMarketOpen;
     
-    // Always set market to open for other components to access (hotfix)
-    (window as any).isStockMarketOpen = true;
+    // Save the current market status to a global variable for other components to access
+    (window as any).isStockMarketOpen = isMarketOpen();
     
     return () => {
       delete (window as any).isWeekday;
@@ -360,28 +377,54 @@ export function MarketPriceUpdater() {
     // Update the last update time
     lastUpdateTimeRef.current = now;
     
-    // Check if market is currently open for stock updates (but we will update regardless)
-    const marketOpen = true; // Force market to always be open for price updates
+    // Check if market is currently open for stock updates
+    const marketOpen = isMarketOpen();
     
-    console.log(`MarketPriceUpdater: Running global price update. Always updating prices regardless of market status.`);
+    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} right now.`);
+    
+    // Only update stock prices during market hours for realism
+    // Other asset types like crypto will still update 24/7
     
     // 1. Calculate updated stock prices based on market conditions
     const updatedStockPrices: Record<string, number> = {};
     expandedStockMarket.forEach(stock => {
-      // Base price influenced by market health and stock volatility
-      const volatilityFactor = getVolatilityFactor(stock.volatility);
-      const marketFactor = getMarketFactor(marketTrend);
-      const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
-      
-      // Calculate new price with some randomness
-      let newPrice = stock.basePrice * marketFactor;
-      newPrice += newPrice * timeFactor;
-      newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
-      
-      // Ensure price doesn't go too low
-      newPrice = Math.max(newPrice, stock.basePrice * 0.1);
-      
-      updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
+      // Only update stock prices if market is open, for realism
+      if (marketOpen) {
+        // Get previous price to apply incremental changes
+        const previousPrice = updatedStockPrices[stock.id] || stock.basePrice;
+        
+        // NYSE-like behavior: Much smaller price movements (0.1% - 0.5% typically)
+        const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.2; // Reduce volatility by 80%
+        const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3); // Dampen market effect
+        
+        // Time-based component (very minor influence)
+        const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
+        
+        // Calculate incremental price movement (much smaller changes)
+        // Use previous price as base for incremental changes
+        const baseChangePercent = (Math.random() * volatilityFactor * 0.4) - (volatilityFactor * 0.2);
+        const marketEffect = ((marketFactor - 1) * 0.05); // Very small market influence per tick
+        const totalChangePercent = baseChangePercent + marketEffect + timeFactor;
+        
+        // Apply small percentage change to previous price (typically ±0.1-0.3%)
+        let newPrice = previousPrice * (1 + totalChangePercent);
+        
+        // Ensure price doesn't go too low
+        newPrice = Math.max(newPrice, stock.basePrice * 0.4);
+        
+        // Apply extra smoothing to avoid large jumps
+        if (previousPrice !== stock.basePrice) {
+          // Blend with previous price for smoother transitions (80% new, 20% old)
+          newPrice = (newPrice * 0.8) + (previousPrice * 0.2);
+        }
+        
+        updatedStockPrices[stock.id] = parseFloat(newPrice.toFixed(2));
+      } else {
+        // If market is closed, just keep the previous price or use base price
+        const currentStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
+        const currentPrice = currentStock?.currentPrice || stock.basePrice;
+        updatedStockPrices[stock.id] = parseFloat(currentPrice.toFixed(2));
+      }
     });
     
     // 2. Update asset tracker with the new prices for owned assets
@@ -466,12 +509,19 @@ export function MarketPriceUpdater() {
         const newHour = Math.floor((newProgress / 100) * 24);
         const prevHour = Math.floor((prevProgress / 100) * 24);
         
+        // Always update market status on any hour change to keep UI in sync
+        const currentMarketOpen = isMarketOpen();
+        (window as any).isStockMarketOpen = currentMarketOpen;
+        
+        // Log the current market status on hour changes 
+        console.log(`MarketPriceUpdater: Market now ${currentMarketOpen ? 'OPEN' : 'CLOSED'} (${newHour}:00)`);
+        
         // Check if we've crossed any market hour boundaries
         if (
           (newHour >= 9 && prevHour < 9) || // Market opening
           (newHour >= 16 && prevHour < 16)   // Market closing
         ) {
-          console.log(`MarketPriceUpdater: Time boundary crossed (${prevHour}:00 -> ${newHour}:00), updating prices`);
+          console.log(`MarketPriceUpdater: Market hours boundary crossed (${prevHour}:00 -> ${newHour}:00), updating prices`);
           updateAllPrices();
         }
       }
@@ -480,8 +530,21 @@ export function MarketPriceUpdater() {
     // Also subscribe to date changes to handle weekend transitions
     const unsubscribeDay = useTime.subscribe(
       (state) => state.currentDay,
-      () => {
-        console.log("MarketPriceUpdater: Day changed, updating prices");
+      (newDay) => {
+        // Check if it's a weekend/weekday and update market status
+        const gameDate = new Date();
+        gameDate.setFullYear(useTime.getState().currentYear);
+        gameDate.setMonth(useTime.getState().currentMonth - 1);
+        gameDate.setDate(newDay);
+        
+        const dayOfWeek = gameDate.getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        const newMarketOpen = isMarketOpen();
+        
+        // Update global market status variable on day change
+        (window as any).isStockMarketOpen = newMarketOpen;
+        
+        console.log(`MarketPriceUpdater: Day changed to ${isWeekend ? 'WEEKEND' : 'WEEKDAY'}, market ${newMarketOpen ? 'OPEN' : 'CLOSED'}`);
         updateAllPrices();
       }
     );
