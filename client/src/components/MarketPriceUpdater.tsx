@@ -427,7 +427,12 @@ export function MarketPriceUpdater() {
       }
     });
     
-    // 2. Update asset tracker with the new prices for owned assets
+    // 2. Update global stock prices in the asset tracker
+    // This ensures ALL stocks are tracked, not just owned ones
+    assetTracker.updateGlobalStockPrices(updatedStockPrices);
+    
+    // 3. Update asset tracker with the new prices for owned assets
+    // This is now redundant with updateGlobalStockPrices, but we keep it for compatibility
     syncAssetTrackerStockPrices(updatedStockPrices);
     
     // Log market status for debugging
@@ -515,14 +520,14 @@ export function MarketPriceUpdater() {
         // Force a refresh for all components to ensure UI updates
         setTimeout(() => {
           // 1. Update all stock prices in the tracker to ensure changes propagate
-          const state = assetTracker.getState();
-          state.stocks.forEach(stock => {
+          // Use the direct state access instead of getState() which isn't in the interface
+          assetTracker.stocks.forEach(stock => {
             // Force the stock price to update with itself to trigger a state change
             assetTracker.updateStock(stock.id, stock.shares, stock.currentPrice);
           });
           
           // 2. Same for crypto assets
-          state.cryptoAssets.forEach(crypto => {
+          assetTracker.cryptoAssets.forEach(crypto => {
             // Force the crypto price to update with itself to trigger a state change
             assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
           });
