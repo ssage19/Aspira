@@ -629,6 +629,63 @@ export const useAssetTracker = create<AssetTrackerState>()(
         get().recalculateTotals();
       },
       
+      // Global stock price tracking functions
+      updateGlobalStockPrice: (stockId: string, currentPrice: number) => {
+        set((state) => {
+          // Create a copy of the current global stock prices
+          const updatedPrices = { ...state.globalStockPrices };
+          
+          // Update the price for this specific stock
+          updatedPrices[stockId] = currentPrice;
+          
+          return {
+            globalStockPrices: updatedPrices,
+            lastUpdated: Date.now(),
+          };
+        });
+        
+        // Update any owned stock in portfolio to match global price
+        const state = get();
+        const ownedStock = state.stocks.find(stock => stock.id === stockId);
+        
+        if (ownedStock) {
+          // If the player owns this stock, update its price too
+          get().updateStock(stockId, ownedStock.shares, currentPrice);
+        }
+      },
+      
+      // Batch update global stock prices
+      updateGlobalStockPrices: (priceUpdates: { [stockId: string]: number }) => {
+        set((state) => {
+          // Create a copy of the current global stock prices
+          const updatedPrices = { ...state.globalStockPrices };
+          
+          // Apply all price updates
+          Object.entries(priceUpdates).forEach(([stockId, price]) => {
+            updatedPrices[stockId] = price;
+          });
+          
+          return {
+            globalStockPrices: updatedPrices,
+            lastUpdated: Date.now(),
+          };
+        });
+        
+        // Update any owned stocks in the portfolio to match global prices
+        const state = get();
+        
+        // For each stock in the player's portfolio, check if it has a new price
+        state.stocks.forEach(stock => {
+          const newPrice = priceUpdates[stock.id];
+          if (newPrice !== undefined) {
+            // Update the owned stock to match the global price
+            get().updateStock(stock.id, stock.shares, newPrice);
+          }
+        });
+      },
+      
+
+      
       // Recalculate all totals
       recalculateTotals: () => {
         const state = get();
@@ -693,6 +750,11 @@ export const useAssetTracker = create<AssetTrackerState>()(
       getAssetPrice: (id: string): number => {
         const state = get();
         
+        // First check global stock prices
+        if (state.globalStockPrices && state.globalStockPrices[id] !== undefined) {
+          return state.globalStockPrices[id];
+        }
+        
         // Check if it's a stock
         const stock = state.stocks.find(s => s.id === id);
         if (stock) return stock.currentPrice;
@@ -709,7 +771,8 @@ export const useAssetTracker = create<AssetTrackerState>()(
         const property = state.properties.find(p => p.id === id);
         if (property) return property.currentValue;
         
-        // Not found - return 0
+        // If we can't find the asset price, log a warning and return 0
+        console.warn(`AssetTracker: Could not find price for asset ${id}`);
         return 0;
       },
       
@@ -734,6 +797,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
             // Create a fresh state with empty arrays
             return {
               ...state,
+              globalStockPrices: {},
               stocks: [],
               cryptoAssets: [],
               bonds: [],
@@ -799,6 +863,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
           totalNetWorth: 10000,
           lastUpdated: Date.now(),
           // Explicitly set empty arrays again to be absolutely certain
+          globalStockPrices: {},
           stocks: [],
           cryptoAssets: [],
           bonds: [],
@@ -835,6 +900,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
             // One final attempt to force-clear everything
             set(state => ({
               ...state,
+              globalStockPrices: {},
               stocks: [],
               cryptoAssets: [],
               bonds: [],
@@ -881,6 +947,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
       partialize: (state) => ({
         // Only persist the data, not the functions
         cash: state.cash,
+        globalStockPrices: state.globalStockPrices,
         stocks: state.stocks,
         cryptoAssets: state.cryptoAssets,
         bonds: state.bonds,
