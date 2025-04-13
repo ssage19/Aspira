@@ -1291,16 +1291,23 @@ export function SocialNetworking() {
         </Card>
       </div>
       
-      {/* Action buttons */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Button onClick={() => setShowAddConnectionDialog(true)}>
-          <UserPlus className="h-4 w-4 mr-2" />
-          Find New Connection
+      {/* Action buttons - improved for mobile */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:flex md:flex-wrap gap-2 mb-6">
+        <Button 
+          onClick={() => setShowAddConnectionDialog(true)}
+          className="w-full sm:w-auto whitespace-nowrap"
+        >
+          <UserPlus className="h-4 w-4 mr-2 flex-shrink-0" />
+          <span>Find New Connection</span>
         </Button>
         
-        <Button variant="outline" onClick={handleGenerateEvents}>
-          <Calendar className="h-4 w-4 mr-2" />
-          Search for Events
+        <Button 
+          variant="outline" 
+          onClick={handleGenerateEvents}
+          className="w-full sm:w-auto whitespace-nowrap"
+        >
+          <Calendar className="h-4 w-4 mr-2 flex-shrink-0" />
+          <span>Search for Events</span>
         </Button>
       </div>
       
@@ -1311,14 +1318,14 @@ export function SocialNetworking() {
         onValueChange={setActiveTab}
         className="w-full"
       >
-        <TabsList className="grid w-full md:w-auto grid-cols-2">
-          <TabsTrigger value="connections">
-            <User className="h-4 w-4 mr-2" />
-            Connections ({connections.length})
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="connections" className="flex items-center justify-center py-2">
+            <User className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap text-sm sm:text-base">Connections ({connections.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="events">
-            <Calendar className="h-4 w-4 mr-2" />
-            Events ({availableEvents.length})
+          <TabsTrigger value="events" className="flex items-center justify-center py-2">
+            <Calendar className="h-4 w-4 mr-1 sm:mr-2 flex-shrink-0" />
+            <span className="whitespace-nowrap text-sm sm:text-base">Events ({availableEvents.length})</span>
           </TabsTrigger>
         </TabsList>
         
