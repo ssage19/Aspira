@@ -69,7 +69,7 @@ import {
   ThumbsDown,
   Star
 } from "lucide-react";
-import { formatCurrency, formatPercent } from "../lib/utils";
+import { formatCurrency, formatPercentage } from "../lib/utils";
 import { Badge } from "./ui/badge";
 import { Separator } from "./ui/separator";
 
@@ -290,7 +290,8 @@ export function LivingSituationManager() {
   
   // Component to render effects
   const OptionEffects = ({ option }: { option: HousingOption | VehicleOption }) => {
-    const effects = 'effects' in option ? option.effects : {};
+    // Use type assertion to get the correct type
+    const effects = option.effects;
     const isHousing = 'health' in effects;
     
     return (

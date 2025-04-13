@@ -524,7 +524,7 @@ export function Essentials() {
       {renderNeedsStatusBars()}
       
       <Tabs defaultValue="food" onValueChange={setActiveTab} className="mt-6">
-        <TabsList className="mb-4 grid grid-cols-5 max-w-md mx-auto">
+        <TabsList className="mb-4 grid grid-cols-6 max-w-md mx-auto">
           <TabsTrigger value="food">
             <Utensils className="h-4 w-4 mr-2" />
             Food
@@ -544,6 +544,10 @@ export function Essentials() {
           <TabsTrigger value="social">
             <Users className="h-4 w-4 mr-2" />
             Social
+          </TabsTrigger>
+          <TabsTrigger value="living">
+            <Home className="h-4 w-4 mr-2" />
+            Living
           </TabsTrigger>
         </TabsList>
         
@@ -565,6 +569,10 @@ export function Essentials() {
         
         <TabsContent value="social">
           {renderEssentialItems(socialActivities)}
+        </TabsContent>
+        
+        <TabsContent value="living">
+          <LivingSituationManager />
         </TabsContent>
       </Tabs>
     </div>
