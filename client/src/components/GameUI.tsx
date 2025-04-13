@@ -5,6 +5,7 @@ import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
 import useEconomy from '../lib/stores/useEconomy';
 import { useAssetTracker } from '../lib/stores/useAssetTracker';
+import { useResponsive } from '../lib/hooks/useResponsive';
 
 // Helper function to determine if a date is the last day of the month
 function isEndOfMonth(day: number, month: number, year: number): boolean {
@@ -65,6 +66,8 @@ export function GameUI() {
   const [showTooltip, setShowTooltip] = useState('');
   // Track which months we've already deducted expenses for to prevent double-charging
   const [lastExpenseMonth, setLastExpenseMonth] = useState<string | null>(null);
+  // Get responsive info to optimize UI for mobile
+  const { isMobile } = useResponsive();
   
   // Update passive income every 5 seconds
   useEffect(() => {
@@ -437,7 +440,6 @@ export function GameUI() {
       // Check if we've already processed expenses for this month
       if (lastExpenseMonth !== monthId) {
         // Call the character store's monthly update method to handle expense deduction
-        // This includes deducting lifestyle expenses and showing visual feedback
         characterState.monthlyUpdate();
         
         // Update the last expense month to prevent double-charging
@@ -446,18 +448,42 @@ export function GameUI() {
       } else {
         console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
       }
-      
-      // Monthly financial summary is now shown in the dedicated widget instead of a toast
-      // The calculations are now made in the useMonthlyFinances hook
-      console.log("End of month reached - financial calculation logic moved to MonthlyFinancesWidget");
     }
     
     // Check for unlockable achievements
     checkAllAchievements();
+  };
+  
+  // Get formatted time string
+  const getFormattedTime = () => {
+    const hourPercentage = (timeProgress / 100) * 24;
+    const hour = Math.floor(hourPercentage);
+    const minute = Math.floor((hourPercentage - hour) * 60);
     
-    // Reset the timer
-    updateLastTickTime(Date.now());
-    setTimeProgress(0);
+    // Format as 12-hour time with AM/PM
+    const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    
+    return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
+  };
+  
+  // Toggle mute state
+  const toggleMute = () => {
+    audioState.toggleMute();
+  };
+  
+  // Format the time speed string
+  const getTimeSpeedString = () => {
+    switch (timeSpeed) {
+      case 'normal':
+        return '1x';
+      case 'fast':
+        return '3x';
+      case 'superfast':
+        return '6x';
+      default:
+        return '1x';
+    }
   };
   
   return (
@@ -465,197 +491,153 @@ export function GameUI() {
       {/* Top bar with wealth - fixed at top of viewport */}
       <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-lg border-b border-border/40 text-foreground p-2 flex justify-between items-center pointer-events-auto z-50 transition-all duration-300">
         {/* Wealth indicator - most important info */}
-        <div className="flex items-center transition-all duration-300 hover:scale-105 space-x-3" aria-label="Current wealth and net worth">
+        <div className="flex items-center transition-all duration-300 hover:scale-105" aria-label="Current wealth and net worth">
           <div className="p-2 rounded-full bg-quaternary/10 flex items-center justify-center">
             <DollarSign className="h-5 w-5 text-quaternary" />
           </div>
-          <div>
-            <p className="text-xl font-bold">{formatCurrency(totalCash)}</p>
-            <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(totalNetWorth)}</p>
+          <div className="ml-2">
+            <p className="text-lg font-bold">{formatCurrency(totalCash)}</p>
+            {!isMobile && <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(totalNetWorth)}</p>}
           </div>
         </div>
         
-        {/* Date - placed center */}
-        <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
-          <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
-            <Calendar className="h-4 w-4 text-primary dark:text-primary" />
-            <div>
-              <p className="text-sm font-medium">
-                {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric'
-                })}
-              </p>
-            </div>
-          </div>
-          
-          {/* Day/Night cycle indicator */}
-          <div className="w-64 flex items-center justify-center gap-4">
-            <div className="flex items-center gap-2 relative">
-              {/* Sun/Moon indicator based on time progress */}
-              <div className="relative h-6 w-24 bg-gradient-to-r from-indigo-900 via-amber-400 to-indigo-900 rounded-full overflow-hidden">
-                {/* Day/Night position indicator */}
-                <div 
-                  className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
-                  style={{ 
-                    left: `${Math.min(Math.max(timeProgress - 4, 0), 92)}%`,
-                    filter: "drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))"
-                  }}
-                >
-                  {timeProgress < 50 ? (
-                    <Sun className="h-5 w-5 text-yellow-300" />
-                  ) : (
-                    <Moon className="h-5 w-5 text-blue-100" />
-                  )}
-                </div>
-              </div>
-              <span className="text-xs font-medium whitespace-nowrap flex items-center">
-                <Clock className="h-3 w-3 mr-1 opacity-70" />
-                {autoAdvanceEnabled ? (
-                  <span>
-                    {/* Convert progress percentage to hours and minutes in 12-hour format with AM/PM */}
-                    {(() => {
-                      // Calculate hours (0-23) as a floating point for precision
-                      const hoursFraction = (timeProgress / 100) * 24;
-                      
-                      // Get the integer hour (0-23)
-                      const totalHours = Math.floor(hoursFraction);
-                      
-                      // Convert to 12-hour format
-                      const hours12 = totalHours % 12 === 0 ? 12 : totalHours % 12;
-                      
-                      // Calculate minutes with precision (0-59)
-                      // We get the fractional part of hours and multiply by 60
-                      const minutes = Math.floor((hoursFraction - totalHours) * 60);
-                      
-                      // Determine AM/PM
-                      const period = totalHours < 12 ? 'AM' : 'PM';
-                      
-                      // Format the time string
-                      return `${String(hours12).padStart(2, '0')}:${String(minutes).padStart(2, '0')} ${period}`;
-                    })()}
-                    {timeSpeed === 'superfast' ? ' (6x)' : timeSpeed === 'fast' ? ' (3x)' : ''}
-                  </span>
-                ) : "Paused"}
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        {/* Time control buttons */}
-        <div className="flex items-center space-x-2">
-          <div className="relative">
-            <Button 
-              variant={autoAdvanceEnabled ? "outline" : "default"}
-              size="sm"
+        {/* Mobile optimized center section (shows either time OR date based on screen size) */}
+        {isMobile ? (
+          /* On mobile, we'll focus on just the time with a simple display */
+          <div className="flex flex-col items-center" aria-label="Game time">
+            <button
               onClick={toggleAutoAdvance}
-              className={autoAdvanceEnabled ? 
-                "border-quaternary/80 text-quaternary" : 
-                "bg-quaternary/80 hover:bg-quaternary/90 text-white"}
-              aria-label={autoAdvanceEnabled ? "Pause time passage" : "Resume time passage"}
-              onMouseEnter={() => setShowTooltip('time-toggle')}
-              onMouseLeave={() => setShowTooltip('')}
+              className={`flex items-center justify-center rounded-full px-3 py-1 ${
+                autoAdvanceEnabled ? 'bg-primary/20 text-primary' : 'bg-muted/50 text-muted-foreground'
+              }`}
             >
-              <Clock className="mr-2 h-4 w-4" />
-              {autoAdvanceEnabled ? "Time: Flowing" : "Time: Paused"}
-            </Button>
-            {showTooltip === 'time-toggle' && (
-              <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
-                Press Space to toggle play/pause
-              </span>
-            )}
+              <Clock className="h-3 w-3 mr-1" />
+              <span className="text-xs font-medium">{getFormattedTime()}</span>
+            </button>
           </div>
-          
-          {autoAdvanceEnabled && (
-            <div className="flex space-x-1">
-              <div className="relative">
-                <Button
-                  variant={timeSpeed === 'normal' ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeSpeed('normal')}
-                  className={timeSpeed === 'normal' ? 
-                    "bg-emerald-600 hover:bg-emerald-700 text-white" : 
-                    "border-emerald-600 text-emerald-600"}
-                  aria-label="Normal speed (1x)"
-                  onMouseEnter={() => setShowTooltip('speed-1x')}
-                  onMouseLeave={() => setShowTooltip('')}
-                >
-                  1x
-                </Button>
-                {showTooltip === 'speed-1x' && (
-                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
-                    Press 1 for normal speed
-                  </span>
-                )}
-              </div>
-              
-              <div className="relative">
-                <Button
-                  variant={timeSpeed === 'fast' ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeSpeed('fast')}
-                  className={timeSpeed === 'fast' ? 
-                    "bg-amber-600 hover:bg-amber-700 text-white" : 
-                    "border-amber-600 text-amber-600"}
-                  aria-label="Fast speed (3x)"
-                  onMouseEnter={() => setShowTooltip('speed-3x')}
-                  onMouseLeave={() => setShowTooltip('')}
-                >
-                  3x
-                </Button>
-                {showTooltip === 'speed-3x' && (
-                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
-                    Press 2 for fast speed
-                  </span>
-                )}
-              </div>
-              
-              <div className="relative">
-                <Button
-                  variant={timeSpeed === 'superfast' ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeSpeed('superfast')}
-                  className={timeSpeed === 'superfast' ? 
-                    "bg-red-600 hover:bg-red-700 text-white" : 
-                    "border-red-600 text-red-600"}
-                  aria-label="Super fast speed (6x)"
-                  onMouseEnter={() => setShowTooltip('speed-6x')}
-                  onMouseLeave={() => setShowTooltip('')}
-                >
-                  6x
-                </Button>
-                {showTooltip === 'speed-6x' && (
-                  <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium shadow-lg animate-fade-in border border-border/40 whitespace-nowrap">
-                    Press 3 for super fast speed
-                  </span>
-                )}
+        ) : (
+          /* On larger screens, show both date and time-related controls */
+          <div className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center space-y-1" aria-label="Current date">
+            <div className="flex items-center space-x-2 bg-secondary/40 dark:bg-secondary/30 px-4 py-2 rounded-full">
+              <Calendar className="h-4 w-4 text-primary dark:text-primary" />
+              <div>
+                <p className="text-sm font-medium">
+                  {new Date(currentYear, currentMonth - 1, currentDay).toLocaleDateString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric'
+                  })}
+                </p>
               </div>
             </div>
-          )}
-        </div>
-      </div>
-      
-      {/* Sound control button - fixed at bottom right of viewport */}
-      <div className="fixed bottom-4 right-4 pointer-events-auto z-50">
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          onClick={() => audioState.setMuted && audioState.setMuted(!isMuted)}
-          onMouseEnter={() => setShowTooltip('sound')}
-          onMouseLeave={() => setShowTooltip('')}
-          className="relative glass-effect h-14 w-14 rounded-full p-0 bg-background/60 backdrop-blur-lg border border-border/40"
-          aria-label={isMuted ? "Unmute sound" : "Mute sound"}
-        >
-          <div className={`p-3 rounded-full ${isMuted ? 'bg-destructive/10' : 'bg-secondary/10'}`}>
-            {isMuted ? <VolumeX className={`h-5 w-5 text-destructive`} /> : <Volume2 className={`h-5 w-5 text-secondary`} />}
+            
+            {/* Time progression indicator */}
+            <div className="w-64 flex items-center justify-center gap-4">
+              <div className="flex items-center gap-2 relative">
+                {/* Sun/Moon indicator based on time progress */}
+                <div className="relative h-6 w-24 bg-gradient-to-r from-indigo-900 via-amber-400 to-indigo-900 rounded-full overflow-hidden">
+                  {/* Day/Night position indicator */}
+                  <div 
+                    className="absolute top-1/2 -translate-y-1/2 transition-all duration-300"
+                    style={{ 
+                      left: `${Math.min(Math.max(timeProgress - 4, 0), 92)}%`,
+                      filter: "drop-shadow(0 0 3px rgba(255, 255, 255, 0.8))"
+                    }}
+                  >
+                    {timeProgress < 50 ? (
+                      <Sun className="h-5 w-5 text-yellow-300" />
+                    ) : (
+                      <Moon className="h-5 w-5 text-blue-100" />
+                    )}
+                  </div>
+                </div>
+                <span className="text-xs" 
+                  onMouseEnter={() => setShowTooltip('time')}
+                  onMouseLeave={() => setShowTooltip('')}
+                >
+                  {getFormattedTime()}
+                </span>
+              </div>
+            </div>
           </div>
-          {showTooltip === 'sound' && (
-            <span className="absolute -top-10 bg-popover/80 backdrop-blur-md px-3 py-2 rounded-md text-sm font-medium whitespace-nowrap shadow-lg animate-fade-in border border-border/40">
-              {isMuted ? "Unmute Sound" : "Mute Sound"}
-            </span>
+        )}
+        
+        {/* Right side controls - simplified for mobile */}
+        <div className="flex items-center space-x-2">
+          {/* Hide speed controls on mobile to save space */}
+          {!isMobile && (
+            <div className="relative">
+              <Button 
+                variant={timeSpeed === 'normal' ? 'default' : 'outline'}
+                size="sm"
+                className="px-3"
+                onClick={() => setTimeSpeed('normal')}
+                aria-label="Set normal speed (1x)"
+              >
+                1x
+              </Button>
+              <Button 
+                variant={timeSpeed === 'fast' ? 'default' : 'outline'}
+                size="sm"
+                className="px-3"
+                onClick={() => setTimeSpeed('fast')}
+                aria-label="Set fast speed (3x)"
+              >
+                3x
+              </Button>
+              <Button 
+                variant={timeSpeed === 'superfast' ? 'default' : 'outline'}
+                size="sm"
+                className="px-3"
+                onClick={() => setTimeSpeed('superfast')}
+                aria-label="Set super fast speed (6x)"
+              >
+                6x
+              </Button>
+            </div>
           )}
-        </Button>
+          
+          {/* Play/Pause button - simplified to just an icon on mobile */}
+          <Button
+            variant="outline"
+            size={isMobile ? "icon" : "default"}
+            onClick={toggleAutoAdvance}
+            aria-label={autoAdvanceEnabled ? "Pause time" : "Start time"}
+            className={`rounded-full ${isMobile ? 'w-8 h-8 p-0' : ''}`}
+          >
+            {autoAdvanceEnabled ? (
+              <>
+                <span className="sr-only">Pause</span>
+                {!isMobile && "Pause"}
+                <span className="h-3 w-3 flex items-center justify-center">
+                  <span className="block w-1 h-3 bg-current rounded-sm mr-0.5"></span>
+                  <span className="block w-1 h-3 bg-current rounded-sm ml-0.5"></span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="sr-only">Play</span>
+                {!isMobile && "Play"}
+                <span className="h-0 w-0 ml-1 border-t-transparent border-t-[6px] border-b-transparent border-b-[6px] border-l-[10px] border-l-current"></span>
+              </>
+            )}
+          </Button>
+          
+          {/* Audio toggle (icon only) */}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleMute}
+            aria-label={isMuted ? "Unmute" : "Mute"}
+            className="rounded-full w-8 h-8"
+          >
+            {isMuted ? (
+              <VolumeX className="h-4 w-4" />
+            ) : (
+              <Volume2 className="h-4 w-4" />
+            )}
+          </Button>
+        </div>
       </div>
     </div>
   );
