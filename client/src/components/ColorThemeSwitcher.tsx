@@ -56,7 +56,7 @@ export function ColorThemeSwitcher() {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-64 p-2" align="end">
+      <PopoverContent className="w-80 p-2" align="end">
         <div className="space-y-1">
           <h4 className="font-medium text-sm px-2 py-1.5">Select Color Theme</h4>
           <div className="space-y-1">
@@ -73,20 +73,20 @@ export function ColorThemeSwitcher() {
                   )}
                   onClick={() => setColorTheme(themeName)}
                 >
-                  <div className="flex space-x-1 h-4 w-10">
+                  <div className="flex space-x-1 h-4 w-10 flex-shrink-0">
                     <div className={cn("h-4 w-4 rounded-full", colors.primary)} />
                     <div className={cn("h-4 w-3 rounded-full", colors.secondary)} />
                     <div className={cn("h-4 w-3 rounded-full", colors.accent)} />
                   </div>
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left overflow-hidden">
                     <div className="font-medium capitalize">
                       {themeName.charAt(0).toUpperCase() + themeName.slice(1)}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground truncate">
                       {getColorThemeDescription(themeName)}
                     </div>
                   </div>
-                  {colorTheme === themeName && <Check className="h-4 w-4" />}
+                  {colorTheme === themeName && <Check className="h-4 w-4 flex-shrink-0" />}
                 </Button>
               );
             })}

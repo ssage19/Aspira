@@ -39,7 +39,7 @@ export function ThemeSwitcher() {
           />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-60 p-2" align="end">
+      <PopoverContent className="w-72 p-2" align="end">
         <div className="space-y-1">
           <h4 className="font-medium text-sm px-2 py-1.5">Select Theme</h4>
           <div className="space-y-1">
@@ -58,17 +58,17 @@ export function ThemeSwitcher() {
                   onClick={() => setTheme(themeName)}
                 >
                   <ThemeIcon className="h-4 w-4" />
-                  <div className="flex-1 text-left">
+                  <div className="flex-1 text-left overflow-hidden">
                     <div className="font-medium capitalize">
                       {themeName === 'dark' ? 'Dark Mode' : 
                        themeName === 'light' ? 'Light Mode' : 
                        'System Preference'}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-xs text-muted-foreground truncate">
                       {getThemeDescription(themeName)}
                     </div>
                   </div>
-                  {theme === themeName && <Check className="h-4 w-4" />}
+                  {theme === themeName && <Check className="h-4 w-4 flex-shrink-0" />}
                 </Button>
               );
             })}
