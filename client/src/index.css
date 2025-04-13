@@ -6,6 +6,21 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom mobile adjustments for toast notifications and other overlays */
+@layer components {
+  /* Toast positioning fix for mobile screens */
+  .mobile-adjusted-toast {
+    margin-bottom: 80px !important;
+  }
+  
+  /* On larger screens, reset the margin */
+  @media (min-width: 768px) {
+    .mobile-adjusted-toast {
+      margin-bottom: 0 !important;
+    }
+  }
+}
+
 @layer base {
   :root {
     --radius: 0.75rem;

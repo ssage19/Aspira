@@ -79,7 +79,11 @@ export function ChallengeNotificationManager() {
             challenge={challenge} 
             onClose={() => toast.dismiss(t)}
           />
-        ));
+        ), {
+          className: "mobile-adjusted-toast", // Apply our custom mobile-friendly class
+          duration: 8000,
+          position: "top-right"
+        });
         
         // Add to shown array
         setShownCompletions(prev => [...prev, challenge.id]);
