@@ -13,7 +13,7 @@ export default function PropertyScreen() {
       <div className="relative z-10 w-full">
         <GameUI />
         
-        <div className="p-4 max-w-5xl mx-auto">
+        <div className="p-4 pt-20 max-w-5xl mx-auto">
           <Button 
             variant="outline" 
             size="default"

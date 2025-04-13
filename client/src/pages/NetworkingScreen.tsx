@@ -17,13 +17,13 @@ export function NetworkingScreen() {
       {/* Header with navigation */}
       <GameUI />
       
-      <div className="container mx-auto px-4 pt-4 pb-6">
+      <div className="container mx-auto px-4 pt-20 pb-6">
         {/* More prominent back button */}
         <Button 
           variant="outline" 
           size="default" 
           onClick={() => navigate('/')}
-          className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+          className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm w-full sm:w-auto"
         >
           <ChevronLeft className="h-5 w-5 mr-2" />
           Back to Dashboard

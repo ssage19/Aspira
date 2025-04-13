@@ -535,13 +535,14 @@ export default function JobScreen() {
       {/* Content */}
       <GameUI />
       
-      <div className="relative z-10 w-full max-w-5xl mx-auto p-4 mt-14">
+      <div className="relative z-10 w-full max-w-5xl mx-auto p-4 pt-20">
         <Button 
           variant="outline" 
+          size="default"
           onClick={() => navigate('/')}
-          className="mb-4 bg-white"
+          className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm w-full sm:w-auto"
         >
-          <ChevronLeft className="h-4 w-4 mr-2" />
+          <ChevronLeft className="h-5 w-5 mr-2" />
           Back to Dashboard
         </Button>
         
