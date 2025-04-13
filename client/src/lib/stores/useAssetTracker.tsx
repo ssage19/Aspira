@@ -93,6 +93,10 @@ export interface AssetTrackerState {
   // Functions to update assets
   updateCash: (amount: number) => void;
   
+  // Global stock price tracking functions
+  updateGlobalStockPrice: (stockId: string, price: number) => void;
+  updateGlobalStockPrices: (priceUpdates: { [stockId: string]: number }) => void;
+  
   // Stock functions
   addStock: (stock: Omit<AssetTrackerState['stocks'][0], 'totalValue'>) => void;
   updateStock: (id: string, shares: number, currentPrice: number) => void;
