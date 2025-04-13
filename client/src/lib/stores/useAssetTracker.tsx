@@ -722,40 +722,101 @@ export const useAssetTracker = create<AssetTrackerState>()(
       
       // Global crypto price tracking functions
       updateGlobalCryptoPrice: (cryptoId: string, currentPrice: number) => {
-        set((state) => {
-          // Create a copy of the current global crypto prices
-          const updatedPrices = { ...state.globalCryptoPrices };
-          
-          // Update the price for this specific crypto
-          updatedPrices[cryptoId] = currentPrice;
-          
-          return {
-            globalCryptoPrices: updatedPrices,
-            lastUpdated: Date.now(),
-          };
-        });
-        
-        // Update any owned crypto in portfolio to match global price
+        // First check if we need to update at all (avoid unnecessary updates)
         const state = get();
+        
+        // Skip update if price hasn't actually changed to prevent infinite loops
+        if (state.globalCryptoPrices && state.globalCryptoPrices[cryptoId] === currentPrice) {
+          return;
+        }
+        
+        // If there's an owned crypto, update everything in a single state update
         const ownedCrypto = state.cryptoAssets.find(crypto => crypto.id === cryptoId);
         
         if (ownedCrypto) {
-          // If the player owns this crypto, update its price too
-          get().updateCrypto(cryptoId, ownedCrypto.amount, currentPrice);
+          // Update both global price and owned crypto in one state update
+          set((state) => {
+            // Create copy of the current global crypto prices
+            const updatedPrices = { ...state.globalCryptoPrices };
+            updatedPrices[cryptoId] = currentPrice;
+            
+            // Create updated crypto assets array
+            const updatedCryptoAssets = state.cryptoAssets.map(crypto => {
+              if (crypto.id === cryptoId) {
+                return {
+                  ...crypto,
+                  currentPrice,
+                  totalValue: crypto.amount * currentPrice
+                };
+              }
+              return crypto;
+            });
+            
+            // Calculate new total crypto value
+            const totalCrypto = updatedCryptoAssets.reduce(
+              (total, crypto) => total + crypto.amount * crypto.currentPrice, 0
+            );
+            
+            // Return single state update with all changes
+            return {
+              globalCryptoPrices: updatedPrices,
+              cryptoAssets: updatedCryptoAssets,
+              totalCrypto,
+              lastUpdated: Date.now()
+            };
+          });
+        } else {
+          // No owned crypto, just update the global price
+          set((state) => {
+            const updatedPrices = { ...state.globalCryptoPrices };
+            updatedPrices[cryptoId] = currentPrice;
+            
+            return {
+              globalCryptoPrices: updatedPrices,
+              lastUpdated: Date.now()
+            };
+          });
         }
       },
       
       // Batch update global crypto prices
       updateGlobalCryptoPrices: (priceUpdates: { [cryptoId: string]: number }) => {
+        // Check if there's anything to update
+        if (!priceUpdates || Object.keys(priceUpdates).length === 0) {
+          return;
+        }
+        
         // Get current state once to avoid multiple state reads
         const currentState = get();
         
-        // Build a complete state update with all changes at once
+        // Check if we need to update anything by comparing with current prices
+        // This prevents unnecessary state updates that can cause infinite loops
+        let hasChanges = false;
+        for (const [cryptoId, newPrice] of Object.entries(priceUpdates)) {
+          const currentPrice = currentState.globalCryptoPrices[cryptoId];
+          if (currentPrice !== newPrice) {
+            hasChanges = true;
+            break;
+          }
+        }
+        
+        // Skip the update if no prices are actually changing
+        if (!hasChanges) {
+          console.log("AssetTracker: Skipping crypto price update - no price changes detected");
+          return;
+        }
+        
+        // Build updated state objects
         const updatedCryptoAssets = [...currentState.cryptoAssets];
         const updatedPrices = { ...currentState.globalCryptoPrices };
         
         // Apply all price updates to global prices object
         Object.entries(priceUpdates).forEach(([cryptoId, price]) => {
+          // Skip invalid prices
+          if (typeof price !== 'number' || price <= 0) {
+            return;
+          }
+          
           updatedPrices[cryptoId] = price;
           
           // Also update owned assets in the same pass if needed
@@ -770,20 +831,18 @@ export const useAssetTracker = create<AssetTrackerState>()(
           }
         });
         
-        // Calculate crypto total value only
+        // Calculate crypto total value
         const totalCryptoValue = updatedCryptoAssets.reduce(
           (total, crypto) => total + crypto.amount * crypto.currentPrice, 
           0
         );
         
-        const timestamp = Date.now();
-        
-        // Update state once with all changes - use only properties that exist in the store
+        // Update state once with all changes
         set({
           globalCryptoPrices: updatedPrices,
           cryptoAssets: updatedCryptoAssets,
           totalCrypto: totalCryptoValue,
-          lastUpdated: timestamp,
+          lastUpdated: Date.now(),
         });
       },
       
