@@ -568,8 +568,8 @@ export const useCharacter = create<CharacterState>()(
         } else if (state.housingType === 'owned') {
           expense = EXPENSE_RATES.HOUSING.OWNED;
         } else if (state.housingType === 'luxury') {
-          // Add support for luxury housing type - set a higher expense than rental
-          expense = 3000; // $3,000/mo for luxury housing
+          // Use the defined constant for luxury housing
+          expense = EXPENSE_RATES.HOUSING.LUXURY; // $8,000/mo for luxury housing
         } else {
           expense = EXPENSE_RATES.HOUSING.HOMELESS;
         }
