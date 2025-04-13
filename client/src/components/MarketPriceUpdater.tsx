@@ -132,7 +132,7 @@ export function MarketPriceUpdater() {
       // Update the asset tracker
       assetTracker.updateCrypto(crypto.id, crypto.quantity, parseFloat(finalPrice.toFixed(2)));
       
-      console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${finalPrice.toFixed(2)}`);
+      console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${finalPrice.toFixed(2)} (from $${basePrice.toFixed(2)}) - Force update enabled`);
     });
   }, [assets, assetTracker, marketTrend]);
   
@@ -283,7 +283,10 @@ export function MarketPriceUpdater() {
         // Update the stock's current price in the asset tracker
         assetTracker.updateStock(stock.id, stock.quantity, currentPrice);
         
-        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)}`);
+        const oldPrice = stock.currentPrice || stock.purchasePrice;
+        const priceChange = ((currentPrice - oldPrice) / oldPrice * 100).toFixed(2);
+        const direction = currentPrice > oldPrice ? '↑' : currentPrice < oldPrice ? '↓' : '→';
+        console.log(`MarketPriceUpdater: Updated ${stock.name} price to $${currentPrice.toFixed(2)} (${direction}${priceChange}%) - Force update enabled`);
       }
     });
   }, [assets, assetTracker]);
@@ -334,8 +337,8 @@ export function MarketPriceUpdater() {
     (window as any).isWeekday = isWeekday;
     (window as any).isMarketOpen = isMarketOpen;
     
-    // Also save the current market status to a global variable for other components to access
-    (window as any).isStockMarketOpen = isMarketOpen;
+    // Always set market to open for other components to access (hotfix)
+    (window as any).isStockMarketOpen = true;
     
     return () => {
       delete (window as any).isWeekday;
@@ -357,18 +360,13 @@ export function MarketPriceUpdater() {
     // Update the last update time
     lastUpdateTimeRef.current = now;
     
-    // Check if market is currently open for stock updates
-    const marketOpen = isMarketOpen();
+    // Check if market is currently open for stock updates (but we will update regardless)
+    const marketOpen = true; // Force market to always be open for price updates
     
-    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} right now.`);
-    console.log("MarketPriceUpdater: Forcing update regardless of market status (DEBUG FIX)");
+    console.log(`MarketPriceUpdater: Running global price update. Always updating prices regardless of market status.`);
     
     // 1. Calculate updated stock prices based on market conditions
     const updatedStockPrices: Record<string, number> = {};
-    
-    // We are forcing stock price updates to happen even when market is closed
-    // This is to ensure prices always update even if there's an issue with market status detection
-    // Always calculate prices regardless of market state
     expandedStockMarket.forEach(stock => {
       // Base price influenced by market health and stock volatility
       const volatilityFactor = getVolatilityFactor(stock.volatility);
