@@ -487,11 +487,15 @@ export function Lifestyle() {
             </DropdownMenu>
           </div>
         ) : (
-          <TabsList className="mb-4 flex flex-wrap">
+          <TabsList className="mb-4 flex flex-wrap gap-1">
             {tabOptions.map(tab => (
-              <TabsTrigger key={tab.value} value={tab.value}>
-                {tab.icon}
-                {tab.label}
+              <TabsTrigger 
+                key={tab.value} 
+                value={tab.value}
+                className="flex items-center justify-center py-2 flex-1 min-w-[110px]"
+              >
+                <span className="mr-1.5 flex-shrink-0">{tab.icon}</span>
+                <span className="whitespace-nowrap text-sm sm:text-base">{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>

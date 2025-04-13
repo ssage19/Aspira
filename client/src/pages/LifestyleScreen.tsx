@@ -37,13 +37,26 @@ export default function LifestyleScreen() {
           </Button>
           
           <Tabs defaultValue="lifestyle" className="mb-8">
-            <TabsList className="mb-4 flex flex-wrap">
-              <TabsTrigger value="lifestyle">Lifestyle & Luxury</TabsTrigger>
-              <TabsTrigger value="enhanced" className="text-indigo-600">
-                <Sparkles className="h-4 w-4 mr-1 text-indigo-500" />
-                Enhanced Choices
+            <TabsList className="mb-4 flex flex-wrap gap-1">
+              <TabsTrigger 
+                value="lifestyle" 
+                className="flex items-center justify-center py-2 flex-1 min-w-[120px]"
+              >
+                <span className="whitespace-nowrap text-sm sm:text-base">Lifestyle & Luxury</span>
               </TabsTrigger>
-              <TabsTrigger value="essentials">Basic Needs</TabsTrigger>
+              <TabsTrigger 
+                value="enhanced" 
+                className="flex items-center justify-center py-2 flex-1 min-w-[120px] text-indigo-600"
+              >
+                <Sparkles className="h-4 w-4 mr-1 text-indigo-500 flex-shrink-0" />
+                <span className="whitespace-nowrap text-sm sm:text-base">Enhanced Choices</span>
+              </TabsTrigger>
+              <TabsTrigger 
+                value="essentials" 
+                className="flex items-center justify-center py-2 flex-1 min-w-[120px]"
+              >
+                <span className="whitespace-nowrap text-sm sm:text-base">Basic Needs</span>
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="lifestyle">
