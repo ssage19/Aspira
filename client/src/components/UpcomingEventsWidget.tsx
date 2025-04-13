@@ -77,9 +77,21 @@ const EventItem: React.FC<{ event: SocialEvent, isSmall?: boolean }> = ({ event,
           <TooltipContent>
             <div className="text-xs">
               <p className="font-bold">{event.name}</p>
-              <p>{format(eventDate, 'h:mm a')}</p>
+              <p>{format(eventDate, 'MMM d, h:mm a')}</p>
               <p className="italic">{event.type}</p>
               <p className="text-xs opacity-80">{event.reserved ? "Reserved" : "Not reserved"}</p>
+              {(() => {
+                const { currentGameDate } = useTime.getState();
+                const gameTime = currentGameDate.getTime();
+                const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+                return <p className="text-xs mt-1">
+                  {daysRemaining > 0 ? 
+                    `${daysRemaining} days remaining` : 
+                    daysRemaining === 0 ? 
+                      "Today" : 
+                      "Expired"}
+                </p>;
+              })()}
             </div>
           </TooltipContent>
         </Tooltip>
@@ -124,7 +136,11 @@ const CalendarDay: React.FC<CalendarDayProps> = ({
   );
 
   const isOutsideMonth = !isSameMonth(date, currentMonth);
-  const isToday = isGameCurrent && isSameDay(date, new Date());
+  
+  // Get current game time for proper date comparison and "today" highlighting
+  const { currentGameDate } = useTime.getState();
+  const gameTime = currentGameDate.getTime();
+  const isToday = isGameCurrent && isSameDay(date, currentGameDate);
   
   return (
     <div 
@@ -269,16 +285,37 @@ export function UpcomingEventsWidget() {
         ) : (
           <>
             {/* Calendar view */}
-            <div className="w-full">
+            <div 
+              className="w-full focus:outline-2 focus:outline-primary focus:outline-offset-2 focus:ring-2 focus:ring-primary cursor-pointer"
+              tabIndex={0}
+              autoFocus
+              aria-label="Event Calendar" 
+              role="grid"
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowLeft') {
+                  navigateMonth('prev');
+                  console.log('Left arrow pressed - navigating to previous month (dashboard)');
+                  e.preventDefault();
+                } else if (e.key === 'ArrowRight') {
+                  navigateMonth('next');
+                  console.log('Right arrow pressed - navigating to next month (dashboard)');
+                  e.preventDefault();
+                } else if (e.key === 'Home') {
+                  resetToCurrentMonth();
+                  console.log('Home key pressed - resetting to current month (dashboard)');
+                  e.preventDefault();
+                }
+              }}
+            >
               {/* Weekday headers */}
-              <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1">
+              <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1" role="row">
                 {WEEKDAYS.map(day => (
-                  <div key={day} className="px-1">{day}</div>
+                  <div key={day} className="px-1" role="columnheader">{day}</div>
                 ))}
               </div>
               
               {/* Calendar grid */}
-              <div className="grid grid-cols-7">
+              <div className="grid grid-cols-7" role="rowgroup">
                 {calendarDays.map(day => (
                   <CalendarDay 
                     key={day.toString()} 
@@ -311,7 +348,15 @@ export function UpcomingEventsWidget() {
                         <Clock className="h-3 w-3 mr-1" />
                         {format(new Date(event.date), 'MMM d, h:mm a')}
                         <span className="ml-2">
-                          ({formatDistanceToNow(new Date(event.date), { addSuffix: true })})
+                          {/* Calculate days remaining based on game time, not real-world time */}
+                          {(() => {
+                            const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+                            return daysRemaining > 0 ? 
+                              `(${daysRemaining} days remaining)` : 
+                              daysRemaining === 0 ? 
+                                "(Today)" : 
+                                "(Expired)";
+                          })()}
                         </span>
                       </div>
                     </div>
