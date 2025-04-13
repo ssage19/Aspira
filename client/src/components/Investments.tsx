@@ -5,10 +5,22 @@ import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useNavigate } from 'react-router-dom';
+import { useResponsive } from '../lib/hooks/useResponsive';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
 import { toast } from 'sonner';
-import { ChartBar, TrendingUp, TrendingDown, AlertCircle, Wallet, Search, BarChart3, ChevronLeft } from 'lucide-react';
+import { 
+  ChartBar, 
+  TrendingUp, 
+  TrendingDown, 
+  AlertCircle, 
+  Wallet, 
+  Search, 
+  BarChart3, 
+  ChevronLeft,
+  Menu,
+  ChevronDown
+} from 'lucide-react';
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
 import { formatCurrency, formatPercentage } from '../lib/utils';
@@ -17,6 +29,12 @@ import { startupInvestments } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
 import { bondTypes } from '../lib/data/assets';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export function Investments() {
   const { wealth, addWealth, addAsset, sellAsset, assets } = useCharacter();
@@ -52,9 +70,12 @@ export function Investments() {
   const [startupAmount, setStartupAmount] = useState<number>(selectedStartup.minInvestment);
   
   // UI state for buy/sell dialogs and actions
-  const [activeTab, setActiveTab] = useState('stocks');
+  const [activeTab, setActiveTab] = useState('browse');
   const [showSellDialog, setShowSellDialog] = useState(false);
   const [openBuySellPanels, setOpenBuySellPanels] = useState<Record<string, boolean>>({});
+  
+  // Get mobile detection
+  const { isMobile } = useResponsive();
 
   // Check if market is open (function set by MarketPriceUpdater)
   const isMarketOpen = () => {
@@ -1034,53 +1055,169 @@ export function Investments() {
         </div>
       </div>
       
-      <Tabs defaultValue="browse" className="mb-4">
-        <TabsList className="mb-4 grid w-full grid-cols-6 h-12">
-          <TabsTrigger value="browse" className="flex items-center justify-center gap-2">
-            <Search className="h-4 w-4" />
-            <span>Stocks</span>
-          </TabsTrigger>
-          <TabsTrigger value="crypto" className="flex items-center justify-center gap-2">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
-              <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
-              <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>Crypto</span>
-          </TabsTrigger>
-          <TabsTrigger value="bonds" className="flex items-center justify-center gap-2">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>Bonds</span>
-          </TabsTrigger>
-          <TabsTrigger value="other" className="flex items-center justify-center gap-2">
-            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M3 8H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M8 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            <span>Startups</span>
-          </TabsTrigger>
-          <TabsTrigger value="portfolio" className="flex items-center justify-center gap-2">
-            <Wallet className="h-4 w-4" />
-            <span>Portfolio</span>
-          </TabsTrigger>
-          <TabsTrigger value="analysis" className="flex items-center justify-center gap-2">
-            <BarChart3 className="h-4 w-4" />
-            <span>Analysis</span>
-          </TabsTrigger>
-        </TabsList>
+      <Tabs defaultValue="browse" className="mb-4" onValueChange={setActiveTab}>
+        {isMobile ? (
+          <div className="mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <div className="flex items-center">
+                    {activeTab === 'browse' && <Search className="h-4 w-4 mr-2" />}
+                    {activeTab === 'crypto' && (
+                      <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
+                        <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
+                        <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                    {activeTab === 'bonds' && (
+                      <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                    {activeTab === 'other' && (
+                      <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M3 8H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M8 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    )}
+                    {activeTab === 'portfolio' && <Wallet className="h-4 w-4 mr-2" />}
+                    {activeTab === 'analysis' && <BarChart3 className="h-4 w-4 mr-2" />}
+                    {activeTab === 'browse' ? 'Stocks' : 
+                      activeTab === 'crypto' ? 'Crypto' : 
+                      activeTab === 'bonds' ? 'Bonds' : 
+                      activeTab === 'other' ? 'Startups' : 
+                      activeTab === 'portfolio' ? 'Portfolio' : 
+                      'Analysis'}
+                  </div>
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full min-w-[200px]">
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('browse')}
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  <span>Stocks</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('crypto')}
+                >
+                  <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
+                    <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
+                    <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Crypto</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('bonds')}
+                >
+                  <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Bonds</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('other')}
+                >
+                  <svg className="h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M3 8H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  <span>Startups</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('portfolio')}
+                >
+                  <Wallet className="h-4 w-4 mr-2" />
+                  <span>Portfolio</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  className="cursor-pointer flex items-center"
+                  onClick={() => setActiveTab('analysis')}
+                >
+                  <BarChart3 className="h-4 w-4 mr-2" />
+                  <span>Analysis</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <TabsList className="mb-4 grid w-full grid-cols-6 h-12">
+            <TabsTrigger value="browse" className="flex items-center justify-center gap-2">
+              <Search className="h-4 w-4" />
+              <span>Stocks</span>
+            </TabsTrigger>
+            <TabsTrigger value="crypto" className="flex items-center justify-center gap-2">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
+                <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
+                <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Crypto</span>
+            </TabsTrigger>
+            <TabsTrigger value="bonds" className="flex items-center justify-center gap-2">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Bonds</span>
+            </TabsTrigger>
+            <TabsTrigger value="other" className="flex items-center justify-center gap-2">
+              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M3 8H21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M8 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span>Startups</span>
+            </TabsTrigger>
+            <TabsTrigger value="portfolio" className="flex items-center justify-center gap-2">
+              <Wallet className="h-4 w-4" />
+              <span>Portfolio</span>
+            </TabsTrigger>
+            <TabsTrigger value="analysis" className="flex items-center justify-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              <span>Analysis</span>
+            </TabsTrigger>
+          </TabsList>
+        )}
         
         {/* Browse Stocks Tab */}
         <TabsContent value="browse" className="animate-fade-in">
