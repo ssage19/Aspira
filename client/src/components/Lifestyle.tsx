@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useAudio } from '../lib/stores/useAudio';
 import { useTime } from '../lib/stores/useTime';
 import { useNavigate } from 'react-router-dom';
+import { useResponsive } from '../lib/hooks/useResponsive';
 import { Button } from './ui/button';
 import { 
   Card, 
@@ -48,8 +49,16 @@ import {
   Shirt,
   Palette,
   Camera,
-  Gamepad
+  Gamepad,
+  Menu,
+  ChevronDown
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { formatCurrency, formatInteger } from '../lib/utils';
 import { 
   luxuryItems, 
@@ -425,6 +434,22 @@ export function Lifestyle() {
     );
   };
   
+  const { isMobile } = useResponsive();
+  const tabOptions = [
+    { value: "owned", label: "My Items", icon: <Check className="h-4 w-4 mr-2" /> },
+    { value: "luxury", label: "Luxury Items", icon: <Watch className="h-4 w-4 mr-2" /> },
+    { value: "vehicles", label: "Vehicles", icon: <Car className="h-4 w-4 mr-2" /> },
+    { value: "vacations", label: "Vacations", icon: <Plane className="h-4 w-4 mr-2" /> },
+    { value: "experiences", label: "Experiences", icon: <Sparkles className="h-4 w-4 mr-2" /> },
+    { value: "tech", label: "Tech", icon: <Smartphone className="h-4 w-4 mr-2" /> },
+    { value: "fashion", label: "Fashion", icon: <Shirt className="h-4 w-4 mr-2" /> },
+    { value: "tattoos", label: "Tattoos", icon: <Palette className="h-4 w-4 mr-2" /> }, 
+    { value: "hobbies", label: "Hobbies", icon: <Briefcase className="h-4 w-4 mr-2" /> }
+  ];
+  
+  // Find the active tab data
+  const activeTabData = tabOptions.find(tab => tab.value === activeTab);
+  
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
       <h2 className="text-2xl font-bold mb-4 flex items-center">
@@ -433,44 +458,44 @@ export function Lifestyle() {
       </h2>
       
       <Tabs defaultValue="luxury" onValueChange={setActiveTab}>
-        <TabsList className="mb-4 flex flex-wrap">
-          <TabsTrigger value="owned">
-            <Check className="h-4 w-4 mr-2" />
-            My Items
-          </TabsTrigger>
-          <TabsTrigger value="luxury">
-            <Watch className="h-4 w-4 mr-2" />
-            Luxury Items
-          </TabsTrigger>
-          <TabsTrigger value="vehicles">
-            <Car className="h-4 w-4 mr-2" />
-            Vehicles
-          </TabsTrigger>
-          <TabsTrigger value="vacations">
-            <Plane className="h-4 w-4 mr-2" />
-            Vacations
-          </TabsTrigger>
-          <TabsTrigger value="experiences">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Experiences
-          </TabsTrigger>
-          <TabsTrigger value="tech">
-            <Smartphone className="h-4 w-4 mr-2" />
-            Tech
-          </TabsTrigger>
-          <TabsTrigger value="fashion">
-            <Shirt className="h-4 w-4 mr-2" />
-            Fashion
-          </TabsTrigger>
-          <TabsTrigger value="tattoos">
-            <Palette className="h-4 w-4 mr-2" />
-            Tattoos
-          </TabsTrigger>
-          <TabsTrigger value="hobbies">
-            <Briefcase className="h-4 w-4 mr-2" />
-            Hobbies
-          </TabsTrigger>
-        </TabsList>
+        {isMobile ? (
+          <div className="mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <div className="flex items-center">
+                    {activeTabData?.icon}
+                    {activeTabData?.label || "Select Category"}
+                  </div>
+                  <ChevronDown className="h-4 w-4 ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full min-w-[200px]">
+                {tabOptions.map(tab => (
+                  <DropdownMenuItem 
+                    key={tab.value}
+                    className="cursor-pointer"
+                    onClick={() => setActiveTab(tab.value)}
+                  >
+                    <div className="flex items-center">
+                      {tab.icon}
+                      {tab.label}
+                    </div>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <TabsList className="mb-4 flex flex-wrap">
+            {tabOptions.map(tab => (
+              <TabsTrigger key={tab.value} value={tab.value}>
+                {tab.icon}
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        )}
         
         <TabsContent value="owned">
           {ownedItems.length === 0 ? (
