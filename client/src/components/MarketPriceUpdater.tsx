@@ -38,13 +38,13 @@ export function MarketPriceUpdater() {
   // Helper functions (memoized to avoid recreation)
   const getVolatilityFactor = useCallback((volatility: string): number => {
     switch (volatility as VolatilityLevel) {
-      case 'extreme': return 0.7;
-      case 'very_high': return 0.5;
-      case 'high': return 0.3;
-      case 'medium': return 0.2;
-      case 'low': return 0.1;
-      case 'very_low': return 0.05;
-      default: return 0.05; // Default for unknown volatility
+      case 'extreme': return 1.4;    // Doubled from 0.7
+      case 'very_high': return 1.0;  // Doubled from 0.5
+      case 'high': return 0.6;       // Doubled from 0.3
+      case 'medium': return 0.4;     // Doubled from 0.2
+      case 'low': return 0.2;        // Doubled from 0.1
+      case 'very_low': return 0.1;   // Doubled from 0.05
+      default: return 0.1;           // Doubled from 0.05
     }
   }, []);
   
@@ -497,38 +497,49 @@ export function MarketPriceUpdater() {
     // Run the update immediately
     updateAllPrices();
     
-    // Set up an interval to run updates periodically (every 2 seconds for more responsive UI)
+    // Only update at market close instead of periodically
+    // Track market open/close state to detect the market closing
+    let wasMarketOpen = isMarketOpen();
+    
+    // Set up an interval to check if market just closed (every 10 seconds is sufficient)
     const updateInterval = setInterval(() => {
-      console.log("MarketPriceUpdater: Running scheduled price update");
+      const isCurrentlyOpen = isMarketOpen();
       
-      // First, run the update normally
-      updateAllPrices();
+      // If market was open before but is now closed, we've reached end of market day
+      if (wasMarketOpen && !isCurrentlyOpen) {
+        console.log("MarketPriceUpdater: END OF MARKET DAY DETECTED - running closing price update");
+        
+        // Only update prices once at market close
+        updateAllPrices();
+        
+        // Force a refresh for all components to ensure UI updates
+        setTimeout(() => {
+          // 1. Update all stock prices in the tracker to ensure changes propagate
+          const state = assetTracker.getState();
+          state.stocks.forEach(stock => {
+            // Force the stock price to update with itself to trigger a state change
+            assetTracker.updateStock(stock.id, stock.shares, stock.currentPrice);
+          });
+          
+          // 2. Same for crypto assets
+          state.cryptoAssets.forEach(crypto => {
+            // Force the crypto price to update with itself to trigger a state change
+            assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
+          });
+          
+          // 3. Force character store to sync with asset tracker
+          syncAssetsWithAssetTracker();
+          
+          // 4. Make sure we recalculate totals after all these updates
+          assetTracker.recalculateTotals();
+          
+          console.log("MarketPriceUpdater: Completed end-of-day market price update");
+        }, 250);
+      }
       
-      // Then force a refresh for all components after a 250ms delay
-      // This ensures UI components have time to pick up the changes
-      setTimeout(() => {
-        // 1. Update all stock prices in the tracker with whatever values we currently have
-        const state = assetTracker.getState();
-        state.stocks.forEach(stock => {
-          // Force the stock price to update with itself to trigger a state change
-          assetTracker.updateStock(stock.id, stock.shares, stock.currentPrice);
-        });
-        
-        // 2. Same for crypto assets
-        state.cryptoAssets.forEach(crypto => {
-          // Force the crypto price to update with itself to trigger a state change
-          assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
-        });
-        
-        // 3. Force character store to sync with asset tracker
-        syncAssetsWithAssetTracker();
-        
-        // 4. Make sure we recalculate totals after all these updates
-        assetTracker.recalculateTotals();
-        
-        console.log("MarketPriceUpdater: Completed forced UI refresh");
-      }, 250);
-    }, 2000); // Increased frequency of updates for more responsive UI
+      // Update tracking state for next check
+      wasMarketOpen = isCurrentlyOpen;
+    }, 10000); // Check every 10 seconds - we only need to detect the close, not update continuously
     
     // Additionally, subscribe to game time changes to update prices 
     // when crossing from before market hours to during, or during to after
