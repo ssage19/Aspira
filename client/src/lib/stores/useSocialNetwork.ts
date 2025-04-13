@@ -2062,7 +2062,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       },
       
       // Check for expired content and handle due events
-      checkForExpiredContent: () => {
+      checkForExpiredContent: (showNotifications?: boolean) => {
         const { events, connections } = get();
         const now = Date.now();
         const { currentDay, currentMonth, currentYear } = useTime.getState();
@@ -2074,10 +2074,32 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           new Date(event.date) <= currentGameDate
         );
         
-        // Automatically attend due events
+        // Automatically attend due events (silently, without notifications)
         if (dueEvents.length > 0) {
           for (const event of dueEvents) {
-            get().attendEvent(event.id);
+            // If showNotifications is false, we'll skip toasts by wrapping the attendEvent call
+            if (!showNotifications) {
+              // Store original toast functions
+              const originalSuccessToast = toast.success;
+              const originalInfoToast = toast.info;
+              const originalErrorToast = toast.error;
+              
+              // Replace with silent versions
+              toast.success = (() => 'silent') as typeof toast.success;
+              toast.info = (() => 'silent') as typeof toast.info;
+              toast.error = (() => 'silent') as typeof toast.error;
+              
+              // Call the function
+              get().attendEvent(event.id);
+              
+              // Restore original toast functions
+              toast.success = originalSuccessToast;
+              toast.info = originalInfoToast;
+              toast.error = originalErrorToast;
+            } else {
+              // Regular call with notifications
+              get().attendEvent(event.id);
+            }
           }
         }
         
@@ -2111,14 +2133,14 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           return event.availableUntil > now;
         });
         
-        // Show a notification if any events were missed
-        if (missedEvents.length > 0) {
+        // Show notifications only when explicitly requested (for monthly summaries)
+        if (showNotifications && missedEvents.length > 0) {
           // Only show notification for the first missed event if multiple
           const missedEvent = missedEvents[0];
           if (missedEvents.length === 1) {
-            toast.info(`You missed the "${missedEvent.name}" event. It has been removed from your calendar.`);
+            toast.info(`Last month, you missed the "${missedEvent.name}" event.`);
           } else {
-            toast.info(`You missed ${missedEvents.length} events, including "${missedEvent.name}". They have been removed from your calendar.`);
+            toast.info(`Last month, you missed ${missedEvents.length} events, including "${missedEvent.name}".`);
           }
         }
         

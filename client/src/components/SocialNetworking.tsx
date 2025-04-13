@@ -650,9 +650,21 @@ export function SocialNetworking() {
   
   // Check for reserved events that are due when this component mounts or is revisited
   useEffect(() => {
-    // Run the check for expired/due content
-    checkForExpiredContent();
+    // Run the check for expired/due content without notifications for daily updates
+    checkForExpiredContent(false);
   }, [checkForExpiredContent, currentDay, currentMonth, currentYear]);
+  
+  // Additional effect to show monthly summaries only when the month changes
+  const [lastCheckedMonth, setLastCheckedMonth] = useState<number>(currentMonth);
+  
+  useEffect(() => {
+    // Only run this when the month changes
+    if (currentMonth !== lastCheckedMonth) {
+      // Show the monthly summary with notifications
+      checkForExpiredContent(true);
+      setLastCheckedMonth(currentMonth);
+    }
+  }, [checkForExpiredContent, currentMonth, lastCheckedMonth]);
   
   // Local state for dialog controls
   const [selectedConnectionId, setSelectedConnectionId] = useState<string | null>(null);
