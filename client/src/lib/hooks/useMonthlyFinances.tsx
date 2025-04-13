@@ -41,10 +41,22 @@ export function useMonthlyFinances() {
   // Using job.salary / 12 to maintain consistency with JobScreen display
   const monthlySalary = job ? job.salary / 12 : 0;
   
-  // Calculate property income directly without multipliers to match Properties screen
+  // Calculate property income directly using the net monthly value
   const propertyIncome = characterState.properties.reduce((total, property) => {
-    // Use the direct income value without multipliers for consistency
-    return total + (property.income || 0);
+    // Calculate net monthly value for each property (income - mortgage payment - expenses)
+    const monthlyPayment = property.monthlyPayment || 0;
+    const monthlyIncome = property.income || 0;
+    const monthlyExpenses = property.expenses || 0;
+    const netMonthly = monthlyIncome - monthlyPayment - monthlyExpenses;
+    
+    // Log detailed property calculations for debugging
+    console.log(`Property ${property.name} net monthly calculation:`);
+    console.log(`  Monthly Income: $${monthlyIncome}`);
+    console.log(`  Monthly Payment: -$${monthlyPayment}`);
+    console.log(`  Monthly Expenses: -$${monthlyExpenses}`);
+    console.log(`  Net Monthly: $${netMonthly}`);
+    
+    return total + netMonthly;
   }, 0);
   
   // Calculate business income if any
@@ -191,10 +203,22 @@ export function calculateMonthlyFinances(characterState: any) {
   // Using job.salary / 12 to match JobScreen and hook calculation
   const monthlySalary = job ? job.salary / 12 : 0;
   
-  // Calculate property income directly to match Properties screen and hook calculation
+  // Calculate property income directly using the net monthly value
   const propertyIncome = characterState.properties.reduce((total: number, property: any) => {
-    // Use direct income values without multipliers for consistency
-    return total + (property.income || 0);
+    // Calculate net monthly value for each property (income - mortgage payment - expenses)
+    const monthlyPayment = property.monthlyPayment || 0;
+    const monthlyIncome = property.income || 0;
+    const monthlyExpenses = property.expenses || 0;
+    const netMonthly = monthlyIncome - monthlyPayment - monthlyExpenses;
+    
+    // Log detailed property calculations for debugging
+    console.log(`(Helper) Property ${property.name} net monthly calculation:`);
+    console.log(`  Monthly Income: $${monthlyIncome}`);
+    console.log(`  Monthly Payment: -$${monthlyPayment}`);
+    console.log(`  Monthly Expenses: -$${monthlyExpenses}`);
+    console.log(`  Net Monthly: $${netMonthly}`);
+    
+    return total + netMonthly;
   }, 0);
   
   const businessIncome = characterState.businesses?.reduce((total: number, business: any) => 

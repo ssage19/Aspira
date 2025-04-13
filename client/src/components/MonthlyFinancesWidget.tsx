@@ -103,7 +103,7 @@ export function MonthlyFinancesWidget() {
           <div className="flex justify-between text-sm">
             <span className="text-foreground/70 flex items-center">
               <Building className="h-3.5 w-3.5 mr-1.5 opacity-70" />
-              Property Income:
+              Net Property Income:
             </span>
             <span className="font-semibold text-green-600 dark:text-green-300">+{formatCurrency(propertyIncome)}</span>
           </div>
