@@ -165,12 +165,8 @@ export function AttributesDecayManager() {
       workLifeBalanceHappinessModifier = -4; // -4 happiness/day
       workLifeBalanceStressModifier = 5;     // +5 stress/day
       
-      // Notify the player about work-life balance issues
-      showNotification({
-        title: 'Work-Life Balance',
-        message: 'You have very little free time. Your happiness is declining rapidly.',
-        type: 'warning'
-      });
+      // Removed notification but still log for debugging
+      console.log('Poor work-life balance: very little free time affecting happiness and stress');
       
     } else if (freeTimeRatio < 0.5) {
       // Poor work-life balance
@@ -203,18 +199,14 @@ export function AttributesDecayManager() {
       basicNeedsHappinessModifier = -4; // -4 happiness/day
       basicNeedsStressModifier = 4;     // +4 stress/day
       
-      // Notify the player about critical basic needs
+      // Removed notification but still log critical needs for debugging
       const criticalNeeds = [];
       if (hunger < 30) criticalNeeds.push('hunger');
       if (thirst < 30) criticalNeeds.push('thirst');
       if (energy < 30) criticalNeeds.push('energy');
       if (comfort < 30) criticalNeeds.push('comfort');
       
-      showNotification({
-        title: 'Basic Needs Alert',
-        message: `Your ${criticalNeeds.join(', ')} ${criticalNeeds.length > 1 ? 'are' : 'is'} critically low, affecting your well-being.`,
-        type: 'error'
-      });
+      console.log(`Basic needs alert: ${criticalNeeds.join(', ')} ${criticalNeeds.length > 1 ? 'are' : 'is'} critically low, affecting well-being`);
       
     } else if (hunger < 50 || thirst < 50 || energy < 50 || comfort < 50) {
       // At least one need is moderately low
@@ -265,11 +257,8 @@ export function AttributesDecayManager() {
     if (stress > 80) {
       addHappiness(-2); // High stress causes additional happiness loss
       
-      showNotification({
-        title: 'Stress Warning',
-        message: 'Your extreme stress levels are significantly affecting your happiness.',
-        type: 'warning'
-      });
+      // Removed notification but still log for debugging
+      console.log('Stress warning: extreme stress levels significantly affecting happiness');
     }
     
     // Dynamic time commitment adjustments
@@ -279,12 +268,7 @@ export function AttributesDecayManager() {
       const extraCommitment = Math.floor(Math.random() * 5) + 1; // 1-5 hours
       addTimeCommitment(extraCommitment);
       
-      showNotification({
-        title: 'Unexpected Responsibilities',
-        message: `You had to handle unexpected tasks today requiring ${extraCommitment} hours.`,
-        type: 'info'
-      });
-      
+      // Removed notification as requested, but we'll still log to console for debugging
       console.log(`Added ${extraCommitment} hours of unexpected time commitment`);
     }
     
@@ -293,12 +277,7 @@ export function AttributesDecayManager() {
       const extraFreeTime = Math.floor(Math.random() * 3) + 1; // 1-3 hours
       updateFreeTime(extraFreeTime);
       
-      showNotification({
-        title: 'Extra Free Time',
-        message: `You managed to free up ${extraFreeTime} extra hours today.`,
-        type: 'success'
-      });
-      
+      // Removed notification as requested, but we'll still log to console for debugging
       console.log(`Added ${extraFreeTime} hours of extra free time`);
     }
   };
@@ -360,13 +339,9 @@ export function AttributesDecayManager() {
       
       addStress(stressIncrease);
       
-      // Only show notification for more significant events (stress > 1)
+      // Removed notifications but still log for debugging
       if (stressIncrease > 1) {
-        showNotification({
-          title: 'Stressful Moment',
-          message: stressfulEvent[eventIndex],
-          type: 'info'
-        });
+        console.log(`Stressful moment: ${stressfulEvent[eventIndex]} (+${stressIncrease} stress)`);
       }
     }
     
@@ -387,68 +362,50 @@ export function AttributesDecayManager() {
       addHappiness(happinessIncrease);
       addStress(-0.5); // Small stress reduction
       
-      // Only show notification for more significant events
+      // Removed notifications but still log for debugging
       if (happinessIncrease > 1) {
-        showNotification({
-          title: 'Pleasant Moment',
-          message: positiveEvent[eventIndex],
-          type: 'success'
-        });
+        console.log(`Pleasant moment: ${positiveEvent[eventIndex]} (+${happinessIncrease} happiness)`);
       }
     }
   };
   
   /**
-   * Check for critical attribute values and notify the player
+   * Check for critical attribute values but no longer notify the player
+   * Instead, we'll just log these issues for debugging
    */
   const checkCriticalAttributeValues = () => {
     // Critical stress levels
     if (stress > 90 && Math.random() < 0.5) {
-      showNotification({
-        title: 'Critical Stress Level',
-        message: 'Your stress levels are extremely high! Take immediate action to reduce stress.',
-        type: 'error'
-      });
+      // Removed notification but still log for debugging
+      console.log('Critical stress level: extremely high stress requiring immediate action');
+      
+      // Still play sound for critical warnings only
       playSound('error');
     } else if (stress > 75 && Math.random() < 0.3) {
-      showNotification({
-        title: 'High Stress Warning',
-        message: 'Your stress levels are very high. Consider ways to reduce stress.',
-        type: 'warning'
-      });
+      console.log('High stress warning: stress levels are very high');
     }
     
     // Critical happiness levels
     if (happiness < 20 && Math.random() < 0.5) {
-      showNotification({
-        title: 'Critical Happiness Level',
-        message: 'Your happiness has dropped to a dangerous level. Take action to improve it!',
-        type: 'error'
-      });
+      // Removed notification but still log for debugging
+      console.log('Critical happiness level: happiness has dropped to a dangerous level');
+      
+      // Still play sound for critical warnings only
       playSound('error');
     } else if (happiness < 35 && Math.random() < 0.3) {
-      showNotification({
-        title: 'Low Happiness Warning',
-        message: 'Your happiness levels are very low. Try to do something enjoyable.',
-        type: 'warning'
-      });
+      console.log('Low happiness warning: happiness levels are very low');
     }
     
     // Critical time management
     const freeTimeRatio = freeTime / (timeCommitment || 1);
     if (freeTimeRatio < 0.1 && Math.random() < 0.5) {
-      showNotification({
-        title: 'Critical Time Management',
-        message: 'You have almost no free time! This is unsustainable for your well-being.',
-        type: 'error'
-      });
+      // Removed notification but still log for debugging
+      console.log('Critical time management: almost no free time, unsustainable');
+      
+      // Still play sound for critical warnings only
       playSound('error');
     } else if (freeTimeRatio < 0.25 && Math.random() < 0.3) {
-      showNotification({
-        title: 'Poor Time Management',
-        message: 'Your free time is very limited. Try to adjust your commitments.',
-        type: 'warning'
-      });
+      console.log('Poor time management: free time is very limited');
     }
   };
   
