@@ -1862,12 +1862,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         set({ events: [...events, ...newEvents] });
         
-        // Show notification about event limit if we couldn't add all requested events
-        if (actualCount < count) {
-          toast.info(`Added ${actualCount} events. Calendar limit is ${MAX_EVENTS} events.`, {
-            duration: 5000
-          });
-        }
+        // No longer showing notifications about new events being added
+        // Users will need to check the events tab to discover them
         
         return newEvents;
       },

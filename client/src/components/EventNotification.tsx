@@ -100,12 +100,13 @@ export function EventNotification({ event, onClose, onView }: EventNotificationP
 }
 
 export function EventNotificationManager() {
-  const { events } = useSocialNetwork();
-  const { phase } = useGame();
+  // No longer showing event notifications per user request
+  // Users will need to visit the events tab to discover new events
+  
+  // Still need to return something for rendering even though it's empty
   const [notification, setNotification] = useState<SocialEvent | null>(null);
   
-  // Track when the user first sees events by storing timestamp
-  // This ensures only newly added events are shown after game restarts
+  // Keep track of events in localStorage but don't show notifications
   const [shownEvents, setShownEvents] = useState<Map<string, number>>(
     () => {
       // Try to load from localStorage
@@ -132,53 +133,9 @@ export function EventNotificationManager() {
     }
   }, [shownEvents]);
 
-  // Check for new events
-  useEffect(() => {
-    // Don't show notifications if:
-    // 1. There's already an active notification
-    // 2. The game is not in playing phase (e.g., during character creation)
-    if (notification || phase !== "playing") return;
-    
-    // Find new events the user hasn't been notified about yet
-    const currentTime = Date.now();
-    const newEvents = events.filter(e => {
-      // Skip events that have already been attended
-      if (e.attended) return false;
-      
-      // Get when this event was created (estimate date as creation time)
-      const eventCreatedTime = e.availableUntil - (30 * 24 * 60 * 60 * 1000); // 30 days back from expiry
-      
-      // Get when this event was first shown to the user (or 0 if never shown)
-      const firstShownTime = shownEvents.get(e.id) || 0;
-      
-      // This is a new event if it was created after it was last shown
-      // Or if it has never been shown at all
-      return firstShownTime === 0 || eventCreatedTime > firstShownTime;
-    });
-    
-    // If there's a new event, show notification for it
-    if (newEvents.length > 0) {
-      const eventToShow = newEvents[0];
-      setNotification(eventToShow);
-      
-      // Mark this event as shown with current timestamp
-      setShownEvents(prev => {
-        const updated = new Map(prev);
-        updated.set(eventToShow.id, currentTime);
-        return updated;
-      });
-    }
-  }, [events, notification, shownEvents, phase]);
-
-  // Handle viewing event details
+  // Dummy function kept for API compatibility
   const handleViewEvent = () => {
-    if (notification) {
-      // Navigate to the networking screen
-      console.log(`Viewing event: ${notification.name}`);
-      
-      // Use window.location for direct navigation - make sure to use correct route
-      window.location.href = '/networking';
-    }
+    window.location.href = '/networking';
   };
 
   return (
