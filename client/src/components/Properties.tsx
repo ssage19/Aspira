@@ -304,11 +304,53 @@ export function Properties() {
   const mortgageDetails = calculateMonthlyPayment();
   
   return (
-    <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
-      <h2 className="text-2xl font-bold mb-4 flex items-center">
-        <Home className="mr-2" />
-        Real Estate Portfolio
-      </h2>
+    <div className={`p-4 ${isMobile ? 'pt-20' : ''} bg-background rounded-lg shadow-lg border border-border`}>
+      {/* Header with mobile navigation */}
+      <div className="flex justify-between items-center mb-4">
+        <div className="flex items-center">
+          {isMobile && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => navigate(-1)} 
+              className="mr-2"
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <h2 className="text-2xl font-bold flex items-center">
+            <Home className="mr-2" />
+            Real Estate Portfolio
+          </h2>
+        </div>
+        
+        {isMobile && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate('/')}>
+                Dashboard
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/investments')}>
+                Investments
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/lifestyle')}>
+                Lifestyle
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/social')}>
+                Social
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/career')}>
+                Career
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </div>
       
       <div className="mb-4">
         <p className="text-sm text-gray-500">Market Health: {realEstateMarketHealth}%</p>
@@ -316,24 +358,56 @@ export function Properties() {
       </div>
       
       <Tabs defaultValue="residential" onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="residential">
-            <Home className="h-4 w-4 mr-2" />
-            Residential
-          </TabsTrigger>
-          <TabsTrigger value="mansion">
-            <Castle className="h-4 w-4 mr-2" />
-            Luxury
-          </TabsTrigger>
-          <TabsTrigger value="commercial">
-            <Building2 className="h-4 w-4 mr-2" />
-            Commercial
-          </TabsTrigger>
-          <TabsTrigger value="industrial">
-            <Warehouse className="h-4 w-4 mr-2" />
-            Industrial
-          </TabsTrigger>
-        </TabsList>
+        {isMobile ? (
+          <div className="mb-4">
+            <DropdownMenu>
+              <DropdownMenuTrigger className="w-full flex items-center justify-between border border-input bg-background rounded-md px-3 py-2 text-sm font-medium">
+                {activeTab === 'residential' && <><Home className="h-4 w-4 mr-2" /> Residential</>}
+                {activeTab === 'mansion' && <><Castle className="h-4 w-4 mr-2" /> Luxury</>}
+                {activeTab === 'commercial' && <><Building2 className="h-4 w-4 mr-2" /> Commercial</>}
+                {activeTab === 'industrial' && <><Warehouse className="h-4 w-4 mr-2" /> Industrial</>}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-full min-w-[200px]">
+                <DropdownMenuItem onClick={() => setActiveTab('residential')} className="cursor-pointer">
+                  <Home className="h-4 w-4 mr-2" />
+                  Residential
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('mansion')} className="cursor-pointer">
+                  <Castle className="h-4 w-4 mr-2" />
+                  Luxury
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('commercial')} className="cursor-pointer">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Commercial
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setActiveTab('industrial')} className="cursor-pointer">
+                  <Warehouse className="h-4 w-4 mr-2" />
+                  Industrial
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <TabsList className="mb-4">
+            <TabsTrigger value="residential">
+              <Home className="h-4 w-4 mr-2" />
+              Residential
+            </TabsTrigger>
+            <TabsTrigger value="mansion">
+              <Castle className="h-4 w-4 mr-2" />
+              Luxury
+            </TabsTrigger>
+            <TabsTrigger value="commercial">
+              <Building2 className="h-4 w-4 mr-2" />
+              Commercial
+            </TabsTrigger>
+            <TabsTrigger value="industrial">
+              <Warehouse className="h-4 w-4 mr-2" />
+              Industrial
+            </TabsTrigger>
+          </TabsList>
+        )}
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div>
