@@ -110,14 +110,23 @@ export function LivingSituationManager() {
   
   // Function to handle opening purchase confirmation
   const handleOpenPurchaseConfirm = (option: HousingOption | VehicleOption) => {
+    console.log(`Opening purchase confirmation for ${option.name}`);
+    // Use React's batched updates to ensure both state changes happen in one render cycle
+    // This helps with button responsiveness
     setSelectedOption(option);
-    setConfirmPurchaseOpen(true);
+    setTimeout(() => {
+      setConfirmPurchaseOpen(true);
+    }, 10);
   };
   
   // Function to handle opening details dialog
   const handleOpenDetails = (option: HousingOption | VehicleOption) => {
+    console.log(`Opening details for ${option.name}`);
+    // Use setTimeout to improve responsiveness
     setDetailsOption(option);
-    setDetailsOpen(true);
+    setTimeout(() => {
+      setDetailsOpen(true);
+    }, 10);
   };
   
   // Function to purchase housing option
@@ -230,13 +239,16 @@ export function LivingSituationManager() {
     // Determine if this is a housing or vehicle option by checking the id against each list
     const isHousingOption = housingOptions.some(o => o.id === selectedOption.id);
     
-    if (isHousingOption) {
-      console.log("Processing as housing option");
-      purchaseHousingOption(selectedOption as HousingOption);
-    } else {
-      console.log("Processing as vehicle option");
-      purchaseVehicleOption(selectedOption as VehicleOption);
-    }
+    // Use setTimeout to improve button responsiveness
+    setTimeout(() => {
+      if (isHousingOption) {
+        console.log("Processing as housing option");
+        purchaseHousingOption(selectedOption as HousingOption);
+      } else {
+        console.log("Processing as vehicle option");
+        purchaseVehicleOption(selectedOption as VehicleOption);
+      }
+    }, 10);
   };
   
   // Function to render tier indicators
