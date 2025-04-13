@@ -23,6 +23,11 @@ export function ThemeSwitcher() {
   // Get current theme icon
   const CurrentIcon = themeIcons[theme] || Monitor;
 
+  // Direct theme toggle function
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme as any);
+  };
+
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -46,16 +51,17 @@ export function ThemeSwitcher() {
             {availableThemes.map((themeName) => {
               // Get icon for this theme
               const ThemeIcon = themeIcons[themeName] || Monitor;
+              const isActive = theme === themeName;
               
+              // Use a regular div instead of a Button component
               return (
-                <Button
+                <div
                   key={themeName}
-                  variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-2 p-2 h-auto",
-                    theme === themeName && "bg-muted/50"
+                    "flex items-center gap-2 p-3 rounded hover:bg-muted cursor-pointer",
+                    isActive && "bg-muted/50"
                   )}
-                  onClick={() => setTheme(themeName)}
+                  onClick={() => handleThemeChange(themeName)}
                 >
                   <ThemeIcon className="h-4 w-4 flex-shrink-0" />
                   <div className="flex-1 text-left overflow-hidden">
@@ -68,8 +74,8 @@ export function ThemeSwitcher() {
                       {getThemeDescription(themeName)}
                     </div>
                   </div>
-                  {theme === themeName && <Check className="h-4 w-4 flex-shrink-0" />}
-                </Button>
+                  {isActive && <Check className="h-4 w-4 flex-shrink-0" />}
+                </div>
               );
             })}
           </div>

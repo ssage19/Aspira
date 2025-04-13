@@ -42,6 +42,11 @@ const themeColors: Record<ColorTheme, { primary: string, secondary: string, acce
 export function ColorThemeSwitcher() {
   const { colorTheme, setColorTheme, availableColorThemes, getColorThemeDescription } = useTheme();
   
+  // Direct color theme toggle function
+  const handleColorThemeChange = (newTheme: string) => {
+    setColorTheme(newTheme as any);
+  };
+  
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -62,16 +67,17 @@ export function ColorThemeSwitcher() {
           <div className="space-y-1">
             {availableColorThemes.map((themeName) => {
               const colors = themeColors[themeName];
+              const isActive = colorTheme === themeName;
               
+              // Use a regular div instead of a Button component
               return (
-                <Button
+                <div
                   key={themeName}
-                  variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-2 p-2 h-auto",
-                    colorTheme === themeName && "bg-muted/50"
+                    "flex items-center gap-2 p-3 rounded hover:bg-muted cursor-pointer",
+                    isActive && "bg-muted/50"
                   )}
-                  onClick={() => setColorTheme(themeName)}
+                  onClick={() => handleColorThemeChange(themeName)}
                 >
                   <div className="flex space-x-1 h-4 w-10 flex-shrink-0">
                     <div className={cn("h-4 w-4 rounded-full", colors.primary)} />
@@ -86,8 +92,8 @@ export function ColorThemeSwitcher() {
                       {getColorThemeDescription(themeName)}
                     </div>
                   </div>
-                  {colorTheme === themeName && <Check className="h-4 w-4 flex-shrink-0" />}
-                </Button>
+                  {isActive && <Check className="h-4 w-4 flex-shrink-0" />}
+                </div>
               );
             })}
           </div>
