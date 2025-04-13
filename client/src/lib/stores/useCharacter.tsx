@@ -88,6 +88,7 @@ export interface Property {
   monthlyIncome?: number;   // Legacy field, replaced by income
   appreciationRate: number; // Annual appreciation rate
   purchaseDate: string;
+  equity?: number;          // Current equity in the property (currentValue - loanAmount)
   squareFeet?: number;
   bedrooms?: number;
   bathrooms?: number;
@@ -3312,6 +3313,61 @@ export const useCharacter = create<CharacterState>()(
         
         // Get the total expenses from the detailed calculation
         const totalMonthlyExpenses = financeData.totalExpenses;
+        
+        // Process mortgage payments and update equity for all properties
+        // This must be done before deducting expenses
+        if (state.properties.length > 0) {
+          // Process each property's mortgage payment
+          const updatedProperties = state.properties.map(property => {
+            // Skip if property has no mortgage
+            if (!property.loanAmount || property.loanAmount <= 0) {
+              return property;
+            }
+            
+            // Calculate how much of the payment goes to principal vs interest
+            const annualInterestRate = property.interestRate / 100;
+            const monthlyInterestRate = annualInterestRate / 12;
+            const interestPayment = property.loanAmount * monthlyInterestRate;
+            const principalPayment = property.monthlyPayment - interestPayment;
+            
+            // Calculate new loan balance
+            const newLoanAmount = Math.max(0, property.loanAmount - principalPayment);
+            
+            // If loan amount is very small (less than $1), consider it fully paid
+            const finalLoanAmount = newLoanAmount < 1 ? 0 : newLoanAmount;
+            
+            // Log the mortgage payment breakdown
+            console.log(`Property mortgage payment for ${property.name}:`);
+            console.log(`  Total payment: $${property.monthlyPayment.toFixed(2)}`);
+            console.log(`  Interest portion: $${interestPayment.toFixed(2)}`);
+            console.log(`  Principal portion: $${principalPayment.toFixed(2)}`);
+            console.log(`  Previous loan balance: $${property.loanAmount.toFixed(2)}`);
+            console.log(`  New loan balance: $${finalLoanAmount.toFixed(2)}`);
+            
+            // Return updated property with new loan amount
+            return {
+              ...property,
+              loanAmount: finalLoanAmount,
+              // Update equity (current value minus remaining loan)
+              equity: property.currentValue - finalLoanAmount
+            };
+          });
+          
+          // Update properties in store
+          set({ properties: updatedProperties });
+          
+          // Sync with asset tracker if it's available
+          if (useAssetTracker) {
+            const assetTracker = useAssetTracker.getState();
+            
+            // Update each property in the asset tracker
+            updatedProperties.forEach(property => {
+              if (assetTracker.updateProperty) {
+                assetTracker.updateProperty(property.id, property.currentValue, property.loanAmount);
+              }
+            });
+          }
+        }
         
         // Apply the monthly expenses if we have any
         if (totalMonthlyExpenses > 0) {
