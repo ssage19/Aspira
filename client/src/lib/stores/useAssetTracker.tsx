@@ -390,6 +390,23 @@ export const useAssetTracker = create<AssetTrackerState>()(
       },
       
       updateCrypto: (id, amount, currentPrice) => {
+        // Skip update if amount is 0 or price is invalid
+        if (amount <= 0 || currentPrice <= 0) {
+          return;
+        }
+        
+        // Get current state to check if we're actually changing anything
+        const currentState = get();
+        const existingCrypto = currentState.cryptoAssets.find(c => c.id === id);
+        
+        // If no change is needed, skip the update entirely to prevent loops
+        if (existingCrypto && 
+            existingCrypto.amount === amount && 
+            existingCrypto.currentPrice === currentPrice) {
+          return;
+        }
+        
+        // Perform the update and include total recalculation in a single state update
         set((state) => {
           const updatedCrypto = state.cryptoAssets.map(crypto => {
             if (crypto.id === id) {
@@ -403,14 +420,18 @@ export const useAssetTracker = create<AssetTrackerState>()(
             return crypto;
           });
           
+          // Calculate new crypto total in the same update
+          const totalCryptoValue = updatedCrypto.reduce(
+            (total, crypto) => total + crypto.amount * crypto.currentPrice, 
+            0
+          );
+          
           return {
             cryptoAssets: updatedCrypto,
+            totalCryptoValue,
             lastUpdated: Date.now(),
           };
         });
-        
-        // Recalculate totals after update
-        get().recalculateTotals();
       },
       
       removeCrypto: (id) => {
@@ -726,31 +747,43 @@ export const useAssetTracker = create<AssetTrackerState>()(
       
       // Batch update global crypto prices
       updateGlobalCryptoPrices: (priceUpdates: { [cryptoId: string]: number }) => {
-        set((state) => {
-          // Create a copy of the current global crypto prices
-          const updatedPrices = { ...state.globalCryptoPrices };
+        // Get current state once to avoid multiple state reads
+        const currentState = get();
+        
+        // Build a complete state update with all changes at once
+        const updatedCryptoAssets = [...currentState.cryptoAssets];
+        const updatedPrices = { ...currentState.globalCryptoPrices };
+        
+        // Apply all price updates to global prices object
+        Object.entries(priceUpdates).forEach(([cryptoId, price]) => {
+          updatedPrices[cryptoId] = price;
           
-          // Apply all price updates
-          Object.entries(priceUpdates).forEach(([cryptoId, price]) => {
-            updatedPrices[cryptoId] = price;
-          });
-          
-          return {
-            globalCryptoPrices: updatedPrices,
-            lastUpdated: Date.now(),
-          };
+          // Also update owned assets in the same pass if needed
+          const cryptoIndex = updatedCryptoAssets.findIndex(c => c.id === cryptoId);
+          if (cryptoIndex >= 0) {
+            const crypto = updatedCryptoAssets[cryptoIndex];
+            updatedCryptoAssets[cryptoIndex] = {
+              ...crypto,
+              currentPrice: price,
+              totalValue: crypto.amount * price
+            };
+          }
         });
         
-        // Update any owned crypto in the portfolio to match global prices
-        const state = get();
+        // Calculate crypto total value only
+        const totalCryptoValue = updatedCryptoAssets.reduce(
+          (total, crypto) => total + crypto.amount * crypto.currentPrice, 
+          0
+        );
         
-        // For each crypto in the player's portfolio, check if it has a new price
-        state.cryptoAssets.forEach(crypto => {
-          const newPrice = priceUpdates[crypto.id];
-          if (newPrice !== undefined) {
-            // Update the owned crypto to match the global price
-            get().updateCrypto(crypto.id, crypto.amount, newPrice);
-          }
+        const timestamp = Date.now();
+        
+        // Update state once with all changes - use only properties that exist in the store
+        set({
+          globalCryptoPrices: updatedPrices,
+          cryptoAssets: updatedCryptoAssets,
+          totalCrypto: totalCryptoValue,
+          lastUpdated: timestamp,
         });
       },
       

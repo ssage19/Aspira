@@ -3,7 +3,7 @@ import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter, Asset, Property } from '../lib/stores/useCharacter';
-import { VolatilityLevel } from '../lib/data/investments';
+import { VolatilityLevel, cryptoCurrencies } from '../lib/data/investments';
 import { expandedStockMarket } from '../lib/data/sp500Stocks';
 
 // Extend Asset type with possible additional properties
@@ -109,56 +109,83 @@ export function MarketPriceUpdater() {
     // Get all owned crypto from character assets
     const ownedCrypto = assets.filter(asset => asset.type === 'crypto');
     
-    // Create a list of all cryptocurrencies to update - those owned AND those tracked globally
+    // Create a list of all cryptocurrencies to update
     const allCryptoIds = new Set<string>();
     
-    // First add all owned crypto
+    // First add ALL cryptocurrencies from the cryptoCurrencies list regardless of ownership
+    cryptoCurrencies.forEach(crypto => {
+      if (crypto && crypto.id) {
+        allCryptoIds.add(crypto.id);
+      }
+    });
+    
+    // Then add any owned crypto (in case there are custom ones not in the list)
     ownedCrypto.forEach(crypto => {
       if (crypto && crypto.id) {
         allCryptoIds.add(crypto.id);
       }
     });
     
-    // Add any crypto that was previously tracked in the global tracker
+    // Finally add any crypto that was previously tracked in the global tracker
     Object.keys(assetTracker.globalCryptoPrices).forEach(cryptoId => {
       allCryptoIds.add(cryptoId);
     });
-    
-    if (allCryptoIds.size === 0) return;
     
     console.log(`MarketPriceUpdater: Updating ${allCryptoIds.size} crypto assets (${ownedCrypto.length} owned + ${allCryptoIds.size - ownedCrypto.length} tracked)`);
     
     // Map to collect all price updates for batch processing
     const cryptoPriceUpdates: { [cryptoId: string]: number } = {};
     
-    // Process all crypto assets (both owned and tracked)
+    // Process all crypto assets
     Array.from(allCryptoIds).forEach(cryptoId => {
       // Find the asset details if owned
       const cryptoAsset = ownedCrypto.find(asset => asset.id === cryptoId);
+      
+      // Find the crypto in the cryptoCurrencies list
+      const cryptoDetails = cryptoCurrencies.find((c: any) => c.id === cryptoId);
       
       // Get current price with fallbacks
       // 1. First check global crypto price tracker
       // 2. Then check asset tracker's getAssetPrice
       // 3. Then try the asset's currentPrice if it's owned
-      // 4. Finally fall back to purchase price if owned
+      // 4. Then fall back to purchase price if owned
+      // 5. Finally fall back to base price from cryptoCurrencies list
       const currentPrice = 
         assetTracker.globalCryptoPrices[cryptoId] || 
         assetTracker.getAssetPrice(cryptoId) ||
         (cryptoAsset ? cryptoAsset.currentPrice : 0) ||
-        (cryptoAsset ? cryptoAsset.purchasePrice : 0);
+        (cryptoAsset ? cryptoAsset.purchasePrice : 0) ||
+        (cryptoDetails ? cryptoDetails.basePrice : 0);
         
-      // Skip if we couldn't determine a price and crypto isn't owned
-      if (currentPrice === 0 && !cryptoAsset) return;
+      // Skip if we couldn't determine a price
+      if (currentPrice === 0) {
+        console.log(`MarketPriceUpdater: Skipping ${cryptoId} - no price information available`);
+        return;
+      }
       
-      const basePrice = cryptoAsset?.purchasePrice || currentPrice;
+      // Get the base price (for reference and floor calculations)
+      const basePrice = cryptoAsset?.purchasePrice || 
+                       (cryptoDetails ? cryptoDetails.basePrice : currentPrice);
       
-      // Still higher volatility for crypto, but more reasonable movements per update
-      const volatilityFactor = 0.12; // Moderate volatility per tick
+      // Get volatility level from crypto details
+      const volatilityLevel = cryptoDetails?.volatility || 'high';
+      
+      // Determine volatility factor based on the crypto's volatility level
+      let volatilityFactor = 0.12; // Default moderate volatility
+      
+      if (volatilityLevel === 'extreme') volatilityFactor = 0.25;
+      else if (volatilityLevel === 'very_high') volatilityFactor = 0.18;
+      else if (volatilityLevel === 'high') volatilityFactor = 0.12;
+      else if (volatilityLevel === 'medium') volatilityFactor = 0.08;
+      else if (volatilityLevel === 'low') volatilityFactor = 0.04;
+      else if (volatilityLevel === 'very_low') volatilityFactor = 0.01;
+      
+      // Market has more influence on volatile cryptos
       const marketInfluence = marketTrend === 'bull' ? 1.01 : marketTrend === 'bear' ? 0.99 : 1;
       
       // Calculate incremental price change (smaller movements, but still more volatile than stocks)
       const baseChangePercent = (Math.random() * volatilityFactor * 0.6) - (volatilityFactor * 0.3);
-      const marketEffect = ((marketInfluence - 1) * 0.15); // Market has more influence on crypto
+      const marketEffect = ((marketInfluence - 1) * 0.15); 
       const totalChangePercent = baseChangePercent + marketEffect;
       
       // Apply small percentage change to current price (not base price)
@@ -179,7 +206,8 @@ export function MarketPriceUpdater() {
       const direction = roundedPrice > currentPrice ? '↑' : roundedPrice < currentPrice ? '↓' : '→';
       
       // Get name of crypto if available
-      const name = cryptoAsset?.name || cryptoId;
+      const name = cryptoAsset?.name || 
+                  (cryptoDetails ? cryptoDetails.name : cryptoId);
       
       console.log(`MarketPriceUpdater: Updated ${name} price to $${roundedPrice.toFixed(2)} (${direction}${priceChange}%) - 24/7 market`);
     });
@@ -431,7 +459,9 @@ export function MarketPriceUpdater() {
     // Check if market is currently open for stock updates
     const marketOpen = isMarketOpen();
     
-    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} right now.`);
+    // Use imported cryptoCurrencies list to ensure complete coverage of ALL cryptocurrencies
+    
+    console.log(`MarketPriceUpdater: Running global price update. Market ${marketOpen ? 'OPEN' : 'CLOSED'} right now. Will update ${cryptoCurrencies.length} crypto assets.`);
     
     // Only update stock prices during market hours for realism
     // Other asset types like crypto will still update 24/7
@@ -567,7 +597,27 @@ export function MarketPriceUpdater() {
   useEffect(() => {
     console.log("Market price updater initializing...");
     
-    // Run the update immediately
+    // Initialize crypto prices on component mount using the imported cryptoCurrencies
+    console.log(`MarketPriceUpdater: Initializing prices for ${cryptoCurrencies.length} cryptocurrencies`);
+    
+    // Create an initial price map with base prices
+    const initialCryptoPrices: Record<string, number> = {};
+    
+    // Initialize all crypto assets with their base prices
+    cryptoCurrencies.forEach((crypto: any) => {
+      if (crypto && crypto.id) {
+        // Use existing price if available, otherwise use base price
+        const existingPrice = assetTracker.globalCryptoPrices[crypto.id] || 0;
+        initialCryptoPrices[crypto.id] = existingPrice > 0 ? existingPrice : crypto.basePrice;
+        
+        console.log(`MarketPriceUpdater: Initialized ${crypto.name} at $${initialCryptoPrices[crypto.id].toFixed(2)}`);
+      }
+    });
+    
+    // Batch update all crypto prices in the global tracker
+    assetTracker.updateGlobalCryptoPrices(initialCryptoPrices);
+    
+    // Run the standard update after initialization
     updateAllPrices();
     
     // Only update at market close instead of periodically

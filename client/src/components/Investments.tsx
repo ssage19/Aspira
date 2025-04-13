@@ -188,8 +188,24 @@ export function Investments() {
     });
   };
   
+  // Reference to track last update timestamp to prevent infinite loops
+  const lastCryptoUpdateRef = React.useRef<number>(Date.now());
+  
+  // Reference to track last day to prevent redundant updates
+  const lastDayRef = React.useRef<number>(currentDay);
+  
   // Fetch crypto prices from the asset tracker (updated by MarketPriceUpdater)
   useEffect(() => {
+    // Prevent too frequent updates to avoid infinite loops
+    const now = Date.now();
+    if (now - lastCryptoUpdateRef.current < 500) {
+      console.log("Investments: Skipping crypto price update - too soon since last update");
+      return;
+    }
+    
+    // Update the timestamp for rate limiting
+    lastCryptoUpdateRef.current = now;
+    
     // Initialize price collection
     const updatedPrices: Record<string, number> = {};
     
@@ -238,31 +254,58 @@ export function Investments() {
       }
     });
     
-    // Update the local state with the fetched prices
-    setCryptoPrices(updatedPrices);
+    // Only update state if values have actually changed
+    const hasChanges = Object.keys(updatedPrices).some(id => {
+      return updatedPrices[id] !== cryptoPrices[id];
+    });
     
-    // Force an immediate price update to get the latest crypto values
-    if ((window as any).globalUpdateAllPrices) {
-      console.log("Investments: Requesting global price update for crypto");
-      (window as any).globalUpdateAllPrices();
+    if (hasChanges) {
+      // Update the local state with the fetched prices
+      setCryptoPrices(updatedPrices);
+    } else {
+      console.log("Investments: No crypto price changes detected, skipping state update");
+    }
+    
+    // IMPORTANT: Only request global price updates on mount and day changes, not on every render
+    // This prevents infinite update loops
+    const shouldTriggerUpdate = currentDay !== lastDayRef.current;
+    if (shouldTriggerUpdate && (window as any).globalUpdateAllPrices) {
+      console.log("Investments: Requesting global price update for crypto (day changed)");
+      lastDayRef.current = currentDay;
       
-      // Schedule another update in 1 second to ensure data is fresh
+      // Allow a small delay before updating
       setTimeout(() => {
-        console.log("Investments: Running delayed follow-up crypto price refresh");
         if ((window as any).globalUpdateAllPrices) {
           (window as any).globalUpdateAllPrices();
         }
-      }, 1000);
+      }, 500);
     }
     
-  }, [currentDay, marketTrend, stockMarketHealth, assets, assetTracker]);
+  // Intentionally exclude assetTracker from dependencies to prevent infinite updates
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentDay, marketTrend, stockMarketHealth, assets, cryptoPrices]);
+  
+  // Reference to prevent excessive refreshes
+  const refreshCounterRef = React.useRef<number>(0);
+  const lastPriceRefreshRef = React.useRef<number>(Date.now());
   
   // Set up a continuous price refresh interval with more frequent updates
   useEffect(() => {
-    console.log("Investments: Setting up more aggressive price refresh interval (every 1 second)");
+    console.log("Investments: Setting up more aggressive price refresh interval (every 2 seconds)");
     
     // Function to refresh all prices from asset tracker
     const refreshPrices = () => {
+      // Rate limit refreshes to prevent infinite loops
+      const now = Date.now();
+      if (now - lastPriceRefreshRef.current < 500) {
+        console.log("Investments: Skipping price refresh - too soon since last update");
+        return;
+      }
+      lastPriceRefreshRef.current = now;
+      
+      // Increment counter to track refresh frequency
+      refreshCounterRef.current += 1;
+      
       // First, force synchronize character store with asset tracker to ensure all prices are up to date
       character.syncPricesFromAssetTracker();
       
@@ -301,92 +344,99 @@ export function Investments() {
         updatedStockPrices[stock.id] = latestPrice;
       });
       
-      // Force the state update to trigger a re-render
-      setStockPrices(prev => {
-        // Only update if there are actual changes
-        const hasChanges = Object.keys(updatedStockPrices).some(
-          id => updatedStockPrices[id] !== prev[id]
-        );
-        return hasChanges ? updatedStockPrices : prev;
-      });
+      // Calculate a single value to determine if prices have changed
+      const stockPriceHash = Object.entries(updatedStockPrices)
+        .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
       
-      // Refresh crypto prices with the same approach
-      const updatedCryptoPrices: Record<string, number> = {};
-      cryptoCurrencies.forEach(crypto => {
-        let latestPrice = 0;
-        
-        // First check in the globalCryptoPrices which is specifically designed for tracking all prices
-        if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
-          latestPrice = assetTracker.globalCryptoPrices[crypto.id];
-          console.log(`Investments: Found ${crypto.name} price in globalCryptoPrices: $${latestPrice.toFixed(2)}`);
-        }
-        
-        // Then check asset tracker crypto assets if we didn't find a price
-        if (latestPrice <= 0 && assetTracker.cryptoAssets) {
-          const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
-          if (trackerCrypto && trackerCrypto.currentPrice > 0) {
-            latestPrice = trackerCrypto.currentPrice;
-            console.log(`Investments: Found ${crypto.name} price in cryptoAssets: $${latestPrice.toFixed(2)}`);
-          }
-        }
-        
-        // Try getAssetPrice method if needed
-        if (latestPrice <= 0) {
-          latestPrice = assetTracker.getAssetPrice(crypto.id);
-          if (latestPrice > 0) {
-            console.log(`Investments: Found ${crypto.name} price via getAssetPrice: $${latestPrice.toFixed(2)}`);
-          }
-        }
-        
-        // Check owned assets as fallback
-        if (latestPrice <= 0) {
-          const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
-          if (ownedCrypto && ownedCrypto.currentPrice > 0) {
-            latestPrice = ownedCrypto.currentPrice;
-          }
-        }
-        
-        // Last resort
-        if (latestPrice <= 0) {
-          latestPrice = crypto.basePrice;
-        }
-        
-        updatedCryptoPrices[crypto.id] = latestPrice;
-      });
+      const prevStockPriceHash = Object.entries(stockPrices)
+        .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
       
-      // Force the state update to trigger a re-render
-      setCryptoPrices(prev => {
-        const hasChanges = Object.keys(updatedCryptoPrices).some(
-          id => updatedCryptoPrices[id] !== prev[id]
-        );
-        return hasChanges ? updatedCryptoPrices : prev;
-      });
+      // Only update if the hash has changed or we must refresh (every 5th update)
+      const forceStockRefresh = refreshCounterRef.current % 5 === 0;
+      if (stockPriceHash !== prevStockPriceHash || forceStockRefresh) {
+        console.log("Investments: Updating stock prices - changes detected");
+        setStockPrices(updatedStockPrices);
+      }
       
-      console.log("Investments: Real-time price refresh completed");
+      // Refresh crypto prices with the same approach but only if needed
+      if (refreshCounterRef.current % 3 === 0) { // Lower frequency for crypto updates
+        const updatedCryptoPrices: Record<string, number> = {};
+        cryptoCurrencies.forEach(crypto => {
+          let latestPrice = 0;
+          
+          // First check in the globalCryptoPrices which is specifically designed for tracking all prices
+          if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
+            latestPrice = assetTracker.globalCryptoPrices[crypto.id];
+          }
+          
+          // Then check asset tracker crypto assets if we didn't find a price
+          if (latestPrice <= 0 && assetTracker.cryptoAssets) {
+            const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
+            if (trackerCrypto && trackerCrypto.currentPrice > 0) {
+              latestPrice = trackerCrypto.currentPrice;
+            }
+          }
+          
+          // Try getAssetPrice method if needed
+          if (latestPrice <= 0) {
+            latestPrice = assetTracker.getAssetPrice(crypto.id);
+          }
+          
+          // Check owned assets as fallback
+          if (latestPrice <= 0) {
+            const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
+            if (ownedCrypto && ownedCrypto.currentPrice > 0) {
+              latestPrice = ownedCrypto.currentPrice;
+            }
+          }
+          
+          // Last resort
+          if (latestPrice <= 0) {
+            latestPrice = crypto.basePrice;
+          }
+          
+          updatedCryptoPrices[crypto.id] = latestPrice;
+        });
+        
+        // Calculate a hash for crypto prices to detect changes
+        const cryptoPriceHash = Object.entries(updatedCryptoPrices)
+          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
+        
+        const prevCryptoPriceHash = Object.entries(cryptoPrices)
+          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
+        
+        // Only update if hash has changed or it's a forced refresh
+        const forceCryptoRefresh = refreshCounterRef.current % 10 === 0;
+        if (cryptoPriceHash !== prevCryptoPriceHash || forceCryptoRefresh) {
+          console.log("Investments: Updating crypto prices - changes detected");
+          setCryptoPrices(updatedCryptoPrices);
+        }
+      }
     };
     
-    // Run the initial refresh immediately when component mounts
-    refreshPrices();
+    // Run the initial refresh immediately when component mounts - with a small delay
+    setTimeout(refreshPrices, 500);
     
-    // Set up TWO intervals - one fast for UI updates and one for backend updates
+    // Set up ONE interval with a reasonable refresh rate
+    // Fast enough for responsive UI, slow enough to prevent performance issues
+    const refreshIntervalId = setInterval(refreshPrices, 2000);
     
-    // Fast interval (1 second) for UI price refreshes 
-    const fastIntervalId = setInterval(refreshPrices, 1000);
-    
-    // Slower interval (3 seconds) for global market updates
-    const slowIntervalId = setInterval(() => {
+    // Slower interval (5 seconds) for global market updates
+    const marketUpdateId = setInterval(() => {
       // Call global update function to update the asset tracker
-      if ((window as any).globalUpdateAllPrices) {
+      if ((window as any).globalUpdateAllPrices && refreshCounterRef.current % 2 === 0) {
         (window as any).globalUpdateAllPrices();
       }
-    }, 3000);
+    }, 5000);
     
     // Clean up both intervals on component unmount
     return () => {
       console.log("Investments: Cleaning up all price refresh intervals");
-      clearInterval(fastIntervalId);
-      clearInterval(slowIntervalId);
+      clearInterval(refreshIntervalId);
+      clearInterval(marketUpdateId);
     };
+  // Intentionally exclude cryptoPrices and stockPrices to prevent infinite updates
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [assetTracker, character, expandedStockMarket, cryptoCurrencies, assets]);
   
   // Sync crypto prices with asset tracker
