@@ -83,6 +83,7 @@ const EventItem: React.FC<{ event: SocialEvent, isSmall?: boolean }> = ({ event,
               {(() => {
                 const { currentGameDate } = useTime.getState();
                 const gameTime = currentGameDate.getTime();
+                // event.date is already a timestamp number
                 const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
                 return <p className="text-xs mt-1">
                   {daysRemaining > 0 ? 
@@ -350,7 +351,9 @@ export function UpcomingEventsWidget() {
                         <span className="ml-2">
                           {/* Calculate days remaining based on game time, not real-world time */}
                           {(() => {
-                            const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+                            // Add explicit type assertion to number
+                            const eventDate = event.date as number;
+                            const daysRemaining = Math.ceil((eventDate - gameTime) / (1000 * 60 * 60 * 24));
                             return daysRemaining > 0 ? 
                               `(${daysRemaining} days remaining)` : 
                               daysRemaining === 0 ? 
