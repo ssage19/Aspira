@@ -1055,7 +1055,7 @@ export function Investments() {
         </div>
       </div>
       
-      <Tabs defaultValue="browse" className="mb-4" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} defaultValue="browse" className="mb-4" onValueChange={setActiveTab}>
         {isMobile ? (
           <div className="mb-4">
             <DropdownMenu>

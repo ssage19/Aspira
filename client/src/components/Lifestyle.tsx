@@ -457,7 +457,7 @@ export function Lifestyle() {
         Lifestyle & Luxury
       </h2>
       
-      <Tabs defaultValue="luxury" onValueChange={setActiveTab}>
+      <Tabs value={activeTab} defaultValue="luxury" onValueChange={setActiveTab}>
         {isMobile ? (
           <div className="mb-4">
             <DropdownMenu>
