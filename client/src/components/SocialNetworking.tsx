@@ -1,17 +1,30 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSocialNetwork, ConnectionType, SocialConnection, SocialEvent, ConnectionBenefit } from '../lib/stores/useSocialNetwork';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { usePrestige } from '../lib/stores/usePrestige';
 import { useTime } from '../lib/stores/useTime';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate, cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import {
   User, Users, UserPlus, UserMinus, Calendar, Award,
   TrendingUp, MessageCircle, Gift, Briefcase, 
   CreditCard, AlertTriangle, Star, Clock, ArrowUpRight,
-  ChevronLeft, HelpCircle, X
+  ChevronLeft, ChevronRight, HelpCircle, X
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { 
+  format, 
+  startOfMonth, 
+  endOfMonth, 
+  eachDayOfInterval, 
+  isSameMonth,
+  isSameDay,
+  addMonths,
+  subMonths,
+  startOfWeek,
+  endOfWeek,
+  formatDistanceToNow
+} from 'date-fns';
 
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -22,6 +35,316 @@ import { Progress } from './ui/progress';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from './ui/tooltip';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/**
+ * Get event type color for visual identification
+ */
+const getEventTypeColor = (type: string): string => {
+  switch(type) {
+    case 'charity': return 'bg-pink-500';
+    case 'business': return 'bg-blue-500';
+    case 'gala': return 'bg-purple-500';
+    case 'conference': return 'bg-amber-500';
+    case 'club': return 'bg-emerald-500';
+    case 'party': return 'bg-indigo-500';
+    case 'networking': return 'bg-cyan-500';
+    case 'workshop': return 'bg-orange-500';
+    case 'seminar': return 'bg-teal-500';
+    case 'award': return 'bg-violet-500';
+    case 'product_launch': return 'bg-green-500';
+    case 'trade_show': return 'bg-red-500';
+    case 'retreat': return 'bg-yellow-500';
+    case 'vip_dinner': return 'bg-rose-500';
+    case 'sporting_event': return 'bg-lime-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+/**
+ * Calendar day cell component for events view
+ */
+interface CalendarEventDayProps {
+  date: Date;
+  currentMonth: Date;
+  events: SocialEvent[];
+  canAttendFn: (event: SocialEvent) => boolean;
+  onAttend: (id: string) => void;
+  onRemove: (id: string) => void;
+  onReserve: (id: string) => void;
+  isGameCurrent: boolean;
+}
+
+const CalendarEventDay: React.FC<CalendarEventDayProps> = ({ 
+  date, 
+  currentMonth, 
+  events,
+  canAttendFn,
+  onAttend,
+  onRemove,
+  onReserve,
+  isGameCurrent
+}) => {
+  const dayEvents = events.filter(event => 
+    isSameDay(new Date(event.date), date)
+  );
+
+  const isOutsideMonth = !isSameMonth(date, currentMonth);
+  const isToday = isGameCurrent && isSameDay(date, new Date());
+  
+  // Get current game time
+  const { currentGameDate } = useTime.getState();
+  const gameTime = currentGameDate.getTime();
+  
+  return (
+    <div 
+      className={cn(
+        "p-1 border min-h-[80px] text-sm overflow-hidden flex flex-col",
+        isOutsideMonth ? "bg-muted/30 text-muted-foreground" : "bg-card",
+        isToday ? "ring-2 ring-cyan-500 ring-inset" : ""
+      )}
+    >
+      <div className="font-medium text-right mb-1">
+        {format(date, 'd')}
+      </div>
+      
+      {dayEvents.length > 0 && (
+        <div className="flex-1 flex flex-col gap-1 overflow-hidden">
+          {dayEvents.map(event => {
+            const eventDate = new Date(event.date);
+            const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+            const isFutureEvent = daysRemaining > 0;
+            const canAttend = canAttendFn(event);
+            
+            return (
+              <TooltipProvider key={event.id}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`
+                        px-1 py-0.5 text-xs truncate rounded flex items-center gap-1
+                        ${getEventTypeColor(event.type)}/90 text-white 
+                        border ${event.reserved ? 'border-yellow-300' : 'border-white/10'}
+                        cursor-pointer
+                      `}
+                    >
+                      <span className="truncate">{event.name}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="right" align="start" className="w-72 p-0">
+                    <div className="p-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="font-bold">{event.name}</h4>
+                        <Badge className={`${getEventTypeColor(event.type)}`}>
+                          {event.type.replace(/_/g, ' ')}
+                        </Badge>
+                      </div>
+                      <p className="text-sm mb-2">{event.description}</p>
+                      <div className="text-xs grid grid-cols-2 gap-2 mb-3">
+                        <div>
+                          <div className="font-semibold">Entry Fee</div>
+                          <div>{formatCurrency(event.entryFee)}</div>
+                        </div>
+                        <div>
+                          <div className="font-semibold">Prestige Required</div>
+                          <div className="flex items-center">
+                            <Star className="h-3 w-3 mr-1 text-yellow-500" />
+                            {event.prestigeRequired}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col space-y-2">
+                        {isFutureEvent ? (
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => onReserve(event.id)}
+                            disabled={!canAttend || event.reserved}
+                          >
+                            {event.reserved ? 'Reserved' : 'Reserve Spot'}
+                          </Button>
+                        ) : (
+                          <Button 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => onAttend(event.id)}
+                            disabled={!canAttend}
+                          >
+                            Attend Now
+                          </Button>
+                        )}
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => onRemove(event.id)}
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Calendar view component for social events
+ */
+interface EventsCalendarViewProps {
+  events: SocialEvent[];
+  canAttendFn: (event: SocialEvent) => boolean;
+  onAttend: (id: string) => void;
+  onRemove: (id: string) => void;
+  onReserve: (id: string) => void;
+}
+
+const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
+  events,
+  canAttendFn,
+  onAttend,
+  onRemove,
+  onReserve
+}) => {
+  const { currentGameDate } = useTime();
+  
+  // Navigate between months
+  const [currentMonth, setCurrentMonth] = useState<Date>(startOfMonth(currentGameDate));
+  
+  // Get the events for the current month view
+  const visibleEvents = useMemo(() => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    return events.filter(event => {
+      const eventDate = new Date(event.date);
+      return eventDate >= monthStart && eventDate <= monthEnd;
+    });
+  }, [events, currentMonth]);
+
+  // Generate calendar days including overflow from prev/next months
+  const calendarDays = useMemo(() => {
+    // Get start of first day of the month
+    const monthStart = startOfMonth(currentMonth);
+    // Get end of last day of the month
+    const monthEnd = endOfMonth(currentMonth);
+    // Get start of the week of the first day
+    const startDate = startOfWeek(monthStart);
+    // Get end of the week of the last day
+    const endDate = endOfWeek(monthEnd);
+
+    // Create array of dates from start to end
+    return eachDayOfInterval({ start: startDate, end: endDate });
+  }, [currentMonth]);
+
+  const navigateMonth = (direction: 'prev' | 'next') => {
+    setCurrentMonth(prevMonth => 
+      direction === 'prev' 
+        ? subMonths(prevMonth, 1) 
+        : addMonths(prevMonth, 1)
+    );
+  };
+
+  const resetToCurrentMonth = () => {
+    setCurrentMonth(startOfMonth(currentGameDate));
+  };
+  
+  // Get upcoming events sorted by date
+  const upcomingEvents = useMemo(() => {
+    return [...events]
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(0, 5); // Show next 5 events
+  }, [events]);
+
+  return (
+    <div>
+      {/* Month navigation and title */}
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="text-xl font-bold">Event Calendar</h3>
+        
+        <div className="flex items-center space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 w-8 p-0" 
+            onClick={() => navigateMonth('prev')}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 px-2"
+            onClick={resetToCurrentMonth}
+          >
+            {format(currentMonth, 'MMMM yyyy')}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="h-8 w-8 p-0" 
+            onClick={() => navigateMonth('next')}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
+      {/* Calendar grid */}
+      <div className="mb-6">
+        {/* Weekday headers */}
+        <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1">
+          {WEEKDAYS.map(day => (
+            <div key={day} className="px-1">{day}</div>
+          ))}
+        </div>
+        
+        {/* Calendar days */}
+        <div className="grid grid-cols-7">
+          {calendarDays.map(day => (
+            <CalendarEventDay 
+              key={day.toString()} 
+              date={day} 
+              currentMonth={currentMonth}
+              events={events}
+              canAttendFn={canAttendFn}
+              onAttend={onAttend}
+              onRemove={onRemove}
+              onReserve={onReserve}
+              isGameCurrent={format(currentGameDate, 'MM/yyyy') === format(currentMonth, 'MM/yyyy')}
+            />
+          ))}
+        </div>
+      </div>
+      
+      {/* Upcoming events list for quick reference */}
+      <div className="mt-4">
+        <h3 className="text-xl font-bold mb-3">Upcoming Events</h3>
+        <div className="space-y-3">
+          {upcomingEvents.map(event => (
+            <EventCard
+              key={event.id}
+              event={event}
+              canAfford={canAttendFn(event)}
+              canAttend={canAttendFn(event)}
+              onAttend={onAttend}
+              onRemove={onRemove}
+              onReserve={onReserve}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
 
 // Helper function to determine the color for connection type
 const getConnectionTypeColor = (type: ConnectionType): string => {
@@ -1047,18 +1370,14 @@ export function SocialNetworking() {
               </div>
             ) : (
               <div>
-                <h3 className="text-xl font-bold mb-4">Upcoming Events</h3>
-                {availableEvents.map(event => (
-                  <EventCard
-                    key={event.id}
-                    event={event}
-                    canAfford={wealth >= event.entryFee}
-                    canAttend={prestigeLevel >= event.prestigeRequired}
-                    onAttend={handleOpenEventDialog}
-                    onRemove={handleRemoveEvent}
-                    onReserve={handleReserveEvent}
-                  />
-                ))}
+                {/* Calendar view for events */}
+                <EventsCalendarView 
+                  events={availableEvents}
+                  canAttendFn={(event) => wealth >= event.entryFee && prestigeLevel >= event.prestigeRequired}
+                  onAttend={handleOpenEventDialog}
+                  onRemove={handleRemoveEvent}
+                  onReserve={handleReserveEvent}
+                />
               </div>
             )}
           </ScrollArea>
