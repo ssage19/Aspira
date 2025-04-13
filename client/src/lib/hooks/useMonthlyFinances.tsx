@@ -70,9 +70,11 @@ export function useMonthlyFinances() {
                               characterState.vehicleType === 'bicycle' ? EXPENSE_RATES.TRANSPORTATION.BICYCLE : 
                               EXPENSE_RATES.TRANSPORTATION.NONE;
   
-  // Food expenses based on lifestyle level
+  // Food expenses based on lifestyle level and constant
   const lifestyleLevel = characterState.lifestyleLevel || 1;
-  const foodExpense = 400 + (lifestyleLevel * 100); // Scales with lifestyle level
+  const foodExpense = characterState.getFoodExpense ? 
+                      characterState.getFoodExpense() :
+                      EXPENSE_RATES.FOOD; // Use constant value for consistency
   
   // Calculate healthcare expenses
   const healthcareExpense = 200; // Base healthcare cost
@@ -171,23 +173,27 @@ export function calculateMonthlyFinances(characterState: any) {
   // Expense calculations - use the same consistent approach as the hook
   const housingExpense = characterState.getHousingExpense ? 
                         characterState.getHousingExpense() : 
-                        // Fallback calculation if method not available
-                        characterState.housingType === 'rental' ? 1800 : 
-                        characterState.housingType === 'shared' ? 900 :
-                        characterState.housingType === 'owned' ? 1200 : 
-                        characterState.housingType === 'luxury' ? 8000 : 0;
+                        // Fallback calculation using the same constants as useCharacter
+                        characterState.housingType === 'rental' ? EXPENSE_RATES.HOUSING.RENTAL : 
+                        characterState.housingType === 'shared' ? EXPENSE_RATES.HOUSING.SHARED :
+                        characterState.housingType === 'owned' ? EXPENSE_RATES.HOUSING.OWNED : 
+                        EXPENSE_RATES.HOUSING.HOMELESS;
   
   const transportationExpense = characterState.getTransportationExpense ?
                               characterState.getTransportationExpense() :
-                              // Fallback calculation if method not available
-                              characterState.vehicleType === 'economy' ? 300 :
-                              characterState.vehicleType === 'standard' ? 450 :
-                              characterState.vehicleType === 'luxury' ? 1000 :
-                              characterState.vehicleType === 'premium' ? 1500 :
-                              characterState.vehicleType === 'bicycle' ? 50 : 0;
+                              // Fallback calculation using the same constants as useCharacter
+                              characterState.vehicleType === 'economy' ? EXPENSE_RATES.TRANSPORTATION.ECONOMY :
+                              characterState.vehicleType === 'standard' ? EXPENSE_RATES.TRANSPORTATION.STANDARD :
+                              characterState.vehicleType === 'luxury' ? EXPENSE_RATES.TRANSPORTATION.LUXURY :
+                              characterState.vehicleType === 'premium' ? EXPENSE_RATES.TRANSPORTATION.PREMIUM :
+                              characterState.vehicleType === 'bicycle' ? EXPENSE_RATES.TRANSPORTATION.BICYCLE : 
+                              EXPENSE_RATES.TRANSPORTATION.NONE;
   
+  // Food expenses based on lifestyle level and constant
   const lifestyleLevel = characterState.lifestyleLevel || 1;
-  const foodExpense = 400 + (lifestyleLevel * 100);
+  const foodExpense = characterState.getFoodExpense ? 
+                      characterState.getFoodExpense() :
+                      EXPENSE_RATES.FOOD; // Use constant value for consistency
   
   const healthcareExpense = 200;
   
