@@ -497,8 +497,17 @@ export const useCharacter = create<CharacterState>()(
         // Ensure amount is a valid positive number
         const validAmount = typeof amount === 'number' && !isNaN(amount) && amount > 0 ? amount : 0;
         
+        // Early return if nothing to deduct
+        if (validAmount <= 0) {
+          console.log("No valid amount to deduct");
+          return;
+        }
+        
         // Create a timestamp to force state updates across components
         const updateTimestamp = Date.now();
+        
+        // Log the starting wealth for debugging
+        const startingWealth = get().wealth;
         
         set((state) => {
           // Ensure wealth and netWorth are valid numbers
@@ -513,7 +522,10 @@ export const useCharacter = create<CharacterState>()(
           // Convert to truncated decimal to avoid floating-point precision issues
           const newWealth = parseFloat((currentWealth - amountToDeduct).toFixed(1));
           const newNetWorth = parseFloat((currentNetWorth - amountToDeduct).toFixed(1));
-                                
+          
+          // Log internal state changes      
+          console.log(`INTERNAL: Deducting ${amountToDeduct} from ${currentWealth}, result: ${newWealth}`);
+          
           return { 
             wealth: newWealth,
             netWorth: newNetWorth,
@@ -522,7 +534,13 @@ export const useCharacter = create<CharacterState>()(
           };
         });
         
-        console.log(`Deducting ${validAmount} from wealth. New wealth: ${get().wealth}`);
+        // Verify the deduction worked by comparing before and after
+        const endingWealth = get().wealth;
+        const actualDeduction = startingWealth - endingWealth;
+        
+        console.log(`Deducting ${validAmount} from wealth. Before: ${startingWealth}, After: ${endingWealth}, Actual deduction: ${actualDeduction}`);
+        
+        // Save state to ensure persistence
         saveState();
       },
       
@@ -3203,9 +3221,12 @@ export const useCharacter = create<CharacterState>()(
           // Deduct expenses using our method to ensure proper state updates
           get().deductWealth(totalMonthlyExpenses);
           
+          // Get the updated state after deducting expenses
+          const updatedState = get();
+          
           // Log the expense transaction with clear indication (but no toast)
           console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.`);
-          console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(state.wealth - totalMonthlyExpenses)}`);
+          console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(updatedState.wealth)}`);
           console.log(`Breakdown - Housing: ${formatCurrency(housingExpense)}, Transportation: ${formatCurrency(transportationExpense)}, Food: ${formatCurrency(foodExpense)}, Lifestyle: ${formatCurrency(lifestyleExpenses)}`);
           
           // Removed toast notification as it's now shown in the combined monthly summary
