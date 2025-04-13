@@ -109,19 +109,48 @@ export function MarketPriceUpdater() {
     // Get all owned crypto from character assets
     const ownedCrypto = assets.filter(asset => asset.type === 'crypto');
     
-    if (ownedCrypto.length === 0) return;
+    // Create a list of all cryptocurrencies to update - those owned AND those tracked globally
+    const allCryptoIds = new Set<string>();
     
-    console.log("MarketPriceUpdater: Updating", ownedCrypto.length, "crypto assets");
-    
-    // For each owned crypto, update its price with more realistic increments
+    // First add all owned crypto
     ownedCrypto.forEach(crypto => {
-      if (!crypto || crypto.quantity <= 0) return;
+      if (crypto && crypto.id) {
+        allCryptoIds.add(crypto.id);
+      }
+    });
+    
+    // Add any crypto that was previously tracked in the global tracker
+    Object.keys(assetTracker.globalCryptoPrices).forEach(cryptoId => {
+      allCryptoIds.add(cryptoId);
+    });
+    
+    if (allCryptoIds.size === 0) return;
+    
+    console.log(`MarketPriceUpdater: Updating ${allCryptoIds.size} crypto assets (${ownedCrypto.length} owned + ${allCryptoIds.size - ownedCrypto.length} tracked)`);
+    
+    // Map to collect all price updates for batch processing
+    const cryptoPriceUpdates: { [cryptoId: string]: number } = {};
+    
+    // Process all crypto assets (both owned and tracked)
+    Array.from(allCryptoIds).forEach(cryptoId => {
+      // Find the asset details if owned
+      const cryptoAsset = ownedCrypto.find(asset => asset.id === cryptoId);
       
-      // Get current price to make smaller, incremental changes
-      // First check if we have a global price recorded, then fallback to the asset price
-      const currentPrice = assetTracker.getAssetPrice(crypto.id) || 
-                         crypto.currentPrice || 
-                         crypto.purchasePrice;
+      // Get current price with fallbacks
+      // 1. First check global crypto price tracker
+      // 2. Then check asset tracker's getAssetPrice
+      // 3. Then try the asset's currentPrice if it's owned
+      // 4. Finally fall back to purchase price if owned
+      const currentPrice = 
+        assetTracker.globalCryptoPrices[cryptoId] || 
+        assetTracker.getAssetPrice(cryptoId) ||
+        (cryptoAsset ? cryptoAsset.currentPrice : 0) ||
+        (cryptoAsset ? cryptoAsset.purchasePrice : 0);
+        
+      // Skip if we couldn't determine a price and crypto isn't owned
+      if (currentPrice === 0 && !cryptoAsset) return;
+      
+      const basePrice = cryptoAsset?.purchasePrice || currentPrice;
       
       // Still higher volatility for crypto, but more reasonable movements per update
       const volatilityFactor = 0.12; // Moderate volatility per tick
@@ -136,21 +165,37 @@ export function MarketPriceUpdater() {
       const newPrice = currentPrice * (1 + totalChangePercent);
       
       // Apply minimum price floor
-      const finalPrice = Math.max(newPrice, crypto.purchasePrice * 0.3);
+      const finalPrice = Math.max(newPrice, basePrice * 0.3);
       
       // Apply smoothing to avoid large jumps
       const smoothedPrice = (finalPrice * 0.85) + (currentPrice * 0.15);
       const roundedPrice = parseFloat(smoothedPrice.toFixed(2));
       
-      // Update the asset tracker
-      assetTracker.updateCrypto(crypto.id, crypto.quantity, roundedPrice);
+      // Store this update in our batch
+      cryptoPriceUpdates[cryptoId] = roundedPrice;
       
       // Show detailed price change information in console
       const priceChange = ((roundedPrice - currentPrice) / currentPrice * 100).toFixed(2);
       const direction = roundedPrice > currentPrice ? '↑' : roundedPrice < currentPrice ? '↓' : '→';
       
-      console.log(`MarketPriceUpdater: Updated ${crypto.name} price to $${roundedPrice.toFixed(2)} (${direction}${priceChange}%) - 24/7 market`);
+      // Get name of crypto if available
+      const name = cryptoAsset?.name || cryptoId;
+      
+      console.log(`MarketPriceUpdater: Updated ${name} price to $${roundedPrice.toFixed(2)} (${direction}${priceChange}%) - 24/7 market`);
     });
+    
+    // Batch update all crypto prices in the global tracker
+    assetTracker.updateGlobalCryptoPrices(cryptoPriceUpdates);
+    
+    // Make sure owned cryptos get updated too - redundant but ensures consistency
+    ownedCrypto.forEach(crypto => {
+      if (!crypto || crypto.quantity <= 0) return;
+      const newPrice = cryptoPriceUpdates[crypto.id];
+      if (newPrice) {
+        assetTracker.updateCrypto(crypto.id, crypto.quantity, newPrice);
+      }
+    });
+    
   }, [assets, assetTracker, marketTrend]);
   
   // Update bond prices (bonds are more stable but still affected by interest rates)
@@ -574,8 +619,42 @@ export function MarketPriceUpdater() {
           });
           
           // Same for crypto assets - they should be 24/7 but ensure persistence
+          // First store all current crypto prices for reference
+          const storedCryptoPrices: Record<string, number> = {};
+          
+          // Get all cryptos tracked anywhere (owned + global tracker)
+          const allCryptoIds = new Set<string>([
+            ...Object.keys(assetTracker.globalCryptoPrices),
+            ...assetTracker.cryptoAssets.map(crypto => crypto.id)
+          ]);
+          
+          // Save all current prices
+          Array.from(allCryptoIds).forEach(cryptoId => {
+            // Get the current price from any available source
+            const currentPrice = 
+              assetTracker.globalCryptoPrices[cryptoId] || 
+              (assetTracker.cryptoAssets.find(c => c.id === cryptoId)?.currentPrice ?? 0);
+            
+            if (currentPrice > 0) {
+              storedCryptoPrices[cryptoId] = currentPrice;
+            }
+          });
+          
+          // Ensure all prices are properly set in global tracker
+          Object.entries(storedCryptoPrices).forEach(([cryptoId, price]) => {
+            // Ensure this price is in the global tracker
+            if (!assetTracker.globalCryptoPrices[cryptoId] || 
+                assetTracker.globalCryptoPrices[cryptoId] !== price) {
+              console.log(`MarketPriceUpdater: Ensuring crypto ${cryptoId} price in global tracker: ${price}`);
+              assetTracker.updateGlobalCryptoPrice(cryptoId, price);
+            }
+          });
+          
+          // Update all owned crypto with their correct prices
           assetTracker.cryptoAssets.forEach(crypto => {
-            assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
+            // Use either the stored price or current price
+            const persistentPrice = storedCryptoPrices[crypto.id] || crypto.currentPrice;
+            assetTracker.updateCrypto(crypto.id, crypto.amount, persistentPrice);
           });
           
           // Force character store to sync with asset tracker
@@ -618,20 +697,31 @@ export function MarketPriceUpdater() {
           // For market closing transition specifically, preserve prices
           if (newHour >= 16 && prevHour < 16) {
             // Same approach as the end-of-day handler for consistency
-            const storedPrices = {...assetTracker.globalStockPrices};
+            const storedStockPrices = {...assetTracker.globalStockPrices};
+            const storedCryptoPrices = {...assetTracker.globalCryptoPrices};
+            
             console.log("MarketPriceUpdater: Saved global prices before market hours boundary update:", 
-              Object.keys(storedPrices).length, "stocks");
+              Object.keys(storedStockPrices).length, "stocks,", 
+              Object.keys(storedCryptoPrices).length, "crypto assets");
             
             // Run the update with our improved persistence logic
             updateAllPrices();
             
             // Double-check persistence
             setTimeout(() => {
-              // Verify all prices are still tracked
-              Object.keys(storedPrices).forEach(stockId => {
-                if (!assetTracker.globalStockPrices[stockId] && storedPrices[stockId]) {
-                  console.log(`MarketPriceUpdater: Restoring price for ${stockId} after market close`);
-                  assetTracker.globalStockPrices[stockId] = storedPrices[stockId];
+              // Verify all stock prices are still tracked
+              Object.keys(storedStockPrices).forEach(stockId => {
+                if (!assetTracker.globalStockPrices[stockId] && storedStockPrices[stockId]) {
+                  console.log(`MarketPriceUpdater: Restoring price for stock ${stockId} after market close`);
+                  assetTracker.updateGlobalStockPrice(stockId, storedStockPrices[stockId]);
+                }
+              });
+              
+              // Also check crypto prices (though they update 24/7, good to verify)
+              Object.keys(storedCryptoPrices).forEach(cryptoId => {
+                if (!assetTracker.globalCryptoPrices[cryptoId] && storedCryptoPrices[cryptoId]) {
+                  console.log(`MarketPriceUpdater: Restoring price for crypto ${cryptoId} after market hours change`);
+                  assetTracker.updateGlobalCryptoPrice(cryptoId, storedCryptoPrices[cryptoId]);
                 }
               });
               
@@ -666,9 +756,13 @@ export function MarketPriceUpdater() {
         console.log(`MarketPriceUpdater: Day changed to ${isWeekend ? 'WEEKEND' : 'WEEKDAY'}, market ${newMarketOpen ? 'OPEN' : 'CLOSED'}`);
         
         // Preserve prices on day transitions, especially important for weekend boundaries
-        const storedPrices = {...assetTracker.globalStockPrices};
+        // Save both stock and crypto prices
+        const storedStockPrices = {...assetTracker.globalStockPrices};
+        const storedCryptoPrices = {...assetTracker.globalCryptoPrices};
+        
         console.log("MarketPriceUpdater: Saved global prices before day change update:", 
-          Object.keys(storedPrices).length, "stocks");
+          Object.keys(storedStockPrices).length, "stocks,",
+          Object.keys(storedCryptoPrices).length, "crypto assets");
         
         // Run the update with our improved persistence logic
         updateAllPrices();
@@ -676,11 +770,19 @@ export function MarketPriceUpdater() {
         // For weekend boundaries especially, verify price persistence
         if (isWeekend) {
           setTimeout(() => {
-            // Make sure price persistence is maintained
-            Object.keys(storedPrices).forEach(stockId => {
-              if (!assetTracker.globalStockPrices[stockId] && storedPrices[stockId]) {
-                console.log(`MarketPriceUpdater: Restoring price for ${stockId} after weekend transition`);
-                assetTracker.globalStockPrices[stockId] = storedPrices[stockId];
+            // Make sure stock price persistence is maintained
+            Object.keys(storedStockPrices).forEach(stockId => {
+              if (!assetTracker.globalStockPrices[stockId] && storedStockPrices[stockId]) {
+                console.log(`MarketPriceUpdater: Restoring price for stock ${stockId} after weekend transition`);
+                assetTracker.updateGlobalStockPrice(stockId, storedStockPrices[stockId]);
+              }
+            });
+            
+            // Also ensure crypto price persistence across day boundaries
+            Object.keys(storedCryptoPrices).forEach(cryptoId => {
+              if (!assetTracker.globalCryptoPrices[cryptoId] && storedCryptoPrices[cryptoId]) {
+                console.log(`MarketPriceUpdater: Restoring price for crypto ${cryptoId} after weekend transition`);
+                assetTracker.updateGlobalCryptoPrice(cryptoId, storedCryptoPrices[cryptoId]);
               }
             });
             
