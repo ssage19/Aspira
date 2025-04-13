@@ -32,6 +32,7 @@ import { NetworkTracker } from "./components/NetworkTracker";
 import { ConnectionNotificationManager } from "./components/ConnectionNotification";
 import { EventNotificationManager } from "./components/EventNotification";
 import { AttributesDecayManager } from "./components/AttributesDecayManager";
+import { ScrollToTop } from "./components/ScrollToTop";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
@@ -290,6 +291,9 @@ function App() {
     <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
         <Router>
+          {/* ScrollToTop ensures the window scrolls to the top on navigation */}
+          <ScrollToTop />
+          
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
             {/* Background with gradient based on theme */}
             <AppBackground />
