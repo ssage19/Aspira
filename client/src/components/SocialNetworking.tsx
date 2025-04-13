@@ -258,42 +258,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     setCurrentMonth(startOfMonth(currentGameDate));
   };
   
-  // Handle keyboard navigation for calendar (on the Events tab only)
-  useEffect(() => {
-    // Only set up keyboard navigation when the events tab is active
-    if (activeTab !== 'events') return;
-    
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Only handle events when input elements don't have focus
-      if (document.activeElement?.tagName === 'INPUT' || 
-          document.activeElement?.tagName === 'TEXTAREA' ||
-          document.activeElement?.tagName === 'BUTTON') {
-        return;
-      }
-      
-      if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        navigateMonth('prev');
-        console.log('Left arrow pressed - navigating to previous month');
-      } else if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        navigateMonth('next');
-        console.log('Right arrow pressed - navigating to next month');
-      } else if (e.key === 'Home') {
-        e.preventDefault();
-        resetToCurrentMonth();
-        console.log('Home key pressed - resetting to current month');
-      }
-    };
-    
-    console.log('Adding keyboard event listeners for calendar navigation');
-    window.addEventListener('keydown', handleKeyDown);
-    
-    return () => {
-      console.log('Removing keyboard event listeners for calendar navigation');
-      window.removeEventListener('keydown', handleKeyDown);
-    };
-  }, [activeTab, navigateMonth, resetToCurrentMonth]);
+  // We'll implement keyboard navigation directly with the calendar buttons instead
   
   // Get upcoming events sorted by date
   const upcomingEvents = useMemo(() => {
@@ -340,10 +305,26 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
       
       {/* Calendar grid */}
       <div 
-        className="mb-6 focus:outline-2 focus:outline-primary focus:outline-offset-2" 
-        tabIndex={0} 
+        className="mb-6 focus:outline-2 focus:outline-primary focus:outline-offset-2 focus:ring-2 focus:ring-primary cursor-pointer" 
+        tabIndex={0}
+        autoFocus
         aria-label="Event Calendar" 
         role="grid"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            navigateMonth('prev');
+            console.log('Left arrow pressed - navigating to previous month');
+            e.preventDefault();
+          } else if (e.key === 'ArrowRight') {
+            navigateMonth('next');
+            console.log('Right arrow pressed - navigating to next month');
+            e.preventDefault();
+          } else if (e.key === 'Home') {
+            resetToCurrentMonth();
+            console.log('Home key pressed - resetting to current month');
+            e.preventDefault();
+          }
+        }}
       >
         {/* Weekday headers */}
         <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1" role="row">
