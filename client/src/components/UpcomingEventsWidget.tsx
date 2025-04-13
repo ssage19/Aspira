@@ -22,7 +22,8 @@ import {
   parseISO,
   startOfWeek,
   endOfWeek,
-  formatDistanceToNow
+  formatDistanceToNow,
+  differenceInDays
 } from 'date-fns';
 import { useGameTime } from "../lib/hooks/useGameTime";
 import { useState, useMemo } from "react";
@@ -81,14 +82,17 @@ const EventItem: React.FC<{ event: SocialEvent, isSmall?: boolean }> = ({ event,
               <p className="italic">{event.type}</p>
               <p className="text-xs opacity-80">{event.reserved ? "Reserved" : "Not reserved"}</p>
               {(() => {
+                // Calculate days between dates using date-fns
                 const { currentGameDate } = useTime.getState();
-                const gameTime = currentGameDate.getTime();
-                // event.date is already a timestamp number
-                const daysRemaining = Math.ceil((event.date - gameTime) / (1000 * 60 * 60 * 24));
+                const eventDate = new Date(event.date);
+                
+                // Use date-fns to find difference between dates
+                const days = differenceInDays(eventDate, currentGameDate);
+                
                 return <p className="text-xs mt-1">
-                  {daysRemaining > 0 ? 
-                    `${daysRemaining} days remaining` : 
-                    daysRemaining === 0 ? 
+                  {days > 0 ? 
+                    `${days} days remaining` : 
+                    days === 0 ? 
                       "Today" : 
                       "Expired"}
                 </p>;
@@ -351,12 +355,16 @@ export function UpcomingEventsWidget() {
                         <span className="ml-2">
                           {/* Calculate days remaining based on game time, not real-world time */}
                           {(() => {
-                            // Add explicit type assertion to number
-                            const eventDate = event.date as number;
-                            const daysRemaining = Math.ceil((eventDate - gameTime) / (1000 * 60 * 60 * 24));
-                            return daysRemaining > 0 ? 
-                              `(${daysRemaining} days remaining)` : 
-                              daysRemaining === 0 ? 
+                            // Calculate days between dates using date-fns
+                            const eventDate = new Date(event.date);
+                            const gameDate = new Date(gameTime);
+                            
+                            // Use date-fns to find difference between dates
+                            const days = differenceInDays(eventDate, gameDate);
+                            
+                            return days > 0 ? 
+                              `(${days} days remaining)` : 
+                              days === 0 ? 
                                 "(Today)" : 
                                 "(Expired)";
                           })()}
