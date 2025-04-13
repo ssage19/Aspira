@@ -557,32 +557,44 @@ export const useCharacter = create<CharacterState>()(
       // Expense calculations
       getHousingExpense: () => {
         const state = get();
+        console.log("DEBUG: getHousingExpense in character store - housingType:", state.housingType);
+        
+        let expense = 0;
         if (state.housingType === 'rental') {
-          return EXPENSE_RATES.HOUSING.RENTAL;
+          expense = EXPENSE_RATES.HOUSING.RENTAL;
         } else if (state.housingType === 'shared') {
-          return EXPENSE_RATES.HOUSING.SHARED;
+          expense = EXPENSE_RATES.HOUSING.SHARED;
         } else if (state.housingType === 'owned') {
-          return EXPENSE_RATES.HOUSING.OWNED;
+          expense = EXPENSE_RATES.HOUSING.OWNED;
         } else {
-          return EXPENSE_RATES.HOUSING.HOMELESS;
+          expense = EXPENSE_RATES.HOUSING.HOMELESS;
         }
+        
+        console.log("DEBUG: getHousingExpense in character store - calculated expense:", expense);
+        return expense;
       },
       
       getTransportationExpense: () => {
         const state = get();
+        console.log("DEBUG: getTransportationExpense in character store - vehicleType:", state.vehicleType);
+        
+        let expense = 0;
         if (state.vehicleType === 'economy') {
-          return EXPENSE_RATES.TRANSPORTATION.ECONOMY;
+          expense = EXPENSE_RATES.TRANSPORTATION.ECONOMY;
         } else if (state.vehicleType === 'standard') {
-          return EXPENSE_RATES.TRANSPORTATION.STANDARD;
+          expense = EXPENSE_RATES.TRANSPORTATION.STANDARD;
         } else if (state.vehicleType === 'luxury') {
-          return EXPENSE_RATES.TRANSPORTATION.LUXURY;
+          expense = EXPENSE_RATES.TRANSPORTATION.LUXURY;
         } else if (state.vehicleType === 'premium') {
-          return EXPENSE_RATES.TRANSPORTATION.PREMIUM;
+          expense = EXPENSE_RATES.TRANSPORTATION.PREMIUM;
         } else if (state.vehicleType === 'bicycle') {
-          return EXPENSE_RATES.TRANSPORTATION.BICYCLE;
+          expense = EXPENSE_RATES.TRANSPORTATION.BICYCLE;
         } else {
-          return EXPENSE_RATES.TRANSPORTATION.NONE;
+          expense = EXPENSE_RATES.TRANSPORTATION.NONE;
         }
+        
+        console.log("DEBUG: getTransportationExpense in character store - calculated expense:", expense);
+        return expense;
       },
       
       getFoodExpense: () => {
@@ -781,15 +793,19 @@ export const useCharacter = create<CharacterState>()(
       },
       
       setVehicle: (type) => {
+        console.log("DEBUG: setVehicle called with type:", type);
         set((state) => ({
           vehicleType: type,
           hasVehicle: type !== 'none'
         }));
+        console.log("DEBUG: After setVehicle, vehicle type is now:", get().vehicleType);
         saveState();
       },
       
       setHousing: (type) => {
+        console.log("DEBUG: setHousing called with type:", type);
         set((state) => ({ housingType: type }));
+        console.log("DEBUG: After setHousing, housing type is now:", get().housingType);
         saveState();
       },
       
