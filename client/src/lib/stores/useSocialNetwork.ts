@@ -1597,7 +1597,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           
           set({ 
             connections: updatedConnections,
-            networkingLevel: Math.min(100, networkingLevel + 1)
+            networkingLevel: Math.min(500, networkingLevel + 1)
             // Removed social capital reward to slow down relationship progression
           });
         } else {
@@ -1618,7 +1618,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           // Larger networking gain for non-rivals (but no social capital gain)
           set({ 
             connections: updatedConnections,
-            networkingLevel: Math.min(100, networkingLevel + 2)
+            networkingLevel: Math.min(500, networkingLevel + 2)
             // Removed social capital reward to slow down relationship progression
           });
           
@@ -2043,7 +2043,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           
           // Apply networking level increase based on event benefits
           const networkingLevelBoost = Math.floor(event.benefits.networkingPotential / 10);
-          const newNetworkingLevel = Math.min(100, get().networkingLevel + networkingLevelBoost);
+          const newNetworkingLevel = Math.min(500, get().networkingLevel + networkingLevelBoost);
           
           // Apply social capital boost
           const socialCapitalBoost = 20 + Math.floor(event.benefits.networkingPotential / 5);
@@ -2198,17 +2198,17 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         // For monthly boosts, provide a significant amount of social capital
         if (isMonthlyBoost) {
-          // Base monthly amount is much larger 
-          const baseMonthlyAmount = 30; // 30 base social capital per month
+          // Base monthly amount set to 100 as requested
+          const baseMonthlyAmount = 100; // 100 base social capital per month
           
-          // Significant bonus based on networking level
-          const levelBonus = Math.floor(networkingLevel / 5); // 1 point per 5 networking levels
+          // Significant bonus based on networking level (adjusted for max 500)
+          const levelBonus = Math.floor(networkingLevel / 10); // 1 point per 10 networking levels
           
           // Calculate monthly regeneration (more impactful)
           const regenerationAmount = baseMonthlyAmount + levelBonus;
           
-          // Update social capital (capped at 300)
-          const newSocialCapital = Math.min(300, socialCapital + regenerationAmount);
+          // Update social capital (capped at 200)
+          const newSocialCapital = Math.min(200, socialCapital + regenerationAmount);
           
           if (newSocialCapital > socialCapital) {
             set({ 
@@ -2246,8 +2246,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
             // Calculate total regeneration
             const regenerationAmount = Math.floor((baseRegeneration + levelBonus) * hoursPassed);
             
-            // Update social capital (capped at 300)
-            const newSocialCapital = Math.min(300, socialCapital + regenerationAmount);
+            // Update social capital (capped at 200)
+            const newSocialCapital = Math.min(200, socialCapital + regenerationAmount);
             
             if (newSocialCapital > socialCapital) {
               set({ 
