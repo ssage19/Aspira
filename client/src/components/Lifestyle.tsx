@@ -487,15 +487,15 @@ export function Lifestyle() {
             </DropdownMenu>
           </div>
         ) : (
-          <TabsList className="mb-4 flex flex-wrap gap-1">
+          <TabsList className="mb-4 flex flex-wrap gap-0.5">
             {tabOptions.map(tab => (
               <TabsTrigger 
                 key={tab.value} 
                 value={tab.value}
-                className="flex items-center justify-center py-2 flex-1 min-w-[110px]"
+                className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[85px]"
               >
-                <span className="mr-1.5 flex-shrink-0">{tab.icon}</span>
-                <span className="whitespace-nowrap text-sm sm:text-base">{tab.label}</span>
+                <span className="mr-1 flex-shrink-0">{React.cloneElement(tab.icon, { className: 'h-3 w-3' })}</span>
+                <span className="whitespace-nowrap text-xs">{tab.label}</span>
               </TabsTrigger>
             ))}
           </TabsList>
