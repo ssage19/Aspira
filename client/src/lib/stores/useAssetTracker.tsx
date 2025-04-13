@@ -135,6 +135,9 @@ export interface AssetTrackerState {
     total: number;
     version: number;
   };
+  
+  // Get current price for any asset by ID
+  getAssetPrice: (id: string) => number;
 }
 
 // Initial state

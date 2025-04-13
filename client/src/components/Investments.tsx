@@ -105,58 +105,52 @@ export function Investments() {
     return isWithinTradingHours;
   };
   
-  // Calculate current prices based on economy and time
+  // Instead of calculating prices locally, fetch them from the asset tracker
+  // which is updated by MarketPriceUpdater
   useEffect(() => {
-    // Initialize with the last known prices to prevent jumpiness
-    const updatedPrices: Record<string, number> = {...stockPrices};
+    // Initialize price collection
+    const updatedPrices: Record<string, number> = {};
     
-    // Only update prices when market is open (weekday during trading hours)
-    const marketOpen = isMarketOpen();
+    // The market status (for logging only)
+    const marketOpen = (window as any).isStockMarketOpen !== undefined 
+      ? (window as any).isStockMarketOpen 
+      : isMarketOpen();
     
-    if (marketOpen) {
-      console.log("Investments: Market is OPEN, updating stock prices");
-      
-      expandedStockMarket.forEach(stock => {
-        // Base price influenced by market health and stock volatility
-        const volatilityFactor = 
-          stock.volatility === 'extreme' ? 0.7 :
-          stock.volatility === 'very_high' ? 0.5 : 
-          stock.volatility === 'high' ? 0.3 : 
-          stock.volatility === 'medium' ? 0.2 : 
-          stock.volatility === 'low' ? 0.1 : 0.05; // very_low
-        const marketFactor = marketTrend === 'bull' ? 1.05 : marketTrend === 'bear' ? 0.95 : 1;
-        const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor;
-        
-        // Calculate new price with some randomness
-        let newPrice = stock.basePrice * marketFactor;
-        newPrice += newPrice * timeFactor;
-        newPrice += newPrice * (Math.random() * volatilityFactor - volatilityFactor/2);
-        
-        // Ensure price doesn't go too low
-        newPrice = Math.max(newPrice, stock.basePrice * 0.1);
-        
-        updatedPrices[stock.id] = parseFloat(newPrice.toFixed(2));
-      });
-      
-      setStockPrices(updatedPrices);
-      
-      // Update asset tracker stock prices
-      // This ensures the asset tracker's stock values stay in sync with current prices
-      syncAssetTrackerStockPrices(updatedPrices);
-    } else {
-      console.log("Investments: Market is CLOSED, not updating stock prices");
-      
-      // If we don't have any prices yet, set initial prices without fluctuation
-      if (Object.keys(stockPrices).length === 0) {
-        console.log("Investments: No initial prices, setting static base prices");
-        
-        expandedStockMarket.forEach(stock => {
+    console.log(`Investments: Market is ${marketOpen ? 'OPEN' : 'CLOSED'}, fetching current prices`);
+    
+    // For each stock, get its current price from the asset tracker or owned assets
+    expandedStockMarket.forEach(stock => {
+      // First check if the user owns this stock, as it will have the most up-to-date price
+      const ownedStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
+      if (ownedStock && ownedStock.currentPrice) {
+        updatedPrices[stock.id] = ownedStock.currentPrice;
+      } 
+      // Alternatively, try to get the price from the asset tracker's stocks object
+      else if (assetTracker.stocks) {
+        const trackerStock = assetTracker.stocks.find((s: any) => s.id === stock.id);
+        if (trackerStock && trackerStock.currentPrice > 0) {
+          updatedPrices[stock.id] = trackerStock.currentPrice;
+        } else {
+          // Fallback to base price if not found in tracker
           updatedPrices[stock.id] = stock.basePrice;
-        });
-        
-        setStockPrices(updatedPrices);
+        }
       }
+      // Last resort, use base price
+      else {
+        updatedPrices[stock.id] = stock.basePrice;
+      }
+    });
+    
+    // Update the local state with the fetched prices
+    setStockPrices(updatedPrices);
+    
+    // Force an immediate price update via the global updater function
+    // This ensures we get fresh prices when the component mounts
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Requesting global price update");
+      (window as any).globalUpdateAllPrices();
     }
+    
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentDay, marketTrend, stockMarketHealth, assets]);
   
@@ -176,46 +170,46 @@ export function Investments() {
     });
   };
   
-  // Update crypto prices (24/7 trading)
+  // Fetch crypto prices from the asset tracker (updated by MarketPriceUpdater)
   useEffect(() => {
-    // Initialize with the last known prices to prevent jumpiness
-    const updatedPrices: Record<string, number> = {...cryptoPrices};
+    // Initialize price collection
+    const updatedPrices: Record<string, number> = {};
     
+    console.log("Investments: Fetching current crypto prices from asset tracker");
+    
+    // For each crypto, get its current price from the asset tracker or owned assets
     cryptoCurrencies.forEach(crypto => {
-      // Crypto is more volatile than stocks
-      const volatilityFactor = 
-        crypto.volatility === 'extreme' ? 1.0 :
-        crypto.volatility === 'very_high' ? 0.7 : 
-        crypto.volatility === 'high' ? 0.5 : 
-        crypto.volatility === 'medium' ? 0.3 : 
-        crypto.volatility === 'low' ? 0.1 : 0.01; // very_low or stablecoin
-      
-      const marketFactor = marketTrend === 'bull' ? 1.08 : marketTrend === 'bear' ? 0.92 : 1;
-      const timeFactor = Math.sin(currentDay / 15 * Math.PI) * volatilityFactor; // Faster cycles than stocks
-      
-      // Calculate new price with more randomness than stocks
-      let newPrice = crypto.basePrice * marketFactor;
-      newPrice += newPrice * timeFactor;
-      newPrice += newPrice * (Math.random() * volatilityFactor * 2 - volatilityFactor);
-      
-      // Ensure price doesn't go negative
-      newPrice = Math.max(newPrice, crypto.basePrice * 0.05);
-      
-      // Stablecoins stay close to their pegged value
-      if (crypto.volatility === 'very_low') {
-        // Small fluctuation around $1 for stablecoins
-        newPrice = crypto.basePrice + (Math.random() * 0.02 - 0.01);
+      // First check if the user owns this crypto, as it will have the most up-to-date price
+      const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
+      if (ownedCrypto && ownedCrypto.currentPrice) {
+        updatedPrices[crypto.id] = ownedCrypto.currentPrice;
+      } 
+      // Alternatively, try to get the price from the asset tracker's crypto object
+      else if (assetTracker.crypto) {
+        const trackerCrypto = assetTracker.crypto.find((c: any) => c.id === crypto.id);
+        if (trackerCrypto && trackerCrypto.currentPrice > 0) {
+          updatedPrices[crypto.id] = trackerCrypto.currentPrice;
+        } else {
+          // Fallback to base price if not found in tracker
+          updatedPrices[crypto.id] = crypto.basePrice;
+        }
       }
-      
-      updatedPrices[crypto.id] = parseFloat(newPrice.toFixed(2));
+      // Last resort, use base price
+      else {
+        updatedPrices[crypto.id] = crypto.basePrice;
+      }
     });
     
+    // Update the local state with the fetched prices
     setCryptoPrices(updatedPrices);
     
-    // Sync crypto prices to asset tracker
-    syncAssetTrackerCryptoPrices(updatedPrices);
+    // Force an immediate price update to get the latest crypto values
+    if ((window as any).globalUpdateAllPrices) {
+      console.log("Investments: Requesting global price update for crypto");
+      (window as any).globalUpdateAllPrices();
+    }
     
-  }, [currentDay, marketTrend, stockMarketHealth]);
+  }, [currentDay, marketTrend, stockMarketHealth, assets, assetTracker]);
   
   // Sync crypto prices with asset tracker
   const syncAssetTrackerCryptoPrices = (prices: Record<string, number>) => {
