@@ -1253,10 +1253,9 @@ export function Investments() {
                 <select
                   value={selectedSector}
                   onChange={(e) => {
-                    // Optimized sector selection change handler
+                    // Direct value setting - simpler is better
                     console.log(`Changing sector from ${selectedSector} to ${e.target.value}`);
-                    // Set as a separate callback to ensure it's processed in the next tick
-                    setTimeout(() => setSelectedSector(e.target.value), 0);
+                    setSelectedSector(e.target.value);
                   }}
                   className="w-full p-2 border border-input bg-background rounded-md text-sm text-foreground"
                   aria-label="Filter by sector"
