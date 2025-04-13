@@ -29,6 +29,11 @@ interface TimeState {
   // Daily counter for tracking weekly/monthly updates
   dayCounter: number; // Tracks the number of days passed for weekly/biweekly updates
   
+  // Advanced time tracking for events and attribute decay
+  gameTime: Date; // Current game time as a Date object
+  previousGameDay: number; // Previous game day for tracking day changes
+  daysPassed: number; // Total days passed since game start
+  
   // Convenience getter for current date as JavaScript Date object
   currentGameDate: Date;
   
@@ -163,6 +168,11 @@ export const useTime = create<TimeState>()(
       // Day counter for weekly/biweekly updates
       dayCounter: savedTime?.dayCounter || 0,
       
+      // Advanced time tracking
+      gameTime: initialGameDate,
+      previousGameDay: savedTime?.previousGameDay || initialDay,
+      daysPassed: savedTime?.daysPassed || 0,
+      
       advanceTime: () => set((state) => {
         let newDay = state.currentDay + 1;
         let newMonth = state.currentMonth;
@@ -190,12 +200,19 @@ export const useTime = create<TimeState>()(
         // With new time scale, 14 days (2 weeks) will pass every 5 minutes of real time
         const newDayCounter = (state.dayCounter + 1) % 14;
         
+        // Track for attribute decay system
+        const prevGameDay = state.currentDay;
+        const daysPassed = state.daysPassed + 1;
+        
         const newState = {
           ...state, // Keep other values like start date
           currentDay: newDay,
           currentMonth: newMonth,
           currentYear: newYear,
           currentGameDate: newGameDate,
+          gameTime: newGameDate,
+          previousGameDay: prevGameDay,
+          daysPassed: daysPassed,
           dayCounter: newDayCounter
         };
         
@@ -277,6 +294,9 @@ export const useTime = create<TimeState>()(
           startMonth: currentMonth,
           startYear: currentYear,
           currentGameDate: newGameDate,
+          gameTime: newGameDate,
+          previousGameDay: currentDay,
+          daysPassed: 0,
           timeSpeed: 'normal' as GameTimeSpeed,
           timeMultiplier: 1.0,
           autoAdvanceEnabled: true,

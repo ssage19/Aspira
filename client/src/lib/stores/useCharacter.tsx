@@ -818,6 +818,68 @@ export const useCharacter = create<CharacterState>()(
         saveState();
       },
       
+      // Time management functions
+      addTimeCommitment: (hours) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
+        set((state) => {
+          const newTimeCommitment = Math.max(0, state.timeCommitment + hours);
+          // When we add time commitment, we need to reduce free time proportionally
+          const newFreeTime = Math.max(0, 168 - newTimeCommitment); // 168 hours in a week
+          
+          return { 
+            timeCommitment: newTimeCommitment,
+            freeTime: newFreeTime,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
+        });
+        
+        console.log(`Added ${hours} hours to time commitment. New commitment: ${get().timeCommitment}, Free time: ${get().freeTime}`);
+        saveState();
+      },
+      
+      reduceTimeCommitment: (hours) => {
+        // Create a timestamp to force state updates across components
+        const updateTimestamp = Date.now();
+        
+        set((state) => {
+          const newTimeCommitment = Math.max(0, state.timeCommitment - hours);
+          // When we reduce time commitment, we gain free time
+          const newFreeTime = Math.min(168, 168 - newTimeCommitment); // 168 hours in a week
+          
+          return { 
+            timeCommitment: newTimeCommitment,
+            freeTime: newFreeTime,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
+        });
+        
+        console.log(`Reduced time commitment by ${hours} hours. New commitment: ${get().timeCommitment}, Free time: ${get().freeTime}`);
+        saveState();
+      },
+      
+      updateFreeTime: (hours) => {
+        // This directly adds or removes free time without affecting time commitment
+        // Useful for events that temporarily provide more free time without reducing commitments
+        const updateTimestamp = Date.now();
+        
+        set((state) => {
+          const newFreeTime = Math.max(0, Math.min(168, state.freeTime + hours));
+          
+          return { 
+            freeTime: newFreeTime,
+            // Add a timestamp field to force state updates
+            lastUpdated: updateTimestamp
+          };
+        });
+        
+        console.log(`Updated free time by ${hours} hours. Free time: ${get().freeTime}`);
+        saveState();
+      },
+      
       // Assets management
       addAsset: (asset) => {
         // Cost of the asset purchase
