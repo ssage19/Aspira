@@ -154,39 +154,41 @@ export function AttributesDecayManager() {
         break;
     }
     
-    // WORK-LIFE BALANCE MODIFIERS
+    // WORK-LIFE BALANCE MODIFIERS - IMPROVED SYSTEM
     let workLifeBalanceHappinessModifier = 0;
     let workLifeBalanceStressModifier = 0;
     
-    const freeTimeRatio = freeTime / (timeCommitment || 1);
+    // Calculate free time ratio - now with a minimum buffer to prevent extreme negative effects
+    const effectiveTimeCommitment = Math.max(timeCommitment, 4); // Ensures minimum reasonable commitment
+    const freeTimeRatio = freeTime / effectiveTimeCommitment;
     
-    if (freeTimeRatio < 0.2) {
-      // Very poor work-life balance (less than 1:5 ratio)
-      workLifeBalanceHappinessModifier = -4; // -4 happiness/day
-      workLifeBalanceStressModifier = 5;     // +5 stress/day
+    // More forgiving thresholds and reduced negative impacts
+    if (freeTimeRatio < 0.15) {
+      // Very poor work-life balance (less than 1:6.67 ratio)
+      workLifeBalanceHappinessModifier = -3; // Reduced from -4
+      workLifeBalanceStressModifier = 4;     // Reduced from 5
       
-      // Removed notification but still log for debugging
       console.log('Poor work-life balance: very little free time affecting happiness and stress');
       
-    } else if (freeTimeRatio < 0.5) {
+    } else if (freeTimeRatio < 0.33) { // More forgiving threshold (was 0.5)
       // Poor work-life balance
-      workLifeBalanceHappinessModifier = -2; // -2 happiness/day
-      workLifeBalanceStressModifier = 3;     // +3 stress/day
+      workLifeBalanceHappinessModifier = -1; // Reduced from -2
+      workLifeBalanceStressModifier = 2;     // Reduced from 3
       
-    } else if (freeTimeRatio < 1) {
+    } else if (freeTimeRatio < 0.75) { // More forgiving threshold (was 1.0)
       // Moderate work-life balance
-      workLifeBalanceHappinessModifier = -1; // -1 happiness/day
-      workLifeBalanceStressModifier = 1;     // +1 stress/day
+      workLifeBalanceHappinessModifier = -0.5; // Reduced from -1
+      workLifeBalanceStressModifier = 0.5;     // Reduced from 1
       
-    } else if (freeTimeRatio >= 1 && freeTimeRatio < 2) {
+    } else if (freeTimeRatio >= 0.75 && freeTimeRatio < 1.5) { // More forgiving threshold (was 1.0-2.0)
       // Good work-life balance
-      workLifeBalanceHappinessModifier = 1;  // +1 happiness/day
-      workLifeBalanceStressModifier = -1;    // -1 stress/day
+      workLifeBalanceHappinessModifier = 1;  // Same
+      workLifeBalanceStressModifier = -1;    // Same
       
-    } else if (freeTimeRatio >= 2) {
+    } else if (freeTimeRatio >= 1.5) { // More forgiving threshold (was 2.0)
       // Excellent work-life balance
-      workLifeBalanceHappinessModifier = 2;  // +2 happiness/day
-      workLifeBalanceStressModifier = -2;    // -2 stress/day
+      workLifeBalanceHappinessModifier = 3;  // Increased from 2
+      workLifeBalanceStressModifier = -3;    // Increased from -2
     }
     
     // BASIC NEEDS MODIFIERS
@@ -261,24 +263,39 @@ export function AttributesDecayManager() {
       console.log('Stress warning: extreme stress levels significantly affecting happiness');
     }
     
-    // Dynamic time commitment adjustments
+    // Dynamic time commitment adjustments - IMPROVED SYSTEM
     // On some days, add a random amount of time commitment to simulate
     // unexpected responsibilities and emergencies
-    if (Math.random() < 0.3) { // 30% chance each day
-      const extraCommitment = Math.floor(Math.random() * 5) + 1; // 1-5 hours
+    if (Math.random() < 0.2) { // Reduced from 30% to 20% chance each day
+      const extraCommitment = Math.floor(Math.random() * 3) + 1; // 1-3 hours (reduced from 1-5)
       addTimeCommitment(extraCommitment);
       
       // Removed notification as requested, but we'll still log to console for debugging
       console.log(`Added ${extraCommitment} hours of unexpected time commitment`);
     }
     
-    // Occasionally restore some free time (rest days, efficient days)
-    if (Math.random() < 0.2) { // 20% chance each day
-      const extraFreeTime = Math.floor(Math.random() * 3) + 1; // 1-3 hours
+    // More frequently restore free time (rest days, efficient days)
+    if (Math.random() < 0.35) { // Increased from 20% to 35% chance each day
+      const extraFreeTime = Math.floor(Math.random() * 4) + 1; // 1-4 hours (increased from 1-3)
       updateFreeTime(extraFreeTime);
       
       // Removed notification as requested, but we'll still log to console for debugging
       console.log(`Added ${extraFreeTime} hours of extra free time`);
+    }
+    
+    // Premium transportation and housing benefits - additional free time
+    // This represents saved commute time and better home efficiency
+    if (vehicleType === 'premium' || vehicleType === 'luxury') {
+      // Premium transportation saves time
+      const savedTime = vehicleType === 'premium' ? 1 : 2;
+      updateFreeTime(savedTime);
+      console.log(`Premium transportation saved you ${savedTime} hours of time`);
+    }
+    
+    if (housingType === 'luxury') {
+      // Luxury housing provides time-saving amenities
+      updateFreeTime(1);
+      console.log('Your luxury housing amenities saved you 1 hour of time');
     }
   };
   
@@ -309,10 +326,35 @@ export function AttributesDecayManager() {
       addStress(-0.2);
     }
     
-    // Rush hour stress
+    // Rush hour stress - reduced impact and better premium transport benefits
     if ((hourOfDay >= 7 && hourOfDay <= 9) || (hourOfDay >= 16 && hourOfDay <= 18)) {
       // Rush hour - extra stress
-      const rushHourStress = vehicleType === 'none' || vehicleType === 'bicycle' ? 0.1 : 0.3;
+      let rushHourStress = 0;
+      
+      switch (vehicleType) {
+        case 'none':
+        case 'bicycle':
+          // No vehicle actually causes less rush hour stress (no traffic)
+          rushHourStress = 0.05; // Reduced from 0.1
+          break;
+        case 'economy':
+          // Economy vehicles have the most rush hour stress
+          rushHourStress = 0.2; 
+          break;
+        case 'standard':
+          // Standard vehicles have moderate rush hour stress
+          rushHourStress = 0.15;
+          break;
+        case 'luxury':
+          // Luxury vehicles have minimal rush hour stress
+          rushHourStress = 0.1;
+          break;
+        case 'premium':
+          // Premium vehicles have almost no rush hour stress
+          rushHourStress = 0.05;
+          break;
+      }
+      
       addStress(rushHourStress);
     }
     
@@ -396,15 +438,18 @@ export function AttributesDecayManager() {
       console.log('Low happiness warning: happiness levels are very low');
     }
     
-    // Critical time management
-    const freeTimeRatio = freeTime / (timeCommitment || 1);
-    if (freeTimeRatio < 0.1 && Math.random() < 0.5) {
+    // Critical time management - now with more forgiving thresholds
+    // Use the same improved calculation as in daily effects
+    const effectiveTimeCommitmentCheck = Math.max(timeCommitment, 4);
+    const improvedFreeTimeRatio = freeTime / effectiveTimeCommitmentCheck;
+    
+    if (improvedFreeTimeRatio < 0.08 && Math.random() < 0.3) { // Reduced from 0.1 and 0.5 chance
       // Removed notification but still log for debugging
       console.log('Critical time management: almost no free time, unsustainable');
       
       // Still play sound for critical warnings only
       playSound('error');
-    } else if (freeTimeRatio < 0.25 && Math.random() < 0.3) {
+    } else if (improvedFreeTimeRatio < 0.2 && Math.random() < 0.2) { // Reduced from 0.25 and 0.3 chance
       console.log('Poor time management: free time is very limited');
     }
   };
