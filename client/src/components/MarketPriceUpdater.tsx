@@ -118,7 +118,10 @@ export function MarketPriceUpdater() {
       if (!crypto || crypto.quantity <= 0) return;
       
       // Get current price to make smaller, incremental changes
-      const currentPrice = crypto.currentPrice || crypto.purchasePrice;
+      // First check if we have a global price recorded, then fallback to the asset price
+      const currentPrice = assetTracker.getAssetPrice(crypto.id) || 
+                         crypto.currentPrice || 
+                         crypto.purchasePrice;
       
       // Still higher volatility for crypto, but more reasonable movements per update
       const volatilityFactor = 0.12; // Moderate volatility per tick
@@ -169,9 +172,10 @@ export function MarketPriceUpdater() {
       const volatilityFactor = 0.02;
       const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
       
-      // Calculate new price - use maturityValue if available, otherwise use purchasePrice
+      // Get current price from stored prices first, fall back to maturity/purchase price
+      const currentValue = assetTracker.getAssetPrice(bond.id);
       const extendedBond = bond as ExtendedAsset;
-      const baseValue = extendedBond.maturityValue || bond.purchasePrice;
+      const baseValue = currentValue || extendedBond.maturityValue || bond.purchasePrice;
       const newPrice = baseValue * marketInfluence * (1 + randomFactor);
       
       // Update the bond in the asset tracker
@@ -198,8 +202,9 @@ export function MarketPriceUpdater() {
       const volatilityFactor = 0.15;
       const marketInfluence = marketTrend === 'bull' ? 1.03 : marketTrend === 'bear' ? 0.97 : 1;
       
-      // Calculate new price with some randomness
-      const basePrice = investment.purchasePrice;
+      // Get current price from stored prices first, then fall back to purchase price
+      const currentValue = assetTracker.getAssetPrice(investment.id);
+      const basePrice = currentValue || investment.purchasePrice;
       const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
       const newPrice = basePrice * marketInfluence * (1 + randomFactor);
       
@@ -241,8 +246,9 @@ export function MarketPriceUpdater() {
       const volatilityFactor = 0.02;
       const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
       
-      // Calculate new property value with small adjustment
-      const currentPropertyValue = propertyWithLoan.currentValue || property.purchasePrice;
+      // Get current price from stored property values first, then fall back to other values
+      const storedValue = assetTracker.getAssetPrice(property.id);
+      const currentPropertyValue = storedValue || propertyWithLoan.currentValue || property.purchasePrice;
       const newValue = currentPropertyValue * marketInfluence * (1 + randomFactor);
       const formattedValue = parseFloat(newValue.toFixed(2));
       
@@ -390,8 +396,11 @@ export function MarketPriceUpdater() {
     expandedStockMarket.forEach(stock => {
       // Only update stock prices if market is open, for realism
       if (marketOpen) {
-        // Get previous price to apply incremental changes
-        const previousPrice = updatedStockPrices[stock.id] || stock.basePrice;
+        // Get previous price from the global tracker or fall back to base price
+        // This is critical for price persistence - we check if there's already a tracked price
+        const previousPrice = assetTracker.globalStockPrices[stock.id] || 
+                             updatedStockPrices[stock.id] || 
+                             stock.basePrice;
         
         // NYSE-like behavior: Much smaller price movements (0.1% - 0.5% typically)
         const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.2; // Reduce volatility by 80%
