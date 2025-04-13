@@ -634,7 +634,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newHappiness = Math.max(0, Math.min(100, state.happiness + amount));
+          // Convert to integer using Math.round
+          const newHappiness = Math.max(0, Math.min(100, Math.round(state.happiness + amount)));
           return { 
             happiness: newHappiness,
             // Add a timestamp field to force state updates
@@ -649,7 +650,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newStress = Math.max(0, Math.min(100, state.stress + amount));
+          // Convert to integer using Math.round
+          const newStress = Math.max(0, Math.min(100, Math.round(state.stress + amount)));
           return { 
             stress: newStress,
             // Add a timestamp field to force state updates
@@ -664,7 +666,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newHealth = Math.max(0, Math.min(100, state.health + amount));
+          // Convert to integer using Math.round
+          const newHealth = Math.max(0, Math.min(100, Math.round(state.health + amount)));
           return { 
             health: newHealth,
             // Add a timestamp field to force state updates
@@ -679,7 +682,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newPrestige = Math.max(0, Math.min(100, state.prestige + amount));
+          // Convert to integer using Math.round
+          const newPrestige = Math.max(0, Math.min(100, Math.round(state.prestige + amount)));
           return { 
             prestige: newPrestige,
             // Add a timestamp field to force state updates
@@ -694,7 +698,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newSocialConnections = Math.max(0, Math.min(100, state.socialConnections + amount));
+          // Convert to integer using Math.round
+          const newSocialConnections = Math.max(0, Math.min(100, Math.round(state.socialConnections + amount)));
           return { 
             socialConnections: newSocialConnections,
             // Add a timestamp field to force state updates
@@ -710,7 +715,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newHunger = Math.max(0, Math.min(100, state.hunger + amount));
+          // Convert to integer using Math.round
+          const newHunger = Math.max(0, Math.min(100, Math.round(state.hunger + amount)));
           // Include lastUpdated field to force subscribers to recognize changes
           return { 
             hunger: newHunger,
@@ -734,7 +740,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newThirst = Math.max(0, Math.min(100, state.thirst + amount));
+          // Convert to integer using Math.round
+          const newThirst = Math.max(0, Math.min(100, Math.round(state.thirst + amount)));
           // Include lastUpdated field to force subscribers to recognize changes
           return { 
             thirst: newThirst,
@@ -758,7 +765,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newEnergy = Math.max(0, Math.min(100, state.energy + amount));
+          // Convert to integer using Math.round
+          const newEnergy = Math.max(0, Math.min(100, Math.round(state.energy + amount)));
           // Include lastUpdated field to force subscribers to recognize changes
           return { 
             energy: newEnergy,
@@ -782,7 +790,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newComfort = Math.max(0, Math.min(100, state.comfort + amount));
+          // Convert to integer using Math.round
+          const newComfort = Math.max(0, Math.min(100, Math.round(state.comfort + amount)));
           // Include lastUpdated field to force subscribers to recognize changes
           return { 
             comfort: newComfort,
@@ -824,9 +833,10 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newTimeCommitment = Math.max(0, state.timeCommitment + hours);
+          // Convert to integer using Math.round
+          const newTimeCommitment = Math.max(0, Math.round(state.timeCommitment + hours));
           // When we add time commitment, we need to reduce free time proportionally
-          const newFreeTime = Math.max(0, 168 - newTimeCommitment); // 168 hours in a week
+          const newFreeTime = Math.max(0, Math.round(168 - newTimeCommitment)); // 168 hours in a week
           
           return { 
             timeCommitment: newTimeCommitment,
@@ -845,9 +855,10 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newTimeCommitment = Math.max(0, state.timeCommitment - hours);
+          // Convert to integer using Math.round
+          const newTimeCommitment = Math.max(0, Math.round(state.timeCommitment - hours));
           // When we reduce time commitment, we gain free time
-          const newFreeTime = Math.min(168, 168 - newTimeCommitment); // 168 hours in a week
+          const newFreeTime = Math.min(168, Math.round(168 - newTimeCommitment)); // 168 hours in a week
           
           return { 
             timeCommitment: newTimeCommitment,
@@ -867,7 +878,8 @@ export const useCharacter = create<CharacterState>()(
         const updateTimestamp = Date.now();
         
         set((state) => {
-          const newFreeTime = Math.max(0, Math.min(168, state.freeTime + hours));
+          // Convert to integer using Math.round
+          const newFreeTime = Math.max(0, Math.min(168, Math.round(state.freeTime + hours)));
           
           return { 
             freeTime: newFreeTime,
