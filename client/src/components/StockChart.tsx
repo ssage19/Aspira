@@ -205,31 +205,31 @@ export function StockChart({ stockId, currentPrice, basePrice, volatility }: Sto
     
     switch (volatilityLevel) {
       case 'very_low':
-        // Very stable blue chip stocks (0.2-0.5% daily change)
-        factor = 0.003; 
+        // Very stable blue chip stocks (0.4-1.0% daily change) - DOUBLED
+        factor = 0.006; 
         break;
       case 'low':
-        // Stable blue chip stocks (0.3-0.7% daily change)
-        factor = 0.005; 
-        break;
-      case 'medium':
-        // Average volatility stocks (0.5-1.5% daily change)
+        // Stable blue chip stocks (0.6-1.4% daily change) - DOUBLED
         factor = 0.01; 
         break;
-      case 'high':
-        // Growth stocks (0.8-2.0% daily change)
-        factor = 0.015; 
-        break;
-      case 'very_high':
-        // Tech growth stocks (1.0-2.5% daily change)
+      case 'medium':
+        // Average volatility stocks (1.0-3.0% daily change) - DOUBLED
         factor = 0.02; 
         break;
-      case 'extreme':
-        // Small caps, volatile companies (1.5-4.0% daily change)
+      case 'high':
+        // Growth stocks (1.6-4.0% daily change) - DOUBLED
         factor = 0.03; 
         break;
+      case 'very_high':
+        // Tech growth stocks (2.0-5.0% daily change) - DOUBLED
+        factor = 0.04; 
+        break;
+      case 'extreme':
+        // Small caps, volatile companies (3.0-8.0% daily change) - DOUBLED
+        factor = 0.06; 
+        break;
       default:
-        factor = 0.01;
+        factor = 0.02; // DOUBLED
     }
     
     // Market trend slightly adjusts volatility
