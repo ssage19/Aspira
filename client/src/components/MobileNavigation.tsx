@@ -9,7 +9,8 @@ import {
   Target, 
   Trophy, 
   Crown, 
-  Users
+  Users,
+  Store
 } from 'lucide-react';
 
 /**
@@ -35,6 +36,7 @@ export function MobileNavigation() {
     { icon: <ChartBar className="h-5 w-5" />, label: 'Invest', path: '/investments' },
     { icon: <Building className="h-5 w-5" />, label: 'Property', path: '/properties' },
     { icon: <ShoppingBag className="h-5 w-5" />, label: 'Lifestyle', path: '/lifestyle' },
+    { icon: <Store className="h-5 w-5" />, label: 'Business', path: '/business' },
     { icon: <Target className="h-5 w-5" />, label: 'Challenges', path: '/challenges' },
     { icon: <Trophy className="h-5 w-5" />, label: 'Achieve', path: '/achievements' },
     { icon: <Crown className="h-5 w-5" />, label: 'Prestige', path: '/prestige' },
@@ -47,9 +49,9 @@ export function MobileNavigation() {
     setIsExpanded(false);
   };
 
-  // Only show 5 items in the bar, the rest in the expanded drawer
-  const primaryNavItems = navItems.slice(0, 5);
-  const secondaryNavItems = navItems.slice(5);
+  // Show 6 items in the bar, the rest in the expanded drawer
+  const primaryNavItems = navItems.slice(0, 6);
+  const secondaryNavItems = navItems.slice(6);
 
   return (
     <>
