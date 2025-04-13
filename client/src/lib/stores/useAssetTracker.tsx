@@ -16,6 +16,11 @@ export interface AssetTrackerState {
     [stockId: string]: number; // Maps stock IDs to current prices
   };
   
+  // Global crypto price tracking - all crypto assets regardless of ownership
+  globalCryptoPrices: {
+    [cryptoId: string]: number; // Maps crypto IDs to current prices
+  };
+  
   // Investment assets
   stocks: {
     id: string;
@@ -97,6 +102,10 @@ export interface AssetTrackerState {
   updateGlobalStockPrice: (stockId: string, price: number) => void;
   updateGlobalStockPrices: (priceUpdates: { [stockId: string]: number }) => void;
   
+  // Global crypto price tracking functions
+  updateGlobalCryptoPrice: (cryptoId: string, price: number) => void;
+  updateGlobalCryptoPrices: (priceUpdates: { [cryptoId: string]: number }) => void;
+  
   // Stock functions
   addStock: (stock: Omit<AssetTrackerState['stocks'][0], 'totalValue'>) => void;
   updateStock: (id: string, shares: number, currentPrice: number) => void;
@@ -160,9 +169,11 @@ const initialState: Omit<AssetTrackerState,
   | 'addLifestyleItem' | 'updateLifestyleItem' | 'removeLifestyleItem'
   | 'recalculateTotals' | 'resetAssetTracker' | 'forceUpdate' | 'getNetWorthBreakdown' | 'getAssetPrice'
   | 'updateGlobalStockPrice' | 'updateGlobalStockPrices'
+  | 'updateGlobalCryptoPrice' | 'updateGlobalCryptoPrices'
 > = {
   cash: 10000, // Default starting cash
   globalStockPrices: {}, // Initialize empty global stock price tracking
+  globalCryptoPrices: {}, // Initialize empty global crypto price tracking
   stocks: [],
   cryptoAssets: [],
   bonds: [],
@@ -682,8 +693,63 @@ export const useAssetTracker = create<AssetTrackerState>()(
         state.stocks.forEach(stock => {
           const newPrice = priceUpdates[stock.id];
           if (newPrice !== undefined) {
-            // Update the owned stock to match the global price
+            // If there's a new price, update the stock
             get().updateStock(stock.id, stock.shares, newPrice);
+          }
+        });
+      },
+      
+      // Global crypto price tracking functions
+      updateGlobalCryptoPrice: (cryptoId: string, currentPrice: number) => {
+        set((state) => {
+          // Create a copy of the current global crypto prices
+          const updatedPrices = { ...state.globalCryptoPrices };
+          
+          // Update the price for this specific crypto
+          updatedPrices[cryptoId] = currentPrice;
+          
+          return {
+            globalCryptoPrices: updatedPrices,
+            lastUpdated: Date.now(),
+          };
+        });
+        
+        // Update any owned crypto in portfolio to match global price
+        const state = get();
+        const ownedCrypto = state.cryptoAssets.find(crypto => crypto.id === cryptoId);
+        
+        if (ownedCrypto) {
+          // If the player owns this crypto, update its price too
+          get().updateCrypto(cryptoId, ownedCrypto.amount, currentPrice);
+        }
+      },
+      
+      // Batch update global crypto prices
+      updateGlobalCryptoPrices: (priceUpdates: { [cryptoId: string]: number }) => {
+        set((state) => {
+          // Create a copy of the current global crypto prices
+          const updatedPrices = { ...state.globalCryptoPrices };
+          
+          // Apply all price updates
+          Object.entries(priceUpdates).forEach(([cryptoId, price]) => {
+            updatedPrices[cryptoId] = price;
+          });
+          
+          return {
+            globalCryptoPrices: updatedPrices,
+            lastUpdated: Date.now(),
+          };
+        });
+        
+        // Update any owned crypto in the portfolio to match global prices
+        const state = get();
+        
+        // For each crypto in the player's portfolio, check if it has a new price
+        state.cryptoAssets.forEach(crypto => {
+          const newPrice = priceUpdates[crypto.id];
+          if (newPrice !== undefined) {
+            // Update the owned crypto to match the global price
+            get().updateCrypto(crypto.id, crypto.amount, newPrice);
           }
         });
       },
