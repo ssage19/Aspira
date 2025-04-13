@@ -1171,33 +1171,33 @@ export function Investments() {
             </DropdownMenu>
           </div>
         ) : (
-          <TabsList className="mb-4 grid w-full grid-cols-6 h-12">
-            <TabsTrigger value="browse" className="flex items-center justify-center gap-2">
-              <Search className="h-4 w-4" />
-              <span>Stocks</span>
+          <TabsList className="mb-4 flex flex-wrap gap-1">
+            <TabsTrigger value="browse" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <Search className="h-4 w-4 mr-1.5 flex-shrink-0" />
+              <span className="whitespace-nowrap text-sm sm:text-base">Stocks</span>
             </TabsTrigger>
-            <TabsTrigger value="crypto" className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <TabsTrigger value="crypto" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <svg className="h-4 w-4 mr-1.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M9 8H13.5C14.3284 8 15 8.67157 15 9.5C15 10.3284 14.3284 11 13.5 11H9V8Z" fill="currentColor"/>
                 <path d="M9 11H14.5C15.3284 11 16 11.6716 16 12.5C16 13.3284 15.3284 14 14.5 14H9V11Z" fill="currentColor"/>
                 <path d="M12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M7 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M9 18V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>Crypto</span>
+              <span className="whitespace-nowrap text-sm sm:text-base">Crypto</span>
             </TabsTrigger>
-            <TabsTrigger value="bonds" className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <TabsTrigger value="bonds" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <svg className="h-4 w-4 mr-1.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M4 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M12 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M20 10V14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M4 14H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <rect x="2" y="5" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>Bonds</span>
+              <span className="whitespace-nowrap text-sm sm:text-base">Bonds</span>
             </TabsTrigger>
-            <TabsTrigger value="other" className="flex items-center justify-center gap-2">
-              <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <TabsTrigger value="other" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <svg className="h-4 w-4 mr-1.5 flex-shrink-0" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M5 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M19 3V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <rect x="3" y="8" width="18" height="12" rx="2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -1206,15 +1206,15 @@ export function Investments() {
                 <path d="M16 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 <path d="M12 12V16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
-              <span>Startups</span>
+              <span className="whitespace-nowrap text-sm sm:text-base">Startups</span>
             </TabsTrigger>
-            <TabsTrigger value="portfolio" className="flex items-center justify-center gap-2">
-              <Wallet className="h-4 w-4" />
-              <span>Portfolio</span>
+            <TabsTrigger value="portfolio" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <Wallet className="h-4 w-4 mr-1.5 flex-shrink-0" />
+              <span className="whitespace-nowrap text-sm sm:text-base">Portfolio</span>
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="flex items-center justify-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              <span>Analysis</span>
+            <TabsTrigger value="analysis" className="flex items-center justify-center py-2 flex-1 min-w-[90px]">
+              <BarChart3 className="h-4 w-4 mr-1.5 flex-shrink-0" />
+              <span className="whitespace-nowrap text-sm sm:text-base">Analysis</span>
             </TabsTrigger>
           </TabsList>
         )}
@@ -1344,7 +1344,7 @@ export function Investments() {
               </div>
               <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
               
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Current Price</p>
                   <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
@@ -1509,7 +1509,7 @@ export function Investments() {
           <div className="bg-muted/20 p-3 rounded-md mb-4 border">
             <h3 className="font-semibold mb-2 text-lg">Complete Investment Portfolio</h3>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 mb-3">
               <div className="bg-background p-3 rounded-md border">
                 <p className="text-xs text-muted-foreground">Total Assets</p>
                 <p className="font-semibold text-lg">{
@@ -1587,7 +1587,7 @@ export function Investments() {
             </div>
             
             {/* Compact Asset Category Breakdown */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
               <div 
                 className={`p-2 border rounded ${
                   assets.filter(a => a.type === 'stock').length > 0 
@@ -1675,22 +1675,34 @@ export function Investments() {
           {/* Asset Categories Tabs */}
           <div className="mt-4">
             <Tabs defaultValue="stocks" className="w-full">
-              <TabsList className="w-full grid grid-cols-4">
-                <TabsTrigger value="stocks" className="flex items-center gap-1">
-                  <BarChart3 className="h-3 w-3" />
-                  <span>Stocks</span>
+              <TabsList className="w-full flex flex-wrap gap-1">
+                <TabsTrigger 
+                  value="stocks" 
+                  className="flex items-center justify-center py-2 flex-1 min-w-[80px]"
+                >
+                  <BarChart3 className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-sm sm:text-base">Stocks</span>
                 </TabsTrigger>
-                <TabsTrigger value="crypto" className="flex items-center gap-1">
-                  <TrendingUp className="h-3 w-3" />
-                  <span>Crypto</span>
+                <TabsTrigger 
+                  value="crypto" 
+                  className="flex items-center justify-center py-2 flex-1 min-w-[80px]"
+                >
+                  <TrendingUp className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-sm sm:text-base">Crypto</span>
                 </TabsTrigger>
-                <TabsTrigger value="bonds" className="flex items-center gap-1">
-                  <AlertCircle className="h-3 w-3" />
-                  <span>Bonds</span>
+                <TabsTrigger 
+                  value="bonds" 
+                  className="flex items-center justify-center py-2 flex-1 min-w-[80px]"
+                >
+                  <AlertCircle className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-sm sm:text-base">Bonds</span>
                 </TabsTrigger>
-                <TabsTrigger value="startups" className="flex items-center gap-1">
-                  <Wallet className="h-3 w-3" />
-                  <span>Startups</span>
+                <TabsTrigger 
+                  value="startups" 
+                  className="flex items-center justify-center py-2 flex-1 min-w-[80px]"
+                >
+                  <Wallet className="h-3 w-3 mr-1.5 flex-shrink-0" />
+                  <span className="whitespace-nowrap text-sm sm:text-base">Startups</span>
                 </TabsTrigger>
               </TabsList>
               
