@@ -31,6 +31,7 @@ import { ChallengeTracker } from "./components/ChallengeTracker";
 import { NetworkTracker } from "./components/NetworkTracker";
 import { ConnectionNotificationManager } from "./components/ConnectionNotification";
 import { EventNotificationManager } from "./components/EventNotification";
+import { AttributesDecayManager } from "./components/AttributesDecayManager";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
@@ -325,6 +326,7 @@ function App() {
               <NetworkTracker />
               <ConnectionNotificationManager />
               <EventNotificationManager />
+              <AttributesDecayManager />
               
               {/* Emergency hack to reset time if needed */}
               <TimeResetHack />
