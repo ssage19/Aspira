@@ -7,7 +7,8 @@ const EXPENSE_RATES = {
     RENTAL: 1800,    // $1,800/mo for rental
     SHARED: 900,     // $900/mo for shared housing
     OWNED: 0,        // No expense for owned (handled via property mortgage)
-    HOMELESS: 0      // No housing expense
+    HOMELESS: 0,     // No housing expense
+    LUXURY: 3000     // $3,000/mo for luxury housing
   },
   TRANSPORTATION: {
     ECONOMY: 300,    // $300/mo for economy vehicle
