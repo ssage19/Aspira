@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
@@ -22,8 +22,6 @@ import {
   Home, 
   ShoppingBag,
   ChartBar,
-  Volume2,
-  VolumeX,
   Trophy,
   TrendingUp,
   TrendingDown,
@@ -31,7 +29,8 @@ import {
   GraduationCap,
   XCircle,
   Sun,
-  Moon
+  Moon,
+  ChevronDown
 } from 'lucide-react';
 import { Button } from './ui/button';
 import { formatCurrency } from '../lib/utils';
@@ -467,11 +466,6 @@ export function GameUI() {
     return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
   };
   
-  // Toggle mute state
-  const toggleMute = () => {
-    audioState.toggleMute();
-  };
-  
   // Format the time speed string
   const getTimeSpeedString = () => {
     switch (timeSpeed) {
@@ -485,6 +479,26 @@ export function GameUI() {
         return '1x';
     }
   };
+  
+  // State for speed dropdown
+  const [speedDropdownOpen, setSpeedDropdownOpen] = useState(false);
+  
+  // Reference for speed dropdown element
+  const speedDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close dropdown when clicking outside of it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (speedDropdownRef.current && !speedDropdownRef.current.contains(event.target as Node)) {
+        setSpeedDropdownOpen(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   return (
     <div className="w-full pointer-events-none">
@@ -562,40 +576,54 @@ export function GameUI() {
           </div>
         )}
         
-        {/* Right side controls - simplified for mobile */}
+        {/* Right side controls - optimized for mobile */}
         <div className="flex items-center space-x-2">
-          {/* Hide speed controls on mobile to save space */}
-          {!isMobile && (
-            <div className="relative">
-              <Button 
-                variant={timeSpeed === 'normal' ? 'default' : 'outline'}
-                size="sm"
-                className="px-3"
-                onClick={() => setTimeSpeed('normal')}
-                aria-label="Set normal speed (1x)"
-              >
-                1x
-              </Button>
-              <Button 
-                variant={timeSpeed === 'fast' ? 'default' : 'outline'}
-                size="sm"
-                className="px-3"
-                onClick={() => setTimeSpeed('fast')}
-                aria-label="Set fast speed (3x)"
-              >
-                3x
-              </Button>
-              <Button 
-                variant={timeSpeed === 'superfast' ? 'default' : 'outline'}
-                size="sm"
-                className="px-3"
-                onClick={() => setTimeSpeed('superfast')}
-                aria-label="Set super fast speed (6x)"
-              >
-                6x
-              </Button>
-            </div>
-          )}
+          {/* Speed control dropdown - works on both mobile and desktop */}
+          <div className="relative" ref={speedDropdownRef}>
+            <Button 
+              variant="outline"
+              size="sm"
+              className={`px-3 flex items-center gap-1 ${speedDropdownOpen ? 'bg-primary/10' : ''}`}
+              onClick={() => setSpeedDropdownOpen(!speedDropdownOpen)}
+              aria-label="Game speed settings"
+            >
+              <span>{getTimeSpeedString()}</span>
+              <ChevronDown className={`h-3 w-3 transition-transform ${speedDropdownOpen ? 'rotate-180' : ''}`} />
+            </Button>
+            
+            {/* Speed dropdown menu */}
+            {speedDropdownOpen && (
+              <div className="absolute top-full right-0 mt-1 bg-background shadow-lg rounded-md border border-border z-50 p-1 min-w-[80px] flex flex-col">
+                <button 
+                  className={`px-3 py-1.5 text-xs rounded-sm flex items-center ${timeSpeed === 'normal' ? 'bg-primary/20 text-primary' : 'hover:bg-accent/50'}`}
+                  onClick={() => {
+                    setTimeSpeed('normal');
+                    setSpeedDropdownOpen(false);
+                  }}
+                >
+                  1x Speed
+                </button>
+                <button 
+                  className={`px-3 py-1.5 text-xs rounded-sm flex items-center ${timeSpeed === 'fast' ? 'bg-primary/20 text-primary' : 'hover:bg-accent/50'}`}
+                  onClick={() => {
+                    setTimeSpeed('fast');
+                    setSpeedDropdownOpen(false);
+                  }}
+                >
+                  3x Speed
+                </button>
+                <button 
+                  className={`px-3 py-1.5 text-xs rounded-sm flex items-center ${timeSpeed === 'superfast' ? 'bg-primary/20 text-primary' : 'hover:bg-accent/50'}`}
+                  onClick={() => {
+                    setTimeSpeed('superfast');
+                    setSpeedDropdownOpen(false);
+                  }}
+                >
+                  6x Speed
+                </button>
+              </div>
+            )}
+          </div>
           
           {/* Play/Pause button - simplified to just an icon on mobile */}
           <Button
@@ -620,21 +648,6 @@ export function GameUI() {
                 {!isMobile && "Play"}
                 <span className="h-0 w-0 ml-1 border-t-transparent border-t-[6px] border-b-transparent border-b-[6px] border-l-[10px] border-l-current"></span>
               </>
-            )}
-          </Button>
-          
-          {/* Audio toggle (icon only) */}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleMute}
-            aria-label={isMuted ? "Unmute" : "Mute"}
-            className="rounded-full w-8 h-8"
-          >
-            {isMuted ? (
-              <VolumeX className="h-4 w-4" />
-            ) : (
-              <Volume2 className="h-4 w-4" />
             )}
           </Button>
         </div>
