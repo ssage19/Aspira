@@ -427,17 +427,6 @@ export function Lifestyle() {
   
   return (
     <div className="p-4 bg-background rounded-lg shadow-lg border border-border">
-      <div className="mb-4">
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/')}
-          className="bg-background hover:bg-muted border-border text-white"
-        >
-          <ChevronLeft className="h-4 w-4 mr-2" />
-          Back to Dashboard
-        </Button>
-      </div>
-      
       <h2 className="text-2xl font-bold mb-4 flex items-center">
         <ShoppingBag className="mr-2" />
         Lifestyle & Luxury
