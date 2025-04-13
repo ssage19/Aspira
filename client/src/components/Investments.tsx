@@ -37,7 +37,8 @@ import {
 } from "./ui/dropdown-menu";
 
 export function Investments() {
-  const { wealth, addWealth, addAsset, sellAsset, assets } = useCharacter();
+  const character = useCharacter();
+  const { wealth, addWealth, addAsset, sellAsset, assets } = character;
   const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
   const { currentDay } = useTime();
   const audio = useAudio();
