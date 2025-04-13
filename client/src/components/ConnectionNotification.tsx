@@ -4,6 +4,7 @@ import { X, User, Star } from 'lucide-react';
 import { Button } from './ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '../lib/stores/useGame';
+import { useNavigate } from 'react-router-dom';
 
 interface ConnectionNotificationProps {
   connection: SocialConnection;
@@ -104,6 +105,7 @@ export function ConnectionNotification({ connection, onClose, onView }: Connecti
 export function ConnectionNotificationManager() {
   const { connections } = useSocialNetwork();
   const { phase } = useGame();
+  const navigate = useNavigate();
   const [notification, setNotification] = useState<SocialConnection | null>(null);
   
   // Track when the user first sees connections by storing timestamp
@@ -175,8 +177,9 @@ export function ConnectionNotificationManager() {
       // Navigate to the networking screen
       console.log(`Viewing connection: ${notification.name}`);
       
-      // Use the window.location to ensure navigation happens
-      window.location.href = '/networking';
+      // Use React Router's navigate function instead of window.location
+      // This prevents the app from reloading and maintains the app state
+      navigate('/networking');
     }
   };
 
