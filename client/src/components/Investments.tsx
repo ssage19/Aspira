@@ -245,6 +245,49 @@ export function Investments() {
     
   }, [currentDay, marketTrend, stockMarketHealth, assets, assetTracker]);
   
+  // Set up a continuous price refresh interval
+  useEffect(() => {
+    console.log("Investments: Setting up continuous price refresh interval (every 3 seconds)");
+    
+    // Function to refresh all prices from asset tracker
+    const refreshPrices = () => {
+      // Refresh stock prices
+      const updatedStockPrices: Record<string, number> = {};
+      expandedStockMarket.forEach(stock => {
+        const price = assetTracker.getAssetPrice(stock.id);
+        updatedStockPrices[stock.id] = price > 0 ? price : stock.basePrice;
+      });
+      setStockPrices(updatedStockPrices);
+      
+      // Refresh crypto prices
+      const updatedCryptoPrices: Record<string, number> = {};
+      cryptoCurrencies.forEach(crypto => {
+        const price = assetTracker.getAssetPrice(crypto.id);
+        updatedCryptoPrices[crypto.id] = price > 0 ? price : crypto.basePrice;
+      });
+      setCryptoPrices(updatedCryptoPrices);
+      
+      console.log("Investments: Continuous price refresh completed");
+    };
+    
+    // Set up the interval for continuous refresh
+    const intervalId = setInterval(() => {
+      // First call global update function to update the asset tracker
+      if ((window as any).globalUpdateAllPrices) {
+        (window as any).globalUpdateAllPrices();
+      }
+      
+      // After a short delay, refresh the local state with updated prices
+      setTimeout(refreshPrices, 500);
+    }, 3000);
+    
+    // Clean up the interval on component unmount
+    return () => {
+      console.log("Investments: Cleaning up continuous price refresh interval");
+      clearInterval(intervalId);
+    };
+  }, [assetTracker, expandedStockMarket, cryptoCurrencies]);
+  
   // Sync crypto prices with asset tracker
   const syncAssetTrackerCryptoPrices = (prices: Record<string, number>) => {
     // Get all owned crypto from character assets
