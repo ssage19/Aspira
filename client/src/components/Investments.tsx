@@ -120,24 +120,33 @@ export function Investments() {
     
     // For each stock, get its current price from the asset tracker or owned assets
     expandedStockMarket.forEach(stock => {
-      // First check if the user owns this stock, as it will have the most up-to-date price
-      const ownedStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
-      if (ownedStock && ownedStock.currentPrice) {
-        updatedPrices[stock.id] = ownedStock.currentPrice;
-      } 
-      // Alternatively, try to get the price from the asset tracker's stocks object
-      else if (assetTracker.stocks) {
-        const trackerStock = assetTracker.stocks.find((s: any) => s.id === stock.id);
-        if (trackerStock && trackerStock.currentPrice > 0) {
-          updatedPrices[stock.id] = trackerStock.currentPrice;
-        } else {
-          // Fallback to base price if not found in tracker
+      // First try to get price from our new centralized asset price method
+      const assetPrice = assetTracker.getAssetPrice(stock.id);
+      if (assetPrice > 0) {
+        updatedPrices[stock.id] = assetPrice;
+        console.log(`Investments: Got price for ${stock.name} from asset tracker: $${assetPrice.toFixed(2)}`);
+      }
+      // Fallback to direct checks if the getAssetPrice method doesn't return a price
+      else {
+        // Check if the user owns this stock
+        const ownedStock = assets.find(asset => asset.id === stock.id && asset.type === 'stock');
+        if (ownedStock && ownedStock.currentPrice) {
+          updatedPrices[stock.id] = ownedStock.currentPrice;
+        } 
+        // Alternatively, try to get the price from the asset tracker's stocks object
+        else if (assetTracker.stocks) {
+          const trackerStock = assetTracker.stocks.find((s: any) => s.id === stock.id);
+          if (trackerStock && trackerStock.currentPrice > 0) {
+            updatedPrices[stock.id] = trackerStock.currentPrice;
+          } else {
+            // Fallback to base price if not found in tracker
+            updatedPrices[stock.id] = stock.basePrice;
+          }
+        }
+        // Last resort, use base price
+        else {
           updatedPrices[stock.id] = stock.basePrice;
         }
-      }
-      // Last resort, use base price
-      else {
-        updatedPrices[stock.id] = stock.basePrice;
       }
     });
     
@@ -179,24 +188,33 @@ export function Investments() {
     
     // For each crypto, get its current price from the asset tracker or owned assets
     cryptoCurrencies.forEach(crypto => {
-      // First check if the user owns this crypto, as it will have the most up-to-date price
-      const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
-      if (ownedCrypto && ownedCrypto.currentPrice) {
-        updatedPrices[crypto.id] = ownedCrypto.currentPrice;
-      } 
-      // Alternatively, try to get the price from the asset tracker's cryptoAssets array
-      else if (assetTracker.cryptoAssets) {
-        const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
-        if (trackerCrypto && trackerCrypto.currentPrice > 0) {
-          updatedPrices[crypto.id] = trackerCrypto.currentPrice;
-        } else {
-          // Fallback to base price if not found in tracker
+      // First try to get price from our new centralized asset price method
+      const assetPrice = assetTracker.getAssetPrice(crypto.id);
+      if (assetPrice > 0) {
+        updatedPrices[crypto.id] = assetPrice;
+        console.log(`Investments: Got price for ${crypto.name} from asset tracker: $${assetPrice.toFixed(2)}`);
+      }
+      // Fallback to direct checks if needed
+      else {
+        // Check if the user owns this crypto
+        const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
+        if (ownedCrypto && ownedCrypto.currentPrice) {
+          updatedPrices[crypto.id] = ownedCrypto.currentPrice;
+        } 
+        // Alternatively, try to get the price from the asset tracker's cryptoAssets array
+        else if (assetTracker.cryptoAssets) {
+          const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
+          if (trackerCrypto && trackerCrypto.currentPrice > 0) {
+            updatedPrices[crypto.id] = trackerCrypto.currentPrice;
+          } else {
+            // Fallback to base price if not found in tracker
+            updatedPrices[crypto.id] = crypto.basePrice;
+          }
+        }
+        // Last resort, use base price
+        else {
           updatedPrices[crypto.id] = crypto.basePrice;
         }
-      }
-      // Last resort, use base price
-      else {
-        updatedPrices[crypto.id] = crypto.basePrice;
       }
     });
     
