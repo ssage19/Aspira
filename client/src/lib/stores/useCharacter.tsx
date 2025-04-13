@@ -3203,16 +3203,16 @@ export const useCharacter = create<CharacterState>()(
       },
       
       monthlyUpdate: () => {
+        // Import the monthly finances calculator
+        const { calculateMonthlyFinances } = require('../hooks/useMonthlyFinances');
+        
         const state = get();
         
-        // Use our centralized expense calculation methods
-        const housingExpense = state.getHousingExpense();
-        const transportationExpense = state.getTransportationExpense();
-        const foodExpense = state.getFoodExpense();
-        const lifestyleExpenses = state.getLifestyleExpense();
+        // Use the centralized expense calculation to ensure consistency with the UI display
+        const financeData = calculateMonthlyFinances(state);
         
-        // Calculate total monthly expenses
-        const totalMonthlyExpenses = state.getTotalMonthlyExpense();
+        // Get the total expenses from the detailed calculation
+        const totalMonthlyExpenses = financeData.totalExpenses;
         
         // Apply the monthly expenses if we have any
         if (totalMonthlyExpenses > 0) {
@@ -3224,12 +3224,18 @@ export const useCharacter = create<CharacterState>()(
           // Get the updated state after deducting expenses
           const updatedState = get();
           
-          // Log the expense transaction with clear indication (but no toast)
+          // Log the expense transaction with clear indication (no toast)
           console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.`);
           console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(updatedState.wealth)}`);
-          console.log(`Breakdown - Housing: ${formatCurrency(housingExpense)}, Transportation: ${formatCurrency(transportationExpense)}, Food: ${formatCurrency(foodExpense)}, Lifestyle: ${formatCurrency(lifestyleExpenses)}`);
-          
-          // Removed toast notification as it's now shown in the combined monthly summary
+          console.log(`Expense breakdown:`, {
+            housing: financeData.housingExpense,
+            transportation: financeData.transportationExpense,
+            food: financeData.foodExpense,
+            healthcare: financeData.healthcareExpense,
+            taxes: financeData.taxExpense,
+            lifestyle: financeData.lifestyleExpenses,
+            business: financeData.businessExpenses
+          });
         }
         
         set((state) => {
