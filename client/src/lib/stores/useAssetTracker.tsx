@@ -149,7 +149,7 @@ const initialState: Omit<AssetTrackerState,
   | 'addOtherInvestment' | 'updateOtherInvestment' | 'removeOtherInvestment'
   | 'addProperty' | 'updateProperty' | 'removeProperty'
   | 'addLifestyleItem' | 'updateLifestyleItem' | 'removeLifestyleItem'
-  | 'recalculateTotals' | 'resetAssetTracker' | 'forceUpdate' | 'getNetWorthBreakdown'
+  | 'recalculateTotals' | 'resetAssetTracker' | 'forceUpdate' | 'getNetWorthBreakdown' | 'getAssetPrice'
 > = {
   cash: 10000, // Default starting cash
   stocks: [],
@@ -680,6 +680,30 @@ export const useAssetTracker = create<AssetTrackerState>()(
         } catch (e) {
           console.error('Error saving net worth breakdown to localStorage:', e);
         }
+      },
+      
+      // Helper method to get asset price by ID (stock, crypto, etc)
+      getAssetPrice: (id: string): number => {
+        const state = get();
+        
+        // Check if it's a stock
+        const stock = state.stocks.find(s => s.id === id);
+        if (stock) return stock.currentPrice;
+        
+        // Check if it's crypto - note we use cryptoAssets, not crypto
+        const crypto = state.cryptoAssets.find(c => c.id === id);
+        if (crypto) return crypto.currentPrice;
+        
+        // Check other investment types
+        const otherInv = state.otherInvestments.find(i => i.id === id);
+        if (otherInv) return otherInv.currentValue;
+        
+        // Check property 
+        const property = state.properties.find(p => p.id === id);
+        if (property) return property.currentValue;
+        
+        // Not found - return 0
+        return 0;
       },
       
       // Reset the asset tracker to initial state

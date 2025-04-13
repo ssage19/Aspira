@@ -184,9 +184,9 @@ export function Investments() {
       if (ownedCrypto && ownedCrypto.currentPrice) {
         updatedPrices[crypto.id] = ownedCrypto.currentPrice;
       } 
-      // Alternatively, try to get the price from the asset tracker's crypto object
-      else if (assetTracker.crypto) {
-        const trackerCrypto = assetTracker.crypto.find((c: any) => c.id === crypto.id);
+      // Alternatively, try to get the price from the asset tracker's cryptoAssets array
+      else if (assetTracker.cryptoAssets) {
+        const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
         if (trackerCrypto && trackerCrypto.currentPrice > 0) {
           updatedPrices[crypto.id] = trackerCrypto.currentPrice;
         } else {
