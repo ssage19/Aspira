@@ -3317,6 +3317,9 @@ export const useCharacter = create<CharacterState>()(
         // Process mortgage payments and update equity for all properties
         // This must be done before deducting expenses
         if (state.properties.length > 0) {
+          // Check if any properties have been paid off this month
+          let paidOffProperties = [];
+          
           // Process each property's mortgage payment
           const updatedProperties = state.properties.map(property => {
             // Skip if property has no mortgage
@@ -3336,7 +3339,12 @@ export const useCharacter = create<CharacterState>()(
             // If loan amount is very small (less than $1), consider it fully paid
             const finalLoanAmount = newLoanAmount < 1 ? 0 : newLoanAmount;
             
-            // Log the mortgage payment breakdown
+            // Check if property was just paid off (had a balance before, now zero)
+            if (property.loanAmount > 0 && finalLoanAmount === 0) {
+              paidOffProperties.push(property.name);
+            }
+            
+            // Log the mortgage payment breakdown (console only, no toast)
             console.log(`Property mortgage payment for ${property.name}:`);
             console.log(`  Total payment: $${property.monthlyPayment.toFixed(2)}`);
             console.log(`  Interest portion: $${interestPayment.toFixed(2)}`);
@@ -3355,6 +3363,21 @@ export const useCharacter = create<CharacterState>()(
           
           // Update properties in store
           set({ properties: updatedProperties });
+          
+          // Only show a toast if a property was fully paid off
+          if (paidOffProperties.length > 0) {
+            if (paidOffProperties.length === 1) {
+              toast.success(`Congratulations! Your property "${paidOffProperties[0]}" is now fully paid off!`, {
+                duration: 5000,
+                position: 'bottom-right',
+              });
+            } else if (paidOffProperties.length > 1) {
+              toast.success(`Multiple properties paid off: ${paidOffProperties.join(", ")}!`, {
+                duration: 5000,
+                position: 'bottom-right',
+              });
+            }
+          }
           
           // Sync with asset tracker if it's available
           if (useAssetTracker) {
