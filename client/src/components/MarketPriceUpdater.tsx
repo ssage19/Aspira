@@ -497,8 +497,38 @@ export function MarketPriceUpdater() {
     // Run the update immediately
     updateAllPrices();
     
-    // Set up an interval to run updates periodically (every 5 seconds)
-    const updateInterval = setInterval(updateAllPrices, 5000);
+    // Set up an interval to run updates periodically (every 2 seconds for more responsive UI)
+    const updateInterval = setInterval(() => {
+      console.log("MarketPriceUpdater: Running scheduled price update");
+      
+      // First, run the update normally
+      updateAllPrices();
+      
+      // Then force a refresh for all components after a 250ms delay
+      // This ensures UI components have time to pick up the changes
+      setTimeout(() => {
+        // 1. Update all stock prices in the tracker with whatever values we currently have
+        const state = assetTracker.getState();
+        state.stocks.forEach(stock => {
+          // Force the stock price to update with itself to trigger a state change
+          assetTracker.updateStock(stock.id, stock.shares, stock.currentPrice);
+        });
+        
+        // 2. Same for crypto assets
+        state.cryptoAssets.forEach(crypto => {
+          // Force the crypto price to update with itself to trigger a state change
+          assetTracker.updateCrypto(crypto.id, crypto.amount, crypto.currentPrice);
+        });
+        
+        // 3. Force character store to sync with asset tracker
+        syncAssetsWithAssetTracker();
+        
+        // 4. Make sure we recalculate totals after all these updates
+        assetTracker.recalculateTotals();
+        
+        console.log("MarketPriceUpdater: Completed forced UI refresh");
+      }, 250);
+    }, 2000); // Increased frequency of updates for more responsive UI
     
     // Additionally, subscribe to game time changes to update prices 
     // when crossing from before market hours to during, or during to after
