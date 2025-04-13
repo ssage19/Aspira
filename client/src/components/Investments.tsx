@@ -564,6 +564,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after crypto sale");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after crypto sale");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
   
@@ -620,6 +628,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after bond purchase");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after bond purchase");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
   
@@ -688,6 +704,14 @@ export function Investments() {
     if ((window as any).globalUpdateAllPrices) {
       console.log("Investments: Triggering global price update after startup investment");
       (window as any).globalUpdateAllPrices();
+      
+      // Add a delayed update to ensure UI is fully in sync after state updates
+      setTimeout(() => {
+        console.log("Investments: Running follow-up sync after startup investment");
+        if ((window as any).globalUpdateAllPrices) {
+          (window as any).globalUpdateAllPrices();
+        }
+      }, 1000);
     }
   };
 
