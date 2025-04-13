@@ -3,6 +3,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
 import { useAudio } from '../lib/stores/useAudio';
+import { useResponsive } from '../lib/hooks/useResponsive';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
 import { Slider } from './ui/slider';
@@ -18,8 +19,16 @@ import {
   TrendingUp,
   AlertCircle,
   Check,
-  ChevronLeft
+  ChevronLeft,
+  ChevronDown,
+  Menu
 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 import { formatCurrency } from '../lib/utils';
 import { 
   residentialProperties, 
@@ -36,6 +45,7 @@ export function Properties() {
   const { currentDay, currentMonth, currentYear } = useTime();
   const { playSuccess, playHit } = useAudio();
   const navigate = useNavigate();
+  const { isMobile } = useResponsive();
   
   const [activeTab, setActiveTab] = useState('residential');
   const [selectedProperty, setSelectedProperty] = useState<PropertyType>(residentialProperties[0]);
