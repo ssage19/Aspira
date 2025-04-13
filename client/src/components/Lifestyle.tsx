@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useAudio } from '../lib/stores/useAudio';
 import { useTime } from '../lib/stores/useTime';
