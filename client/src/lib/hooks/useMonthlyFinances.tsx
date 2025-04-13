@@ -1,5 +1,25 @@
 import { useCharacter } from '../stores/useCharacter';
 
+// Import the expense rates directly from the character store constants
+// Use the same values to ensure consistency
+const EXPENSE_RATES = {
+  HOUSING: {
+    RENTAL: 1800,    // $1,800/mo for rental
+    SHARED: 900,     // $900/mo for shared housing
+    OWNED: 0,        // No expense for owned (handled via property mortgage)
+    HOMELESS: 0      // No housing expense
+  },
+  TRANSPORTATION: {
+    ECONOMY: 300,    // $300/mo for economy vehicle
+    STANDARD: 450,   // $450/mo for standard vehicle
+    LUXURY: 1000,    // $1,000/mo for luxury vehicle
+    PREMIUM: 1500,   // $1,500/mo for premium vehicle
+    BICYCLE: 50,     // $50/mo for bicycle maintenance and public transport
+    NONE: 0          // No transportation expense
+  },
+  FOOD: 600          // $600/mo standard food expense
+};
+
 /**
  * Custom hook to calculate monthly finances consistently across the application
  * This ensures the same finance calculations are used in both the UI display
@@ -10,19 +30,13 @@ export function useMonthlyFinances() {
   
   // Calculate income values with more detailed breakdown
   const job = characterState.job;
-  const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+  // Using job.salary / 12 to maintain consistency with JobScreen display
+  const monthlySalary = job ? job.salary / 12 : 0;
   
-  // Calculate property income with better property value assessment
+  // Calculate property income directly without multipliers to match Properties screen
   const propertyIncome = characterState.properties.reduce((total, property) => {
-    // Consider property condition and location in income calculation
-    const locationMultiplier = property.location === 'downtown' ? 1.2 : 
-                              property.location === 'suburban' ? 1.0 : 0.8;
-    
-    const conditionMultiplier = property.condition === 'excellent' ? 1.1 : 
-                               property.condition === 'good' ? 1.0 : 
-                               property.condition === 'fair' ? 0.9 : 0.7;
-    
-    return total + (property.income * locationMultiplier * conditionMultiplier);
+    // Use the direct income value without multipliers for consistency
+    return total + (property.income || 0);
   }, 0);
   
   // Calculate business income if any
@@ -35,19 +49,26 @@ export function useMonthlyFinances() {
   
   const totalIncome = monthlySalary + propertyIncome + businessIncome + investmentIncome;
   
-  // Calculate expense values with comprehensive breakdown
-  // Housing expenses based on housing type with more detail
-  const housingExpense = characterState.housingType === 'rental' ? 1800 : 
-                        characterState.housingType === 'shared' ? 900 :
-                        characterState.housingType === 'owned' ? 
-                          (characterState.properties.find(p => p.isPlayerResidence)?.monthlyCost || 1200) : 0;
+  // Calculate expense values using the constants from useCharacter store
+  // Use the character's getHousingExpense method for consistency
+  const housingExpense = characterState.getHousingExpense ? 
+                        characterState.getHousingExpense() : 
+                        // Fallback calculation using the same constants as useCharacter
+                        characterState.housingType === 'rental' ? EXPENSE_RATES.HOUSING.RENTAL : 
+                        characterState.housingType === 'shared' ? EXPENSE_RATES.HOUSING.SHARED :
+                        characterState.housingType === 'owned' ? EXPENSE_RATES.HOUSING.OWNED : 
+                        EXPENSE_RATES.HOUSING.HOMELESS;
   
-  // Transportation expenses with more detail
-  const transportationExpense = characterState.vehicleType === 'economy' ? 300 :
-                              characterState.vehicleType === 'standard' ? 450 :
-                              characterState.vehicleType === 'luxury' ? 1000 :
-                              characterState.vehicleType === 'premium' ? 1500 :
-                              characterState.vehicleType === 'bicycle' ? 50 : 200; // Public transit fallback
+  // Transportation expenses using the same values as character creation
+  const transportationExpense = characterState.getTransportationExpense ?
+                              characterState.getTransportationExpense() :
+                              // Fallback calculation using the same constants as useCharacter
+                              characterState.vehicleType === 'economy' ? EXPENSE_RATES.TRANSPORTATION.ECONOMY :
+                              characterState.vehicleType === 'standard' ? EXPENSE_RATES.TRANSPORTATION.STANDARD :
+                              characterState.vehicleType === 'luxury' ? EXPENSE_RATES.TRANSPORTATION.LUXURY :
+                              characterState.vehicleType === 'premium' ? EXPENSE_RATES.TRANSPORTATION.PREMIUM :
+                              characterState.vehicleType === 'bicycle' ? EXPENSE_RATES.TRANSPORTATION.BICYCLE : 
+                              EXPENSE_RATES.TRANSPORTATION.NONE;
   
   // Food expenses based on lifestyle level
   const lifestyleLevel = characterState.lifestyleLevel || 1;
@@ -130,17 +151,13 @@ export function useMonthlyFinances() {
 export function calculateMonthlyFinances(characterState: any) {
   // Income calculations
   const job = characterState.job;
-  const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+  // Using job.salary / 12 to match JobScreen and hook calculation
+  const monthlySalary = job ? job.salary / 12 : 0;
   
+  // Calculate property income directly to match Properties screen and hook calculation
   const propertyIncome = characterState.properties.reduce((total: number, property: any) => {
-    const locationMultiplier = property.location === 'downtown' ? 1.2 : 
-                              property.location === 'suburban' ? 1.0 : 0.8;
-    
-    const conditionMultiplier = property.condition === 'excellent' ? 1.1 : 
-                               property.condition === 'good' ? 1.0 : 
-                               property.condition === 'fair' ? 0.9 : 0.7;
-    
-    return total + (property.income * locationMultiplier * conditionMultiplier);
+    // Use direct income values without multipliers for consistency
+    return total + (property.income || 0);
   }, 0);
   
   const businessIncome = characterState.businesses?.reduce((total: number, business: any) => 
@@ -151,17 +168,23 @@ export function calculateMonthlyFinances(characterState: any) {
   
   const totalIncome = monthlySalary + propertyIncome + businessIncome + investmentIncome;
   
-  // Expense calculations
-  const housingExpense = characterState.housingType === 'rental' ? 1800 : 
+  // Expense calculations - use the same consistent approach as the hook
+  const housingExpense = characterState.getHousingExpense ? 
+                        characterState.getHousingExpense() : 
+                        // Fallback calculation if method not available
+                        characterState.housingType === 'rental' ? 1800 : 
                         characterState.housingType === 'shared' ? 900 :
-                        characterState.housingType === 'owned' ? 
-                          (characterState.properties.find((p: any) => p.isPlayerResidence)?.monthlyCost || 1200) : 0;
+                        characterState.housingType === 'owned' ? 1200 : 
+                        characterState.housingType === 'luxury' ? 8000 : 0;
   
-  const transportationExpense = characterState.vehicleType === 'economy' ? 300 :
+  const transportationExpense = characterState.getTransportationExpense ?
+                              characterState.getTransportationExpense() :
+                              // Fallback calculation if method not available
+                              characterState.vehicleType === 'economy' ? 300 :
                               characterState.vehicleType === 'standard' ? 450 :
                               characterState.vehicleType === 'luxury' ? 1000 :
                               characterState.vehicleType === 'premium' ? 1500 :
-                              characterState.vehicleType === 'bicycle' ? 50 : 200;
+                              characterState.vehicleType === 'bicycle' ? 50 : 0;
   
   const lifestyleLevel = characterState.lifestyleLevel || 1;
   const foodExpense = 400 + (lifestyleLevel * 100);
