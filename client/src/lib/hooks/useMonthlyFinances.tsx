@@ -4,19 +4,19 @@ import { useCharacter } from '../stores/useCharacter';
 // Use the same values to ensure consistency
 const EXPENSE_RATES = {
   HOUSING: {
-    RENTAL: 1800,    // $1,800/mo for rental
-    SHARED: 900,     // $900/mo for shared housing
-    OWNED: 0,        // No expense for owned (handled via property mortgage)
-    HOMELESS: 0,     // No housing expense
-    LUXURY: 3000     // $3,000/mo for luxury housing
+    RENTAL: 2000,    // $2,000/mo for rental housing
+    SHARED: 800,     // $800/mo for shared housing
+    OWNED: 3500,     // $3,500/mo for owned home (mortgage payments)
+    HOMELESS: 0,     // No housing expense for homeless
+    LUXURY: 8000     // $8,000/mo for luxury housing
   },
   TRANSPORTATION: {
-    ECONOMY: 300,    // $300/mo for economy vehicle
-    STANDARD: 450,   // $450/mo for standard vehicle
-    LUXURY: 1000,    // $1,000/mo for luxury vehicle
-    PREMIUM: 1500,   // $1,500/mo for premium vehicle 
-    BICYCLE: 50,     // $50/mo for bicycle maintenance and public transport
-    NONE: 0          // No transportation expense
+    ECONOMY: 350,    // $350/mo for economy car
+    STANDARD: 500,   // $500/mo for standard car
+    LUXURY: 1200,    // $1,200/mo for luxury car
+    PREMIUM: 2500,   // $2,500/mo for premium car
+    BICYCLE: 30,     // $30/mo for bicycle maintenance
+    NONE: 150        // $150/mo for no vehicle (public transportation)
   },
   FOOD: 600,         // $600/mo standard food expense
   HEALTHCARE: 200,   // $200/mo healthcare expense
