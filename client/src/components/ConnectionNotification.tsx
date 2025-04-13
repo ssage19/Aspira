@@ -51,7 +51,7 @@ export function ConnectionNotification({ connection, onClose, onView }: Connecti
       initial={{ opacity: 0, y: 50 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -50 }}
-      className="fixed bottom-4 right-4 max-w-sm w-full bg-card rounded-lg shadow-lg border border-border p-4 z-50"
+      className="fixed bottom-20 md:bottom-4 right-4 max-w-sm w-full bg-card rounded-lg shadow-lg border border-border p-4 z-50"
     >
       <div className="flex items-start justify-between">
         <div className={`rounded-full w-10 h-10 flex items-center justify-center text-white ${getColorByType()}`}>

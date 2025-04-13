@@ -341,7 +341,17 @@ function App() {
             </AssetRefreshProvider>
           </Suspense>
         </Router>
-        <Toaster position="top-right" richColors />
+        <Toaster 
+          position="top-right" 
+          richColors 
+          className="toaster-container"
+          toastOptions={{
+            style: { 
+              marginBottom: '70px' // Add extra space at bottom for mobile nav
+            },
+            className: "mobile-adjusted-toast"
+          }}
+        />
       </QueryClientProvider>
     </ThemeProvider>
   );
