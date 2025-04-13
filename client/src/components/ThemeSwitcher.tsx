@@ -52,12 +52,12 @@ export function ThemeSwitcher() {
                   key={themeName}
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-2",
+                    "w-full justify-start gap-2 p-2 h-auto",
                     theme === themeName && "bg-muted/50"
                   )}
                   onClick={() => setTheme(themeName)}
                 >
-                  <ThemeIcon className="h-4 w-4" />
+                  <ThemeIcon className="h-4 w-4 flex-shrink-0" />
                   <div className="flex-1 text-left overflow-hidden">
                     <div className="font-medium capitalize">
                       {themeName === 'dark' ? 'Dark Mode' : 

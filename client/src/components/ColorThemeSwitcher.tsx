@@ -68,7 +68,7 @@ export function ColorThemeSwitcher() {
                   key={themeName}
                   variant="ghost"
                   className={cn(
-                    "w-full justify-start gap-2",
+                    "w-full justify-start gap-2 p-2 h-auto",
                     colorTheme === themeName && "bg-muted/50"
                   )}
                   onClick={() => setColorTheme(themeName)}
