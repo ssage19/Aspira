@@ -269,10 +269,13 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
       
       if (e.key === 'ArrowLeft') {
         navigateMonth('prev');
+        e.preventDefault(); // Prevent page scrolling
       } else if (e.key === 'ArrowRight') {
         navigateMonth('next');
+        e.preventDefault(); // Prevent page scrolling
       } else if (e.key === 'Home') {
         resetToCurrentMonth();
+        e.preventDefault(); // Prevent default behavior
       }
     };
     
@@ -280,7 +283,7 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [currentGameDate]);
+  }, []);
   
   // Get upcoming events sorted by date
   const upcomingEvents = useMemo(() => {
@@ -326,16 +329,33 @@ const EventsCalendarView: React.FC<EventsCalendarViewProps> = ({
       </div>
       
       {/* Calendar grid */}
-      <div className="mb-6">
+      <div 
+        className="mb-6" 
+        tabIndex={0} 
+        aria-label="Event Calendar" 
+        role="grid"
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowLeft') {
+            navigateMonth('prev');
+            e.preventDefault();
+          } else if (e.key === 'ArrowRight') {
+            navigateMonth('next');
+            e.preventDefault();
+          } else if (e.key === 'Home') {
+            resetToCurrentMonth();
+            e.preventDefault();
+          }
+        }}
+      >
         {/* Weekday headers */}
-        <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1">
+        <div className="grid grid-cols-7 text-center text-xs font-medium border-b py-1" role="row">
           {WEEKDAYS.map(day => (
-            <div key={day} className="px-1">{day}</div>
+            <div key={day} className="px-1" role="columnheader">{day}</div>
           ))}
         </div>
         
         {/* Calendar days */}
-        <div className="grid grid-cols-7">
+        <div className="grid grid-cols-7" role="rowgroup">
           {calendarDays.map(day => (
             <CalendarEventDay 
               key={day.toString()} 

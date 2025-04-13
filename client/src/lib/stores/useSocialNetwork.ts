@@ -1312,7 +1312,22 @@ function createRandomEvent(type: SocialEvent['type'], prestigeLevel: number): So
   // This spreads events better across the month rather than clustering them
   const now = Date.now();
   const daysInFuture = 5 + Math.floor(Math.random() * 20);
-  const eventDate = now + (daysInFuture * 24 * 60 * 60 * 1000);
+  
+  // Create a base date for the event
+  const baseDate = new Date(now + (daysInFuture * 24 * 60 * 60 * 1000));
+  
+  // Generate a random time between 8:00 AM and 7:00 PM
+  // 8 + 0-11 hours = 8:00 AM to 7:00 PM
+  const hours = 8 + Math.floor(Math.random() * 12);
+  
+  // Generate random minutes (0, 15, 30, or 45)
+  const minutes = [0, 15, 30, 45][Math.floor(Math.random() * 4)];
+  
+  // Set the time on the date
+  baseDate.setHours(hours, minutes, 0, 0);
+  
+  // Get the timestamp
+  const eventDate = baseDate.getTime();
   
   // Event is available until 1 day after the event date
   const availableUntil = eventDate + (24 * 60 * 60 * 1000);
