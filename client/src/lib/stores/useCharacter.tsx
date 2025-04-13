@@ -1740,13 +1740,17 @@ export const useCharacter = create<CharacterState>()(
           };
         });
         
-        // Show toast notification
-        if (validAmount > 0) {
+        // Show toast notification only for significant skill point awards (3+)
+        // This reduces notification frequency while still alerting for important gains
+        if (validAmount >= 3) {
           toast.success('Skill Points Awarded!', {
             description: `You gained ${validAmount} skill points that can be used to improve your character.`,
             position: 'top-center',
             duration: 3000
           });
+        } else if (validAmount > 0) {
+          // For smaller awards, just log to console without toast
+          console.log(`Gained ${validAmount} skill points silently (below notification threshold)`);
         }
         
         saveState();
@@ -3003,16 +3007,33 @@ export const useCharacter = create<CharacterState>()(
           
           // Remove expired items
           if (expiredItems.length > 0) {
-            expiredItems.forEach(item => {
-              console.log(`${item.name} has expired and will be removed.`);
+            // If multiple items expired, batch them into a single notification 
+            // instead of showing one per item
+            const itemNames = expiredItems.map(item => item.name);
+            
+            // For multiple expired items, show a consolidated toast
+            if (expiredItems.length > 1) {
+              console.log(`${expiredItems.length} lifestyle items have expired and will be removed:`, itemNames);
               
-              // Show toast notification for each expired item
-              toast(`Your ${item.name} has ended.`, {
+              // Show a single consolidated toast for all expired items
+              toast(`${expiredItems.length} lifestyle items have ended: ${itemNames.join(', ')}`, {
                 duration: 5000,
                 position: 'bottom-right',
                 icon: '⏱️'
               });
+            } else {
+              // For a single expired item, show a simple toast
+              console.log(`${itemNames[0]} has expired and will be removed.`);
               
+              toast(`Your ${itemNames[0]} has ended.`, {
+                duration: 5000,
+                position: 'bottom-right',
+                icon: '⏱️'
+              });
+            }
+            
+            // Process all expired items
+            expiredItems.forEach(item => {
               // Reverse the effects of the expired item on character attributes
               // Decrease happiness and prestige if they were boosted by this item
               if (item.happiness) {

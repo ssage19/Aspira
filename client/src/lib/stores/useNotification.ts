@@ -1,5 +1,18 @@
 import { create } from 'zustand';
-import { toast, ToastOptions } from 'sonner';
+import { toast } from 'sonner';
+import React from 'react';
+
+// Define our own ToastOptions type to avoid import issues
+type ToastOptions = {
+  id?: string;
+  duration?: number;
+  position?: 'top-left' | 'top-right' | 'top-center' | 'bottom-left' | 'bottom-right' | 'bottom-center';
+  icon?: React.ReactNode;
+  description?: React.ReactNode;
+  action?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+};
 
 export interface Notification {
   title: string;
