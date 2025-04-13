@@ -246,6 +246,11 @@ interface CharacterState {
   setVehicle: (type: CharacterState['vehicleType']) => void;
   setHousing: (type: CharacterState['housingType']) => void;
   
+  // Time management
+  addTimeCommitment: (hours: number) => void;
+  reduceTimeCommitment: (hours: number) => void;
+  updateFreeTime: (hours: number) => void;
+  
   // Assets management
   addAsset: (asset: Asset) => void;
   sellAsset: (assetId: string, quantity: number) => number;
