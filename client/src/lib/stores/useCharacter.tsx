@@ -3494,12 +3494,22 @@ export const useCharacter = create<CharacterState>()(
           
           // Update job experience if employed
           let updatedJob = state.job;
+          let earnedPoints = 0;
+          
           if (updatedJob) {
             // Increment months in current position
             updatedJob = {
               ...updatedJob,
               monthsInPosition: (updatedJob.monthsInPosition || 0) + 1
             };
+            
+            // Calculate total skill points earned from the job's skill gains
+            if (updatedJob.skillGains) {
+              earnedPoints = Object.values(updatedJob.skillGains).reduce((sum, gain) => sum + gain, 0);
+              
+              // Log the skill points earned from job
+              console.log(`Monthly job skill points earned: ${earnedPoints} from ${state.job?.title}`);
+            }
           }
           
           return {
