@@ -86,7 +86,7 @@ const initializeAllPrices = () => {
   
   // Initialize crypto prices
   const cryptoPrices: {[cryptoId: string]: number} = {};
-  cryptoCurrencies.forEach(crypto => {
+  cryptoCurrencies.forEach((crypto: {id: string, basePrice: number}) => {
     cryptoPrices[crypto.id] = crypto.basePrice;
   });
   
