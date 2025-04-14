@@ -603,9 +603,11 @@ export default function Dashboard() {
                           <Award className="mr-2 h-5 w-5 text-yellow-400" />
                           About This Game
                         </h3>
-                        <p className="text-sm text-muted-foreground mb-4">
-                          Aspira: Dream. Build. Live. is a financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.
-                        </p>
+                        <div className="text-sm text-muted-foreground mb-4">
+                          <div className="font-semibold text-lg">Aspira</div>
+                          <div className="font-medium mb-2">Dream. Build. Live.</div>
+                          <p>A financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.</p>
+                        </div>
                         <div className="text-xs text-muted-foreground space-y-1">
                           <p>Version: 1.0.0</p>
                           <p>Created with 💖 by Replit</p>

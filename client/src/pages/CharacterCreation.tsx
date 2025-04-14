@@ -214,9 +214,10 @@ export default function CharacterCreation() {
       </div>
       <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
         <CardHeader>
-          <CardTitle className="text-3xl font-bold flex items-center gradient-text">
-            <DollarSign className="h-8 w-8 mr-2 text-primary" />
-            Aspira: Dream. Build. Live.
+          <CardTitle className="flex flex-col items-center gradient-text">
+            <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-12 w-12 mb-2" />
+            <div className="text-3xl font-bold">Aspira</div>
+            <div className="text-xl font-medium">Dream. Build. Live.</div>
           </CardTitle>
           <CardDescription className="text-lg">
             Create your character and begin your journey to extreme wealth
