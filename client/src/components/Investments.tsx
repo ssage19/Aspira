@@ -782,10 +782,29 @@ export function Investments() {
       return;
     }
     
-    // Calculate maturity date and value
+    // Calculate maturity date and value using the game date
     const maturityYears = selectedBond.term;
-    const maturityDate = new Date();
+    
+    // Get the current in-game date
+    const timeState = useTime.getState();
+    const gameDate = new Date();
+    gameDate.setFullYear(timeState.currentYear);
+    gameDate.setMonth(timeState.currentMonth - 1); // JS months are 0-indexed
+    gameDate.setDate(timeState.currentDay);
+    
+    // Create maturity date from the game date (not the real-world date)
+    const maturityDate = new Date(gameDate);
     maturityDate.setFullYear(maturityDate.getFullYear() + maturityYears);
+    
+    // Calculate the maturity day (like we do with startups)
+    const maturityDay = currentDay + (maturityYears * 365);
+    
+    console.log(`Bond purchase: Created bond with maturity in ${maturityYears} years`, {
+      gameDate: gameDate.toDateString(),
+      maturityDate: maturityDate.toDateString(),
+      currentDay,
+      maturityDay
+    });
     
     // Simple calculation for maturity value: principal + (principal * rate * years)
     const maturityValue = bondAmount + (bondAmount * selectedBond.yieldRate * maturityYears);
@@ -800,6 +819,7 @@ export function Investments() {
       currentPrice: bondAmount,
       purchaseDate: `${currentDay}`,
       maturityDate: maturityDate.toISOString(),
+      maturityDay: maturityDay, // Add maturity day for game-time tracking
       maturityValue: maturityValue,
       term: selectedBond.term,
       yieldRate: selectedBond.yieldRate
@@ -2454,9 +2474,31 @@ export function Investments() {
                             // Format dates
                             const maturityDateStr = `${maturityDate.getMonth() + 1}/${maturityDate.getDate()}/${maturityDate.getFullYear()}`;
                             
-                            // Calculate time remaining until maturity
-                            const today = new Date();
-                            const daysRemaining = Math.max(0, Math.ceil((maturityDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)));
+                            // Calculate days remaining based on the game day counter (just like startups)
+                            // This ensures the bonds and startups use the same time tracking mechanism
+                            let daysRemaining = 0;
+                            
+                            if (asset.maturityDay) {
+                              // If we have maturityDay (newer bonds), use the direct day difference
+                              daysRemaining = Math.max(0, asset.maturityDay - currentDay);
+                            } else {
+                              // Fallback to date calculation for older bonds
+                              const timeState = useTime.getState();
+                              const gameDate = new Date();
+                              gameDate.setFullYear(timeState.currentYear);
+                              gameDate.setMonth(timeState.currentMonth - 1); // JS months are 0-indexed
+                              gameDate.setDate(timeState.currentDay);
+                              
+                              daysRemaining = Math.max(0, Math.ceil((maturityDate.getTime() - gameDate.getTime()) / (1000 * 60 * 60 * 24)));
+                            }
+                            
+                            // Add a debug log for the bond maturity tracking
+                            console.log(`Bond ${asset.name} maturity tracking:`, {
+                              currentGameDay: currentDay,
+                              maturityDay: asset.maturityDay || 'using date calculation',
+                              maturityDate: maturityDate.toDateString(),
+                              daysRemaining
+                            });
                             
                             return (
                               <div 
