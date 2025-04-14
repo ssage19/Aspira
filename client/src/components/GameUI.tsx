@@ -466,6 +466,12 @@ export function GameUI() {
     return `${hour12}:${minute.toString().padStart(2, '0')} ${ampm}`;
   };
   
+  // Format the current date as Month Day, Year
+  const getFormattedDate = () => {
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return `${monthNames[currentMonth-1]} ${currentDay}, ${currentYear}`;
+  };
+  
   // Format the time speed string
   const getTimeSpeedString = () => {
     switch (timeSpeed) {
@@ -515,19 +521,28 @@ export function GameUI() {
           </div>
         </div>
         
-        {/* Mobile optimized center section (shows either time OR date based on screen size) */}
+        {/* Mobile optimized center section with both date and time */}
         {isMobile ? (
-          /* On mobile, we'll focus on just the time with a simple display */
-          <div className="flex flex-col items-center" aria-label="Game time">
-            <button
-              onClick={toggleAutoAdvance}
-              className={`flex items-center justify-center rounded-full px-3 py-1 ${
-                autoAdvanceEnabled ? 'bg-primary/20 text-primary' : 'bg-muted/50 text-muted-foreground'
-              }`}
-            >
-              <Clock className="h-3 w-3 mr-1" />
-              <span className="text-xs font-medium">{getFormattedTime()}</span>
-            </button>
+          /* On mobile, show compact date and time */
+          <div className="flex flex-col items-center" aria-label="Game time and date">
+            <div className="flex flex-col items-center">
+              {/* Date display */}
+              <div className="mb-0.5 flex items-center justify-center text-muted-foreground">
+                <Calendar className="h-3 w-3 mr-1" />
+                <span className="text-xs font-medium">{getFormattedDate()}</span>
+              </div>
+              
+              {/* Time display with play/pause toggle */}
+              <button
+                onClick={toggleAutoAdvance}
+                className={`flex items-center justify-center rounded-full px-3 py-1 ${
+                  autoAdvanceEnabled ? 'bg-primary/20 text-primary' : 'bg-muted/50 text-muted-foreground'
+                }`}
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                <span className="text-xs font-medium">{getFormattedTime()}</span>
+              </button>
+            </div>
           </div>
         ) : (
           /* On larger screens, show both date and time-related controls */
