@@ -2392,10 +2392,17 @@ export const useCharacter = create<CharacterState>()(
               if (existingStockIndex >= 0) {
                 // Update the existing stock
                 if (updateMarketPrices) {
+                  // Market is open, update both quantity and price
                   console.log(`Updating existing stock in tracker: ${stock.name} (${stock.id}) with ${stock.quantity} shares at ${stock.currentPrice}`);
                   assetTracker.updateStock(stock.id, stock.quantity, stock.currentPrice);
+                  
+                  // Also update the global stock price
+                  console.log(`Updating global stock price for ${stock.id} to ${stock.currentPrice}`);
+                  if (assetTracker.updateGlobalStockPrice) {
+                    assetTracker.updateGlobalStockPrice(stock.id, stock.currentPrice);
+                  }
                 } else {
-                  // Only update quantity when market is closed
+                  // Market is closed, only update quantity but keep existing price
                   console.log(`Market CLOSED: Only updating quantity for stock: ${stock.name} (${stock.id}) to ${stock.quantity} shares`);
                   const existingStock = assetTracker.stocks[existingStockIndex];
                   assetTracker.updateStock(stock.id, stock.quantity, existingStock.currentPrice);
@@ -2411,6 +2418,11 @@ export const useCharacter = create<CharacterState>()(
                   purchasePrice: stock.purchasePrice || stock.currentPrice,
                   currentPrice: stock.currentPrice
                 });
+                
+                // Also update the global stock price for the new stock
+                if (assetTracker.updateGlobalStockPrice) {
+                  assetTracker.updateGlobalStockPrice(stock.id, stock.currentPrice);
+                }
                 addedCount++;
               }
             } catch (e) {
@@ -2474,17 +2486,17 @@ export const useCharacter = create<CharacterState>()(
               
               if (existingCryptoIndex >= 0) {
                 // ALWAYS update crypto prices because crypto market is 24/7
-                // Unlike stocks, crypto should always have fresh prices
-                console.log(`Updating crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                // Unlike stocks, crypto updates regardless of market open/closed status
+                console.log(`CRYPTO 24/7: Updating crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
                 assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
                 
                 // Also update the global crypto price
-                console.log(`Updating global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
+                console.log(`CRYPTO 24/7: Updating global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
                 assetTracker.updateGlobalCryptoPrice(crypto.id, crypto.currentPrice);
                 cryptoUpdatedCount++;
               } else {
                 // Add as a new crypto
-                console.log(`Adding new crypto to tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                console.log(`CRYPTO 24/7: Adding new crypto to tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
                 assetTracker.addCrypto({
                   id: crypto.id,
                   name: crypto.name,
@@ -2494,7 +2506,7 @@ export const useCharacter = create<CharacterState>()(
                 });
                 
                 // Also update the global crypto price
-                console.log(`Setting global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
+                console.log(`CRYPTO 24/7: Setting global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
                 assetTracker.updateGlobalCryptoPrice(crypto.id, crypto.currentPrice);
                 cryptoAddedCount++;
               }
@@ -2504,7 +2516,7 @@ export const useCharacter = create<CharacterState>()(
             }
           });
           
-          console.log(`Crypto sync complete: ${cryptoUpdatedCount} updated, ${cryptoAddedCount} added, ${cryptoErrorCount} errors`);
+          console.log(`CRYPTO 24/7: Sync complete: ${cryptoUpdatedCount} updated, ${cryptoAddedCount} added, ${cryptoErrorCount} errors - prices always update regardless of market hours`);
         } catch (cryptoSyncError) {
           console.error("Error during crypto syncing:", cryptoSyncError);
         }
