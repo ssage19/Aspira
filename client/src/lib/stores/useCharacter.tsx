@@ -3509,6 +3509,13 @@ export const useCharacter = create<CharacterState>()(
               
               // Log the skill points earned from job
               console.log(`Monthly job skill points earned: ${earnedPoints} from ${state.job?.title}`);
+              
+              // Award the skill points immediately - this will be picked up in the return object
+              if (earnedPoints > 0) {
+                // Call the function to add to earned skill points
+                get().awardSkillPoints(earnedPoints);
+                console.log(`Awarded ${earnedPoints} skill points to character from monthly job update`);
+              }
             }
           }
           
