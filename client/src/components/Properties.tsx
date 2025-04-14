@@ -544,77 +544,144 @@ export function Properties() {
           </div>
         </div>
         
+        {/* Property Portfolio Section with Tabs */}
         <div>
-          <h3 className="font-semibold mb-2">Your Property Portfolio</h3>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="font-semibold">Your Property Portfolio</h3>
+            {ownedProperties.length > 0 && (
+              <Tabs value={portfolioView} onValueChange={setPortfolioView} className="w-auto">
+                <TabsList className="h-8">
+                  <TabsTrigger value="all" className="text-xs h-7 px-2">
+                    All Properties
+                  </TabsTrigger>
+                  <TabsTrigger value="residential" className="text-xs h-7 px-2">
+                    <Home className="h-3 w-3 mr-1" />
+                    Residential
+                  </TabsTrigger>
+                  <TabsTrigger value="commercial" className="text-xs h-7 px-2">
+                    <Building2 className="h-3 w-3 mr-1" />
+                    Commercial
+                  </TabsTrigger>
+                  <TabsTrigger value="luxury" className="text-xs h-7 px-2">
+                    <Castle className="h-3 w-3 mr-1" />
+                    Luxury
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+          </div>
+          
           {ownedProperties.length === 0 ? (
             <Card className="p-6 text-center">
               <p className="text-gray-500">You don't own any properties yet. Start building your real estate empire!</p>
             </Card>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {ownedProperties.map(property => (
-                <Card key={property.id}>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-lg">{property.name}</CardTitle>
-                    <CardDescription>Purchased: {property.purchaseDate}</CardDescription>
-                  </CardHeader>
-                  <CardContent className="pb-2">
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>Current Value:</span>
-                        <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
-                      </div>
-                      
-                      {/* Mortgage Information */}
-                      {property.loanAmount > 0 && (
-                        <>
-                          <div className="flex justify-between">
-                            <span>Mortgage Balance:</span>
-                            <span className="font-semibold text-red-600">{formatCurrency(property.loanAmount)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Equity:</span>
-                            <span className="font-semibold">{formatCurrency(property.currentValue - property.loanAmount)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Monthly Payment:</span>
-                            <span className="font-semibold text-red-600">-{formatCurrency(property.monthlyPayment)}</span>
-                          </div>
-                        </>
-                      )}
-                      
-                      <div className="flex justify-between">
-                        <span>Monthly Income:</span>
-                        <span className="font-semibold text-green-600">+{formatCurrency(property.income)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Monthly Expenses:</span>
-                        <span className="font-semibold text-red-600">-{formatCurrency(property.expenses)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Net Monthly:</span>
-                        <span className={`font-semibold ${
-                          property.income - property.expenses - (property.monthlyPayment || 0) > 0 
-                            ? 'text-green-600' 
-                            : 'text-red-600'
-                        }`}>
-                          {formatCurrency(property.income - property.expenses - (property.monthlyPayment || 0))}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => handleSell(property.id)}
-                      className="w-full"
-                    >
-                      Sell Property
-                    </Button>
-                  </CardFooter>
+            <>
+              {/* Portfolio Overview */}
+              <div className="mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                <Card className="p-3">
+                  <p className="text-xs text-gray-500">Total Properties</p>
+                  <p className="text-lg font-semibold">{ownedProperties.length}</p>
                 </Card>
-              ))}
-            </div>
+                <Card className="p-3">
+                  <p className="text-xs text-gray-500">Portfolio Value</p>
+                  <p className="text-lg font-semibold">
+                    {formatCurrency(ownedProperties.reduce((sum, prop) => sum + (prop.currentValue || prop.purchasePrice), 0))}
+                  </p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-gray-500">Monthly Income</p>
+                  <p className="text-lg font-semibold text-green-600">
+                    +{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.income, 0))}
+                  </p>
+                </Card>
+                <Card className="p-3">
+                  <p className="text-xs text-gray-500">Monthly Expenses</p>
+                  <p className="text-lg font-semibold text-red-600">
+                    -{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.expenses + (prop.monthlyPayment || 0), 0))}
+                  </p>
+                </Card>
+              </div>
+              
+              {/* Property List */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {ownedProperties
+                  .filter(property => 
+                    portfolioView === 'all' || 
+                    (portfolioView === 'residential' && property.type === 'residential') ||
+                    (portfolioView === 'commercial' && property.type === 'commercial') ||
+                    (portfolioView === 'luxury' && property.type === 'mansion')
+                  )
+                  .map(property => (
+                    <Card key={property.id}>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg flex items-center">
+                          {property.type === 'residential' && <Home className="h-4 w-4 mr-2 text-blue-500" />}
+                          {property.type === 'commercial' && <Building2 className="h-4 w-4 mr-2 text-green-500" />}
+                          {property.type === 'mansion' && <Castle className="h-4 w-4 mr-2 text-purple-500" />}
+                          {property.type === 'industrial' && <Warehouse className="h-4 w-4 mr-2 text-orange-500" />}
+                          {property.name}
+                        </CardTitle>
+                        <CardDescription>Purchased: {property.purchaseDate}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pb-2">
+                        <div className="space-y-2 text-sm">
+                          <div className="flex justify-between">
+                            <span>Current Value:</span>
+                            <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
+                          </div>
+                          
+                          {/* Mortgage Information */}
+                          {property.loanAmount > 0 && (
+                            <>
+                              <div className="flex justify-between">
+                                <span>Mortgage Balance:</span>
+                                <span className="font-semibold text-red-600">{formatCurrency(property.loanAmount)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Equity:</span>
+                                <span className="font-semibold">{formatCurrency(property.currentValue - property.loanAmount)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Monthly Payment:</span>
+                                <span className="font-semibold text-red-600">-{formatCurrency(property.monthlyPayment)}</span>
+                              </div>
+                            </>
+                          )}
+                          
+                          <div className="flex justify-between">
+                            <span>Monthly Income:</span>
+                            <span className="font-semibold text-green-600">+{formatCurrency(property.income)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Monthly Expenses:</span>
+                            <span className="font-semibold text-red-600">-{formatCurrency(property.expenses)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span>Net Monthly:</span>
+                            <span className={`font-semibold ${
+                              property.income - property.expenses - (property.monthlyPayment || 0) > 0 
+                                ? 'text-green-600' 
+                                : 'text-red-600'
+                            }`}>
+                              {formatCurrency(property.income - property.expenses - (property.monthlyPayment || 0))}
+                            </span>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => handleSell(property.id)}
+                          className="w-full"
+                        >
+                          Sell Property
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                ))}
+              </div>
+            </>
           )}
         </div>
       </Tabs>
