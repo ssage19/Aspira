@@ -638,7 +638,7 @@ export default function JobScreen() {
                   <CardContent className="pt-0">
                     <div className="flex justify-between items-end">
                       <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        Total years: {(job.monthsInPosition / 12).toFixed(2)}
+                        Total years: {Math.floor(job.monthsInPosition / 12)}
                       </div>
                     </div>
                     <div className="flex flex-col text-sm mt-2 space-y-2 text-muted-foreground">
