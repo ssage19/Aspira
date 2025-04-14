@@ -25,10 +25,12 @@ const getLocalStorage = (key: string): any => {
   // Special case: If we just performed a game reset, force fresh date
   const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
   const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
+  // IMPORTANT: Check for explicit game reset flag
+  const gameReset = sessionStorage.getItem('game_reset_in_progress') === 'true';
   
-  // If reset is in progress or we need to force current date and we're requesting time data
-  if ((resetInProgress || blockTimeLoads || forceCurrentDate) && key === 'luxury_lifestyle_time') {
-    console.log('Reset or force condition active, forcing fresh date by returning null for time data');
+  // ONLY if reset is explicitly requested, use current date
+  if ((resetInProgress || blockTimeLoads || forceCurrentDate || gameReset) && key === 'luxury_lifestyle_time') {
+    console.log('Game reset condition active, forcing current device date');
     
     // Get the current real date
     const now = new Date();
@@ -50,13 +52,13 @@ const getLocalStorage = (key: string): any => {
       dayCounter: 0,
       _manuallyReset: true,
       _resetTimestamp: Date.now(),
-      _source: "ForceCurrentDate_getLocalStorage"
+      _source: "GameReset_CurrentDate"
     };
     
     // Save this to localStorage
     try {
       localStorage.setItem('luxury_lifestyle_time', JSON.stringify(freshTimeState));
-      console.log(`Forced current date in localStorage: ${freshTimeState.currentMonth}/${freshTimeState.currentDay}/${freshTimeState.currentYear}`);
+      console.log(`Forced current date in localStorage during GAME RESET: ${freshTimeState.currentMonth}/${freshTimeState.currentDay}/${freshTimeState.currentYear}`);
     } catch (err) {
       console.error('Error saving forced current date:', err);
     }
@@ -75,17 +77,17 @@ const getLocalStorage = (key: string): any => {
     if (key === 'luxury_lifestyle_time' && value) {
       console.log(`Retrieved from localStorage - ${key}: Date = ${value.currentMonth}/${value.currentDay}/${value.currentYear}`);
       
-      // Validate time data
-      if (forceCurrentDate || blockTimeLoads) {
-        // We need to ensure this is today's date
+      // ONLY validate time data during explicit game reset
+      if (gameReset || forceCurrentDate || blockTimeLoads) {
+        // We need to ensure this is today's date for reset only
         const now = new Date();
         const currentDay = now.getDate();
         const currentMonth = now.getMonth() + 1;
         const currentYear = now.getFullYear();
         
-        // If the date doesn't match, return a fresh state
+        // If the date doesn't match during reset, return a fresh state
         if (value.currentDay !== currentDay || value.currentMonth !== currentMonth || value.currentYear !== currentYear) {
-          console.warn('Time data does not match today\'s date, forcing fresh date');
+          console.warn('Time data does not match today\'s date during GAME RESET, forcing fresh date');
           const freshState = {
             ...value,
             currentDay,
@@ -95,10 +97,13 @@ const getLocalStorage = (key: string): any => {
             startMonth: currentMonth, 
             startYear: currentYear,
             currentGameDate: now.toISOString(),
-            _source: "ForceCurrentDate_getLocalStorage_validation"
+            _source: "GameReset_DateValidation"
           };
           return freshState;
         }
+      } else {
+        // Normal game refresh - preserve game time
+        console.log(`Loaded game time preserved: ${value.currentMonth}/${value.currentDay}/${value.currentYear}`);
       }
     }
     
