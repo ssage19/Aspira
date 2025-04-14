@@ -17,8 +17,6 @@ import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 import { UpcomingEventsWidget } from '../components/UpcomingEventsWidget';
-import { ConnectionsWidget } from '../components/ConnectionsWidget';
-import { AchievementsWidget } from '../components/AchievementsWidget';
 import { ThemeControls } from '../components/ThemeControls';
 import { MonthlyFinancesWidget } from '../components/MonthlyFinancesWidget';
 
@@ -364,21 +362,15 @@ export default function ReliableDashboard() {
                 </Card>
 
                 {/* Financial Widgets */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 gap-6 mb-8">
                   {/* Monthly Finances Widget - with improved dark mode support */}
                   <MonthlyFinancesWidget />
-                  
-                  {/* Achievements Widget */}
-                  <AchievementsWidget />
                 </div>
                 
-                {/* Networking Widgets */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Events Widget */}
+                <div className="grid grid-cols-1 gap-6 mb-8">
                   {/* Upcoming Events Widget */}
                   <UpcomingEventsWidget />
-                  
-                  {/* Connections Widget */}
-                  <ConnectionsWidget />
                 </div>
                 
                 {/* Quick Action Buttons - responsive grid */}
