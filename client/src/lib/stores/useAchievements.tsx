@@ -132,6 +132,156 @@ const initialAchievements: Achievement[] = [
       description: 'Unlock exclusive investment opportunities'
     }
   },
+  {
+    id: 'wealth-6',
+    title: 'Financial Foundations',
+    description: 'Reach $25,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 25000,
+    icon: 'DollarSign',
+    reward: {
+      type: 'cash',
+      value: 2000,
+      description: '$2,000 cash bonus'
+    }
+  },
+  {
+    id: 'wealth-7',
+    title: 'Wealth Builder',
+    description: 'Reach $250,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 250000,
+    icon: 'DollarSign',
+    reward: {
+      type: 'cash',
+      value: 7500,
+      description: '$7,500 cash bonus'
+    }
+  },
+  {
+    id: 'wealth-8',
+    title: 'Financial Freedom',
+    description: 'Reach $500,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 500000,
+    icon: 'DollarSign',
+    reward: {
+      type: 'cash',
+      value: 15000,
+      description: '$15,000 cash bonus'
+    }
+  },
+  {
+    id: 'wealth-9',
+    title: 'Financial Elite',
+    description: 'Reach $5,000,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5000000,
+    icon: 'Trophy',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% passive income increase'
+    }
+  },
+  {
+    id: 'wealth-10',
+    title: 'Wealth Magnate',
+    description: 'Reach $50,000,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50000000,
+    icon: 'Award',
+    reward: {
+      type: 'multiplier',
+      value: 1.12,
+      description: '12% passive income increase'
+    }
+  },
+  {
+    id: 'wealth-11',
+    title: 'Economic Powerhouse',
+    description: 'Reach $100,000,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100000000,
+    icon: 'Crown',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% passive income increase'
+    }
+  },
+  {
+    id: 'wealth-12',
+    title: 'Financial Dynasty',
+    description: 'Reach $500,000,000 in wealth',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 500000000,
+    icon: 'Crown',
+    reward: {
+      type: 'unlock',
+      value: 2,
+      description: 'Unlock exclusive high-tier investments'
+    }
+  },
+  {
+    id: 'wealth-13',
+    title: 'Fortune 500',
+    description: 'Have assets in at least 15 different categories',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 15,
+    icon: 'LineChart',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% overall returns boost'
+    }
+  },
+  {
+    id: 'wealth-14',
+    title: 'Savings Master',
+    description: 'Maintain $1,000,000 in cash reserve for 30 days',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 30,
+    icon: 'Wallet',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% interest on cash holdings'
+    }
+  },
+  {
+    id: 'wealth-15',
+    title: 'Global Economic Player',
+    description: 'Have assets worth over $10,000,000 in at least 5 different countries',
+    category: 'wealth',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Globe',
+    reward: {
+      type: 'unlock',
+      value: 3,
+      description: 'Unlock international investment opportunities'
+    }
+  },
   
   // Property achievements
   {
@@ -179,6 +329,186 @@ const initialAchievements: Achievement[] = [
       description: '10% property income boost'
     }
   },
+  {
+    id: 'property-4',
+    title: 'First-Time Buyer',
+    description: 'Purchase your first residential property',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'Home',
+    reward: {
+      type: 'cash',
+      value: 3000,
+      description: '$3,000 cash bonus'
+    }
+  },
+  {
+    id: 'property-5',
+    title: 'Commercial Investor',
+    description: 'Purchase your first commercial property',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'Building',
+    reward: {
+      type: 'cash',
+      value: 5000,
+      description: '$5,000 cash bonus'
+    }
+  },
+  {
+    id: 'property-6',
+    title: 'Landlord',
+    description: 'Earn $10,000 from rental properties',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10000,
+    icon: 'Key',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% rental income boost'
+    }
+  },
+  {
+    id: 'property-7',
+    title: 'Property Renovator',
+    description: 'Renovate 3 properties and increase their value by at least 20%',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Hammer',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% renovation efficiency boost'
+    }
+  },
+  {
+    id: 'property-8',
+    title: 'Urban Developer',
+    description: 'Own 5 properties in downtown/central locations',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Building2',
+    reward: {
+      type: 'cash',
+      value: 25000,
+      description: '$25,000 cash bonus'
+    }
+  },
+  {
+    id: 'property-9',
+    title: 'Vacation Property Owner',
+    description: 'Purchase a beachfront or mountain vacation property',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'Palmtree',
+    reward: {
+      type: 'bonus',
+      value: 15,
+      description: '+15 Happiness boost'
+    }
+  },
+  {
+    id: 'property-10',
+    title: 'Property Empire',
+    description: 'Own 20 properties with a combined value of $25,000,000',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 25000000,
+    icon: 'Crown',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% property income boost'
+    }
+  },
+  {
+    id: 'property-11',
+    title: 'High-Rise Owner',
+    description: 'Purchase a skyscraper or luxury high-rise building',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'Building2',
+    reward: {
+      type: 'bonus',
+      value: 25,
+      description: '+25 Prestige boost'
+    }
+  },
+  {
+    id: 'property-12',
+    title: 'Historic Property Collector',
+    description: 'Own 3 historical or landmark properties',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Landmark',
+    reward: {
+      type: 'bonus',
+      value: 20,
+      description: '+20 Prestige boost'
+    }
+  },
+  {
+    id: 'property-13',
+    title: 'Green Developer',
+    description: 'Own 5 eco-friendly or energy-efficient properties',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Leaf',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% environmental score boost'
+    }
+  },
+  {
+    id: 'property-14',
+    title: 'Architectural Visionary',
+    description: 'Own properties designed by 5 different renowned architects',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Pencil',
+    reward: {
+      type: 'bonus',
+      value: 30,
+      description: '+30 Prestige boost'
+    }
+  },
+  {
+    id: 'property-15',
+    title: 'Global Real Estate Portfolio',
+    description: 'Own properties in 7 different countries',
+    category: 'property',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 7,
+    icon: 'Globe',
+    reward: {
+      type: 'unlock',
+      value: 2,
+      description: 'Unlock international property investment opportunities'
+    }
+  },
   
   // Investment achievements
   {
@@ -224,6 +554,186 @@ const initialAchievements: Achievement[] = [
       type: 'unlock',
       value: 1,
       description: 'Unlock exclusive investment opportunities'
+    }
+  },
+  {
+    id: 'investment-4',
+    title: 'Stock Market Beginner',
+    description: 'Own shares in 10 different companies',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'LineChart',
+    reward: {
+      type: 'cash',
+      value: 3000,
+      description: '$3,000 cash bonus'
+    }
+  },
+  {
+    id: 'investment-5',
+    title: 'Blue Chip Collector',
+    description: 'Own shares in 5 blue-chip companies',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Landmark',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% dividend yield increase'
+    }
+  },
+  {
+    id: 'investment-6',
+    title: 'Sector Specialist',
+    description: 'Have $500,000 invested in a single market sector',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 500000,
+    icon: 'Target',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% returns boost in that sector'
+    }
+  },
+  {
+    id: 'investment-7',
+    title: 'Crypto Investor',
+    description: 'Invest in 3 different cryptocurrencies',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Bitcoin',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% crypto returns boost'
+    }
+  },
+  {
+    id: 'investment-8',
+    title: 'Bond Collector',
+    description: 'Hold $250,000 in bonds',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 250000,
+    icon: 'FileText',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% bond interest boost'
+    }
+  },
+  {
+    id: 'investment-9',
+    title: 'Day Trader',
+    description: 'Complete 50 trades in a single day',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50,
+    icon: 'Zap',
+    reward: {
+      type: 'cash',
+      value: 15000,
+      description: '$15,000 cash bonus'
+    }
+  },
+  {
+    id: 'investment-10',
+    title: 'Value Investor',
+    description: 'Hold investments through a 25% market downturn',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Shield',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% investment stability boost'
+    }
+  },
+  {
+    id: 'investment-11',
+    title: 'Growth Investor',
+    description: 'Own 10 high-growth technology stocks',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Rocket',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% growth stock return boost'
+    }
+  },
+  {
+    id: 'investment-12',
+    title: 'Income Investor',
+    description: 'Generate $10,000 monthly from dividends',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10000,
+    icon: 'DollarSign',
+    reward: {
+      type: 'multiplier',
+      value: 1.12,
+      description: '12% dividend yield increase'
+    }
+  },
+  {
+    id: 'investment-13',
+    title: 'ETF Strategist',
+    description: 'Invest $500,000 across 5 different ETFs',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Package',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% lower volatility on all investments'
+    }
+  },
+  {
+    id: 'investment-14',
+    title: 'Commodities Trader',
+    description: 'Invest in 5 different commodities markets',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'BarChart2',
+    reward: {
+      type: 'cash',
+      value: 25000,
+      description: '$25,000 cash bonus'
+    }
+  },
+  {
+    id: 'investment-15',
+    title: 'Global Investor',
+    description: 'Have investments in 10 different international markets',
+    category: 'investment',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Globe',
+    reward: {
+      type: 'unlock',
+      value: 2,
+      description: 'Unlock exclusive international investment opportunities'
     }
   },
   
@@ -333,6 +843,172 @@ const initialAchievements: Achievement[] = [
       type: 'unlock',
       value: 1,
       description: 'Unlock special game features'
+    }
+  },
+  {
+    id: 'general-5',
+    title: 'First Paycheck',
+    description: 'Receive your first salary payment',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'CreditCard',
+    reward: {
+      type: 'cash',
+      value: 1000,
+      description: '$1,000 cash bonus'
+    }
+  },
+  {
+    id: 'general-6',
+    title: 'Decision Maker',
+    description: 'Make 50 different game decisions',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50,
+    icon: 'CheckSquare',
+    reward: {
+      type: 'bonus',
+      value: 10,
+      description: '+10 to all attributes'
+    }
+  },
+  {
+    id: 'general-7',
+    title: 'First Year',
+    description: 'Complete 365 days in your financial journey',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 365,
+    icon: 'Calendar',
+    reward: {
+      type: 'multiplier',
+      value: 1.1,
+      description: '10% overall income boost'
+    }
+  },
+  {
+    id: 'general-8',
+    title: 'Finance Apprentice',
+    description: 'Complete all basic tutorials',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Book',
+    reward: {
+      type: 'skill',
+      value: 5,
+      description: '+5 to all skills',
+      skillType: 'all'
+    }
+  },
+  {
+    id: 'general-9',
+    title: 'Financial Wizard',
+    description: 'Have income from at least 5 different sources simultaneously',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'LayoutGrid',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% income diversification bonus'
+    }
+  },
+  {
+    id: 'general-10',
+    title: 'Career Climber',
+    description: 'Get promoted 3 times in your career',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'ArrowUpCircle',
+    reward: {
+      type: 'cash',
+      value: 10000,
+      description: '$10,000 cash bonus'
+    }
+  },
+  {
+    id: 'general-11',
+    title: 'Networking Pro',
+    description: 'Build a network of 20 professional connections',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 20,
+    icon: 'Users',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% career advancement speed'
+    }
+  },
+  {
+    id: 'general-12',
+    title: 'Financial Journalist',
+    description: 'Read 50 different financial news articles',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 50,
+    icon: 'Newspaper',
+    reward: {
+      type: 'bonus',
+      value: 15,
+      description: '+15 insight for market predictions'
+    }
+  },
+  {
+    id: 'general-13',
+    title: 'Financially Independent',
+    description: 'Have passive income exceed your monthly expenses',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Anchor',
+    reward: {
+      type: 'bonus',
+      value: 25,
+      description: '+25 Happiness'
+    }
+  },
+  {
+    id: 'general-14',
+    title: 'Money Manager',
+    description: 'Maintain a positive cash flow for 12 consecutive months',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 12,
+    icon: 'TrendingUp',
+    reward: {
+      type: 'multiplier',
+      value: 1.07,
+      description: '7% increase to all income'
+    }
+  },
+  {
+    id: 'general-15',
+    title: 'Financial Mastermind',
+    description: 'Achieve maximum scores in all financial metrics',
+    category: 'general',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Award',
+    reward: {
+      type: 'unlock',
+      value: 2,
+      description: 'Unlock elite economic opportunities'
     }
   },
   
@@ -580,6 +1256,81 @@ const initialAchievements: Achievement[] = [
       type: 'unlock',
       value: 2,
       description: 'Unlock premium lifestyle opportunities'
+    }
+  },
+  {
+    id: 'lifestyle-8',
+    title: 'Art Collector',
+    description: 'Own at least 3 valuable pieces of art',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Image',
+    reward: {
+      type: 'bonus',
+      value: 15,
+      description: '+15 Prestige boost'
+    }
+  },
+  {
+    id: 'lifestyle-9',
+    title: 'Car Enthusiast',
+    description: 'Own 3 luxury vehicles',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 3,
+    icon: 'Car',
+    reward: {
+      type: 'bonus',
+      value: 20,
+      description: '+20 Prestige boost'
+    }
+  },
+  {
+    id: 'lifestyle-10',
+    title: 'Fashion Icon',
+    description: 'Own a complete designer wardrobe collection',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 1,
+    icon: 'ShoppingBag',
+    reward: {
+      type: 'bonus',
+      value: 25,
+      description: '+25 Social status boost'
+    }
+  },
+  {
+    id: 'lifestyle-11',
+    title: 'Epicurean',
+    description: 'Dine at 10 different fine restaurants',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'Utensils',
+    reward: {
+      type: 'bonus',
+      value: 15,
+      description: '+15 Happiness boost'
+    }
+  },
+  {
+    id: 'lifestyle-12',
+    title: 'Jetsetter',
+    description: 'Travel to 5 exclusive international destinations',
+    category: 'lifestyle',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Plane',
+    reward: {
+      type: 'bonus',
+      value: 30,
+      description: '+30 Happiness and increased networking opportunities'
     }
   },
 
