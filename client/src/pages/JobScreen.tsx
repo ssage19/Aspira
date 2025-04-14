@@ -642,11 +642,12 @@ export default function JobScreen() {
                     <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
                       <div className="flex justify-between">
                         <span>Time in position:</span>
-                        <span className="font-medium">{Math.floor(job.monthsInPosition / 12)} years, {job.monthsInPosition % 12} months</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span>Days since last review:</span>
-                        <span className="font-medium">{daysSincePromotion} days</span>
+                        <span className="font-medium">
+                          {Math.floor(job.monthsInPosition / 12) > 0 
+                            ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}, ` 
+                            : ''}
+                          {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}, {daysSincePromotion} {daysSincePromotion === 1 ? 'day' : 'days'}
+                        </span>
                       </div>
                     </div>
                   </CardContent>
