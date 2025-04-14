@@ -78,11 +78,14 @@ const skillGainsToString = (gains) => {
   return `{ ${Object.entries(gains).map(([skill, value]) => `${skill}: ${value}`).join(', ')} }`;
 };
 
-// Regular expression to find jobs without skillGains
+// Regular expression to find jobs without skillGains - more comprehensive pattern
 const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (\d+),\s+description: ['"](.+?)['"],\s+skillRequirements: (\{[^}]*\}),(?!\s+skillGains)/g;
 
-// Replace all instances without skillGains
-let modifiedContent = jobsContent.replace(jobLevelRegex, (match, level, title, salary, description, skillReqs) => {
+// More inclusive pattern to catch other variations
+const altJobRegex = /level: ['"](\w+)['"],(?:(?!skillGains).)*?skillRequirements: (\{[^}]*\}),(?:(?!skillGains).)*?(?=happinessImpact)/gs;
+
+// Function to process a match and add skillGains
+const processMatch = (match, level, title, salary, description, skillReqs) => {
   // Parse the skill requirements
   let requirements = {};
   try {
@@ -95,7 +98,7 @@ let modifiedContent = jobsContent.replace(jobLevelRegex, (match, level, title, s
       });
     }
   } catch (e) {
-    console.error(`Error parsing requirements for ${title}:`, e);
+    console.error(`Error parsing requirements for ${title || 'unknown job'}:`, e);
   }
 
   // Generate appropriate skill gains
@@ -103,12 +106,39 @@ let modifiedContent = jobsContent.replace(jobLevelRegex, (match, level, title, s
   const skillGainsStr = skillGainsToString(skillGains);
 
   // Add skillGains property
-  return `level: '${level}',
+  if (title && salary && description) {
+    return `level: '${level}',
         title: '${title}',
         salary: ${salary},
         description: '${description}',
         skillRequirements: ${skillReqs},
         skillGains: ${skillGainsStr},`;
+  } else {
+    // For alternative pattern, we may not have all the parts
+    return match.replace(/skillRequirements: (\{[^}]*\}),/, 
+      `skillRequirements: $1,\n        skillGains: ${skillGainsStr},`);
+  }
+};
+
+// Replace all instances without skillGains using first pattern
+let modifiedContent = jobsContent.replace(jobLevelRegex, (match, level, title, salary, description, skillReqs) => {
+  return processMatch(match, level, title, salary, description, skillReqs);
+});
+
+// Apply second pattern for any remaining ones
+modifiedContent = modifiedContent.replace(altJobRegex, (match) => {
+  // Extract the level and skill requirements
+  const levelMatch = match.match(/level: ['"](\w+)['"]/);
+  const skillReqsMatch = match.match(/skillRequirements: (\{[^}]*\})/);
+  
+  if (levelMatch && skillReqsMatch) {
+    const level = levelMatch[1];
+    const skillReqs = skillReqsMatch[1];
+    
+    return processMatch(match, level, null, null, null, skillReqs);
+  }
+  
+  return match;  // Return unchanged if we can't extract what we need
 });
 
 // Write the modified content back to the file
