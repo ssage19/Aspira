@@ -16,10 +16,13 @@
 import useAssetTracker from '../stores/useAssetTracker';
 import { useCharacter } from '../stores/useCharacter';
 import { useTime } from '../stores/useTime';
+import { expandedStockMarket } from '../data/sp500Stocks';
+import { cryptoCurrencies } from '../data/investments';
 
 // Track the last refresh time to prevent spamming
 let lastRefreshTime = 0;
 let refreshInProgress = false;
+let hasInitializedPrices = false;
 
 // Check if market is open (weekday during trading hours)
 const isMarketOpen = () => {
@@ -66,9 +69,43 @@ const logAssetSnapshots = (label: string) => {
   });
 };
 
+// Function to initialize all stock and crypto prices
+const initializeAllPrices = () => {
+  if (hasInitializedPrices) {
+    return;
+  }
+  
+  console.log("🚀 Initializing all stock and crypto prices");
+  const assetTrackerState = useAssetTracker.getState();
+  
+  // Initialize stock prices
+  const stockPrices: {[stockId: string]: number} = {};
+  expandedStockMarket.forEach(stock => {
+    stockPrices[stock.id] = stock.basePrice;
+  });
+  
+  // Initialize crypto prices
+  const cryptoPrices: {[cryptoId: string]: number} = {};
+  cryptoCurrencies.forEach(crypto => {
+    cryptoPrices[crypto.id] = crypto.basePrice;
+  });
+  
+  // Batch update all prices
+  assetTrackerState.updateGlobalStockPrices(stockPrices);
+  assetTrackerState.updateGlobalCryptoPrices(cryptoPrices);
+  
+  console.log(`✅ Successfully initialized prices for ${Object.keys(stockPrices).length} stocks and ${Object.keys(cryptoPrices).length} cryptocurrencies`);
+  
+  // Set flag to prevent re-initialization
+  hasInitializedPrices = true;
+};
+
 // Global function that can be called from anywhere without React hooks
 export const refreshAllAssets = () => {
   const now = Date.now();
+  
+  // First, make sure all prices are initialized
+  initializeAllPrices();
   
   // Throttle refreshes to prevent performance issues
   if (now - lastRefreshTime < 500 && !window.location.pathname.includes('dashboard')) {
