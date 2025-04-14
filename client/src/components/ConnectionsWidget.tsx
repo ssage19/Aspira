@@ -68,8 +68,11 @@ export function ConnectionsWidget() {
             <p className="text-sm mt-2">Visit the Networking section to build your network</p>
             <Button 
               variant="outline" 
-              className="mt-4 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/10"
-              onClick={() => navigate('/networking')}
+              className="mt-4 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/10 dark:hover:bg-cyan-950"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate('/networking');
+              }}
             >
               Start Networking
             </Button>
@@ -99,8 +102,11 @@ export function ConnectionsWidget() {
             <div className="text-right mt-4">
               <Button
                 variant="ghost" 
-                className="text-xs text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50"
-                onClick={() => navigate('/networking')}
+                className="text-xs text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950"
+                onClick={(e) => {
+                  e.preventDefault(); 
+                  navigate('/networking');
+                }}
               >
                 View all ({connections.length})
               </Button>

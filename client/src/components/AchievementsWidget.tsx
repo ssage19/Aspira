@@ -54,13 +54,10 @@ export function AchievementsWidget() {
                 onClick={(e) => {
                   e.preventDefault();
                   console.log("Navigating to achievements page from empty state");
-                  window.location.href = '/achievements';
+                  navigate('/achievements');
                 }}
-                asChild
               >
-                <a href="/achievements">
-                  View All <ArrowRight className="ml-1 h-4 w-4" />
-                </a>
+                View All <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
           </CardTitle>
         </CardHeader>
@@ -85,13 +82,10 @@ export function AchievementsWidget() {
             onClick={(e) => {
               e.preventDefault();
               console.log("Navigating to achievements page");
-              window.location.href = '/achievements';
+              navigate('/achievements');
             }}
-            asChild
           >
-            <a href="/achievements">
-              View All <ArrowRight className="ml-1 h-4 w-4" />
-            </a>
+            View All <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         </CardTitle>
       </CardHeader>
