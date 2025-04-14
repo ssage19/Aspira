@@ -2473,16 +2473,14 @@ export const useCharacter = create<CharacterState>()(
               const existingCryptoIndex = assetTracker.cryptoAssets.findIndex(c => c.id === crypto.id);
               
               if (existingCryptoIndex >= 0) {
-                // Update the existing crypto
-                if (updateMarketPrices) {
-                  console.log(`Updating existing crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
-                  assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
-                } else {
-                  // Only update quantity when market is closed
-                  console.log(`Market CLOSED: Only updating quantity for crypto: ${crypto.name} (${crypto.id}) to ${crypto.quantity} units`);
-                  const existingCrypto = assetTracker.cryptoAssets[existingCryptoIndex];
-                  assetTracker.updateCrypto(crypto.id, crypto.quantity, existingCrypto.currentPrice);
-                }
+                // ALWAYS update crypto prices because crypto market is 24/7
+                // Unlike stocks, crypto should always have fresh prices
+                console.log(`Updating crypto in tracker: ${crypto.name} (${crypto.id}) with ${crypto.quantity} units at ${crypto.currentPrice}`);
+                assetTracker.updateCrypto(crypto.id, crypto.quantity, crypto.currentPrice);
+                
+                // Also update the global crypto price
+                console.log(`Updating global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
+                assetTracker.updateGlobalCryptoPrice(crypto.id, crypto.currentPrice);
                 cryptoUpdatedCount++;
               } else {
                 // Add as a new crypto
@@ -2494,6 +2492,10 @@ export const useCharacter = create<CharacterState>()(
                   purchasePrice: crypto.purchasePrice || crypto.currentPrice,
                   currentPrice: crypto.currentPrice
                 });
+                
+                // Also update the global crypto price
+                console.log(`Setting global crypto price for ${crypto.id} to ${crypto.currentPrice}`);
+                assetTracker.updateGlobalCryptoPrice(crypto.id, crypto.currentPrice);
                 cryptoAddedCount++;
               }
             } catch (e) {

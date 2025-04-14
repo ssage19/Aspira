@@ -107,9 +107,10 @@ export const refreshAllAssets = () => {
     const assetTrackerState = useAssetTracker.getState();
     
     // 1. First step: Sync character assets with asset tracker
-    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - no price updates)'}`);
+    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - only crypto price updates)'}`);
     
-    // If the market is closed, indicate that stock prices should not update
+    // Even if market is closed, we still want to sync crypto prices (crypto trades 24/7)
+    // Only stock prices should respect market hours
     characterState.syncAssetsWithAssetTracker(marketOpen);
     
     // 2. Second step: Recalculate all totals in the asset tracker
