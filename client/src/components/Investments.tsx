@@ -211,7 +211,7 @@ export function Investments() {
     
     console.log("Investments: Fetching current crypto prices from asset tracker");
     
-    // For each crypto, get its current price from the asset tracker or owned assets
+    // UPDATED: For each crypto, get its current price from the asset tracker or owned assets
     cryptoCurrencies.forEach(crypto => {
       // First check in the globalCryptoPrices - this should be the most up-to-date source
       if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
@@ -266,12 +266,17 @@ export function Investments() {
       console.log("Investments: No crypto price changes detected, skipping state update");
     }
     
-    // IMPORTANT: Only request global price updates on mount and day changes, not on every render
-    // This prevents infinite update loops
-    const shouldTriggerUpdate = currentDay !== lastDayRef.current;
+    // IMPORTANT: Request global price updates more frequently for crypto (not just on day changes)
+    // This ensures crypto prices update properly regardless of which tab is selected
+    const shouldTriggerUpdate = currentDay !== lastDayRef.current || Math.random() < 0.05; // 5% chance on each render
+    
     if (shouldTriggerUpdate && (window as any).globalUpdateAllPrices) {
-      console.log("Investments: Requesting global price update for crypto (day changed)");
-      lastDayRef.current = currentDay;
+      if (currentDay !== lastDayRef.current) {
+        console.log("Investments: Requesting global price update for crypto (day changed)");
+        lastDayRef.current = currentDay;
+      } else {
+        console.log("Investments: Requesting periodic crypto price refresh");
+      }
       
       // Allow a small delay before updating
       setTimeout(() => {

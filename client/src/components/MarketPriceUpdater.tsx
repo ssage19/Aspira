@@ -113,6 +113,7 @@ export function MarketPriceUpdater() {
     const allCryptoIds = new Set<string>();
     
     // First add ALL cryptocurrencies from the cryptoCurrencies list regardless of ownership
+    // This ensures we update ALL cryptos, not just the ones being viewed
     cryptoCurrencies.forEach(crypto => {
       if (crypto && crypto.id) {
         allCryptoIds.add(crypto.id);
@@ -136,7 +137,7 @@ export function MarketPriceUpdater() {
     // Map to collect all price updates for batch processing
     const cryptoPriceUpdates: { [cryptoId: string]: number } = {};
     
-    // Process all crypto assets
+    // Process all crypto assets - including ALL available cryptos, not just viewed ones
     Array.from(allCryptoIds).forEach(cryptoId => {
       // Find the asset details if owned
       const cryptoAsset = ownedCrypto.find(asset => asset.id === cryptoId);
@@ -170,18 +171,20 @@ export function MarketPriceUpdater() {
       // Get volatility level from crypto details
       const volatilityLevel = cryptoDetails?.volatility || 'high';
       
-      // Determine volatility factor based on crypto's volatility level - mirroring the stock approach
-      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.25; // More volatile than stocks but controlled
+      // Modified: Slightly reduce crypto volatility while maintaining character
+      // Determine volatility factor based on crypto's volatility level
+      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.20; // Reduced volatility to match stocks better
       
-      // Crypto markets have higher volatility but we want to match stock pattern
-      if (volatilityLevel === 'extreme') volatilityFactor *= 1.5;
-      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.3;
-      else if (volatilityLevel === 'high') volatilityFactor *= 1.2;
-      else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;
-      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
-      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
+      // Apply volatility multipliers for each type to maintain crypto character
+      // but with smaller values to avoid extreme swings
+      if (volatilityLevel === 'extreme') volatilityFactor *= 1.3;      // Reduced from 1.5
+      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.2; // Reduced from 1.3
+      else if (volatilityLevel === 'high') volatilityFactor *= 1.1;    // Reduced from 1.2
+      else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;  // Unchanged
+      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;     // Unchanged
+      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6; // Unchanged
       
-      // Greatly reduce market influence to match stock behavior
+      // Reduce market influence to better match stocks but maintain some crypto character
       const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3); // Same damping as stocks
       
       // Time-based component (subtle influence, exactly like stocks)
@@ -204,8 +207,8 @@ export function MarketPriceUpdater() {
       
       // Further introduce randomness with a 10% chance of a slightly larger movement - matching stocks
       if (Math.random() < 0.1) {
-        // Add or subtract additional random movement - slightly larger than stocks for crypto character
-        const randomBurst = (Math.random() * 0.008) * (Math.random() < 0.5 ? 1 : -1);
+        // Add or subtract additional random movement - same as stocks now
+        const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
         totalChangePercent += randomBurst;
         console.log(`MarketPriceUpdater: Adding random burst to ${cryptoId}: ${randomBurst.toFixed(4)}%`);
       }
@@ -247,7 +250,7 @@ export function MarketPriceUpdater() {
       }
     });
     
-  }, [assets, assetTracker, marketTrend]);
+  }, [assets, assetTracker, marketTrend, getVolatilityFactor, getMarketFactor, currentDay]);
   
   // Update bond prices (bonds are more stable but still affected by interest rates)
   const updateBonds = useCallback(() => {
