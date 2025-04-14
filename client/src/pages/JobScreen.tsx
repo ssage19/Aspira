@@ -32,7 +32,7 @@ type ChallengeType = {
 
 export default function JobScreen() {
   const navigate = useNavigate();
-  const { job, skills, improveSkill, promoteJob, daysSincePromotion } = useCharacter();
+  const { job, skills, improveSkill, promoteJob, daysSincePromotion, skillPoints, earnedSkillPoints, allocateSkillPoint, spendEarnedSkillPoint } = useCharacter();
   const { currentGameDate } = useTime();
   const { unlockAchievement } = useGame();
   const audio = useAudio();
@@ -41,6 +41,7 @@ export default function JobScreen() {
   const [progress, setProgress] = useState<Record<string, number>>({});
   const [challenges, setChallenges] = useState<ChallengeType[]>([]);
   const [selectedChallenge, setSelectedChallenge] = useState<ChallengeType | null>(null);
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
   
   // Load challenges from localStorage on mount
   useEffect(() => {
@@ -264,6 +265,40 @@ export default function JobScreen() {
   
   const calculateDailyIncome = (annualSalary: number): number => {
     return annualSalary / 365;
+  };
+  
+  // Handler for allocating multiple skill points at once
+  const handleAllocateMultipleSkillPoints = (skill: string, amount: 1 | 5 | 10) => {
+    if (!skill) return;
+    
+    // Verify we have enough points
+    if (earnedSkillPoints < amount) {
+      toast.error(`You only have ${earnedSkillPoints} skill points available.`);
+      return;
+    }
+    
+    // Verify skill won't exceed max (1000)
+    const currentSkillValue = skills[skill as keyof typeof skills] || 0;
+    if (currentSkillValue + amount > 1000) {
+      toast.error(`Cannot exceed 1000 points in a skill. You can add at most ${1000 - currentSkillValue} more points.`);
+      return;
+    }
+    
+    // Apply points one by one using the existing store method
+    let success = true;
+    for (let i = 0; i < amount; i++) {
+      const result = spendEarnedSkillPoint(skill as keyof typeof skills);
+      if (!result) {
+        success = false;
+        break;
+      }
+    }
+    
+    if (success) {
+      toast.success(`Added ${amount} points to ${skill}!`);
+    } else {
+      toast.error("Something went wrong when allocating skill points.");
+    }
   };
   
   const calculateTimeToPromotion = (): string => {
@@ -656,10 +691,11 @@ export default function JobScreen() {
           </Card>
           
           <Tabs defaultValue="career">
-            <TabsList className="grid grid-cols-3">
+            <TabsList className="grid grid-cols-4">
               <TabsTrigger value="career">Career Path</TabsTrigger>
               <TabsTrigger value="challenges">Skill Challenges</TabsTrigger>
               <TabsTrigger value="skills">Skills & Growth</TabsTrigger>
+              <TabsTrigger value="skillpoints">Skill Points</TabsTrigger>
             </TabsList>
             
             <TabsContent value="career" className="space-y-4 mt-4">
