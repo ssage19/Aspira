@@ -691,11 +691,11 @@ export default function JobScreen() {
           </Card>
           
           <Tabs defaultValue="career">
-            <TabsList className="grid grid-cols-4 gap-x-1 overflow-hidden text-xs md:text-sm">
-              <TabsTrigger value="career" className="px-1 md:px-2">Career Path</TabsTrigger>
-              <TabsTrigger value="challenges" className="px-1 md:px-2">Skill Challenges</TabsTrigger>
-              <TabsTrigger value="skills" className="px-1 md:px-2">Skills & Growth</TabsTrigger>
-              <TabsTrigger value="skillpoints" className="px-1 md:px-2">Skill Points</TabsTrigger>
+            <TabsList className="grid grid-cols-4 gap-x-1 overflow-hidden text-[9px] md:text-sm">
+              <TabsTrigger value="career" className="px-0.5 py-1 md:px-2">Career</TabsTrigger>
+              <TabsTrigger value="challenges" className="px-0.5 py-1 md:px-2">Challenges</TabsTrigger>
+              <TabsTrigger value="skills" className="px-0.5 py-1 md:px-2">Skills</TabsTrigger>
+              <TabsTrigger value="skillpoints" className="px-0.5 py-1 md:px-2">Points</TabsTrigger>
             </TabsList>
             
             <TabsContent value="career" className="space-y-4 mt-4">
