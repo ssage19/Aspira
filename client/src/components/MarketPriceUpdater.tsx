@@ -170,60 +170,55 @@ export function MarketPriceUpdater() {
       // Get volatility level from crypto details
       const volatilityLevel = cryptoDetails?.volatility || 'high';
       
-      // Determine volatility factor based on the crypto's volatility level
-      let volatilityFactor = 0.12; // Default moderate volatility
+      // Determine volatility factor based on crypto's volatility level - mirroring the stock approach
+      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.25; // More volatile than stocks but controlled
       
-      if (volatilityLevel === 'extreme') volatilityFactor = 0.25;
-      else if (volatilityLevel === 'very_high') volatilityFactor = 0.18;
-      else if (volatilityLevel === 'high') volatilityFactor = 0.12;
-      else if (volatilityLevel === 'medium') volatilityFactor = 0.08;
-      else if (volatilityLevel === 'low') volatilityFactor = 0.04;
-      else if (volatilityLevel === 'very_low') volatilityFactor = 0.01;
+      // Crypto markets have higher volatility but we want to match stock pattern
+      if (volatilityLevel === 'extreme') volatilityFactor *= 1.5;
+      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.3;
+      else if (volatilityLevel === 'high') volatilityFactor *= 1.2;
+      else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;
+      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
+      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
       
-      // Greatly reduce market influence - make it almost negligible
-      const marketInfluence = marketTrend === 'bull' ? 1.0015 : marketTrend === 'bear' ? 0.9985 : 1.0;
+      // Greatly reduce market influence to match stock behavior
+      const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3); // Same damping as stocks
       
-      // Use a balanced random function that guarantees positive and negative movements
-      // with equal probability
-      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
+      // Time-based component (subtle influence, exactly like stocks)
+      const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
       
-      // Reduce the volatility factor by half to get smaller price movements
-      const reducedVolatilityFactor = volatilityFactor * 0.5;
+      // Calculate random price movement with even distribution between positive and negative
+      const baseChangePercent = (Math.random() * volatilityFactor) - (volatilityFactor * 0.5);
       
-      // Apply the normalized random value with reduced volatility
-      const baseChangePercent = normalizedRandom * reducedVolatilityFactor;
+      // Apply market influence as a subtle bias, matching stock approach
+      const marketEffect = ((marketFactor - 1) * 0.1); // Subtle market influence
       
-      // Apply very minimal market influence as a tiny bias
-      const marketEffect = ((marketInfluence - 1) * 0.1); 
+      // Combine random movement, market influence and time factor - just like stocks
+      let totalChangePercent = baseChangePercent + marketEffect + timeFactor;
       
-      // Combine random movement and subtle market influence
-      // Ensure the change percent is balanced between positive and negative
-      let totalChangePercent = baseChangePercent + marketEffect;
-      
-      // Force occasional opposite direction movements regardless of market trend
-      // This ensures we don't get stuck in only upward or downward patterns
-      if (Math.random() < 0.35) { // 35% chance of contrarian movement
-        // If the total change is positive, make it negative and vice versa
+      // Force occasional opposite direction movements - identical to stock approach (35% chance)
+      if (Math.random() < 0.35) {
         totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
         console.log(`MarketPriceUpdater: Forcing contrarian movement for ${cryptoId}: ${totalChangePercent.toFixed(4)}%`);
       }
       
-      // Further introduce randomness with a 10% chance of a slightly larger movement
+      // Further introduce randomness with a 10% chance of a slightly larger movement - matching stocks
       if (Math.random() < 0.1) {
-        // Add or subtract additional random movement
-        const randomBurst = (Math.random() * 0.01) * (Math.random() < 0.5 ? 1 : -1);
+        // Add or subtract additional random movement - slightly larger than stocks for crypto character
+        const randomBurst = (Math.random() * 0.008) * (Math.random() < 0.5 ? 1 : -1);
         totalChangePercent += randomBurst;
         console.log(`MarketPriceUpdater: Adding random burst to ${cryptoId}: ${randomBurst.toFixed(4)}%`);
       }
       
-      // Apply percentage change to current price (not base price)
+      // Apply percentage change to current price
       const newPrice = currentPrice * (1 + totalChangePercent);
       
-      // Apply minimum price floor
+      // Apply minimum price floor - same 0.3 floor as before
       const finalPrice = Math.max(newPrice, basePrice * 0.3);
       
-      // Apply smoothing to avoid large jumps
-      const smoothedPrice = (finalPrice * 0.85) + (currentPrice * 0.15);
+      // Apply extra smoothing to avoid large jumps - using same approach as stocks
+      // Blend with previous price for smoother transitions (80% new, 20% old)
+      const smoothedPrice = (finalPrice * 0.8) + (currentPrice * 0.2);
       const roundedPrice = parseFloat(smoothedPrice.toFixed(2));
       
       // Store this update in our batch
