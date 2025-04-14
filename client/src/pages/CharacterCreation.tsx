@@ -45,12 +45,12 @@ export default function CharacterCreation() {
   
   // Skills state
   const [skills, setSkills] = useState<CharacterSkills>({
-    intelligence: 30,
-    creativity: 30,
-    charisma: 30,
-    technical: 30,
-    leadership: 30,
-    physical: 30
+    intelligence: 15,
+    creativity: 15,
+    charisma: 15,
+    technical: 15,
+    leadership: 15,
+    physical: 15
   });
   const [skillPoints, setSkillPoints] = useState(100);
   
@@ -113,8 +113,8 @@ export default function CharacterCreation() {
   
   // Handle decreasing skills
   const handleDecreaseSkill = (skill: keyof CharacterSkills) => {
-    // Prevent decreasing below base value (30)
-    if (skills[skill] <= 30) {
+    // Prevent decreasing below base value (15)
+    if (skills[skill] <= 15) {
       toast.error("This skill cannot be decreased below the base level");
       return;
     }
@@ -304,7 +304,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleDecreaseSkill('intelligence')}
-                            disabled={skills.intelligence <= 30}
+                            disabled={skills.intelligence <= 15}
                             title="Decrease Intelligence"
                           >
                             <Minus className="h-3 w-3" />
@@ -365,7 +365,7 @@ export default function CharacterCreation() {
                             variant="outline" 
                             className="h-7 w-7 p-0 flex items-center justify-center" 
                             onClick={() => handleDecreaseSkill('creativity')}
-                            disabled={skills.creativity <= 30}
+                            disabled={skills.creativity <= 15}
                             title="Decrease Creativity"
                           >
                             <Minus className="h-3 w-3" />
