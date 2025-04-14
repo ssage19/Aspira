@@ -1487,6 +1487,66 @@ const initialAchievements: Achievement[] = [
       description: '$500,000 cash bonus and improved luck with risky investments'
     }
   },
+  {
+    id: 'challenge-14',
+    title: 'Empire Builder',
+    description: 'Own at least 20 properties and 50 investments simultaneously',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100, // Completion percentage
+    icon: 'Building2',
+    reward: {
+      type: 'multiplier',
+      value: 1.2,
+      description: '20% overall wealth growth rate'
+    }
+  },
+  {
+    id: 'challenge-15',
+    title: 'Market Disruptor',
+    description: 'Become the majority shareholder in 5 different companies',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 5,
+    icon: 'Activity',
+    reward: {
+      type: 'unlock',
+      value: 3,
+      description: 'Unlock company board positions and special voting rights'
+    }
+  },
+  {
+    id: 'challenge-16',
+    title: 'Ultimate Landlord',
+    description: 'Own 50 rental properties with 100% occupancy for 6 consecutive months',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 6,
+    icon: 'Key',
+    reward: {
+      type: 'multiplier',
+      value: 1.25,
+      description: '25% property income boost'
+    }
+  },
+  {
+    id: 'challenge-17',
+    title: 'Financial Mastermind',
+    description: 'Earn $100M in total wealth by year 5',
+    category: 'challenge',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100000000,
+    icon: 'Brain',
+    reward: {
+      type: 'unlock',
+      value: 3,
+      description: 'Unlock ability to start financial institutions'
+    }
+  },
   
   // Additional strategy achievements  
   {
@@ -1547,6 +1607,51 @@ const initialAchievements: Achievement[] = [
       type: 'multiplier',
       value: 1.1,
       description: '10% better protection against economic downturns'
+    }
+  },
+  {
+    id: 'strategy-14',
+    title: 'Counter-Cyclical Investor',
+    description: 'Successfully execute 10 trades against market sentiment that generate profit',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 10,
+    icon: 'ArrowDownUp',
+    reward: {
+      type: 'multiplier',
+      value: 1.15,
+      description: '15% increased returns on contrarian investments'
+    }
+  },
+  {
+    id: 'strategy-15',
+    title: 'Tax Efficiency Master',
+    description: 'Reduce your tax burden by 30% through legal optimizations',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 30,
+    icon: 'Calculator',
+    reward: {
+      type: 'multiplier',
+      value: 1.05,
+      description: '5% permanent reduction in all tax rates'
+    }
+  },
+  {
+    id: 'strategy-16',
+    title: 'Financial Equilibrium',
+    description: 'Maintain a perfect 60/40 stock-to-bond ratio during a major market shift',
+    category: 'strategy',
+    isUnlocked: false,
+    progress: 0,
+    threshold: 100,
+    icon: 'Balance',
+    reward: {
+      type: 'multiplier',
+      value: 1.08,
+      description: '8% reduced volatility in all investments'
     }
   }
 ];
