@@ -50,6 +50,7 @@ export function Properties() {
   const [activeTab, setActiveTab] = useState('residential');
   const [selectedProperty, setSelectedProperty] = useState<PropertyType>(residentialProperties[0]);
   const [downPaymentPercent, setDownPaymentPercent] = useState(20);
+  const [portfolioView, setPortfolioView] = useState('all');
   
   // Adjust property values based on market health
   const getAdjustedPrice = (basePrice: number) => {
@@ -324,32 +325,7 @@ export function Properties() {
           </h2>
         </div>
         
-        {isMobile && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <Menu className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => navigate('/')}>
-                Dashboard
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/investments')}>
-                Investments
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/lifestyle')}>
-                Lifestyle
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/social')}>
-                Social
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate('/career')}>
-                Career
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+        {/* Hamburger menu removed */}
       </div>
       
       <div className="mb-4">
