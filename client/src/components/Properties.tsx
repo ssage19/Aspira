@@ -549,25 +549,39 @@ export function Properties() {
           <div className="flex justify-between items-center mb-2">
             <h3 className="font-semibold">Your Property Portfolio</h3>
             {ownedProperties.length > 0 && (
-              <Tabs value={portfolioView} onValueChange={setPortfolioView} className="w-auto">
-                <TabsList className="h-8">
-                  <TabsTrigger value="all" className="text-xs h-7 px-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 flex items-center gap-1 px-3">
+                    {portfolioView === 'all' && "All Properties"}
+                    {portfolioView === 'residential' && <><Home className="h-3 w-3" /> Residential</>}
+                    {portfolioView === 'commercial' && <><Building2 className="h-3 w-3" /> Commercial</>}
+                    {portfolioView === 'luxury' && <><Castle className="h-3 w-3" /> Luxury</>}
+                    {portfolioView === 'industrial' && <><Warehouse className="h-3 w-3" /> Industrial</>}
+                    <ChevronDown className="h-3 w-3 ml-1" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-40">
+                  <DropdownMenuItem onClick={() => setPortfolioView('all')}>
                     All Properties
-                  </TabsTrigger>
-                  <TabsTrigger value="residential" className="text-xs h-7 px-2">
-                    <Home className="h-3 w-3 mr-1" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPortfolioView('residential')}>
+                    <Home className="h-4 w-4 mr-2" />
                     Residential
-                  </TabsTrigger>
-                  <TabsTrigger value="commercial" className="text-xs h-7 px-2">
-                    <Building2 className="h-3 w-3 mr-1" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPortfolioView('commercial')}>
+                    <Building2 className="h-4 w-4 mr-2" />
                     Commercial
-                  </TabsTrigger>
-                  <TabsTrigger value="luxury" className="text-xs h-7 px-2">
-                    <Castle className="h-3 w-3 mr-1" />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPortfolioView('luxury')}>
+                    <Castle className="h-4 w-4 mr-2" />
                     Luxury
-                  </TabsTrigger>
-                </TabsList>
-              </Tabs>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPortfolioView('industrial')}>
+                    <Warehouse className="h-4 w-4 mr-2" />
+                    Industrial
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
           
@@ -610,7 +624,8 @@ export function Properties() {
                     portfolioView === 'all' || 
                     (portfolioView === 'residential' && property.type === 'residential') ||
                     (portfolioView === 'commercial' && property.type === 'commercial') ||
-                    (portfolioView === 'luxury' && property.type === 'mansion')
+                    (portfolioView === 'luxury' && property.type === 'mansion') ||
+                    (portfolioView === 'industrial' && property.type === 'industrial')
                   )
                   .map(property => (
                     <Card key={property.id}>
