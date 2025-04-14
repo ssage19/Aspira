@@ -7,7 +7,7 @@ import {
   useSocialNetwork 
 } from "../lib/stores/useSocialNetwork";
 import { Users } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const getConnectionTypeIcon = (type: ConnectionType) => {
   const colorMap: Record<ConnectionType, string> = {
@@ -51,13 +51,6 @@ export function ConnectionsWidget() {
     .sort((a, b) => b.relationshipLevel - a.relationshipLevel)
     .slice(0, 3);
 
-  // Handler for navigation to networking page
-  const handleNavigateToNetworking = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log("Navigating to networking page");
-    navigate('/networking');
-  };
-
   if (topConnections.length === 0) {
     return (
       <Card className="futuristic-card border-cyan-500/30 shadow-lg h-full">
@@ -73,15 +66,16 @@ export function ConnectionsWidget() {
           <div className="text-center py-4 text-muted-foreground">
             <p>No connections established yet</p>
             <p className="text-sm mt-2">Visit the Networking section to build your network</p>
-            <Link to="/networking">
-              <Button 
-                variant="outline" 
-                className="mt-4 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/10 dark:hover:bg-cyan-950"
-                onClick={handleNavigateToNetworking}
-              >
-                Start Networking
-              </Button>
-            </Link>
+            <Button 
+              variant="outline" 
+              className="mt-4 border-cyan-500/30 text-cyan-500 hover:bg-cyan-500/10 dark:hover:bg-cyan-950"
+              onClick={() => {
+                console.log("Navigating to networking page");
+                navigate('/networking');
+              }}
+            >
+              Start Networking
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -106,15 +100,16 @@ export function ConnectionsWidget() {
           
           {connections.length > 3 && (
             <div className="text-right mt-4">
-              <Link to="/networking">
-                <Button
-                  variant="ghost" 
-                  className="text-xs text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950"
-                  onClick={handleNavigateToNetworking}
-                >
-                  View all ({connections.length})
-                </Button>
-              </Link>
+              <Button
+                variant="ghost" 
+                className="text-xs text-cyan-500 hover:text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950"
+                onClick={() => {
+                  console.log("Navigating to networking page - view all");
+                  navigate('/networking');
+                }}
+              >
+                View all ({connections.length})
+              </Button>
             </div>
           )}
           

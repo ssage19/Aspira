@@ -8,7 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Medal, Trophy, ArrowRight } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 export function AchievementsWidget() {
   const navigate = useNavigate();
@@ -38,13 +38,6 @@ export function AchievementsWidget() {
     }
   }, []);
   
-  // Handle navigation to achievements page
-  const handleViewAll = (e: React.MouseEvent) => {
-    e.preventDefault();
-    console.log("Navigating to achievements page");
-    navigate('/achievements');
-  };
-  
   if (achievementPreview.length === 0) {
     // If no achievements, show a simple placeholder
     return (
@@ -55,15 +48,16 @@ export function AchievementsWidget() {
               <Trophy className="mr-2 h-5 w-5 text-amber-400" />
               Recent Achievements
             </span>
-            <Link to="/achievements">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleViewAll}
-              >
-                View All <ArrowRight className="ml-1 h-4 w-4" />
-              </Button>
-            </Link>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => {
+                console.log("Navigating to achievements page");
+                navigate('/achievements');
+              }}
+            >
+              View All <ArrowRight className="ml-1 h-4 w-4" />
+            </Button>
           </CardTitle>
         </CardHeader>
         <CardContent className="py-4 text-center text-muted-foreground">
@@ -81,15 +75,16 @@ export function AchievementsWidget() {
             <Trophy className="mr-2 h-5 w-5 text-amber-400" />
             Recent Achievements
           </span>
-          <Link to="/achievements">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleViewAll}
-            >
-              View All <ArrowRight className="ml-1 h-4 w-4" />
-            </Button>
-          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => {
+              console.log("Navigating to achievements page");
+              navigate('/achievements');
+            }}
+          >
+            View All <ArrowRight className="ml-1 h-4 w-4" />
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="py-4">
