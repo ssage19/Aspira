@@ -84,6 +84,9 @@ const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (
 // More inclusive pattern to catch other variations
 const altJobRegex = /level: ['"](\w+)['"],(?:(?!skillGains).)*?skillRequirements: (\{[^}]*\}),(?:(?!skillGains).)*?(?=happinessImpact)/gs;
 
+// Ultra aggressive pattern to catch any remaining jobs by specific formatting
+const lastJobRegex = /level: ['"](\w+)['"],\s+title: ['"]([^'"]+)['"],\s+salary: (\d+),[\s\S]*?skillRequirements: (\{[^}]*\}),(?!\s+skillGains)/gs;
+
 // Function to process a match and add skillGains
 const processMatch = (match, level, title, salary, description, skillReqs) => {
   // Parse the skill requirements
@@ -136,6 +139,42 @@ modifiedContent = modifiedContent.replace(altJobRegex, (match) => {
     const skillReqs = skillReqsMatch[1];
     
     return processMatch(match, level, null, null, null, skillReqs);
+  }
+  
+  return match;  // Return unchanged if we can't extract what we need
+});
+
+// Apply final pattern for any stubborn remaining ones
+modifiedContent = modifiedContent.replace(lastJobRegex, (match) => {
+  // Extract the level, title, salary and skill requirements
+  const levelMatch = match.match(/level: ['"](\w+)['"]/);
+  const titleMatch = match.match(/title: ['"]([^'"]+)['"]/);
+  const salaryMatch = match.match(/salary: (\d+)/);
+  const skillReqsMatch = match.match(/skillRequirements: (\{[^}]*\})/);
+  
+  if (levelMatch && skillReqsMatch) {
+    const level = levelMatch[1];
+    const title = titleMatch ? titleMatch[1] : "Unknown Job";
+    const salary = salaryMatch ? salaryMatch[1] : "0";
+    const skillReqs = skillReqsMatch[1];
+    
+    // Get the job info to feed to the processor
+    const requirements = {};
+    const skillMatches = skillReqs.match(/(\w+): (\d+)/g);
+    if (skillMatches) {
+      skillMatches.forEach(req => {
+        const [skill, value] = req.split(': ');
+        requirements[skill] = parseInt(value, 10);
+      });
+    }
+    
+    // Generate skill gains and format
+    const skillGains = determineSkillGains(level, requirements);
+    const skillGainsStr = skillGainsToString(skillGains);
+    
+    // Insert after skill requirements
+    return match.replace(/skillRequirements: (\{[^}]*\}),/, 
+      `skillRequirements: $1,\n        skillGains: ${skillGainsStr},`);
   }
   
   return match;  // Return unchanged if we can't extract what we need
