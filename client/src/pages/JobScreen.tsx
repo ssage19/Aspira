@@ -636,18 +636,45 @@ export default function JobScreen() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                      {job.monthsInPosition} months
+                    <div className="flex items-end gap-3">
+                      <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                        {Math.floor(job.monthsInPosition / 12) > 0 
+                          ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}` 
+                          : `${job.monthsInPosition} months`}
+                      </div>
+                      {Math.floor(job.monthsInPosition / 12) > 0 && 
+                        <div className="text-lg font-medium text-blue-500/80 dark:text-blue-400/80">
+                          {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}
+                        </div>
+                      }
                     </div>
-                    <div className="flex flex-col text-sm mt-2 space-y-1 text-muted-foreground">
+                    <div className="flex flex-col text-sm mt-2 space-y-2 text-muted-foreground">
                       <div className="flex justify-between">
-                        <span>Time in position:</span>
+                        <span>Full time:</span>
                         <span className="font-medium">
                           {Math.floor(job.monthsInPosition / 12) > 0 
                             ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}, ` 
                             : ''}
                           {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}, {daysSincePromotion} {daysSincePromotion === 1 ? 'day' : 'days'}
                         </span>
+                      </div>
+                      
+                      {/* Show when the next skill points will be awarded */}
+                      <div className="mt-1">
+                        <div className="flex justify-between items-center">
+                          <span>Next skill points:</span>
+                          <span className="font-medium">
+                            {30 - (daysSincePromotion % 30)} {(30 - (daysSincePromotion % 30)) === 1 ? 'day' : 'days'}
+                          </span>
+                        </div>
+                        <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 rounded-full transition-all duration-300"
+                            style={{ 
+                              width: `${((daysSincePromotion % 30) / 30) * 100}%`,
+                            }}
+                          ></div>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
