@@ -636,23 +636,12 @@ export default function JobScreen() {
                     </div>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="flex items-end gap-3">
+                    <div className="flex justify-between items-end">
                       <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                        {Math.floor(job.monthsInPosition / 12) > 0 
-                          ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}` 
-                          : `${job.monthsInPosition} months`}
+                        Total years: {(job.monthsInPosition / 12).toFixed(2)}
                       </div>
-                      {Math.floor(job.monthsInPosition / 12) > 0 && 
-                        <div className="text-lg font-medium text-blue-500/80 dark:text-blue-400/80">
-                          {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}
-                        </div>
-                      }
                     </div>
                     <div className="flex flex-col text-sm mt-2 space-y-2 text-muted-foreground">
-                      <div className="flex justify-between">
-                        <span>Total years:</span>
-                        <span className="font-medium">{(job.monthsInPosition / 12).toFixed(2)}</span>
-                      </div>
                       <div className="flex justify-between">
                         <span>Time with Company:</span>
                         <span className="font-medium">
