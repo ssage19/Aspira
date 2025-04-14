@@ -650,7 +650,11 @@ export default function JobScreen() {
                     </div>
                     <div className="flex flex-col text-sm mt-2 space-y-2 text-muted-foreground">
                       <div className="flex justify-between">
-                        <span>Full time:</span>
+                        <span>Total years:</span>
+                        <span className="font-medium">{(job.monthsInPosition / 12).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Time with Company:</span>
                         <span className="font-medium">
                           {Math.floor(job.monthsInPosition / 12) > 0 
                             ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}, ` 
