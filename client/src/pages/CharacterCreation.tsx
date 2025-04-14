@@ -92,23 +92,23 @@ export default function CharacterCreation() {
   }, [selectedProfessionId, availableJobs]);
   
   // Handle skill point allocation
-  const handleAllocateSkill = (skill: keyof CharacterSkills) => {
-    if (skillPoints <= 0) {
-      toast.error("You have no more skill points to allocate");
+  const handleAllocateSkill = (skill: keyof CharacterSkills, amount: number = 1) => {
+    if (skillPoints < amount) {
+      toast.error(`You need ${amount} skill points to allocate`);
       return;
     }
     
-    if (skills[skill] >= 1000) {
-      toast.error("This skill is already at maximum level");
+    if (skills[skill] + amount > 1000) {
+      toast.error("This would exceed the maximum skill level of 1000");
       return;
     }
     
     // Update local state first for immediate UI feedback
     setSkills(prevSkills => ({
       ...prevSkills,
-      [skill]: prevSkills[skill] + 1
+      [skill]: prevSkills[skill] + amount
     }));
-    setSkillPoints(prevPoints => prevPoints - 1);
+    setSkillPoints(prevPoints => prevPoints - amount);
   };
   
   // Handle decreasing skills
@@ -312,12 +312,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('intelligence')}
-                            disabled={skillPoints <= 0 || skills.intelligence >= 1000}
-                            title="Increase Intelligence"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('intelligence', 1)}
+                            disabled={skillPoints < 1 || skills.intelligence >= 1000}
+                            title="Add 1 Intelligence"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('intelligence', 5)}
+                            disabled={skillPoints < 5 || skills.intelligence + 5 > 1000}
+                            title="Add 5 Intelligence"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('intelligence', 10)}
+                            disabled={skillPoints < 10 || skills.intelligence + 10 > 1000}
+                            title="Add 10 Intelligence"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
@@ -353,12 +373,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('creativity')}
-                            disabled={skillPoints <= 0 || skills.creativity >= 1000}
-                            title="Increase Creativity"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('creativity', 1)}
+                            disabled={skillPoints < 1 || skills.creativity >= 1000}
+                            title="Add 1 Creativity"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('creativity', 5)}
+                            disabled={skillPoints < 5 || skills.creativity + 5 > 1000}
+                            title="Add 5 Creativity"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('creativity', 10)}
+                            disabled={skillPoints < 10 || skills.creativity + 10 > 1000}
+                            title="Add 10 Creativity"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
@@ -394,12 +434,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('charisma')}
-                            disabled={skillPoints <= 0 || skills.charisma >= 1000}
-                            title="Increase Charisma"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('charisma', 1)}
+                            disabled={skillPoints < 1 || skills.charisma >= 1000}
+                            title="Add 1 Charisma"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('charisma', 5)}
+                            disabled={skillPoints < 5 || skills.charisma + 5 > 1000}
+                            title="Add 5 Charisma"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('charisma', 10)}
+                            disabled={skillPoints < 10 || skills.charisma + 10 > 1000}
+                            title="Add 10 Charisma"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
@@ -435,12 +495,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('technical')}
-                            disabled={skillPoints <= 0 || skills.technical >= 1000}
-                            title="Increase Technical"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('technical', 1)}
+                            disabled={skillPoints < 1 || skills.technical >= 1000}
+                            title="Add 1 Technical"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('technical', 5)}
+                            disabled={skillPoints < 5 || skills.technical + 5 > 1000}
+                            title="Add 5 Technical"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('technical', 10)}
+                            disabled={skillPoints < 10 || skills.technical + 10 > 1000}
+                            title="Add 10 Technical"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
@@ -476,12 +556,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('leadership')}
-                            disabled={skillPoints <= 0 || skills.leadership >= 1000}
-                            title="Increase Leadership"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('leadership', 1)}
+                            disabled={skillPoints < 1 || skills.leadership >= 1000}
+                            title="Add 1 Leadership"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('leadership', 5)}
+                            disabled={skillPoints < 5 || skills.leadership + 5 > 1000}
+                            title="Add 5 Leadership"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('leadership', 10)}
+                            disabled={skillPoints < 10 || skills.leadership + 10 > 1000}
+                            title="Add 10 Leadership"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
@@ -517,12 +617,32 @@ export default function CharacterCreation() {
                           <Button 
                             size="sm" 
                             variant="outline" 
-                            className="h-7 w-7 p-0 flex items-center justify-center" 
-                            onClick={() => handleAllocateSkill('physical')}
-                            disabled={skillPoints <= 0 || skills.physical >= 1000}
-                            title="Increase Physical"
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('physical', 1)}
+                            disabled={skillPoints < 1 || skills.physical >= 1000}
+                            title="Add 1 Physical"
                           >
-                            <Plus className="h-3 w-3" />
+                            +1
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('physical', 5)}
+                            disabled={skillPoints < 5 || skills.physical + 5 > 1000}
+                            title="Add 5 Physical"
+                          >
+                            +5
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="outline" 
+                            className="h-7 px-1 flex items-center justify-center" 
+                            onClick={() => handleAllocateSkill('physical', 10)}
+                            disabled={skillPoints < 10 || skills.physical + 10 > 1000}
+                            title="Add 10 Physical"
+                          >
+                            +10
                           </Button>
                         </div>
                       </div>
