@@ -180,18 +180,41 @@ export function MarketPriceUpdater() {
       else if (volatilityLevel === 'low') volatilityFactor = 0.04;
       else if (volatilityLevel === 'very_low') volatilityFactor = 0.01;
       
-      // Market has more influence on volatile cryptos
-      const marketInfluence = marketTrend === 'bull' ? 1.005 : marketTrend === 'bear' ? 0.995 : 1.0;
+      // Greatly reduce market influence - make it almost negligible
+      const marketInfluence = marketTrend === 'bull' ? 1.0015 : marketTrend === 'bear' ? 0.9985 : 1.0;
       
-      // Calculate truly random price change with even distribution between positive and negative
-      // This ensures prices can go both up and down with equal probability
-      const baseChangePercent = (Math.random() * volatilityFactor * 2) - volatilityFactor;
+      // Use a balanced random function that guarantees positive and negative movements
+      // with equal probability
+      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
       
-      // Apply market influence as a subtle bias, not a guaranteed direction
-      const marketEffect = ((marketInfluence - 1) * 0.5); 
+      // Reduce the volatility factor by half to get smaller price movements
+      const reducedVolatilityFactor = volatilityFactor * 0.5;
       
-      // Combine random movement and market influence
-      const totalChangePercent = baseChangePercent + marketEffect;
+      // Apply the normalized random value with reduced volatility
+      const baseChangePercent = normalizedRandom * reducedVolatilityFactor;
+      
+      // Apply very minimal market influence as a tiny bias
+      const marketEffect = ((marketInfluence - 1) * 0.1); 
+      
+      // Combine random movement and subtle market influence
+      // Ensure the change percent is balanced between positive and negative
+      let totalChangePercent = baseChangePercent + marketEffect;
+      
+      // Force occasional opposite direction movements regardless of market trend
+      // This ensures we don't get stuck in only upward or downward patterns
+      if (Math.random() < 0.35) { // 35% chance of contrarian movement
+        // If the total change is positive, make it negative and vice versa
+        totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
+        console.log(`MarketPriceUpdater: Forcing contrarian movement for ${cryptoId}: ${totalChangePercent.toFixed(4)}%`);
+      }
+      
+      // Further introduce randomness with a 10% chance of a slightly larger movement
+      if (Math.random() < 0.1) {
+        // Add or subtract additional random movement
+        const randomBurst = (Math.random() * 0.01) * (Math.random() < 0.5 ? 1 : -1);
+        totalChangePercent += randomBurst;
+        console.log(`MarketPriceUpdater: Adding random burst to ${cryptoId}: ${randomBurst.toFixed(4)}%`);
+      }
       
       // Apply percentage change to current price (not base price)
       const newPrice = currentPrice * (1 + totalChangePercent);
@@ -240,15 +263,16 @@ export function MarketPriceUpdater() {
     
     console.log("MarketPriceUpdater: Updating", ownedBonds.length, "bonds");
     
-    // Bonds are affected by market trends but much less than stocks
-    const marketInfluence = marketTrend === 'bull' ? 1.01 : marketTrend === 'bear' ? 0.99 : 1;
+    // Bonds are affected by market trends but very minimally
+    const marketInfluence = marketTrend === 'bull' ? 1.002 : marketTrend === 'bear' ? 0.998 : 1.0;
     
     ownedBonds.forEach(bond => {
       if (!bond || bond.quantity <= 0) return;
       
       // Bonds are very stable, small random fluctuation
-      const volatilityFactor = 0.02;
-      const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
+      const volatilityFactor = 0.01; // Reduced volatility for more stability
+      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
+      const randomFactor = normalizedRandom * volatilityFactor;
       
       // Get current price from stored prices first, fall back to maturity/purchase price
       const currentValue = assetTracker.getAssetPrice(bond.id);
@@ -276,15 +300,29 @@ export function MarketPriceUpdater() {
     otherInvestments.forEach(investment => {
       if (!investment || investment.quantity <= 0) return;
       
-      // Default moderate volatility
-      const volatilityFactor = 0.15;
-      const marketInfluence = marketTrend === 'bull' ? 1.03 : marketTrend === 'bear' ? 0.97 : 1;
+      // Reduced volatility for more balanced movements
+      const volatilityFactor = 0.07; // Reduced from 0.15
+      
+      // Greatly reduced market influence
+      const marketInfluence = marketTrend === 'bull' ? 1.005 : marketTrend === 'bear' ? 0.995 : 1.0;
       
       // Get current price from stored prices first, then fall back to purchase price
       const currentValue = assetTracker.getAssetPrice(investment.id);
       const basePrice = currentValue || investment.purchasePrice;
-      const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
-      const newPrice = basePrice * marketInfluence * (1 + randomFactor);
+      
+      // Use normalized random for better balanced price movements
+      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
+      const randomFactor = normalizedRandom * volatilityFactor;
+      
+      // Apply occasional contrarian movement
+      let finalFactor = randomFactor;
+      if (Math.random() < 0.3) { // 30% chance of opposite movement
+        finalFactor = -Math.abs(randomFactor) * 0.7;
+        console.log(`MarketPriceUpdater: Forcing contrarian movement for ${investment.name}`);
+      }
+      
+      // Calculate new price with reduced market influence
+      const newPrice = basePrice * marketInfluence * (1 + finalFactor);
       
       // Update the asset in the tracker
       if (assetTracker.updateOtherInvestment) {
@@ -311,8 +349,8 @@ export function MarketPriceUpdater() {
     
     console.log("MarketPriceUpdater: Updating", properties.length, "property values");
     
-    // Real estate market is affected by overall market but moves more slowly
-    const marketInfluence = marketTrend === 'bull' ? 1.01 : marketTrend === 'bear' ? 0.995 : 1.002;
+    // Real estate market has minimal market influence for more balanced price changes
+    const marketInfluence = marketTrend === 'bull' ? 1.002 : marketTrend === 'bear' ? 0.998 : 1.0;
     
     properties.forEach(property => {
       if (!property) return;
@@ -320,14 +358,26 @@ export function MarketPriceUpdater() {
       // Cast to PropertyWithLoan to access the specific property fields
       const propertyWithLoan = property as PropertyWithLoan;
       
-      // Properties have low volatility
-      const volatilityFactor = 0.02;
-      const randomFactor = (Math.random() * volatilityFactor * 2) - volatilityFactor;
+      // Properties have very low volatility
+      const volatilityFactor = 0.01; // Even smaller movements for real estate
+      
+      // Use normalized random for better balanced price movements
+      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
+      const randomFactor = normalizedRandom * volatilityFactor;
+      
+      // Force contrarian movement occasionally to ensure both up and down trends
+      let finalFactor = randomFactor;
+      if (Math.random() < 0.25) { // 25% chance of opposite movement
+        finalFactor = -Math.abs(randomFactor) * 0.6;
+        console.log(`MarketPriceUpdater: Forcing contrarian movement for property ${property.name}`);
+      }
       
       // Get current price from stored property values first, then fall back to other values
       const storedValue = assetTracker.getAssetPrice(property.id);
       const currentPropertyValue = storedValue || propertyWithLoan.currentValue || property.purchasePrice;
-      const newValue = currentPropertyValue * marketInfluence * (1 + randomFactor);
+      
+      // Use finalFactor instead of randomFactor to include the contrarian movements
+      const newValue = currentPropertyValue * marketInfluence * (1 + finalFactor);
       const formattedValue = parseFloat(newValue.toFixed(2));
       
       // Update the property value in asset tracker
@@ -497,9 +547,25 @@ export function MarketPriceUpdater() {
         const marketEffect = ((marketFactor - 1) * 0.1); // More subtle market influence
         
         // Combine random movement, market influence and time factor
-        const totalChangePercent = baseChangePercent + marketEffect + timeFactor;
+        let totalChangePercent = baseChangePercent + marketEffect + timeFactor;
         
-        // Apply small percentage change to previous price (typically ±0.1-0.3%)
+        // Force occasional opposite direction movements regardless of market trend
+        // This ensures we don't get stuck in only upward or downward patterns
+        if (Math.random() < 0.35) { // 35% chance of contrarian movement
+          // If the total change is positive, make it negative and vice versa
+          totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
+          console.log(`MarketPriceUpdater: Forcing contrarian movement for ${stock.id}: ${totalChangePercent.toFixed(4)}%`);
+        }
+        
+        // Further introduce randomness with a 10% chance of a slightly larger movement
+        if (Math.random() < 0.1) {
+          // Add or subtract additional random movement
+          const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
+          totalChangePercent += randomBurst;
+          console.log(`MarketPriceUpdater: Adding random burst to ${stock.id}: ${randomBurst.toFixed(4)}%`);
+        }
+        
+        // Apply small percentage change to previous price
         let newPrice = previousPrice * (1 + totalChangePercent);
         
         // Ensure price doesn't go too low
