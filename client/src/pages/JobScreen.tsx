@@ -1159,6 +1159,140 @@ export default function JobScreen() {
                 </CardContent>
               </Card>
             </TabsContent>
+            
+            <TabsContent value="skillpoints" className="space-y-4 mt-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <GraduationCap className="h-5 w-5 text-primary mr-2" />
+                    Character Skill Points
+                  </CardTitle>
+                  <CardDescription>
+                    Allocate skill points to enhance your character's abilities
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="mb-6 p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex flex-col gap-1">
+                        <div className="text-sm font-medium text-muted-foreground">Available Skill Points</div>
+                        <div className="text-2xl font-bold text-primary">{earnedSkillPoints}</div>
+                        <div className="text-xs text-muted-foreground">Points earned through challenges and career achievements</div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <div className="text-sm font-medium text-muted-foreground">Monthly Career Points</div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                          {Object.values(job.skillGains).reduce((sum, gain) => sum + gain, 0).toFixed(1)}
+                        </div>
+                        <div className="text-xs text-muted-foreground">Points automatically added to your skills each month from your job</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold mb-4">Select Skill to Improve</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {Object.keys(skills).map((skill) => (
+                        <div
+                          key={skill}
+                          className={`
+                            cursor-pointer p-3 rounded-lg border 
+                            ${selectedSkill === skill 
+                              ? 'bg-primary/10 border-primary' 
+                              : 'bg-card border-muted hover:border-primary/30'}
+                          `}
+                          onClick={() => setSelectedSkill(skill)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <div className={`h-7 w-7 rounded-full flex items-center justify-center ${getSkillColor(skill)}`}>
+                              {getSkillIcon(skill)}
+                            </div>
+                            <div className="flex flex-col">
+                              <div className="font-medium capitalize">{skill}</div>
+                              <div className="text-sm text-muted-foreground">
+                                Level: {skills[skill as keyof typeof skills]}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedSkill && (
+                    <div className="p-4 rounded-lg border border-primary/20 bg-primary/5">
+                      <div className="flex flex-col gap-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-2">
+                            <div className={`h-8 w-8 rounded-full flex items-center justify-center ${getSkillColor(selectedSkill)}`}>
+                              {getSkillIcon(selectedSkill)}
+                            </div>
+                            <div>
+                              <h3 className="font-bold capitalize">{selectedSkill}</h3>
+                              <div className="text-sm text-muted-foreground">Current: {skills[selectedSkill as keyof typeof skills]}</div>
+                            </div>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            Max: 1,000
+                          </div>
+                        </div>
+                        
+                        <Progress 
+                          value={(skills[selectedSkill as keyof typeof skills] / 10)} 
+                          className="h-2 mt-1" 
+                        />
+                        
+                        <div className="flex flex-col gap-2">
+                          <h4 className="font-semibold text-sm">Allocate Points</h4>
+                          <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-primary/30"
+                              disabled={earnedSkillPoints < 1 || skills[selectedSkill as keyof typeof skills] >= 1000}
+                              onClick={() => handleAllocateMultipleSkillPoints(selectedSkill, 1)}
+                            >
+                              +1 Point
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-primary/30"
+                              disabled={earnedSkillPoints < 5 || skills[selectedSkill as keyof typeof skills] > 995}
+                              onClick={() => handleAllocateMultipleSkillPoints(selectedSkill, 5)}
+                            >
+                              +5 Points
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-primary/30"
+                              disabled={earnedSkillPoints < 10 || skills[selectedSkill as keyof typeof skills] > 990}
+                              onClick={() => handleAllocateMultipleSkillPoints(selectedSkill, 10)}
+                            >
+                              +10 Points
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!selectedSkill && earnedSkillPoints > 0 && (
+                    <div className="text-center p-4 text-muted-foreground">
+                      Select a skill above to allocate your points
+                    </div>
+                  )}
+                  
+                  {earnedSkillPoints === 0 && (
+                    <div className="text-center p-4 text-muted-foreground bg-muted/10 rounded-lg border border-muted">
+                      <p>You don't have any skill points to allocate right now.</p>
+                      <p className="mt-2">Complete skill challenges to earn more skill points.</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
       </div>
