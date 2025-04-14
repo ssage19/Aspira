@@ -604,7 +604,7 @@ export default function Dashboard() {
                           About This Game
                         </h3>
                         <p className="text-sm text-muted-foreground mb-4">
-                          Business Empire: RichMan is a financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.
+                          Aspira: Dream. Build. Live. is a financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.
                         </p>
                         <div className="text-xs text-muted-foreground space-y-1">
                           <p>Version: 1.0.0</p>

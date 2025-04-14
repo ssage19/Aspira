@@ -216,7 +216,7 @@ export default function CharacterCreation() {
         <CardHeader>
           <CardTitle className="text-3xl font-bold flex items-center gradient-text">
             <DollarSign className="h-8 w-8 mr-2 text-primary" />
-            Luxury Lifestyle Simulator
+            Aspira: Dream. Build. Live.
           </CardTitle>
           <CardDescription className="text-lg">
             Create your character and begin your journey to extreme wealth
