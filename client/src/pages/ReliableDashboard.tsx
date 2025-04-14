@@ -377,96 +377,96 @@ export default function ReliableDashboard() {
                   <ConnectionsWidget />
                 </div>
                 
-                {/* Quick Action Buttons - responsive grid */}
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4 lg:gap-6">
+                {/* Quick Action Buttons - responsive grid - hidden on mobile */}
+                <div className="hidden md:grid md:grid-cols-3 lg:grid-cols-5 gap-4 lg:gap-6">
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-primary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-primary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/job')}
                   >
-                    <Briefcase className="h-5 w-5 mb-1 md:mb-2 text-primary" />
-                    <span className="text-xs md:text-sm">Career</span>
+                    <Briefcase className="h-5 w-5 mb-2 text-primary" />
+                    <span className="text-sm">Career</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-secondary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-secondary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/investments')}
                   >
-                    <ChartBar className="h-5 w-5 mb-1 md:mb-2 text-secondary" />
-                    <span className="text-xs md:text-sm">Investments</span>
+                    <ChartBar className="h-5 w-5 mb-2 text-secondary" />
+                    <span className="text-sm">Investments</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-tertiary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-tertiary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/properties')}
                   >
-                    <Home className="h-5 w-5 mb-1 md:mb-2 text-tertiary" />
-                    <span className="text-xs md:text-sm">Properties</span>
+                    <Home className="h-5 w-5 mb-2 text-tertiary" />
+                    <span className="text-sm">Properties</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/lifestyle')}
                   >
-                    <Crown className="h-5 w-5 mb-1 md:mb-2" />
-                    <span className="text-xs md:text-sm">Lifestyle</span>
+                    <Crown className="h-5 w-5 mb-2" />
+                    <span className="text-sm">Lifestyle</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-blue-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-blue-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/challenges')}
                   >
-                    <Target className="h-5 w-5 mb-1 md:mb-2 text-blue-500" />
-                    <span className="text-xs md:text-sm">Challenges</span>
+                    <Target className="h-5 w-5 mb-2 text-blue-500" />
+                    <span className="text-sm">Challenges</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-yellow-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-yellow-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/achievements')}
                   >
-                    <Trophy className="h-5 w-5 mb-1 md:mb-2 text-yellow-500" />
-                    <span className="text-xs md:text-sm">Achievements</span>
+                    <Trophy className="h-5 w-5 mb-2 text-yellow-500" />
+                    <span className="text-sm">Achievements</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-purple-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-purple-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/prestige')}
                   >
-                    <Star className="h-5 w-5 mb-1 md:mb-2 text-purple-500" />
-                    <span className="text-xs md:text-sm">Prestige</span>
+                    <Star className="h-5 w-5 mb-2 text-purple-500" />
+                    <span className="text-sm">Prestige</span>
                   </Button>
 
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-green-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-green-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/business')}
                   >
-                    <Briefcase className="h-5 w-5 mb-1 md:mb-2 text-green-500" />
-                    <span className="text-xs md:text-sm">Business</span>
+                    <Briefcase className="h-5 w-5 mb-2 text-green-500" />
+                    <span className="text-sm">Business</span>
                   </Button>
                   
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-16 md:h-20 futuristic-card card-hover border border-cyan-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    className="w-full h-20 futuristic-card card-hover border border-cyan-500/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
                     onClick={() => navigate('/networking')}
                   >
-                    <Users className="h-5 w-5 mb-1 md:mb-2 text-cyan-500" />
-                    <span className="text-xs md:text-sm">Networking</span>
+                    <Users className="h-5 w-5 mb-2 text-cyan-500" />
+                    <span className="text-sm">Networking</span>
                   </Button>
                 </div>
               </TabsContent>
