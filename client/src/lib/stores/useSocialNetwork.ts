@@ -1394,8 +1394,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       addConnection: (type: ConnectionType) => {
         const { connections } = get();
         
-        // Enforce connection limit of 5
-        const MAX_CONNECTIONS = 5;
+        // Enforce connection limit of 10
+        const MAX_CONNECTIONS = 10;
         
         // Check if we're at the connection limit
         if (connections.length >= MAX_CONNECTIONS) {
@@ -1747,8 +1747,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         const { connections } = get();
         const newConnections: SocialConnection[] = [];
         
-        // Enforce connection limit of 5
-        const MAX_CONNECTIONS = 5;
+        // Enforce connection limit of 10
+        const MAX_CONNECTIONS = 10;
         
         // Check if we're at the connection limit
         if (connections.length >= MAX_CONNECTIONS) {
@@ -1998,8 +1998,8 @@ export const useSocialNetwork = create<SocialNetworkState>()(
             character.addWealth(-event.entryFee);
           }
           
-          // Enforce connection limit of 5
-          const MAX_CONNECTIONS = 5;
+          // Enforce connection limit of 10
+          const MAX_CONNECTIONS = 10;
           
           // Calculate how many new connections to make based on event benefits AND the available network slots
           const baseConnectionCount = event.benefits.potentialConnections;
