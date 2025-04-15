@@ -2194,14 +2194,11 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         
         // For monthly boosts, provide a significant amount of social capital
         if (isMonthlyBoost) {
-          // Base monthly amount set to 100 as requested
-          const baseMonthlyAmount = 100; // 100 base social capital per month
+          // Base monthly amount set to 25 as requested (reduced from 100)
+          const baseMonthlyAmount = 25; // 25 base social capital per month
           
-          // Significant bonus based on networking level (adjusted for max 500)
-          const levelBonus = Math.floor(networkingLevel / 10); // 1 point per 10 networking levels
-          
-          // Calculate monthly regeneration (more impactful)
-          const regenerationAmount = baseMonthlyAmount + levelBonus;
+          // Calculate monthly regeneration (no level bonus as requested)
+          const regenerationAmount = baseMonthlyAmount; // Removed levelBonus
           
           // Update social capital (capped at 200)
           const newSocialCapital = Math.min(200, socialCapital + regenerationAmount);
