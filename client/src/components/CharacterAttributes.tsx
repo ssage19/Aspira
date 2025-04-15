@@ -188,7 +188,7 @@ export function CharacterAttributes() {
       icon: <Award className="h-4 w-4" />,
       description: 'Social status and recognition (max 3000)',
       scale: ['0-600', '601-1200', '1201-1800', '1801-2400', '2401-3000'],
-      levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
+      levels: ['Aspiring', 'Notable', 'Prestigious', 'Distinguished', 'Legendary'],
       colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500'],
       isSpecialScale: true
     },
@@ -259,11 +259,11 @@ export function CharacterAttributes() {
       
       if (attributeName === 'prestige') {
         // Special handling for prestige with 0-3000 range
-        if (value >= 2400) return 4; // Elite: 2401-3000
-        if (value >= 1800) return 3; // Influential: 1801-2400
-        if (value >= 1200) return 2; // Respected: 1201-1800
-        if (value >= 600) return 1;  // Recognized: 601-1200
-        return 0;                    // Unknown: 0-600
+        if (value >= 2400) return 4; // Legendary: 2401-3000
+        if (value >= 1800) return 3; // Distinguished: 1801-2400
+        if (value >= 1200) return 2; // Prestigious: 1201-1800
+        if (value >= 600) return 1;  // Notable: 601-1200
+        return 0;                    // Aspiring: 0-600
       }
     } else if (attributeName === 'skills') {
       // Special handling for skills with 0-6000 range
