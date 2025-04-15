@@ -75,6 +75,12 @@ export function Investments() {
   const [showSellDialog, setShowSellDialog] = useState(false);
   const [openBuySellPanels, setOpenBuySellPanels] = useState<Record<string, boolean>>({});
   
+  // Market status tracking
+  const [marketStatus, setMarketStatus] = useState<{isOpen: boolean; reason: string}>({
+    isOpen: false, 
+    reason: 'Checking market status...'
+  });
+  
   // Get mobile detection
   const { isMobile } = useResponsive();
 
@@ -116,6 +122,36 @@ export function Investments() {
     const marketOpen = (window as any).isStockMarketOpen !== undefined 
       ? (window as any).isStockMarketOpen 
       : isMarketOpen();
+    
+    // Check why market might be closed and update UI state
+    const timeState = useTime.getState();
+    const gameDate = new Date();
+    gameDate.setFullYear(timeState.currentYear);
+    gameDate.setMonth(timeState.currentMonth - 1);
+    gameDate.setDate(timeState.currentDay);
+    const dayOfWeek = gameDate.getDay();
+    const hoursFraction = (timeState.timeProgress / 100) * 24;
+    const currentHour = Math.floor(hoursFraction);
+    
+    let marketStatus = {
+      isOpen: marketOpen,
+      reason: ''
+    };
+    
+    if (!marketOpen) {
+      if (dayOfWeek === 0 || dayOfWeek === 6) {
+        marketStatus.reason = dayOfWeek === 0 ? 'Weekend (Sunday)' : 'Weekend (Saturday)';
+      } else if (currentHour < 9) {
+        marketStatus.reason = 'Market hours: 9:00 AM - 4:00 PM';
+      } else if (currentHour >= 16) {
+        marketStatus.reason = 'After hours (Market closed at 4:00 PM)';
+      } else {
+        marketStatus.reason = 'Market closed';
+      }
+    }
+    
+    // Update state with market status for UI
+    setMarketStatus(marketStatus);
     
     console.log(`Investments: Market is ${marketOpen ? 'OPEN' : 'CLOSED'}, fetching current prices`);
     
@@ -1968,6 +2004,28 @@ export function Investments() {
               
               {/* Stocks Tab */}
               <TabsContent value="stocks">
+                {/* Market Status Indicator */}
+                <div className={`mb-3 p-2 border rounded-md flex items-center gap-2 ${
+                  marketStatus.isOpen 
+                    ? 'border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-300' 
+                    : 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300'
+                }`}>
+                  <div className={`w-3 h-3 rounded-full ${
+                    marketStatus.isOpen ? 'bg-green-500 dark:bg-green-400' : 'bg-amber-500 dark:bg-amber-400'
+                  }`}></div>
+                  <div>
+                    <p className="font-medium text-sm">
+                      Stock Market: {marketStatus.isOpen ? 'Open' : 'Closed'}
+                    </p>
+                    {!marketStatus.isOpen && marketStatus.reason && (
+                      <p className="text-xs">{marketStatus.reason}</p>
+                    )}
+                    {marketStatus.isOpen && (
+                      <p className="text-xs">Trading hours: 9:00 AM - 4:00 PM, weekdays only</p>
+                    )}
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">Stock Holdings</h3>
