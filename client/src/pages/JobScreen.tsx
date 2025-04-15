@@ -973,22 +973,37 @@ export default function JobScreen() {
                               })()}
                             </div>
                           </div>
-                          <Progress 
-                            value={(() => {
-                              if (!currentGameDate || !selectedChallenge.startDate) return 0;
-                              
-                              const startDate = new Date(selectedChallenge.startDate);
-                              const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                              const monthsPassed = Math.floor(daysPassed / 30);
-                              
-                              const percent = Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
-                              console.log(`Detail view: Challenge ${selectedChallenge.id} progress: ${percent.toFixed(1)}%`);
-                              
-                              return percent;
-                            })()} 
-                            className="h-2"
-                            key={`detail-${selectedChallenge.id}-progress-${Date.now()}`} 
-                          />
+                          {(() => {
+                            // Get CURRENT time from the time store for real-time updates
+                            const realTimeData = useTime.getState();
+                            const realCurrentGameDate = realTimeData.currentGameDate;
+                            
+                            // Debug the calculation
+                            console.log("Detail view using game date:", realCurrentGameDate);
+                            
+                            if (!realCurrentGameDate || !selectedChallenge.startDate) {
+                              return <Progress value={0} className="h-2" key="detail-no-progress" />;
+                            }
+                            
+                            const startDate = new Date(selectedChallenge.startDate);
+                            const daysPassed = Math.floor((realCurrentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                            const monthsPassed = Math.floor(daysPassed / 30);
+                            
+                            // Calculate percentage (0-100)
+                            const percent = Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
+                            
+                            console.log(`DETAIL VIEW: Challenge ${selectedChallenge.id} - ${percent.toFixed(1)}% complete`);
+                            console.log(`Detail time data: Start=${startDate.toLocaleString()}, Current=${realCurrentGameDate.toLocaleString()}`);
+                            console.log(`Detail calculation: ${daysPassed} days (${monthsPassed}/${selectedChallenge.completionTime} months)`);
+                            
+                            return (
+                              <Progress
+                                value={percent}
+                                className="h-2"
+                                key={`detail-${selectedChallenge.id}-progress-${realTimeData.dayCounter}-${Date.now()}`}
+                              />
+                            );
+                          })()}
                           
                           <div className="flex justify-between mt-6 gap-4">
                             {selectedChallenge.readyForCompletion ? (
@@ -1107,40 +1122,56 @@ export default function JobScreen() {
                                       <div className="text-xs text-muted-foreground">Progress</div>
                                       <div className="text-xs text-muted-foreground">
                                         {(() => {
-                                          if (!currentGameDate || !challenge.startDate) return '0%';
+                                          // Get CURRENT time from the time store
+                                          const realTimeData = useTime.getState();
+                                          const realCurrentGameDate = realTimeData.currentGameDate;
+                                          
+                                          if (!realCurrentGameDate || !challenge.startDate) return '0%';
                                           
                                           const startDate = new Date(challenge.startDate);
-                                          const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                          const daysPassed = Math.floor((realCurrentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                                           const monthsPassed = Math.floor(daysPassed / 30);
                                           const progressPercent = Math.min(100, Math.round((monthsPassed / challenge.completionTime) * 100));
+                                          
+                                          // Debug logs
+                                          console.log(`Challenge progress: ${progressPercent}% - ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
                                           
                                           return `${progressPercent}%`;
                                         })()}
                                       </div>
                                     </div>
-                                    <Progress 
-                                      value={(() => {
-                                        if (!currentGameDate || !challenge.startDate) return 0;
-                                        
-                                        // Create a fresh Date object from the stored date string
-                                        const startDate = new Date(challenge.startDate);
-                                        
-                                        // Calculate progress using the current game time
-                                        const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                                        const monthsPassed = Math.floor(daysPassed / 30);
-                                        
-                                        // Calculate percentage (0-100)
-                                        const percent = Math.min(100, (monthsPassed / challenge.completionTime) * 100);
-                                        
-                                        // Log for debugging
-                                        console.log(`Challenge ${challenge.id} progress: ${percent.toFixed(1)}% (${monthsPassed}/${challenge.completionTime} months)`);
-                                        
-                                        return percent;
-                                      })()} 
-                                      className="h-1"
-                                      // Use a key that will definitely change as game time updates
-                                      key={`${challenge.id}-progress-${Date.now()}`} 
-                                    />
+                                    
+                                    {/* Use an inline component to force updates with the current time */}
+                                    {(() => {
+                                      // Get CURRENT time from the time store
+                                      const realTimeData = useTime.getState();
+                                      const realCurrentGameDate = realTimeData.currentGameDate;
+                                      
+                                      // Debug the date object
+                                      console.log("Current game date for progress bar:", realCurrentGameDate);
+                                      
+                                      if (!realCurrentGameDate || !challenge.startDate) {
+                                        return <Progress value={0} className="h-1" key={`${challenge.id}-progress-0`} />;
+                                      }
+                                      
+                                      const startDate = new Date(challenge.startDate);
+                                      const daysPassed = Math.floor((realCurrentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                      const monthsPassed = Math.floor(daysPassed / 30);
+                                      
+                                      // Calculate percentage (0-100)
+                                      const percent = Math.min(100, (monthsPassed / challenge.completionTime) * 100);
+                                      
+                                      console.log(`PROGRESS BAR: Challenge ${challenge.id} (${challenge.title}) - ${percent.toFixed(1)}% complete`);
+                                      console.log(`Time difference: ${daysPassed} days (${monthsPassed} months) out of ${challenge.completionTime} months`);
+                                      
+                                      return (
+                                        <Progress
+                                          value={percent}
+                                          className="h-1"
+                                          key={`${challenge.id}-progress-${realTimeData.dayCounter}-${Date.now()}`}
+                                        />
+                                      );
+                                    })()}
                                   </div>
                                 )}
                               </div>
