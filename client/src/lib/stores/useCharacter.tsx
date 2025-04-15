@@ -1585,9 +1585,16 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const oldJob = state.job;
           
-          // Add the old job to history
+          // Calculate the actual months in position for job history
+          // Use Math.floor to ensure we don't overestimate
+          const daysInPreviousJob = state.daysSincePromotion;
+          const monthsInPosition = Math.floor(daysInPreviousJob / 30);
+          
+          console.log(`Job promotion: Days in previous position: ${daysInPreviousJob}, calculated months: ${monthsInPosition}`);
+          
+          // Add the old job to history with proper month calculation
           const updatedHistory = oldJob 
-            ? [...state.jobHistory, { ...oldJob, monthsInPosition: state.daysSincePromotion / 30 }] 
+            ? [...state.jobHistory, { ...oldJob, monthsInPosition: monthsInPosition }] 
             : state.jobHistory;
           
           return {
@@ -1611,9 +1618,16 @@ export const useCharacter = create<CharacterState>()(
         set((state) => {
           const oldJob = state.job;
           
-          // Add the old job to history
+          // Calculate the actual months in position for job history
+          // Use Math.floor to ensure we don't overestimate
+          const daysInPreviousJob = state.daysSincePromotion;
+          const monthsInPosition = Math.floor(daysInPreviousJob / 30);
+          
+          console.log(`Job quit: Days in previous position: ${daysInPreviousJob}, calculated months: ${monthsInPosition}`);
+          
+          // Add the old job to history with proper month calculation
           const updatedHistory = oldJob 
-            ? [...state.jobHistory, { ...oldJob, monthsInPosition: state.daysSincePromotion / 30 }] 
+            ? [...state.jobHistory, { ...oldJob, monthsInPosition: monthsInPosition }] 
             : state.jobHistory;
           
           return {
