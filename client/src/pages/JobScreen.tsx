@@ -37,77 +37,35 @@ interface LiveChallengeProgressProps {
   height?: string;
 }
 
+// Import our custom hook
+import { useJobChallengeTimer } from '../hooks/useJobChallengeTimer';
+
 function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgressProps) {
-  // Use game time directly from the store for real-time updates
-  const gameTime = useTime();
-  const currentGameDate = gameTime.currentGameDate;
-  const dayCounter = gameTime.dayCounter; // Force re-renders when day changes
-  const timeSpeed = gameTime.timeSpeed; // Also track speed changes
+  // Use our specialized hook that handles all the complexity
+  const { progress, isFinished, daysRemaining, monthsRemaining } = useJobChallengeTimer(
+    challenge.startDate,
+    challenge.completionTime
+  );
   
-  // State for progress value and tracking calculation logs
-  const [progressValue, setProgressValue] = useState(0);
-  const [lastCalcTime, setLastCalcTime] = useState(Date.now());
-  
-  // Force re-calculation on interval to ensure UI stays updated
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Only update if enough time has passed to avoid too many rerenders
-      if (Date.now() - lastCalcTime > 1000) { // 1-second throttle
-        setLastCalcTime(Date.now());
-      }
-    }, 2000); // Check every 2 seconds
-    
-    return () => clearInterval(intervalId);
-  }, [lastCalcTime]);
-  
-  // Calculate progress whenever relevant data changes
-  useEffect(() => {
-    if (!currentGameDate || !challenge.startDate) {
-      console.log(`Challenge "${challenge.title}": No valid dates for calculation`);
-      setProgressValue(0);
-      return;
-    }
-    
-    try {
-      // Ensure we have proper Date objects
-      const startDate = challenge.startDate instanceof Date 
-        ? challenge.startDate 
-        : new Date(challenge.startDate);
-      
-      // Log the date formats for debugging
-      console.log(`Challenge "${challenge.title}" calculation:`);
-      console.log(`- Start date: ${startDate.toISOString()}`);
-      console.log(`- Current game date: ${currentGameDate.toISOString()}`);
-      
-      // Calculate milliseconds passed and convert to days
-      const msDiff = currentGameDate.getTime() - startDate.getTime();
-      const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-      const monthsPassed = Math.floor(daysPassed / 30);
-      
-      // Calculate percentage (0-100)
-      const percent = Math.min(100, Math.max(0, (monthsPassed / challenge.completionTime) * 100));
-      
-      console.log(`🔄 Challenge progress: ${percent.toFixed(1)}% (${monthsPassed}/${challenge.completionTime} months, ${daysPassed} days)`);
-      
-      setProgressValue(percent);
-    } catch (error) {
-      console.error(`Error calculating progress for challenge "${challenge.title}":`, error);
-      setProgressValue(0);
-    }
-  }, [currentGameDate, dayCounter, timeSpeed, challenge, lastCalcTime]);
-  
-  // Add indicators for the progress value for debugging
-  const isReady = progressValue >= 100;
+  // Display formatting
+  const progressText = `${Math.floor(progress)}%`;
+  const timeLeftText = monthsRemaining > 0 
+    ? `${monthsRemaining} month${monthsRemaining !== 1 ? 's' : ''} remaining` 
+    : isFinished 
+      ? 'Complete!' 
+      : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`;
   
   return (
     <>
       <Progress
-        value={progressValue}
-        className={`${height} ${isReady ? 'bg-green-100' : ''}`}
+        value={progress}
+        className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
       />
-      {/* Uncomment this section to add text indicator of progress 
-      <div className="text-xs mt-1 text-muted-foreground text-right">
-        {progressValue.toFixed(0)}% complete
+      {/* Uncomment to add text indicator of progress */}
+      {/*
+      <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+        <span>{progressText}</span>
+        <span>{timeLeftText}</span>
       </div>
       */}
     </>
@@ -509,10 +467,26 @@ export default function JobScreen() {
     toast.success(`Congratulations! You've been promoted to ${newJob.title}`);
   };
   
-  // Save challenges to localStorage whenever they change
+  // Save challenges to localStorage whenever they change with proper date serialization
   useEffect(() => {
     if (job && challenges.length > 0) {
-      localStorage.setItem(`challenges-${job.id}`, JSON.stringify(challenges));
+      try {
+        // Properly serialize date objects to ISO strings
+        const serializableChallenges = challenges.map(challenge => ({
+          ...challenge,
+          startDate: challenge.startDate instanceof Date 
+            ? challenge.startDate.toISOString() 
+            : challenge.startDate,
+          lastProgressUpdate: challenge.lastProgressUpdate instanceof Date
+            ? challenge.lastProgressUpdate.toISOString()
+            : challenge.lastProgressUpdate
+        }));
+        
+        localStorage.setItem(`challenges-${job.id}`, JSON.stringify(serializableChallenges));
+        console.log("Challenge data saved to localStorage on change");
+      } catch (error) {
+        console.error("Error saving challenges to localStorage:", error);
+      }
     }
   }, [challenges, job]);
   
@@ -531,61 +505,60 @@ export default function JobScreen() {
           return challenge;
         }
         
-        // Ensure we have a proper Date object for calculation
-        let startDate;
+        // Use our specialized hook's logic directly here
+        // This avoids having to create React components for each challenge
         try {
-          startDate = challenge.startDate instanceof Date 
+          // Calculate progress using the same logic as our hook
+          const startDate = challenge.startDate instanceof Date 
             ? challenge.startDate 
             : new Date(challenge.startDate);
-        } catch (error) {
-          console.error(`Error parsing start date for challenge "${challenge.title}":`, error);
-          return challenge;
-        }
-        
-        // Debug the date formats
-        console.log(`Challenge "${challenge.title}" status check:`);
-        console.log(`- Start date: ${startDate.toISOString()}`);
-        console.log(`- Current game date: ${currentGameDate.toISOString()}`);
-        
-        // Calculate days and months passed since challenge started
-        const msDiff = currentGameDate.getTime() - startDate.getTime();
-        const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-        const monthsPassed = Math.floor(daysPassed / 30);
-        
-        console.log(`🏆 Challenge "${challenge.title}": ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
-        
-        // Check if challenge is ready for completion
-        if (monthsPassed >= challenge.completionTime) {
-          // Only notify if we're transitioning from not ready to ready
-          if (!challenge.readyForCompletion) {
-            setTimeout(() => {
-              toast.success(
-                <div className="flex items-center gap-2">
-                  <GraduationCap className="h-5 w-5" />
-                  <div>
-                    <div className="font-semibold">Challenge Ready!</div>
-                    <div className="text-sm">{challenge.title} is ready to be completed</div>
+          
+          const msDiff = currentGameDate.getTime() - startDate.getTime();
+          const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+          const monthsPassed = Math.floor(daysPassed / 30);
+          
+          // Calculate progress percentage (0-100)
+          const progress = Math.min(100, Math.max(0, (monthsPassed / challenge.completionTime) * 100));
+          const isFinished = progress >= 100;
+          
+          console.log(`🏆 Challenge "${challenge.title}": ${progress.toFixed(1)}% complete (${monthsPassed}/${challenge.completionTime} months)`);
+          
+          // Check if challenge is ready for completion
+          if (isFinished) {
+            // Only notify if we're transitioning from not ready to ready
+            if (!challenge.readyForCompletion) {
+              setTimeout(() => {
+                toast.success(
+                  <div className="flex items-center gap-2">
+                    <GraduationCap className="h-5 w-5" />
+                    <div>
+                      <div className="font-semibold">Challenge Ready!</div>
+                      <div className="text-sm">{challenge.title} is ready to be completed</div>
+                    </div>
                   </div>
-                </div>
-              );
-            }, 500);
+                );
+              }, 500);
+              
+              console.log(`✅ Challenge "${challenge.title}" is now ready for completion`);
+            }
             
-            console.log(`✅ Challenge "${challenge.title}" is now ready for completion`);
+            // Mark as ready for completion
+            return {
+              ...challenge,
+              readyForCompletion: true,
+              lastProgressUpdate: new Date(currentGameDate)
+            };
           }
           
-          // Mark as ready for completion
+          // Not ready yet, but always update the lastProgressUpdate for UI refresh
           return {
             ...challenge,
-            readyForCompletion: true,
             lastProgressUpdate: new Date(currentGameDate)
           };
+        } catch (calcError) {
+          console.error(`Error calculating progress for challenge "${challenge.title}":`, calcError);
+          return challenge;
         }
-        
-        // Not ready yet, but always update the lastProgressUpdate for UI refresh
-        return {
-          ...challenge,
-          lastProgressUpdate: new Date(currentGameDate)
-        };
       });
       
       // Update state with the new challenge data
@@ -593,19 +566,23 @@ export default function JobScreen() {
       
       // Ensure proper serialization for localStorage
       if (job?.id) {
-        const serializableChallenges = updatedChallenges.map(challenge => ({
-          ...challenge,
-          // Convert Date objects to ISO strings for proper serialization
-          startDate: challenge.startDate instanceof Date 
-            ? challenge.startDate.toISOString() 
-            : challenge.startDate,
-          lastProgressUpdate: challenge.lastProgressUpdate instanceof Date
-            ? challenge.lastProgressUpdate.toISOString()
-            : challenge.lastProgressUpdate
-        }));
-        
-        localStorage.setItem(`challenges-${job.id}`, JSON.stringify(serializableChallenges));
-        console.log("💾 Saved updated challenge status to localStorage");
+        try {
+          const serializableChallenges = updatedChallenges.map(challenge => ({
+            ...challenge,
+            // Convert Date objects to ISO strings for proper serialization
+            startDate: challenge.startDate instanceof Date 
+              ? challenge.startDate.toISOString() 
+              : challenge.startDate,
+            lastProgressUpdate: challenge.lastProgressUpdate instanceof Date
+              ? challenge.lastProgressUpdate.toISOString()
+              : challenge.lastProgressUpdate
+          }));
+          
+          localStorage.setItem(`challenges-${job.id}`, JSON.stringify(serializableChallenges));
+          console.log("💾 Saved updated challenge status to localStorage");
+        } catch (storageError) {
+          console.error("Error serializing challenges for localStorage:", storageError);
+        }
       }
     } catch (error) {
       console.error("Error in challenge status update system:", error);
