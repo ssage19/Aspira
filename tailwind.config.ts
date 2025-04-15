@@ -5,6 +5,16 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      width: {
+        '104': '26rem', // 416px
+        '112': '28rem', // 448px
+        '128': '32rem', // 512px
+      },
+      height: {
+        '104': '26rem', // 416px
+        '112': '28rem', // 448px
+        '128': '32rem', // 512px
+      },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",

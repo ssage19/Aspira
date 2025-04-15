@@ -222,14 +222,15 @@ export default function CharacterCreation() {
             
             <div className="relative mb-8">
               {/* Decorative elements - behind the logo */}
-              <div className="absolute -top-12 -left-20 w-40 h-40 bg-primary/20 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-12 -right-20 w-40 h-40 bg-secondary/20 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-accent/10 rounded-full blur-lg"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-primary/20 rounded-full blur-md"></div>
+              <div className="absolute -top-16 -left-28 w-64 h-64 bg-primary/20 rounded-full blur-xl"></div>
+              <div className="absolute -bottom-16 -right-28 w-64 h-64 bg-secondary/20 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/10 rounded-full blur-lg"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-104 h-104 bg-primary/20 rounded-full blur-md"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-112 h-112 bg-secondary/10 rounded-full blur-sm"></div>
               
-              {/* Logo - much larger now */}
+              {/* Logo - doubled in size again (128px) */}
               <div className="relative">
-                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-64 w-64 relative z-10 animate-pulse-slow" />
+                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-128 w-128 relative z-10 animate-pulse-slow" />
               </div>
             </div>
             
