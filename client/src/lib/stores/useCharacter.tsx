@@ -3078,6 +3078,21 @@ export const useCharacter = create<CharacterState>()(
                 if (totalGains > 0) {
                   console.log(`Automatically improved job-related skills by ${totalGains} points after 30 days at ${state.job.title}`);
                 }
+                
+                // Give the player 5 additional skill points to allocate manually
+                const additionalPoints = 5;
+                
+                // Update the earned skill points that the player can allocate manually
+                state.earnedSkillPoints = (state.earnedSkillPoints || 0) + additionalPoints;
+                
+                // Log the additional points
+                console.log(`Awarded ${additionalPoints} flexible skill points for the player to allocate manually`);
+                
+                // Show a notification for the manual skill points
+                toast.success(`You earned ${additionalPoints} skill points to allocate manually`, {
+                  position: 'top-center',
+                  duration: 4000
+                });
               }
             }
           }
