@@ -223,7 +223,7 @@ export default function CharacterCreation() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-40 bg-accent/10 rounded-full blur-lg"></div>
               
               {/* Title and logo container */}
-              <div className="flex items-center justify-center gap-8 mb-4">
+              <div className="flex items-center justify-center gap-12 mb-4">
                 {/* Aspira title - with its own decorative elements */}
                 <div className="relative">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-primary/15 rounded-full blur-md"></div>
@@ -232,11 +232,11 @@ export default function CharacterCreation() {
                   </div>
                 </div>
                 
-                {/* Logo with decorative elements - significantly larger */}
+                {/* Logo with decorative elements - extra large */}
                 <div className="relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-secondary/20 rounded-full blur-md"></div>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-primary/15 rounded-full blur-lg"></div>
-                  <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-32 w-32 relative z-10 animate-pulse-slow" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-secondary/20 rounded-full blur-md"></div>
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 bg-primary/15 rounded-full blur-lg"></div>
+                  <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-40 w-40 relative z-10 animate-pulse-slow" />
                 </div>
               </div>
               
