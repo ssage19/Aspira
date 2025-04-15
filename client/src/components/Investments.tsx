@@ -2246,6 +2246,19 @@ export function Investments() {
               
               {/* Crypto Tab */}
               <TabsContent value="crypto">
+                {/* Crypto Market Status Indicator */}
+                <div className="mb-3 p-2 border rounded-md flex items-center gap-2 border-blue-500 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300">
+                  <div className="w-3 h-3 rounded-full bg-blue-500 dark:bg-blue-400"></div>
+                  <div>
+                    <p className="font-medium text-sm">
+                      Crypto Market: Always Open (24/7)
+                    </p>
+                    <p className="text-xs">
+                      Cryptocurrencies can be traded at any time regardless of stock market hours
+                    </p>
+                  </div>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-lg" id="crypto-portfolio-heading">Cryptocurrency Holdings</h3>
