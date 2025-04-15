@@ -23,6 +23,7 @@ export function AttributesDecayManager() {
     addStress,
     happiness,
     addHappiness,
+    health,
     // Basic needs
     hunger,
     thirst,
@@ -34,6 +35,8 @@ export function AttributesDecayManager() {
     // Time commitment
     timeCommitment,
     freeTime,
+    // Social
+    socialConnections,
     // Job
     job,
     // Internal tracking state
@@ -226,16 +229,42 @@ export function AttributesDecayManager() {
       jobHappinessModifier = job.happinessImpact / 20; // Scale job happiness impact
     }
     
+    // HEALTH & SOCIAL MODIFIERS for happiness
+    let healthHappinessModifier = 0;
+    let socialHappinessModifier = 0;
+    
+    // Health impacts happiness
+    if (health < 30) {
+      healthHappinessModifier = -4; // Poor health severely impacts happiness
+      console.log('Health warning: poor health severely affecting happiness');
+    } else if (health < 50) {
+      healthHappinessModifier = -2; // Below average health moderately impacts happiness
+    } else if (health > 80) {
+      healthHappinessModifier = 2; // Excellent health boosts happiness
+    }
+    
+    // Social connections impact happiness
+    if (socialConnections < 30) {
+      socialHappinessModifier = -3; // Limited social network severely impacts happiness
+      console.log('Social warning: limited social connections affecting happiness');
+    } else if (socialConnections < 50) {
+      socialHappinessModifier = -1; // Below average social connections moderately impact happiness
+    } else if (socialConnections > 75) {
+      socialHappinessModifier = 2; // Strong social network boosts happiness
+    }
+    
     // APPLY TOTAL DAILY EFFECTS
     
-    // Calculate total happiness change
+    // Calculate total happiness change with new factors
     const totalHappinessChange = 
       baseHappinessDecay + 
       housingHappinessModifier + 
       transportHappinessModifier + 
       workLifeBalanceHappinessModifier + 
       basicNeedsHappinessModifier +
-      jobHappinessModifier;
+      jobHappinessModifier +
+      healthHappinessModifier +
+      socialHappinessModifier;
     
     // Calculate total stress change
     const totalStressChange = 
@@ -252,7 +281,7 @@ export function AttributesDecayManager() {
     
     // Log changes for debugging
     console.log(`Daily attribute changes - Happiness: ${totalHappinessChange}, Stress: ${totalStressChange}`);
-    console.log(`Happiness breakdown - Base: ${baseHappinessDecay}, Housing: ${housingHappinessModifier}, Transport: ${transportHappinessModifier}, Work-Life: ${workLifeBalanceHappinessModifier}, Basic Needs: ${basicNeedsHappinessModifier}, Job: ${jobHappinessModifier}`);
+    console.log(`Happiness breakdown - Base: ${baseHappinessDecay}, Housing: ${housingHappinessModifier}, Transport: ${transportHappinessModifier}, Work-Life: ${workLifeBalanceHappinessModifier}, Basic Needs: ${basicNeedsHappinessModifier}, Job: ${jobHappinessModifier}, Health: ${healthHappinessModifier}, Social: ${socialHappinessModifier}`);
     console.log(`Stress breakdown - Base: ${baseStressIncrease}, Housing: ${housingStressModifier}, Transport: ${transportStressModifier}, Work-Life: ${workLifeBalanceStressModifier}, Basic Needs: ${basicNeedsStressModifier}, Job: ${jobStressModifier}`);
     
     // For very high stress, apply additional happiness penalty
@@ -308,9 +337,47 @@ export function AttributesDecayManager() {
     
     // Smaller changes happen throughout the day
     
-    // Minor happiness decay
-    const hourlyHappinessDecay = -0.2;
-    addHappiness(hourlyHappinessDecay);
+    // Calculate happiness decay based on health, stress, time management, and social connections
+    let hourlyHappinessDecay = -0.2; // Base decay
+    
+    // Health factor: worse health causes faster happiness decay
+    const healthFactor = 
+      health < 30 ? -0.3 :   // Poor health: significant happiness loss
+      health < 50 ? -0.15 :  // Below average health: moderate happiness loss
+      health > 80 ? 0.1 :    // Excellent health: slight happiness boost
+      0;                     // Average health: no effect
+    
+    // Stress factor: higher stress causes faster happiness decay
+    const stressFactor = 
+      stress > 80 ? -0.3 :   // High stress: significant happiness loss
+      stress > 60 ? -0.15 :  // Above average stress: moderate happiness loss
+      stress < 30 ? 0.1 :    // Low stress: slight happiness boost
+      0;                     // Average stress: no effect
+    
+    // Time management factor
+    const effectiveTimeCommitment = Math.max(timeCommitment, 4);
+    const freeTimeRatio = freeTime / effectiveTimeCommitment;
+    const timeManagementFactor =
+      freeTimeRatio < 0.2 ? -0.25 :  // Very poor time management: faster happiness loss
+      freeTimeRatio < 0.5 ? -0.1 :   // Poor time management: moderate happiness loss
+      freeTimeRatio > 1.5 ? 0.1 :    // Excellent time management: slight happiness boost
+      0;                             // Average time management: no effect
+    
+    // Social connections factor
+    const socialFactor =
+      socialConnections < 30 ? -0.2 : // Few social connections: faster happiness loss
+      socialConnections < 50 ? -0.1 : // Below average social life: moderate happiness loss
+      socialConnections > 80 ? 0.15 : // Strong social network: happiness boost
+      0;                              // Average social life: no effect
+    
+    // Calculate total happiness change
+    const totalHourlyHappinessChange = hourlyHappinessDecay + healthFactor + stressFactor + timeManagementFactor + socialFactor;
+    
+    // Apply the happiness change
+    addHappiness(totalHourlyHappinessChange);
+    
+    // Log the breakdown
+    console.log(`Hourly happiness change: ${totalHourlyHappinessChange.toFixed(2)} (Base: ${hourlyHappinessDecay}, Health: ${healthFactor}, Stress: ${stressFactor}, Time: ${timeManagementFactor}, Social: ${socialFactor})`);
     
     // Minor stress increase, with random variation
     const baseHourlyStressIncrease = 0.1;
@@ -451,6 +518,31 @@ export function AttributesDecayManager() {
       playSound('error');
     } else if (improvedFreeTimeRatio < 0.2 && Math.random() < 0.2) { // Reduced from 0.25 and 0.3 chance
       console.log('Poor time management: free time is very limited');
+    }
+    
+    // Check for negative feedback loop with multiple critical attributes
+    // This is where health, stress, happiness, and social factors combine
+    let criticalCount = 0;
+    
+    // Count how many critical attributes are present
+    if (health < 40) criticalCount++;
+    if (stress > 75) criticalCount++;
+    if (happiness < 30) criticalCount++;
+    if (socialConnections < 30) criticalCount++;
+    if (improvedFreeTimeRatio < 0.15) criticalCount++;
+    
+    // If multiple critical attributes are present, we have a negative feedback loop
+    if (criticalCount >= 3 && Math.random() < 0.4) {
+      console.log(`CRITICAL: Negative feedback loop detected with ${criticalCount} critical attributes. Your health, happiness, stress, time management, and social life are affecting each other negatively.`);
+      
+      // Calculate the severity of the feedback loop
+      const feedbackSeverity = criticalCount * 0.5; // 0.5 points per critical attribute
+      
+      // Apply a small additional happiness decay to represent the negative feedback loop
+      addHappiness(-feedbackSeverity);
+      
+      // Still play sound for critical warnings only
+      playSound('error');
     }
   };
   
