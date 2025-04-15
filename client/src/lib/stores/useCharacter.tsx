@@ -3089,7 +3089,7 @@ export const useCharacter = create<CharacterState>()(
                 console.log(`Awarded ${additionalPoints} flexible skill points for the player to allocate manually`);
                 
                 // Show a notification for the manual skill points
-                toast.success(`You earned ${additionalPoints} skill points to allocate manually`, {
+                toast.success(`Monthly 5 Skill Points Awarded`, {
                   position: 'top-center',
                   duration: 4000
                 });
