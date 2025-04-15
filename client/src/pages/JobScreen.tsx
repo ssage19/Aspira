@@ -457,7 +457,9 @@ export default function JobScreen() {
           // Always update the challenge to ensure the UI shows correct progress
           else if (!challenge.lastProgressUpdate || 
             // Only update if a day has passed since last update to avoid excessive updates
-            Math.floor((currentGameDate.getTime() - (challenge.lastProgressUpdate?.getTime() || 0)) / (1000 * 60 * 60 * 24)) >= 1) {
+            Math.floor((currentGameDate.getTime() - (challenge.lastProgressUpdate instanceof Date ? 
+              challenge.lastProgressUpdate.getTime() : 
+              new Date(challenge.lastProgressUpdate).getTime())) / (1000 * 60 * 60 * 24)) >= 1) {
             
             updatedChallenges[index] = {
               ...challenge,
