@@ -215,22 +215,26 @@ export default function CharacterCreation() {
       <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
         <CardHeader>
           <CardTitle className="flex flex-col items-center">
-            <div className="relative mb-8 mt-4">
+            {/* Title with gradient animation - now above logo */}
+            <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x mb-6 mt-4">
+              Aspira
+            </div>
+            
+            <div className="relative mb-8">
               {/* Decorative elements */}
-              <div className="absolute -top-6 -left-12 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-6 -right-12 w-24 h-24 bg-secondary/20 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-accent/10 rounded-full blur-lg"></div>
+              <div className="absolute -top-8 -left-16 w-32 h-32 bg-primary/20 rounded-full blur-xl"></div>
+              <div className="absolute -bottom-8 -right-16 w-32 h-32 bg-secondary/20 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-accent/10 rounded-full blur-lg"></div>
               
-              {/* Logo */}
+              {/* Logo - larger now */}
               <div className="relative">
-                <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-20 w-20 relative z-10 animate-pulse-slow" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-primary/30 rounded-full blur-md"></div>
+                <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-32 w-32 relative z-10 animate-pulse-slow" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-primary/30 rounded-full blur-md"></div>
               </div>
             </div>
             
-            {/* Title with gradient animation */}
-            <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x mb-2">Aspira</div>
-            <div className="text-xl font-medium flex items-center space-x-2">
+            {/* Tagline - now below logo */}
+            <div className="text-xl font-medium flex items-center space-x-2 mt-2">
               <span className="text-primary">Dream.</span>
               <span className="text-secondary">Build.</span>
               <span className="text-accent">Live.</span>
