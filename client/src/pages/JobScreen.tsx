@@ -112,13 +112,13 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
     challenge.completionTime
   );
   
-  // Display formatting
+  // Display formatting - always show in days instead of months for more granular updates
   const progressText = `${Math.floor(debugProgress)}%`;
-  const timeLeftText = monthsRemaining > 0 
-    ? `${monthsRemaining} month${monthsRemaining !== 1 ? 's' : ''} remaining` 
-    : isFinished 
-      ? 'Complete!' 
-      : `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`;
+  const timeLeftText = isFinished
+    ? 'Complete!' 
+    : daysRemaining > 0
+      ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`
+      : 'Complete!';
   
   return (
     <>
@@ -652,7 +652,7 @@ export default function JobScreen() {
     } catch (error) {
       console.error("Error in challenge status update system:", error);
     }
-  }, [currentGameDate, job, challenges]);
+  }, [currentGameDate, job, challenges, useTime(state => state.dayCounter)]);
   
   // Start working on a challenge
   const handleStartChallenge = (challenge: ChallengeType) => {
