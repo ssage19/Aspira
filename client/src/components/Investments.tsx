@@ -72,6 +72,7 @@ export function Investments() {
   
   // UI state for buy/sell dialogs and actions
   const [activeTab, setActiveTab] = useState('browse');
+  const [selectedTab, setSelectedTab] = useState('stocks');
   const [showSellDialog, setShowSellDialog] = useState(false);
   const [openBuySellPanels, setOpenBuySellPanels] = useState<Record<string, boolean>>({});
   
@@ -1997,7 +1998,7 @@ export function Investments() {
           
           {/* Asset Categories Tabs */}
           <div className="mt-4">
-            <Tabs defaultValue="stocks" className="w-full">
+            <Tabs defaultValue="stocks" className="w-full" value={selectedTab} onValueChange={setSelectedTab}>
               <TabsList className="w-full flex flex-wrap gap-1">
                 <TabsTrigger 
                   value="stocks" 
