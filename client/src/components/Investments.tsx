@@ -399,28 +399,37 @@ export function Investments() {
         setStockPrices(updatedStockPrices);
       }
       
-      // Refresh crypto prices with the same approach but only if needed
-      if (refreshCounterRef.current % 3 === 0) { // Lower frequency for crypto updates
-        const updatedCryptoPrices: Record<string, number> = {};
-        cryptoCurrencies.forEach(crypto => {
-          let latestPrice = 0;
-          
-          // First check in the globalCryptoPrices which is specifically designed for tracking all prices
-          if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
-            latestPrice = assetTracker.globalCryptoPrices[crypto.id];
-          }
-          
-          // Then check asset tracker crypto assets if we didn't find a price
-          if (latestPrice <= 0 && assetTracker.cryptoAssets) {
+      // ALWAYS refresh crypto prices on EVERY refresh call
+      // Crypto trading is 24/7 and needs real-time updates
+      const updatedCryptoPrices: Record<string, number> = {};
+      
+      // Get all crypto prices
+      cryptoCurrencies.forEach(crypto => {
+        let latestPrice = 0;
+        
+        // PRIORITIZE global crypto prices from AssetTracker first - this is the most up-to-date source
+        if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
+          latestPrice = assetTracker.globalCryptoPrices[crypto.id];
+          console.log(`Investments: Got price for ${crypto.name} from globalCryptoPrices: $${latestPrice.toFixed(2)}`);
+        }
+        
+        // If we still don't have a price, check other sources (but global prices should always be available)
+        if (latestPrice <= 0) {
+          // Check in asset tracker's crypto assets
+          if (assetTracker.cryptoAssets) {
             const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
             if (trackerCrypto && trackerCrypto.currentPrice > 0) {
               latestPrice = trackerCrypto.currentPrice;
+              console.log(`Investments: Got price for ${crypto.name} from crypto assets: $${latestPrice.toFixed(2)}`);
             }
           }
           
           // Try getAssetPrice method if needed
           if (latestPrice <= 0) {
             latestPrice = assetTracker.getAssetPrice(crypto.id);
+            if (latestPrice > 0) {
+              console.log(`Investments: Got price for ${crypto.name} from getAssetPrice: $${latestPrice.toFixed(2)}`);
+            }
           }
           
           // Check owned assets as fallback
@@ -428,30 +437,40 @@ export function Investments() {
             const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
             if (ownedCrypto && ownedCrypto.currentPrice > 0) {
               latestPrice = ownedCrypto.currentPrice;
+              console.log(`Investments: Got price for ${crypto.name} from owned crypto: $${latestPrice.toFixed(2)}`);
             }
           }
           
-          // Last resort
+          // Last resort - use base price
           if (latestPrice <= 0) {
             latestPrice = crypto.basePrice;
+            console.log(`Investments: Using base price for ${crypto.name}: $${latestPrice.toFixed(2)}`);
           }
-          
-          updatedCryptoPrices[crypto.id] = latestPrice;
-        });
-        
-        // Calculate a hash for crypto prices to detect changes
-        const cryptoPriceHash = Object.entries(updatedCryptoPrices)
-          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
-        
-        const prevCryptoPriceHash = Object.entries(cryptoPrices)
-          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
-        
-        // Only update if hash has changed or it's a forced refresh
-        const forceCryptoRefresh = refreshCounterRef.current % 10 === 0;
-        if (cryptoPriceHash !== prevCryptoPriceHash || forceCryptoRefresh) {
-          console.log("Investments: Updating crypto prices - changes detected");
-          setCryptoPrices(updatedCryptoPrices);
         }
+        
+        updatedCryptoPrices[crypto.id] = latestPrice;
+      });
+      
+      // Check if any price has changed (including small changes)
+      let pricesChanged = false;
+      for (const id of Object.keys(updatedCryptoPrices)) {
+        const oldPrice = cryptoPrices[id] || 0;
+        const newPrice = updatedCryptoPrices[id];
+        
+        if (Math.abs(oldPrice - newPrice) > 0.01) {
+          pricesChanged = true;
+          break;
+        }
+      }
+      
+      // We'll update if price changes or if it's time for a forced refresh
+      const forceCryptoRefresh = refreshCounterRef.current % 5 === 0; // More frequent forced updates
+      
+      if (pricesChanged || forceCryptoRefresh) {
+        console.log("Investments: Updating crypto prices - changes detected");
+        setCryptoPrices(updatedCryptoPrices);
+      } else {
+        console.log("Investments: No crypto price changes detected, skipping state update");
       }
     };
     
