@@ -1091,10 +1091,40 @@ export default function JobScreen() {
                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-1">
                                   {challenge.description}
                                 </p>
+                                
+                                {/* Show progress bar for in-progress challenges */}
+                                {challenge.inProgress && challenge.startDate && !challenge.completed && (
+                                  <div className="mt-2 w-full">
+                                    <div className="flex justify-between items-center mb-1">
+                                      <div className="text-xs text-muted-foreground">Progress</div>
+                                      <div className="text-xs text-muted-foreground">
+                                        {(() => {
+                                          if (!currentGameDate) return '0%';
+                                          
+                                          const startDate = new Date(challenge.startDate);
+                                          const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                          const monthsPassed = Math.floor(daysPassed / 30);
+                                          const progressPercent = Math.min(100, Math.round((monthsPassed / challenge.completionTime) * 100));
+                                          
+                                          return `${progressPercent}%`;
+                                        })()}
+                                      </div>
+                                    </div>
+                                    <Progress value={(() => {
+                                      if (!currentGameDate) return 0;
+                                      
+                                      const startDate = new Date(challenge.startDate);
+                                      const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                      const monthsPassed = Math.floor(daysPassed / 30);
+                                      return Math.min(100, (monthsPassed / challenge.completionTime) * 100);
+                                    })()} className="h-1" />
+                                  </div>
+                                )}
                               </div>
                               <div className="ml-4 flex items-center gap-3">
-                                <div className="text-xs px-2 py-0.5 bg-secondary/10 rounded">
-                                  {challenge.difficultyLevel}
+                                <div className="text-xs px-2 py-0.5 bg-secondary/10 rounded flex items-center">
+                                  <span>{challenge.difficultyLevel}</span>
+                                  <span className="ml-1 text-xs">+{challenge.xpReward}</span>
                                 </div>
                                 <AlertCircle className="h-4 w-4 text-muted-foreground" />
                               </div>
