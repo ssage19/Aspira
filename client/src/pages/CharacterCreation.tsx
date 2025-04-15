@@ -213,35 +213,32 @@ export default function CharacterCreation() {
         <AppBackground />
       </div>
       <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
-        <CardHeader>
-          <CardTitle className="flex flex-col items-center">
-            {/* Title with gradient animation - now above logo */}
-            <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x mb-6 mt-4">
-              Aspira
-            </div>
-            
-            <div className="relative mb-8">
-              {/* Decorative elements - behind the logo */}
-              <div className="absolute -top-16 -left-28 w-64 h-64 bg-primary/20 rounded-full blur-xl"></div>
-              <div className="absolute -bottom-16 -right-28 w-64 h-64 bg-secondary/20 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-accent/10 rounded-full blur-lg"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-104 h-104 bg-primary/20 rounded-full blur-md"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-112 h-112 bg-secondary/10 rounded-full blur-sm"></div>
-              
-              {/* Logo - doubled in size again (128px) */}
+        <CardHeader className="pb-3">
+          <CardTitle className="text-center">
+            <div className="flex items-center justify-center gap-4 mb-2">
+              {/* Logo with decorative elements - reduced size to 96px */}
               <div className="relative">
-                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-128 w-128 relative z-10 animate-pulse-slow" />
+                <div className="absolute -top-8 -left-12 w-32 h-32 bg-primary/20 rounded-full blur-xl"></div>
+                <div className="absolute -bottom-8 -right-12 w-32 h-32 bg-secondary/20 rounded-full blur-xl"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-accent/10 rounded-full blur-lg"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/20 rounded-full blur-md"></div>
+                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-24 w-24 relative z-10 animate-pulse-slow" />
+              </div>
+              
+              {/* Aspira title - now beside the logo */}
+              <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x">
+                Aspira
               </div>
             </div>
             
-            {/* Tagline - now below logo */}
-            <div className="text-xl font-medium flex items-center space-x-2 mt-2">
+            {/* Tagline - centered below logo+title */}
+            <div className="text-xl font-medium flex items-center justify-center space-x-2 mt-1 mb-2">
               <span className="text-primary">Dream.</span>
               <span className="text-secondary">Build.</span>
               <span className="text-accent">Live.</span>
             </div>
           </CardTitle>
-          <CardDescription className="text-lg">
+          <CardDescription className="text-lg text-center">
             Create your character and begin your journey to extreme wealth
           </CardDescription>
         </CardHeader>

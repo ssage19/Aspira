@@ -6,11 +6,13 @@ export default {
   theme: {
     extend: {
       width: {
+        '96': '24rem', // 384px
         '104': '26rem', // 416px
         '112': '28rem', // 448px
         '128': '32rem', // 512px
       },
       height: {
+        '96': '24rem', // 384px
         '104': '26rem', // 416px
         '112': '28rem', // 448px
         '128': '32rem', // 512px
