@@ -292,24 +292,72 @@ export function AttributesDecayManager() {
       console.log('Stress warning: extreme stress levels significantly affecting happiness');
     }
     
-    // Dynamic time commitment adjustments - IMPROVED SYSTEM
-    // On some days, add a random amount of time commitment to simulate
-    // unexpected responsibilities and emergencies
-    if (Math.random() < 0.2) { // Reduced from 30% to 20% chance each day
-      const extraCommitment = Math.floor(Math.random() * 3) + 1; // 1-3 hours (reduced from 1-5)
-      addTimeCommitment(extraCommitment);
+    // WEEKLY TIME REBALANCING SYSTEM
+    // Every day, we'll check if we need to adjust time commitments to keep them realistic
+    
+    // Get the current day of the week (0-6, 0 is Sunday)
+    const dayOfWeek = gameTime?.getDay() || 0;
+    
+    // DAILY TIME RESET/BALANCING
+    // Instead of endless accumulation, implement a more realistic weekly cycle
+    
+    // Define a reasonable range for time commitments (40-80 hours per week)
+    const minTimeCommitment = 40; // Minimum reasonable commitment (standard work week)
+    const maxTimeCommitment = 80; // Maximum reasonable commitment (busy professional)
+    
+    // Every Monday (day 1), reset time commitments to a reasonable baseline
+    // This simulates a new weekly schedule
+    if (dayOfWeek === 1) { // Monday
+      // Calculate a baseline time commitment based on character's job
+      // Use the current commitment as a baseline, but ensure it's within reasonable ranges
+      const baselineCommitment = job ? 
+        Math.min(maxTimeCommitment, Math.max(minTimeCommitment, 
+          Math.round(job.timeCommitment + (job.stress * 0.2)))) : // 40-60 hours based on job
+        minTimeCommitment; // Default 40 hours if no job
       
-      // Removed notification as requested, but we'll still log to console for debugging
-      console.log(`Added ${extraCommitment} hours of unexpected time commitment`);
+      // Calculate the needed change
+      const currentCommitment = timeCommitment;
+      const neededChange = baselineCommitment - currentCommitment;
+      
+      if (Math.abs(neededChange) > 5) {
+        // Reset time commitment to the baseline if it's drifted too far
+        if (neededChange > 0) {
+          addTimeCommitment(neededChange);
+          console.log(`Weekly reset: Added ${neededChange} hours to time commitment (new week schedule). New commitment: ${baselineCommitment}`);
+        } else {
+          const reduction = Math.abs(neededChange);
+          // Use imported function to reduce time commitment
+          const { reduceTimeCommitment } = useCharacter.getState();
+          reduceTimeCommitment(reduction);
+          console.log(`Weekly reset: Reduced time commitment by ${reduction} hours (new week schedule). New commitment: ${baselineCommitment}`);
+        }
+      }
     }
     
-    // More frequently restore free time (rest days, efficient days)
-    if (Math.random() < 0.35) { // Increased from 20% to 35% chance each day
-      const extraFreeTime = Math.floor(Math.random() * 4) + 1; // 1-4 hours (increased from 1-3)
-      updateFreeTime(extraFreeTime);
+    // RANDOM DAILY EVENTS that affect time
+    
+    // Random unexpected time commitments (meetings, emergencies, etc)
+    if (Math.random() < 0.2) { // 20% chance each day
+      const extraCommitment = Math.floor(Math.random() * 3) + 1; // 1-3 hours
       
-      // Removed notification as requested, but we'll still log to console for debugging
-      console.log(`Added ${extraFreeTime} hours of extra free time`);
+      // Make sure we don't exceed reasonable limits
+      if (timeCommitment + extraCommitment <= maxTimeCommitment) {
+        addTimeCommitment(extraCommitment);
+        console.log(`Added ${extraCommitment} hours of unexpected time commitment (meetings/tasks)`);
+      }
+    }
+    
+    // Random time efficiency or time saving (finished tasks early, canceled meetings)
+    if (Math.random() < 0.25) { // 25% chance each day
+      const timeReduction = Math.floor(Math.random() * 3) + 1; // 1-3 hours saved
+      
+      // Use reduceTimeCommitment to actually free up the schedule
+      if (timeCommitment - timeReduction >= minTimeCommitment) {
+        // Get the function from the store to reduce time commitment
+        const { reduceTimeCommitment } = useCharacter.getState();
+        reduceTimeCommitment(timeReduction);
+        console.log(`Saved ${timeReduction} hours from your schedule (canceled meeting or completed task early)`);
+      }
     }
     
     // Premium transportation and housing benefits - additional free time
