@@ -222,21 +222,25 @@ export default function CharacterCreation() {
               <div className="absolute -bottom-10 -right-20 w-40 h-40 bg-secondary/20 rounded-full blur-xl"></div>
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-40 bg-accent/10 rounded-full blur-lg"></div>
               
-              {/* Title and logo container */}
-              <div className="flex items-center justify-center gap-4 mb-4">
-                {/* Aspira title - with its own decorative elements */}
-                <div className="relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-primary/15 rounded-full blur-md"></div>
-                  <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x relative z-10">
-                    Aspira
-                  </div>
-                </div>
+              {/* Title and logo container - completely redesigned for tighter integration */}
+              <div className="relative flex items-center justify-center mb-4">
+                {/* Combined background effects for both title and logo */}
+                <div className="absolute inset-0 bg-primary/5 rounded-full blur-xl"></div>
                 
-                {/* Logo with decorative elements - extra large */}
-                <div className="relative">
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-56 h-56 bg-secondary/20 rounded-full blur-md"></div>
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-52 h-52 bg-primary/15 rounded-full blur-lg"></div>
-                  <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-40 w-40 relative z-10 animate-pulse-slow" />
+                {/* Aspira title and logo in a tighter arrangement */}
+                <div className="flex items-center gap-1">
+                  <div className="relative z-10">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-primary/10 rounded-full blur-md"></div>
+                    <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x relative z-10 mr-1">
+                      Aspira
+                    </div>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 h-44 bg-secondary/15 rounded-full blur-md"></div>
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-primary/10 rounded-full blur-lg"></div>
+                    <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-40 w-40 relative z-10 animate-pulse-slow" />
+                  </div>
                 </div>
               </div>
               
