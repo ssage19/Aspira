@@ -228,7 +228,7 @@ export default function CharacterCreation() {
               
               {/* Logo - larger now */}
               <div className="relative">
-                <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-32 w-32 relative z-10 animate-pulse-slow" />
+                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-32 w-32 relative z-10 animate-pulse-slow" />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-primary/30 rounded-full blur-md"></div>
               </div>
             </div>
