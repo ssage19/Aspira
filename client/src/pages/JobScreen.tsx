@@ -983,7 +983,7 @@ export default function JobScreen() {
                               return Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
                             })()} 
                             className="h-2"
-                            key={`detail-${selectedChallenge.id}-progress-${selectedChallenge.lastProgressUpdate?.getTime() || 0}-${currentGameDate.getTime()}`} 
+                            key={`detail-${selectedChallenge.id}-progress-${currentGameDate ? currentGameDate.getTime() : 0}`} 
                           />
                           
                           <div className="flex justify-between mt-6 gap-4">
@@ -1124,7 +1124,7 @@ export default function JobScreen() {
                                         return Math.min(100, (monthsPassed / challenge.completionTime) * 100);
                                       })()} 
                                       className="h-1"
-                                      key={`${challenge.id}-progress-${challenge.lastProgressUpdate?.getTime() || 0}`} 
+                                      key={`${challenge.id}-progress-${currentGameDate ? currentGameDate.getTime() : 0}`} 
                                     />
                                   </div>
                                 )}
