@@ -167,8 +167,8 @@ export function CharacterAttributes() {
     timeManagement: {
       name: 'Time Management',
       icon: <Clock className="h-4 w-4" />,
-      description: 'Balance of free time vs commitments',
-      scale: ['High Ratio', 'Good Ratio', 'Balanced', 'Low Ratio', 'Very Low'],
+      description: 'Balance of free time vs commitments per week',
+      scale: ['120+ hrs free', '80-120 hrs', '50-80 hrs', '20-50 hrs', '< 20 hrs'],
       levels: ['Relaxed', 'Balanced', 'Busy', 'Hectic', 'Overwhelmed'],
       colors: ['text-green-600', 'text-green-500', 'text-amber-500', 'text-orange-500', 'text-red-500'],
       isSpecialScale: true,
@@ -244,13 +244,12 @@ export function CharacterAttributes() {
       }
       
       if (attributeName === 'timeManagement') {
-        // For time management, we use the ratio of free time to committed time
-        const ratio = freeTime / (timeCommitment || 1);
-        if (ratio > 3) return 0; // Relaxed
-        if (ratio > 2) return 1; // Balanced
-        if (ratio > 1) return 2; // Busy
-        if (ratio > 0.5) return 3; // Hectic
-        return 4; // Overwhelmed
+        // For time management, we use actual free time hours in a 168-hour week
+        if (freeTime >= 120) return 0; // Relaxed: 120+ hrs free (>= 5 days)
+        if (freeTime >= 80) return 1; // Balanced: 80-120 hrs free (~3.5-5 days)
+        if (freeTime >= 50) return 2; // Busy: 50-80 hrs free (~2-3.5 days)
+        if (freeTime >= 20) return 3; // Hectic: 20-50 hrs free (~1-2 days)
+        return 4; // Overwhelmed: <20 hrs free (<1 day)
       }
     } else if (attributeName === 'skills') {
       // Special handling for skills with 0-6000 range
@@ -307,9 +306,9 @@ export function CharacterAttributes() {
       // Convert -100 to 100 range to 0-100 for progress bar
       progressValue = ((value + 100) / 200) * 100;
     } else if (attributeName === 'timeManagement') {
-      // For time management, use the ratio-based calculation
-      const ratio = freeTime / (timeCommitment || 1);
-      progressValue = Math.min(100, Math.max(0, ratio * 33.33)); // Scale to make 3:1 ratio = 100%
+      // For time management, use the free time hours out of 168 total weekly hours
+      // Scale to make 120+ hours (5 days) = 100%
+      progressValue = Math.min(100, Math.max(0, (freeTime / 120) * 100));
     } else if (attributeName === 'skills') {
       // Scale skills from 0-6000 range to 0-100 for progress bar display
       progressValue = Math.min(100, Math.max(0, value / 60));
@@ -376,8 +375,9 @@ export function CharacterAttributes() {
     );
   };
   
-  // Calculate the time management score based on free time vs committed time
-  const timeManagementValue = Math.max(0, Math.min(100, (freeTime / (freeTime + timeCommitment) * 100))); 
+  // Calculate the time management score based on actual free time hours in a 168-hour week
+  // Scale to make 120+ hours (5 days) free time = 100%
+  const timeManagementValue = Math.min(100, Math.max(0, (freeTime / 120) * 100));
   
   // Helper function to render housing status
   const renderHousingStatus = () => {
