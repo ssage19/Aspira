@@ -151,7 +151,7 @@ export function CharacterAttributes() {
       name: 'Skills',
       icon: <BookOpen className="h-4 w-4" />,
       description: 'Developed abilities and knowledge',
-      scale: ['0-20', '21-40', '41-60', '61-80', '81-100'],
+      scale: ['0-200', '201-400', '401-600', '601-800', '801-1000'],
       levels: ['Novice', 'Beginner', 'Intermediate', 'Advanced', 'Expert'],
       colors: ['text-gray-500', 'text-blue-400', 'text-blue-500', 'text-purple-500', 'text-purple-600']
     },
@@ -252,8 +252,15 @@ export function CharacterAttributes() {
         if (ratio > 0.5) return 3; // Hectic
         return 4; // Overwhelmed
       }
+    } else if (attributeName === 'skills') {
+      // Special handling for skills with 0-1000 range
+      if (value >= 800) return 4;
+      if (value >= 600) return 3;
+      if (value >= 400) return 2;
+      if (value >= 200) return 1;
+      return 0;
     } else {
-      // Standard percentile scales
+      // Standard percentile scales (0-100)
       if (value >= 80) return 4;
       if (value >= 60) return 3;
       if (value >= 40) return 2;
@@ -272,11 +279,15 @@ export function CharacterAttributes() {
       return `${formatInteger(freeTime)}${config.unit} free / ${formatInteger(timeCommitment)}${config.unit} used`;
     }
     
-    if (attributeName === 'environmentalImpact') {
-      return formatInteger(value); // No % for environmental impact
+    if (attributeName === 'environmentalImpact' || attributeName === 'prestige') {
+      return formatInteger(value); // No % for environmental impact or prestige
     }
     
-    return attributeName === 'prestige' ? formatInteger(value) : `${formatInteger(value)}%`;
+    if (attributeName === 'skills') {
+      return formatInteger(value); // No % for skills in the new 0-1000 range
+    }
+    
+    return `${formatInteger(value)}%`; // Default to percentage format for other attributes
   };
   
   // Render each attribute with visual indicator and description
@@ -299,6 +310,9 @@ export function CharacterAttributes() {
       // For time management, use the ratio-based calculation
       const ratio = freeTime / (timeCommitment || 1);
       progressValue = Math.min(100, Math.max(0, ratio * 33.33)); // Scale to make 3:1 ratio = 100%
+    } else if (attributeName === 'skills') {
+      // Scale skills from 0-1000 range to 0-100 for progress bar display
+      progressValue = Math.min(100, Math.max(0, value / 10));
     } else {
       progressValue = value;
     }
