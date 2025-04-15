@@ -16,13 +16,10 @@
 import useAssetTracker from '../stores/useAssetTracker';
 import { useCharacter } from '../stores/useCharacter';
 import { useTime } from '../stores/useTime';
-import { expandedStockMarket } from '../data/sp500Stocks';
-import { cryptoCurrencies } from '../data/investments';
 
 // Track the last refresh time to prevent spamming
 let lastRefreshTime = 0;
 let refreshInProgress = false;
-let hasInitializedPrices = false;
 
 // Check if market is open (weekday during trading hours)
 const isMarketOpen = () => {
@@ -69,43 +66,9 @@ const logAssetSnapshots = (label: string) => {
   });
 };
 
-// Function to initialize all stock and crypto prices
-const initializeAllPrices = () => {
-  if (hasInitializedPrices) {
-    return;
-  }
-  
-  console.log("🚀 Initializing all stock and crypto prices");
-  const assetTrackerState = useAssetTracker.getState();
-  
-  // Initialize stock prices
-  const stockPrices: {[stockId: string]: number} = {};
-  expandedStockMarket.forEach(stock => {
-    stockPrices[stock.id] = stock.basePrice;
-  });
-  
-  // Initialize crypto prices
-  const cryptoPrices: {[cryptoId: string]: number} = {};
-  cryptoCurrencies.forEach((crypto: {id: string, basePrice: number}) => {
-    cryptoPrices[crypto.id] = crypto.basePrice;
-  });
-  
-  // Batch update all prices
-  assetTrackerState.updateGlobalStockPrices(stockPrices);
-  assetTrackerState.updateGlobalCryptoPrices(cryptoPrices);
-  
-  console.log(`✅ Successfully initialized prices for ${Object.keys(stockPrices).length} stocks and ${Object.keys(cryptoPrices).length} cryptocurrencies`);
-  
-  // Set flag to prevent re-initialization
-  hasInitializedPrices = true;
-};
-
 // Global function that can be called from anywhere without React hooks
 export const refreshAllAssets = () => {
   const now = Date.now();
-  
-  // First, make sure all prices are initialized
-  initializeAllPrices();
   
   // Throttle refreshes to prevent performance issues
   if (now - lastRefreshTime < 500 && !window.location.pathname.includes('dashboard')) {
@@ -144,10 +107,9 @@ export const refreshAllAssets = () => {
     const assetTrackerState = useAssetTracker.getState();
     
     // 1. First step: Sync character assets with asset tracker
-    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - only crypto price updates)'}`);
+    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - no price updates)'}`);
     
-    // Even if market is closed, we still want to sync crypto prices (crypto trades 24/7)
-    // Only stock prices should respect market hours
+    // If the market is closed, indicate that stock prices should not update
     characterState.syncAssetsWithAssetTracker(marketOpen);
     
     // 2. Second step: Recalculate all totals in the asset tracker

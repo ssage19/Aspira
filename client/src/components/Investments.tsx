@@ -23,8 +23,6 @@ import {
 } from 'lucide-react';
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
-import { CryptoPriceMonitor } from './CryptoPriceMonitor';
-import { StockPriceMonitor } from './StockPriceMonitor';
 import { formatCurrency, formatPercentage } from '../lib/utils';
 import { VolatilityLevel, Stock, bonds, cryptoCurrencies } from '../lib/data/investments';
 import { startupInvestments } from '../lib/data/investments';
@@ -74,15 +72,8 @@ export function Investments() {
   
   // UI state for buy/sell dialogs and actions
   const [activeTab, setActiveTab] = useState('browse');
-  const [selectedTab, setSelectedTab] = useState('stocks');
   const [showSellDialog, setShowSellDialog] = useState(false);
   const [openBuySellPanels, setOpenBuySellPanels] = useState<Record<string, boolean>>({});
-  
-  // Market status tracking
-  const [marketStatus, setMarketStatus] = useState<{isOpen: boolean; reason: string}>({
-    isOpen: false, 
-    reason: 'Checking market status...'
-  });
   
   // Get mobile detection
   const { isMobile } = useResponsive();
@@ -125,36 +116,6 @@ export function Investments() {
     const marketOpen = (window as any).isStockMarketOpen !== undefined 
       ? (window as any).isStockMarketOpen 
       : isMarketOpen();
-    
-    // Check why market might be closed and update UI state
-    const timeState = useTime.getState();
-    const gameDate = new Date();
-    gameDate.setFullYear(timeState.currentYear);
-    gameDate.setMonth(timeState.currentMonth - 1);
-    gameDate.setDate(timeState.currentDay);
-    const dayOfWeek = gameDate.getDay();
-    const hoursFraction = (timeState.timeProgress / 100) * 24;
-    const currentHour = Math.floor(hoursFraction);
-    
-    let marketStatus = {
-      isOpen: marketOpen,
-      reason: ''
-    };
-    
-    if (!marketOpen) {
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        marketStatus.reason = dayOfWeek === 0 ? 'Weekend (Sunday)' : 'Weekend (Saturday)';
-      } else if (currentHour < 9) {
-        marketStatus.reason = 'Market hours: 9:00 AM - 4:00 PM';
-      } else if (currentHour >= 16) {
-        marketStatus.reason = 'After hours (Market closed at 4:00 PM)';
-      } else {
-        marketStatus.reason = 'Market closed';
-      }
-    }
-    
-    // Update state with market status for UI
-    setMarketStatus(marketStatus);
     
     console.log(`Investments: Market is ${marketOpen ? 'OPEN' : 'CLOSED'}, fetching current prices`);
     
@@ -350,8 +311,6 @@ export function Investments() {
       // Increment counter to track refresh frequency
       refreshCounterRef.current += 1;
       
-      console.log(`Investments: Running price refresh #${refreshCounterRef.current}`);
-      
       // First, force synchronize character store with asset tracker to ensure all prices are up to date
       character.syncPricesFromAssetTracker();
       
@@ -404,37 +363,28 @@ export function Investments() {
         setStockPrices(updatedStockPrices);
       }
       
-      // ALWAYS refresh crypto prices on EVERY refresh call
-      // Crypto trading is 24/7 and needs real-time updates
-      const updatedCryptoPrices: Record<string, number> = {};
-      
-      // Get all crypto prices
-      cryptoCurrencies.forEach(crypto => {
-        let latestPrice = 0;
-        
-        // PRIORITIZE global crypto prices from AssetTracker first - this is the most up-to-date source
-        if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
-          latestPrice = assetTracker.globalCryptoPrices[crypto.id];
-          console.log(`Investments: Got price for ${crypto.name} from globalCryptoPrices: $${latestPrice.toFixed(2)}`);
-        }
-        
-        // If we still don't have a price, check other sources (but global prices should always be available)
-        if (latestPrice <= 0) {
-          // Check in asset tracker's crypto assets
-          if (assetTracker.cryptoAssets) {
+      // Refresh crypto prices with the same approach but only if needed
+      if (refreshCounterRef.current % 3 === 0) { // Lower frequency for crypto updates
+        const updatedCryptoPrices: Record<string, number> = {};
+        cryptoCurrencies.forEach(crypto => {
+          let latestPrice = 0;
+          
+          // First check in the globalCryptoPrices which is specifically designed for tracking all prices
+          if (assetTracker.globalCryptoPrices && assetTracker.globalCryptoPrices[crypto.id] > 0) {
+            latestPrice = assetTracker.globalCryptoPrices[crypto.id];
+          }
+          
+          // Then check asset tracker crypto assets if we didn't find a price
+          if (latestPrice <= 0 && assetTracker.cryptoAssets) {
             const trackerCrypto = assetTracker.cryptoAssets.find((c: any) => c.id === crypto.id);
             if (trackerCrypto && trackerCrypto.currentPrice > 0) {
               latestPrice = trackerCrypto.currentPrice;
-              console.log(`Investments: Got price for ${crypto.name} from crypto assets: $${latestPrice.toFixed(2)}`);
             }
           }
           
           // Try getAssetPrice method if needed
           if (latestPrice <= 0) {
             latestPrice = assetTracker.getAssetPrice(crypto.id);
-            if (latestPrice > 0) {
-              console.log(`Investments: Got price for ${crypto.name} from getAssetPrice: $${latestPrice.toFixed(2)}`);
-            }
           }
           
           // Check owned assets as fallback
@@ -442,40 +392,30 @@ export function Investments() {
             const ownedCrypto = assets.find(asset => asset.id === crypto.id && asset.type === 'crypto');
             if (ownedCrypto && ownedCrypto.currentPrice > 0) {
               latestPrice = ownedCrypto.currentPrice;
-              console.log(`Investments: Got price for ${crypto.name} from owned crypto: $${latestPrice.toFixed(2)}`);
             }
           }
           
-          // Last resort - use base price
+          // Last resort
           if (latestPrice <= 0) {
             latestPrice = crypto.basePrice;
-            console.log(`Investments: Using base price for ${crypto.name}: $${latestPrice.toFixed(2)}`);
           }
-        }
+          
+          updatedCryptoPrices[crypto.id] = latestPrice;
+        });
         
-        updatedCryptoPrices[crypto.id] = latestPrice;
-      });
-      
-      // Check if any price has changed (including small changes)
-      let pricesChanged = false;
-      for (const id of Object.keys(updatedCryptoPrices)) {
-        const oldPrice = cryptoPrices[id] || 0;
-        const newPrice = updatedCryptoPrices[id];
+        // Calculate a hash for crypto prices to detect changes
+        const cryptoPriceHash = Object.entries(updatedCryptoPrices)
+          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
         
-        if (Math.abs(oldPrice - newPrice) > 0.01) {
-          pricesChanged = true;
-          break;
+        const prevCryptoPriceHash = Object.entries(cryptoPrices)
+          .reduce((acc, [id, price]) => acc + (parseFloat(id) * price), 0);
+        
+        // Only update if hash has changed or it's a forced refresh
+        const forceCryptoRefresh = refreshCounterRef.current % 10 === 0;
+        if (cryptoPriceHash !== prevCryptoPriceHash || forceCryptoRefresh) {
+          console.log("Investments: Updating crypto prices - changes detected");
+          setCryptoPrices(updatedCryptoPrices);
         }
-      }
-      
-      // We'll update if price changes or if it's time for a forced refresh
-      const forceCryptoRefresh = refreshCounterRef.current % 5 === 0; // More frequent forced updates
-      
-      if (pricesChanged || forceCryptoRefresh) {
-        console.log("Investments: Updating crypto prices - changes detected");
-        setCryptoPrices(updatedCryptoPrices);
-      } else {
-        console.log("Investments: No crypto price changes detected, skipping state update");
       }
     };
     
@@ -490,13 +430,7 @@ export function Investments() {
     const marketUpdateId = setInterval(() => {
       // Call global update function to update the asset tracker
       if ((window as any).globalUpdateAllPrices && refreshCounterRef.current % 2 === 0) {
-        console.log("Investments: Calling global price update function");
         (window as any).globalUpdateAllPrices();
-        
-        // Request a day change update for crypto prices (24/7 trading)
-        if (selectedTab === 'crypto') {
-          console.log("Investments: Requesting global price update for crypto (day changed)");
-        }
       }
     }, 5000);
     
@@ -2000,7 +1934,7 @@ export function Investments() {
           
           {/* Asset Categories Tabs */}
           <div className="mt-4">
-            <Tabs defaultValue="stocks" className="w-full" value={selectedTab} onValueChange={setSelectedTab}>
+            <Tabs defaultValue="stocks" className="w-full">
               <TabsList className="w-full flex flex-wrap gap-1">
                 <TabsTrigger 
                   value="stocks" 
@@ -2034,28 +1968,6 @@ export function Investments() {
               
               {/* Stocks Tab */}
               <TabsContent value="stocks">
-                {/* Market Status Indicator */}
-                <div className={`mb-3 p-2 border rounded-md flex items-center gap-2 ${
-                  marketStatus.isOpen 
-                    ? 'border-green-500 bg-green-50 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-300' 
-                    : 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-300'
-                }`}>
-                  <div className={`w-3 h-3 rounded-full ${
-                    marketStatus.isOpen ? 'bg-green-500 dark:bg-green-400' : 'bg-amber-500 dark:bg-amber-400'
-                  }`}></div>
-                  <div>
-                    <p className="font-medium text-sm">
-                      Stock Market: {marketStatus.isOpen ? 'Open' : 'Closed'}
-                    </p>
-                    {!marketStatus.isOpen && marketStatus.reason && (
-                      <p className="text-xs">{marketStatus.reason}</p>
-                    )}
-                    {marketStatus.isOpen && (
-                      <p className="text-xs">Trading hours: 9:00 AM - 4:00 PM, weekdays only</p>
-                    )}
-                  </div>
-                </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-lg" id="portfolio-heading">Stock Holdings</h3>
@@ -2276,19 +2188,6 @@ export function Investments() {
               
               {/* Crypto Tab */}
               <TabsContent value="crypto">
-                {/* Crypto Market Status Indicator */}
-                <div className="mb-3 p-2 border rounded-md flex items-center gap-2 border-blue-500 bg-blue-50 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-300">
-                  <div className="w-3 h-3 rounded-full bg-blue-500 dark:bg-blue-400"></div>
-                  <div>
-                    <p className="font-medium text-sm">
-                      Crypto Market: Always Open (24/7)
-                    </p>
-                    <p className="text-xs">
-                      Cryptocurrencies can be traded at any time regardless of stock market hours
-                    </p>
-                  </div>
-                </div>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-semibold mb-2 text-lg" id="crypto-portfolio-heading">Cryptocurrency Holdings</h3>

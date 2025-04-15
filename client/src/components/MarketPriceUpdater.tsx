@@ -106,8 +106,6 @@ export function MarketPriceUpdater() {
   
   // Update crypto asset prices (refactored to match stock update pattern)
   const updateCryptoAssets = useCallback(() => {
-    console.log("MarketPriceUpdater: Running crypto price updates (24/7 market)");
-    
     // Setup for batch processing
     const updatedCryptoPrices: Record<string, number> = {};
     
@@ -122,16 +120,15 @@ export function MarketPriceUpdater() {
       
       // Determine volatility factor based on crypto's volatility level
       const volatilityLevel = crypto.volatility || 'high';
-      // Increase the base volatility factor to make changes more noticeable
-      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.5; // Increased from 0.20
+      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.20;
       
-      // Apply stronger volatility multipliers for crypto
-      if (volatilityLevel === 'extreme') volatilityFactor *= 1.5; // Increased from 1.3
-      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.4; // Increased from 1.2
-      else if (volatilityLevel === 'high') volatilityFactor *= 1.3; // Increased from 1.1
-      else if (volatilityLevel === 'medium') volatilityFactor *= 1.2; // Increased from 1.0
-      else if (volatilityLevel === 'low') volatilityFactor *= 1.0; // Increased from 0.8
-      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.8; // Increased from 0.6
+      // Apply volatility multipliers for crypto character
+      if (volatilityLevel === 'extreme') volatilityFactor *= 1.3;
+      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.2;
+      else if (volatilityLevel === 'high') volatilityFactor *= 1.1;
+      else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;
+      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
+      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
       
       // Calculate market influences
       const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3);
@@ -147,12 +144,10 @@ export function MarketPriceUpdater() {
         totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
       }
       
-      // Add occasional random bursts (10% chance) - increased for more volatility
+      // Add occasional random bursts (10% chance)
       if (Math.random() < 0.1) {
-        // Increased from 0.005 to 0.015 to match stock volatility changes
-        const randomBurst = (Math.random() * 0.015) * (Math.random() < 0.5 ? 1 : -1);
+        const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
         totalChangePercent += randomBurst;
-        console.log(`MarketPriceUpdater: Adding random burst to ${crypto.id}: ${randomBurst.toFixed(4)}%`);
       }
       
       // Apply percentage change to current price
@@ -199,8 +194,8 @@ export function MarketPriceUpdater() {
         const currentPrice = crypto.currentPrice || crypto.purchasePrice;
         if (currentPrice <= 0) return;
         
-        // Use medium volatility for custom cryptos with increased values to match other crypto changes
-        const volatilityFactor = getVolatilityFactor('medium') * 0.5; // Increased from 0.20
+        // Use medium volatility for custom cryptos
+        const volatilityFactor = getVolatilityFactor('medium') * 0.20;
         const randomChange = ((Math.random() * 2) - 1) * volatilityFactor;
         const newPrice = currentPrice * (1 + randomChange);
         const roundedPrice = parseFloat(newPrice.toFixed(2));
@@ -493,8 +488,8 @@ export function MarketPriceUpdater() {
                              updatedStockPrices[stock.id] || 
                              stock.basePrice;
         
-        // NYSE-like behavior but more noticeable for gameplay
-        const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.5; // Increased from 0.2 to create more noticeable changes
+        // NYSE-like behavior: Much smaller price movements (0.1% - 0.5% typically)
+        const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.2; // Reduce volatility by 80%
         const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3); // Dampen market effect
         
         // Time-based component (very minor influence)
@@ -518,10 +513,10 @@ export function MarketPriceUpdater() {
           console.log(`MarketPriceUpdater: Forcing contrarian movement for ${stock.id}: ${totalChangePercent.toFixed(4)}%`);
         }
         
-        // Further introduce randomness with a 10% chance of a significantly larger movement
+        // Further introduce randomness with a 10% chance of a slightly larger movement
         if (Math.random() < 0.1) {
-          // Add or subtract additional random movement - increased from 0.005 to 0.015 for more noticeable changes
-          const randomBurst = (Math.random() * 0.015) * (Math.random() < 0.5 ? 1 : -1);
+          // Add or subtract additional random movement
+          const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
           totalChangePercent += randomBurst;
           console.log(`MarketPriceUpdater: Adding random burst to ${stock.id}: ${randomBurst.toFixed(4)}%`);
         }
@@ -633,27 +628,10 @@ export function MarketPriceUpdater() {
   useEffect(() => {
     console.log("Market price updater initializing...");
     
-    // Initialize ALL asset prices (stocks, crypto, etc.) on component mount
-    console.log(`MarketPriceUpdater: Initializing prices for ${expandedStockMarket.length} stocks and ${cryptoCurrencies.length} cryptocurrencies`);
+    // Initialize crypto prices on component mount using the imported cryptoCurrencies
+    console.log(`MarketPriceUpdater: Initializing prices for ${cryptoCurrencies.length} cryptocurrencies`);
     
-    // 1. Initialize stock prices first
-    const initialStockPrices: Record<string, number> = {};
-    
-    // Initialize all stock assets with their base prices
-    expandedStockMarket.forEach((stock: any) => {
-      if (stock && stock.id) {
-        // Use existing price if available, otherwise use base price
-        const existingPrice = assetTracker.globalStockPrices[stock.id] || 0;
-        initialStockPrices[stock.id] = existingPrice > 0 ? existingPrice : stock.basePrice;
-        
-        console.log(`MarketPriceUpdater: Initialized stock ${stock.name} at $${initialStockPrices[stock.id].toFixed(2)}`);
-      }
-    });
-    
-    // Batch update all stock prices in the global tracker
-    assetTracker.updateGlobalStockPrices(initialStockPrices);
-    
-    // 2. Now initialize crypto prices
+    // Create an initial price map with base prices
     const initialCryptoPrices: Record<string, number> = {};
     
     // Initialize all crypto assets with their base prices
@@ -663,7 +641,7 @@ export function MarketPriceUpdater() {
         const existingPrice = assetTracker.globalCryptoPrices[crypto.id] || 0;
         initialCryptoPrices[crypto.id] = existingPrice > 0 ? existingPrice : crypto.basePrice;
         
-        console.log(`MarketPriceUpdater: Initialized crypto ${crypto.name} at $${initialCryptoPrices[crypto.id].toFixed(2)}`);
+        console.log(`MarketPriceUpdater: Initialized ${crypto.name} at $${initialCryptoPrices[crypto.id].toFixed(2)}`);
       }
     });
     
@@ -673,52 +651,20 @@ export function MarketPriceUpdater() {
     // Run the standard update after initialization
     updateAllPrices();
     
-    // Set up a dedicated interval for crypto updates (every 10 seconds for more frequent updates)
+    // Set up a dedicated interval for crypto updates (every 60 seconds is reasonable)
     // This ensures crypto prices are updated 24/7 regardless of market hours
     const cryptoUpdateInterval = setInterval(() => {
-      // Check if we're updating too frequently
-      const now = Date.now();
-      if (now - lastUpdateTimeRef.current < 5000) {
-        // Skip this update if less than 5 seconds have passed since the last one (reduced from 10 sec)
-        console.log("MarketPriceUpdater: Skipping crypto update - too soon since last update");
-        return;
-      }
-      
       console.log("MarketPriceUpdater: Running scheduled crypto asset update (24/7 market)");
-      lastUpdateTimeRef.current = now;
-      
-      // Run the crypto update function
       updateCryptoAssets();
       
       // Make sure totals are recalculated after crypto updates
       assetTracker.recalculateTotals();
       
-      // CRITICAL: Instead of calling syncAssetsWithAssetTracker which would overwrite prices
-      // Call syncPricesFromAssetTracker to only sync prices from asset tracker TO character store
-      try {
-        const character = useCharacter.getState();
-        if (character && character.syncPricesFromAssetTracker) {
-          character.syncPricesFromAssetTracker();
-          console.log("MarketPriceUpdater: Successfully synced prices FROM asset tracker TO character");
-        }
-      } catch (err) {
-        console.error("Error syncing prices from asset tracker:", err);
-      }
-    }, 10000); // Update crypto every 10 seconds (reduced from 20 seconds)
+      // Force character store to sync with asset tracker to update UI
+      syncAssetsWithAssetTracker();
+    }, 60000); // Update crypto every minute
     
-    // Set up a dedicated interval for stock updates during market hours (every 2 minutes is reasonable)
-    // This ensures stock prices change while market is open
-    const stockUpdateInterval = setInterval(() => {
-      // Only update if market is open
-      if (isMarketOpen()) {
-        console.log("MarketPriceUpdater: Running scheduled stock price update (market open)");
-        // Run the full updateAllPrices which includes stocks
-        updateAllPrices();
-      } else {
-        console.log("MarketPriceUpdater: Skipping scheduled stock update (market closed)");
-      }
-    }, 120000); // Update stocks every 2 minutes when market is open
-    
+    // Only update stocks at market close instead of periodically
     // Track market open/close state to detect the market closing
     let wasMarketOpen = isMarketOpen();
     
@@ -945,7 +891,6 @@ export function MarketPriceUpdater() {
     return () => {
       console.log("MarketPriceUpdater: Cleaning up price update intervals and subscriptions");
       clearInterval(cryptoUpdateInterval);
-      clearInterval(stockUpdateInterval);
       clearInterval(marketStatusInterval);
       unsubscribeTimeProgress();
       unsubscribeDay();
