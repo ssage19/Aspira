@@ -214,10 +214,27 @@ export default function CharacterCreation() {
       </div>
       <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
         <CardHeader>
-          <CardTitle className="flex flex-col items-center gradient-text">
-            <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-12 w-12 mb-2" />
-            <div className="text-3xl font-bold">Aspira</div>
-            <div className="text-xl font-medium">Dream. Build. Live.</div>
+          <CardTitle className="flex flex-col items-center">
+            <div className="relative mb-8 mt-4">
+              {/* Decorative elements */}
+              <div className="absolute -top-6 -left-12 w-24 h-24 bg-primary/20 rounded-full blur-xl"></div>
+              <div className="absolute -bottom-6 -right-12 w-24 h-24 bg-secondary/20 rounded-full blur-xl"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-accent/10 rounded-full blur-lg"></div>
+              
+              {/* Logo */}
+              <div className="relative">
+                <img src="/images/aspira-logo.png" alt="Aspira Logo" className="h-20 w-20 relative z-10 animate-pulse-slow" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-primary/30 rounded-full blur-md"></div>
+              </div>
+            </div>
+            
+            {/* Title with gradient animation */}
+            <div className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x mb-2">Aspira</div>
+            <div className="text-xl font-medium flex items-center space-x-2">
+              <span className="text-primary">Dream.</span>
+              <span className="text-secondary">Build.</span>
+              <span className="text-accent">Live.</span>
+            </div>
           </CardTitle>
           <CardDescription className="text-lg">
             Create your character and begin your journey to extreme wealth

@@ -103,6 +103,24 @@ export default {
         'amber-glow': '0 0 15px rgba(245, 158, 11, 0.5)',
       },
       keyframes: {
+        "pulse-slow": {
+          "0%, 100%": { 
+            opacity: "0.9",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            opacity: "1",
+            transform: "scale(1.05)"
+          }
+        },
+        "gradient-x": {
+          "0%, 100%": {
+            "background-position": "0% 50%"
+          },
+          "50%": {
+            "background-position": "100% 50%"
+          }
+        },
         "glow-pulse": {
           "0%, 100%": { 
             opacity: "0.8",
