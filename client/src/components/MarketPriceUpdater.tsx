@@ -122,15 +122,16 @@ export function MarketPriceUpdater() {
       
       // Determine volatility factor based on crypto's volatility level
       const volatilityLevel = crypto.volatility || 'high';
-      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.20;
+      // Increase the base volatility factor to make changes more noticeable
+      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.5; // Increased from 0.20
       
-      // Apply volatility multipliers for crypto character
-      if (volatilityLevel === 'extreme') volatilityFactor *= 1.3;
-      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.2;
-      else if (volatilityLevel === 'high') volatilityFactor *= 1.1;
-      else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;
-      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
-      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
+      // Apply stronger volatility multipliers for crypto
+      if (volatilityLevel === 'extreme') volatilityFactor *= 1.5; // Increased from 1.3
+      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.4; // Increased from 1.2
+      else if (volatilityLevel === 'high') volatilityFactor *= 1.3; // Increased from 1.1
+      else if (volatilityLevel === 'medium') volatilityFactor *= 1.2; // Increased from 1.0
+      else if (volatilityLevel === 'low') volatilityFactor *= 1.0; // Increased from 0.8
+      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.8; // Increased from 0.6
       
       // Calculate market influences
       const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3);
@@ -196,8 +197,8 @@ export function MarketPriceUpdater() {
         const currentPrice = crypto.currentPrice || crypto.purchasePrice;
         if (currentPrice <= 0) return;
         
-        // Use medium volatility for custom cryptos
-        const volatilityFactor = getVolatilityFactor('medium') * 0.20;
+        // Use medium volatility for custom cryptos with increased values to match other crypto changes
+        const volatilityFactor = getVolatilityFactor('medium') * 0.5; // Increased from 0.20
         const randomChange = ((Math.random() * 2) - 1) * volatilityFactor;
         const newPrice = currentPrice * (1 + randomChange);
         const roundedPrice = parseFloat(newPrice.toFixed(2));
