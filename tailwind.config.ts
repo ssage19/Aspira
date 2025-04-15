@@ -274,6 +274,8 @@ export default {
       },
       animation: {
         // Futuristic animations
+        "pulse-slow": "pulse-slow 4s infinite ease-in-out",
+        "gradient-x": "gradient-x 10s infinite linear",
         "glow-pulse": "glow-pulse 3s infinite ease-in-out",
         "glow-pulse-fast": "glow-pulse 1.5s infinite ease-in-out",
         "border-glow": "border-glow 2s infinite ease-in-out",
