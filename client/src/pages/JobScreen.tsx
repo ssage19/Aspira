@@ -517,11 +517,12 @@ export default function JobScreen() {
           const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
           const monthsPassed = Math.floor(daysPassed / 30);
           
-          // Calculate progress percentage (0-100)
-          const progress = Math.min(100, Math.max(0, (monthsPassed / challenge.completionTime) * 100));
+          // Calculate progress percentage (0-100) based on days for more granular updates
+          const totalDaysRequired = challenge.completionTime * 30;
+          const progress = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
           const isFinished = progress >= 100;
           
-          console.log(`🏆 Challenge "${challenge.title}": ${progress.toFixed(1)}% complete (${monthsPassed}/${challenge.completionTime} months)`);
+          console.log(`🏆 Challenge "${challenge.title}": ${progress.toFixed(1)}% complete (${daysPassed}/${totalDaysRequired} days, ${monthsPassed}/${challenge.completionTime} months)`);
           
           // Check if challenge is ready for completion
           if (isFinished) {
@@ -660,13 +661,23 @@ export default function JobScreen() {
       // Calculate days passed since challenge started
       const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
-      // Convert days to months (every 30 days = 1 month in game time)
-      const monthsPassed = Math.floor(daysPassed / 30);
+      // Calculate total days required
+      const totalDaysRequired = challenge.completionTime * 30;
       
-      if (monthsPassed < challenge.completionTime) {
+      if (daysPassed < totalDaysRequired) {
         // Not enough time has passed
-        const monthsRemaining = challenge.completionTime - monthsPassed;
-        toast.error(`This challenge will be complete in ${monthsRemaining} more month${monthsRemaining !== 1 ? 's' : ''}.`);
+        const daysRemaining = totalDaysRequired - daysPassed;
+        
+        // Format the time remaining in a user-friendly way
+        let timeMessage;
+        if (daysRemaining >= 30) {
+          const monthsRemaining = Math.ceil(daysRemaining / 30);
+          timeMessage = `${monthsRemaining} more month${monthsRemaining !== 1 ? 's' : ''}`;
+        } else {
+          timeMessage = `${daysRemaining} more day${daysRemaining !== 1 ? 's' : ''}`;
+        }
+        
+        toast.error(`This challenge will be complete in ${timeMessage}.`);
         return;
       }
     } else if (!challenge.readyForCompletion) {

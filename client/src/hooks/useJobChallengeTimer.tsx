@@ -64,17 +64,18 @@ export function useJobChallengeTimer(
       const daysRemaining = Math.max(0, (completionTimeMonths * 30) - daysPassed);
       const monthsRemaining = Math.max(0, completionTimeMonths - monthsPassed);
       
-      // Calculate progress percentage (0-100)
-      const progressValue = Math.min(100, Math.max(0, (monthsPassed / completionTimeMonths) * 100));
+      // Calculate progress percentage (0-100) based on days instead of months
+      // This provides a more granular progress that updates daily
+      const totalDaysRequired = completionTimeMonths * 30;
+      const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
       
       // Debug the calculation
       console.log(`Challenge timer calculation:`, {
         start: validStartDate.toISOString(),
         current: currentGameDate.toISOString(),
         daysPassed,
-        monthsPassed,
+        totalDaysRequired,
         daysRemaining,
-        monthsRemaining,
         progressValue: progressValue.toFixed(1) + '%'
       });
       
