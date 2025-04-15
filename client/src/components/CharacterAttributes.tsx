@@ -244,11 +244,15 @@ export function CharacterAttributes() {
       }
       
       if (attributeName === 'timeManagement') {
-        // For time management, we use actual free time hours in a 168-hour week
-        if (freeTime >= 120) return 0; // Relaxed: 120+ hrs free (>= 5 days)
-        if (freeTime >= 80) return 1; // Balanced: 80-120 hrs free (~3.5-5 days)
-        if (freeTime >= 50) return 2; // Busy: 50-80 hrs free (~2-3.5 days)
-        if (freeTime >= 20) return 3; // Hectic: 20-50 hrs free (~1-2 days)
+        // For time management, we use adjusted free time hours in a 168-hour week
+        // Priority to hours used, then calculate free time from that
+        const adjustedTimeCommitment = Math.min(timeCommitment, 168);
+        const adjustedFreeTime = 168 - adjustedTimeCommitment;
+        
+        if (adjustedFreeTime >= 120) return 0; // Relaxed: 120+ hrs free (>= 5 days)
+        if (adjustedFreeTime >= 80) return 1; // Balanced: 80-120 hrs free (~3.5-5 days)
+        if (adjustedFreeTime >= 50) return 2; // Busy: 50-80 hrs free (~2-3.5 days)
+        if (adjustedFreeTime >= 20) return 3; // Hectic: 20-50 hrs free (~1-2 days)
         return 4; // Overwhelmed: <20 hrs free (<1 day)
       }
     } else if (attributeName === 'skills') {
@@ -275,7 +279,10 @@ export function CharacterAttributes() {
     const config = attributeConfigs[attributeName];
     
     if (attributeName === 'timeManagement') {
-      return `${formatInteger(freeTime)}${config.unit} free / ${formatInteger(timeCommitment)}${config.unit} used`;
+      // Prioritize timeCommitment (hours used) and adjust freeTime to ensure total is 168
+      const adjustedTimeCommitment = Math.min(timeCommitment, 168);
+      const adjustedFreeTime = 168 - adjustedTimeCommitment;
+      return `${formatInteger(adjustedFreeTime)}${config.unit} free / ${formatInteger(adjustedTimeCommitment)}${config.unit} used (of 168)`;
     }
     
     if (attributeName === 'environmentalImpact' || attributeName === 'prestige') {
@@ -306,9 +313,11 @@ export function CharacterAttributes() {
       // Convert -100 to 100 range to 0-100 for progress bar
       progressValue = ((value + 100) / 200) * 100;
     } else if (attributeName === 'timeManagement') {
-      // For time management, use the free time hours out of 168 total weekly hours
+      // For time management, use the adjusted free time hours (to ensure total is 168)
       // Scale to make 120+ hours (5 days) = 100%
-      progressValue = Math.min(100, Math.max(0, (freeTime / 120) * 100));
+      const adjustedTimeCommitment = Math.min(timeCommitment, 168);
+      const adjustedFreeTime = 168 - adjustedTimeCommitment;
+      progressValue = Math.min(100, Math.max(0, (adjustedFreeTime / 120) * 100));
     } else if (attributeName === 'skills') {
       // Scale skills from 0-6000 range to 0-100 for progress bar display
       progressValue = Math.min(100, Math.max(0, value / 60));
@@ -375,9 +384,12 @@ export function CharacterAttributes() {
     );
   };
   
-  // Calculate the time management score based on actual free time hours in a 168-hour week
+  // Calculate the time management score based on adjusted free time hours in a 168-hour week
+  // Use the adjusted free time to ensure total is exactly 168 hours
+  const adjustedTimeCommitment = Math.min(timeCommitment, 168);
+  const adjustedFreeTime = 168 - adjustedTimeCommitment;
   // Scale to make 120+ hours (5 days) free time = 100%
-  const timeManagementValue = Math.min(100, Math.max(0, (freeTime / 120) * 100));
+  const timeManagementValue = Math.min(100, Math.max(0, (adjustedFreeTime / 120) * 100));
   
   // Helper function to render housing status
   const renderHousingStatus = () => {
