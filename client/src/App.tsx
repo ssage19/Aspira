@@ -36,7 +36,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
-// Removed MarketPriceUpdater import - functionality moved to assetRefresh.ts service
+import { MarketPriceUpdater } from "./components/MarketPriceUpdater";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 import TimeResetHack from "./TimeResetHack";
@@ -327,7 +327,7 @@ function App() {
               
               {/* Global systems */}
               <GlobalAutoMaintenance />
-              {/* Removed MarketPriceUpdater - functionality moved to assetRefresh.ts service */}
+              <MarketPriceUpdater />
               <ChallengeTracker />
               <ChallengeNotificationManager />
               <NetworkTracker />
