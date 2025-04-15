@@ -147,10 +147,12 @@ export function MarketPriceUpdater() {
         totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
       }
       
-      // Add occasional random bursts (10% chance)
+      // Add occasional random bursts (10% chance) - increased for more volatility
       if (Math.random() < 0.1) {
-        const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
+        // Increased from 0.005 to 0.015 to match stock volatility changes
+        const randomBurst = (Math.random() * 0.015) * (Math.random() < 0.5 ? 1 : -1);
         totalChangePercent += randomBurst;
+        console.log(`MarketPriceUpdater: Adding random burst to ${crypto.id}: ${randomBurst.toFixed(4)}%`);
       }
       
       // Apply percentage change to current price
@@ -491,8 +493,8 @@ export function MarketPriceUpdater() {
                              updatedStockPrices[stock.id] || 
                              stock.basePrice;
         
-        // NYSE-like behavior: Much smaller price movements (0.1% - 0.5% typically)
-        const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.2; // Reduce volatility by 80%
+        // NYSE-like behavior but more noticeable for gameplay
+        const volatilityFactor = getVolatilityFactor(stock.volatility) * 0.5; // Increased from 0.2 to create more noticeable changes
         const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3); // Dampen market effect
         
         // Time-based component (very minor influence)
@@ -516,10 +518,10 @@ export function MarketPriceUpdater() {
           console.log(`MarketPriceUpdater: Forcing contrarian movement for ${stock.id}: ${totalChangePercent.toFixed(4)}%`);
         }
         
-        // Further introduce randomness with a 10% chance of a slightly larger movement
+        // Further introduce randomness with a 10% chance of a significantly larger movement
         if (Math.random() < 0.1) {
-          // Add or subtract additional random movement
-          const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
+          // Add or subtract additional random movement - increased from 0.005 to 0.015 for more noticeable changes
+          const randomBurst = (Math.random() * 0.015) * (Math.random() < 0.5 ? 1 : -1);
           totalChangePercent += randomBurst;
           console.log(`MarketPriceUpdater: Adding random burst to ${stock.id}: ${randomBurst.toFixed(4)}%`);
         }
@@ -671,13 +673,13 @@ export function MarketPriceUpdater() {
     // Run the standard update after initialization
     updateAllPrices();
     
-    // Set up a dedicated interval for crypto updates (every 20 seconds is reasonable)
+    // Set up a dedicated interval for crypto updates (every 10 seconds for more frequent updates)
     // This ensures crypto prices are updated 24/7 regardless of market hours
     const cryptoUpdateInterval = setInterval(() => {
       // Check if we're updating too frequently
       const now = Date.now();
-      if (now - lastUpdateTimeRef.current < 10000) {
-        // Skip this update if less than 10 seconds have passed since the last one
+      if (now - lastUpdateTimeRef.current < 5000) {
+        // Skip this update if less than 5 seconds have passed since the last one (reduced from 10 sec)
         console.log("MarketPriceUpdater: Skipping crypto update - too soon since last update");
         return;
       }
@@ -702,7 +704,7 @@ export function MarketPriceUpdater() {
       } catch (err) {
         console.error("Error syncing prices from asset tracker:", err);
       }
-    }, 20000); // Update crypto every 20 seconds
+    }, 10000); // Update crypto every 10 seconds (reduced from 20 seconds)
     
     // Set up a dedicated interval for stock updates during market hours (every 2 minutes is reasonable)
     // This ensures stock prices change while market is open
