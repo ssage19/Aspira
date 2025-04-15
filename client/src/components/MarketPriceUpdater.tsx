@@ -120,15 +120,15 @@ export function MarketPriceUpdater() {
       
       // Determine volatility factor based on crypto's volatility level
       const volatilityLevel = crypto.volatility || 'high';
-      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.20;
+      let volatilityFactor = getVolatilityFactor(volatilityLevel) * 0.08; // Reduced from 0.20 to 0.08 (60% reduction)
       
-      // Apply volatility multipliers for crypto character
-      if (volatilityLevel === 'extreme') volatilityFactor *= 1.3;
-      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.2;
-      else if (volatilityLevel === 'high') volatilityFactor *= 1.1;
+      // Apply volatility multipliers for crypto character, but with reduced impact
+      if (volatilityLevel === 'extreme') volatilityFactor *= 1.15; // Reduced from 1.3
+      else if (volatilityLevel === 'very_high') volatilityFactor *= 1.1; // Reduced from 1.2
+      else if (volatilityLevel === 'high') volatilityFactor *= 1.05; // Reduced from 1.1
       else if (volatilityLevel === 'medium') volatilityFactor *= 1.0;
-      else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
-      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
+      else if (volatilityLevel === 'low') volatilityFactor *= 0.85; // Increased from 0.8
+      else if (volatilityLevel === 'very_low') volatilityFactor *= 0.7; // Increased from 0.6
       
       // Calculate market influences with more realistic factors
       const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3);
@@ -154,9 +154,9 @@ export function MarketPriceUpdater() {
         totalChangePercent = -originalDirection * Math.abs(totalChangePercent) * 0.75;
       }
       
-      // Add occasional random bursts (10% chance)
-      if (Math.random() < 0.1) {
-        const randomBurst = (Math.random() * 0.005) * (Math.random() < 0.5 ? 1 : -1);
+      // Add occasional random bursts (5% chance, reduced from 10%)
+      if (Math.random() < 0.05) {
+        const randomBurst = (Math.random() * 0.002) * (Math.random() < 0.5 ? 1 : -1); // Reduced magnitude from 0.005 to 0.002
         totalChangePercent += randomBurst;
       }
       
@@ -166,9 +166,10 @@ export function MarketPriceUpdater() {
       // Apply minimum price floor
       newPrice = Math.max(newPrice, crypto.basePrice * 0.3);
       
-      // Apply smoothing for more gradual changes
+      // Apply enhanced smoothing for more gradual changes
       if (previousPrice !== crypto.basePrice) {
-        newPrice = (newPrice * 0.8) + (previousPrice * 0.2);
+        // Use stronger smoothing (60/40 instead of 80/20) for more stable price movements
+        newPrice = (newPrice * 0.6) + (previousPrice * 0.4);
       }
       
       // Store in batch update
@@ -204,10 +205,19 @@ export function MarketPriceUpdater() {
         const currentPrice = crypto.currentPrice || crypto.purchasePrice;
         if (currentPrice <= 0) return;
         
-        // Use medium volatility for custom cryptos
-        const volatilityFactor = getVolatilityFactor('medium') * 0.20;
-        const randomChange = ((Math.random() * 2) - 1) * volatilityFactor;
-        const newPrice = currentPrice * (1 + randomChange);
+        // Use medium volatility for custom cryptos, but with reduced volatility
+        const volatilityFactor = getVolatilityFactor('medium') * 0.08; // Reduced from 0.20 to 0.08 (60% reduction)
+        
+        // Use adjusted random for more consistent and slightly positive-biased movements
+        const randomValue = Math.random();
+        const adjustedRandom = randomValue * 1.1 - 0.5; // Slight positive bias
+        const randomChange = adjustedRandom * volatilityFactor;
+        
+        // Add tiny natural growth factor
+        const naturalGrowth = 0.0003; // Very small growth factor
+        
+        // Calculate new price with reduced volatility
+        const newPrice = currentPrice * (1 + randomChange + naturalGrowth);
         const roundedPrice = parseFloat(newPrice.toFixed(2));
         
         // Add to the global tracker
