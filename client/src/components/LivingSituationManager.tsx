@@ -227,7 +227,7 @@ export function LivingSituationManager() {
       }
       
       // Apply environmental impact
-      if (option.additionalEffects.environmental !== undefined) {
+      if (option.additionalEffects && option.additionalEffects.environmental !== undefined) {
         // Directly update the environmental impact through state setter
         useCharacter.setState(state => ({
           environmentalImpact: Math.max(0, Math.min(100, state.environmentalImpact + option.additionalEffects.environmental))

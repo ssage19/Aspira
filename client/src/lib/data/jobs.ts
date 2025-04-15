@@ -675,7 +675,7 @@ export const professions: Profession[] = [
         salary: 40000,
         description: 'Write web content, blog posts, and basic marketing materials.',
         skillRequirements: { },
-        skillGains: { intelligence: 15, technical: 15 },
+        skillGains: { intelligence: 20, creativity: 25, technical: 5 },
         happinessImpact: 7,
         prestigeImpact: 5,
         timeCommitment: 35,
