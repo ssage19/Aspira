@@ -41,14 +41,79 @@ interface LiveChallengeProgressProps {
 import { useJobChallengeTimer } from '../hooks/useJobChallengeTimer';
 
 function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgressProps) {
-  // Use our specialized hook that handles all the complexity
+  // Get the current game time to ensure we're using the latest time data
+  const currentGameDate = useTime(state => state.currentGameDate);
+  const timeSpeed = useTime(state => state.timeSpeed);
+  
+  // Calculate progress manually to debug the issue
+  const [debugProgress, setDebugProgress] = useState(0);
+  const [debugInfo, setDebugInfo] = useState<any>({});
+  
+  // Update the debug information periodically
+  useEffect(() => {
+    // Only calculate if we have valid inputs
+    if (!challenge.startDate || !currentGameDate) return;
+    
+    try {
+      // Ensure we have a valid Date object for the start date
+      const startDate = challenge.startDate instanceof Date 
+        ? challenge.startDate 
+        : new Date(challenge.startDate);
+      
+      // Calculate days passed
+      const msDiff = currentGameDate.getTime() - startDate.getTime();
+      const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+      
+      // Calculate total days required for completion
+      const totalDaysRequired = challenge.completionTime * 30;
+      
+      // Calculate progress as a percentage (0-100)
+      const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
+      
+      // Store debug information
+      setDebugInfo({
+        startDate: startDate.toISOString(),
+        currentDate: currentGameDate.toISOString(),
+        daysPassed,
+        totalDaysRequired,
+        progressValue: `${progressValue.toFixed(2)}%`
+      });
+      
+      // Update the progress value
+      setDebugProgress(progressValue);
+      
+      // Log for debugging
+      console.log(`DEBUG - Challenge Progress:`, {
+        title: challenge.title,
+        startDate: startDate.toISOString(),
+        currentDate: currentGameDate.toISOString(),
+        daysPassed,
+        totalDaysRequired,
+        progressValue: `${progressValue.toFixed(2)}%`
+      });
+    } catch (error) {
+      console.error('Error calculating debug progress:', error);
+      setDebugProgress(0);
+      setDebugInfo({ error: String(error) });
+    }
+    
+    // Set up interval to continuously check progress
+    const intervalId = setInterval(() => {
+      // Force re-render to recalculate progress
+      setDebugInfo((prev: Record<string, any>) => ({ ...prev, refreshTime: new Date().toISOString() }));
+    }, 2000); // Check every 2 seconds
+    
+    return () => clearInterval(intervalId);
+  }, [challenge, currentGameDate, timeSpeed]);
+  
+  // Use our specialized hook as well for comparison
   const { progress, isFinished, daysRemaining, monthsRemaining } = useJobChallengeTimer(
     challenge.startDate,
     challenge.completionTime
   );
   
   // Display formatting
-  const progressText = `${Math.floor(progress)}%`;
+  const progressText = `${Math.floor(debugProgress)}%`;
   const timeLeftText = monthsRemaining > 0 
     ? `${monthsRemaining} month${monthsRemaining !== 1 ? 's' : ''} remaining` 
     : isFinished 
@@ -58,16 +123,15 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
   return (
     <>
       <Progress
-        value={progress}
+        value={debugProgress}
         className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
       />
-      {/* Uncomment to add text indicator of progress */}
-      {/*
+      
+      {/* Always show text indicator of progress for debugging */}
       <div className="flex justify-between text-xs mt-1 text-muted-foreground">
         <span>{progressText}</span>
         <span>{timeLeftText}</span>
       </div>
-      */}
     </>
   );
 }
@@ -606,7 +670,16 @@ export default function JobScreen() {
     
     // Create current date copy to avoid reference issues
     const now = new Date(currentGameDate.getTime());
-    console.log(`📅 Starting challenge with date: ${now.toISOString()}`);
+    
+    // Debug the challenge start date to ensure it's working
+    console.log(`📅 Starting challenge with date:`, {
+      challenge: challenge.title,
+      startDate: now.toISOString(),
+      currentGameDate: currentGameDate.toISOString(),
+      dateObjectType: Object.prototype.toString.call(now),
+      completionTimeInMonths: challenge.completionTime,
+      totalDaysRequired: challenge.completionTime * 30
+    });
     
     // Update the challenge to be in progress with current date
     const updatedChallenges = challenges.map(c => 
@@ -615,15 +688,17 @@ export default function JobScreen() {
             ...c, 
             inProgress: true, 
             startDate: now,
-            lastProgressUpdate: now // Initialize progress tracking
+            lastProgressUpdate: now, // Initialize progress tracking
+            readyForCompletion: false // Ensure this is reset
           }
         : c
     );
     
+    // Set challenges state
     setChallenges(updatedChallenges);
     setSelectedChallenge(null);
     
-    toast.success(`Started working on: ${challenge.title}. Check back in ${challenge.completionTime} months.`);
+    toast.success(`Started working on: ${challenge.title}. Progress will update daily over the next ${challenge.completionTime * 30} days.`);
   };
   
   // Complete a challenge and collect the reward
