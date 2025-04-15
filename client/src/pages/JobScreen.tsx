@@ -1283,27 +1283,8 @@ export default function JobScreen() {
                                 {/* Show progress bar for in-progress challenges */}
                                 {challenge.inProgress && challenge.startDate && !challenge.completed && (
                                   <div className="mt-2 w-full">
-                                    <div className="flex justify-between items-center mb-1">
+                                    <div className="mb-1">
                                       <div className="text-xs text-muted-foreground">Progress</div>
-                                      <div className="text-xs text-muted-foreground">
-                                        {(() => {
-                                          // Get CURRENT time from the time store
-                                          const realTimeData = useTime.getState();
-                                          const realCurrentGameDate = realTimeData.currentGameDate;
-                                          
-                                          if (!realCurrentGameDate || !challenge.startDate) return '0%';
-                                          
-                                          const startDate = new Date(challenge.startDate);
-                                          const daysPassed = Math.floor((realCurrentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                                          const monthsPassed = Math.floor(daysPassed / 30);
-                                          const progressPercent = Math.min(100, Math.round((monthsPassed / challenge.completionTime) * 100));
-                                          
-                                          // Debug logs
-                                          console.log(`Challenge progress: ${progressPercent}% - ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
-                                          
-                                          return `${progressPercent}%`;
-                                        })()}
-                                      </div>
                                     </div>
                                     
                                     {/* Self-updating progress component */}
