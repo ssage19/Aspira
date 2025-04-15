@@ -668,18 +668,38 @@ export function MarketPriceUpdater() {
     // Run the standard update after initialization
     updateAllPrices();
     
-    // Set up a dedicated interval for crypto updates (every 60 seconds is reasonable)
+    // Set up a dedicated interval for crypto updates (every 20 seconds is reasonable)
     // This ensures crypto prices are updated 24/7 regardless of market hours
     const cryptoUpdateInterval = setInterval(() => {
+      // Check if we're updating too frequently
+      const now = Date.now();
+      if (now - lastUpdateTimeRef.current < 10000) {
+        // Skip this update if less than 10 seconds have passed since the last one
+        console.log("MarketPriceUpdater: Skipping crypto update - too soon since last update");
+        return;
+      }
+      
       console.log("MarketPriceUpdater: Running scheduled crypto asset update (24/7 market)");
+      lastUpdateTimeRef.current = now;
+      
+      // Run the crypto update function
       updateCryptoAssets();
       
       // Make sure totals are recalculated after crypto updates
       assetTracker.recalculateTotals();
       
-      // Force character store to sync with asset tracker to update UI
-      syncAssetsWithAssetTracker();
-    }, 60000); // Update crypto every minute
+      // CRITICAL: Instead of calling syncAssetsWithAssetTracker which would overwrite prices
+      // Call syncPricesFromAssetTracker to only sync prices from asset tracker TO character store
+      try {
+        const character = useCharacter.getState();
+        if (character && character.syncPricesFromAssetTracker) {
+          character.syncPricesFromAssetTracker();
+          console.log("MarketPriceUpdater: Successfully synced prices FROM asset tracker TO character");
+        }
+      } catch (err) {
+        console.error("Error syncing prices from asset tracker:", err);
+      }
+    }, 20000); // Update crypto every 20 seconds
     
     // Set up a dedicated interval for stock updates during market hours (every 2 minutes is reasonable)
     // This ensures stock prices change while market is open
