@@ -3044,25 +3044,39 @@ export const useCharacter = create<CharacterState>()(
           // Update the current day in state for property income calculations
           state.currentDay = currentDay;
           
-          // If the character has a job, check if we need to award monthly skill points
+          // If the character has a job, check if we need to improve job-related skills
           if (state.job && state.job.monthsInPosition !== undefined) {
             // Check if we've reached a 30-day milestone with the job
             // The daysSincePromotion counter tracks job tenure
             if (daysSincePromotion > 0 && daysSincePromotion % 30 === 0) {
               console.log(`30-day job milestone reached! Days since promotion: ${daysSincePromotion}`);
               
-              // Calculate skill points to award
+              // Apply skill gains directly to the character's skills
               if (state.job.skillGains) {
-                const earnedPoints = Object.values(state.job.skillGains).reduce((sum, gain) => sum + gain, 0);
+                // Create a copy of the skills object to modify
+                const updatedSkills = { ...state.skills };
+                let totalGains = 0;
                 
-                // Award skill points immediately
-                if (earnedPoints > 0) {
-                  // Use the function outside the state update to avoid circular reference
-                  get().awardSkillPoints(earnedPoints);
-                  console.log(`Awarded ${earnedPoints} skill points for completing 30 days with ${state.job.title}`);
-                  
-                  // Show a notification to the player
-                  toast.success(`Monthly career points awarded: ${earnedPoints} points`);
+                // Apply each skill gain directly
+                for (const [skillName, gainAmount] of Object.entries(state.job.skillGains)) {
+                  const skill = skillName as keyof CharacterSkills;
+                  if (skill in updatedSkills) {
+                    // Apply the gain directly to the skill (up to the max of 1000)
+                    const oldValue = updatedSkills[skill];
+                    updatedSkills[skill] = Math.min(1000, updatedSkills[skill] + gainAmount);
+                    const actualGain = updatedSkills[skill] - oldValue;
+                    totalGains += actualGain;
+                    
+                    console.log(`Improved ${skill} skill by ${actualGain} points (from ${oldValue} to ${updatedSkills[skill]})`);
+                  }
+                }
+                
+                // Update the skills directly in the state
+                state.skills = updatedSkills;
+                
+                // Log the skill improvements
+                if (totalGains > 0) {
+                  console.log(`Automatically improved job-related skills by ${totalGains} points after 30 days at ${state.job.title}`);
                 }
               }
             }
@@ -3543,8 +3557,9 @@ export const useCharacter = create<CharacterState>()(
             // Log that we're incrementing the months in position
             console.log(`Monthly update: ${updatedJob.title} - Months in position updated to ${updatedJob.monthsInPosition}`);
             
-            // Note: Skill points are now handled in the daily update based on days in position
-            // to ensure more accurate tracking based on tenure, not calendar months
+            // Note: All job-related skill improvements are now handled directly 
+            // in the daily update function based on job tenure (every 30 days)
+            // No manual skill points are awarded - skills are improved automatically
           }
           
           return {
