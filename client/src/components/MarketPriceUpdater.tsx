@@ -628,10 +628,27 @@ export function MarketPriceUpdater() {
   useEffect(() => {
     console.log("Market price updater initializing...");
     
-    // Initialize crypto prices on component mount using the imported cryptoCurrencies
-    console.log(`MarketPriceUpdater: Initializing prices for ${cryptoCurrencies.length} cryptocurrencies`);
+    // Initialize ALL asset prices (stocks, crypto, etc.) on component mount
+    console.log(`MarketPriceUpdater: Initializing prices for ${expandedStockMarket.length} stocks and ${cryptoCurrencies.length} cryptocurrencies`);
     
-    // Create an initial price map with base prices
+    // 1. Initialize stock prices first
+    const initialStockPrices: Record<string, number> = {};
+    
+    // Initialize all stock assets with their base prices
+    expandedStockMarket.forEach((stock: any) => {
+      if (stock && stock.id) {
+        // Use existing price if available, otherwise use base price
+        const existingPrice = assetTracker.globalStockPrices[stock.id] || 0;
+        initialStockPrices[stock.id] = existingPrice > 0 ? existingPrice : stock.basePrice;
+        
+        console.log(`MarketPriceUpdater: Initialized stock ${stock.name} at $${initialStockPrices[stock.id].toFixed(2)}`);
+      }
+    });
+    
+    // Batch update all stock prices in the global tracker
+    assetTracker.updateGlobalStockPrices(initialStockPrices);
+    
+    // 2. Now initialize crypto prices
     const initialCryptoPrices: Record<string, number> = {};
     
     // Initialize all crypto assets with their base prices
@@ -641,7 +658,7 @@ export function MarketPriceUpdater() {
         const existingPrice = assetTracker.globalCryptoPrices[crypto.id] || 0;
         initialCryptoPrices[crypto.id] = existingPrice > 0 ? existingPrice : crypto.basePrice;
         
-        console.log(`MarketPriceUpdater: Initialized ${crypto.name} at $${initialCryptoPrices[crypto.id].toFixed(2)}`);
+        console.log(`MarketPriceUpdater: Initialized crypto ${crypto.name} at $${initialCryptoPrices[crypto.id].toFixed(2)}`);
       }
     });
     
@@ -664,7 +681,19 @@ export function MarketPriceUpdater() {
       syncAssetsWithAssetTracker();
     }, 60000); // Update crypto every minute
     
-    // Only update stocks at market close instead of periodically
+    // Set up a dedicated interval for stock updates during market hours (every 2 minutes is reasonable)
+    // This ensures stock prices change while market is open
+    const stockUpdateInterval = setInterval(() => {
+      // Only update if market is open
+      if (isMarketOpen()) {
+        console.log("MarketPriceUpdater: Running scheduled stock price update (market open)");
+        // Run the full updateAllPrices which includes stocks
+        updateAllPrices();
+      } else {
+        console.log("MarketPriceUpdater: Skipping scheduled stock update (market closed)");
+      }
+    }, 120000); // Update stocks every 2 minutes when market is open
+    
     // Track market open/close state to detect the market closing
     let wasMarketOpen = isMarketOpen();
     
@@ -891,6 +920,7 @@ export function MarketPriceUpdater() {
     return () => {
       console.log("MarketPriceUpdater: Cleaning up price update intervals and subscriptions");
       clearInterval(cryptoUpdateInterval);
+      clearInterval(stockUpdateInterval);
       clearInterval(marketStatusInterval);
       unsubscribeTimeProgress();
       unsubscribeDay();
