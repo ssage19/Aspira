@@ -37,6 +37,13 @@ export interface VehicleOption {
     stress: number;     // Stress impact (negative is good)
     prestige: number;   // Social prestige impact
   };
+  additionalEffects?: {
+    health?: number;          // Health impact
+    happiness?: number;       // Happiness impact
+    social?: number;          // Social connections impact
+    environmental?: number;   // Environmental impact (negative = worse for environment)
+    timeCommitment?: number;  // Time commitment in hours
+  };
   benefits: string[];   // List of benefits in text form
   downsides?: string[]; // List of downsides in text form
   image?: string;       // Optional image URL
@@ -189,6 +196,13 @@ export const vehicleOptions: VehicleOption[] = [
       stress: 20,
       prestige: -10
     },
+    additionalEffects: {
+      health: 5,             // Walking to stops is healthy
+      happiness: -5,         // Less convenient
+      social: 5,             // Interact with people on public transport
+      environmental: 30,     // Very environmentally friendly
+      timeCommitment: 2      // Takes more time to get places
+    },
     benefits: [
       'No vehicle purchase cost',
       'No maintenance responsibilities',
@@ -212,6 +226,13 @@ export const vehicleOptions: VehicleOption[] = [
       comfort: 0,
       stress: -5,
       prestige: 0
+    },
+    additionalEffects: {
+      health: 15,            // Great exercise
+      happiness: 10,         // Endorphins from cycling
+      social: 0,             // Neutral
+      environmental: 40,     // Extremely environmentally friendly
+      timeCommitment: 3      // Takes more time to travel
     },
     benefits: [
       'Health benefits from exercise',
@@ -238,6 +259,13 @@ export const vehicleOptions: VehicleOption[] = [
       stress: -10,
       prestige: 5
     },
+    additionalEffects: {
+      health: 0,             // Neutral health impact
+      happiness: 5,          // Some convenience
+      social: 10,            // Ability to visit friends
+      environmental: -10,    // Modest environmental impact
+      timeCommitment: -1     // Saves some time in commuting
+    },
     benefits: [
       'Reliable transportation',
       'Good fuel efficiency',
@@ -262,6 +290,13 @@ export const vehicleOptions: VehicleOption[] = [
       comfort: 50,
       stress: -20,
       prestige: 15
+    },
+    additionalEffects: {
+      health: 0,             // Neutral health impact
+      happiness: 15,         // Good convenience
+      social: 20,            // Enhanced ability to socialize
+      environmental: -15,    // Moderate environmental impact
+      timeCommitment: -2     // Saves moderate time in commuting
     },
     benefits: [
       'Better comfort and features',
@@ -288,6 +323,13 @@ export const vehicleOptions: VehicleOption[] = [
       stress: -35,
       prestige: 40
     },
+    additionalEffects: {
+      health: 5,              // Slight health benefit from comfort
+      happiness: 25,          // High convenience and enjoyment
+      social: 35,             // High social status and networking opportunities
+      environmental: -30,     // Significant environmental impact
+      timeCommitment: -4      // Saves significant time with features
+    },
     benefits: [
       'Premium comfort and features',
       'Advanced technology',
@@ -312,6 +354,13 @@ export const vehicleOptions: VehicleOption[] = [
       comfort: 90,
       stress: -50,
       prestige: 70
+    },
+    additionalEffects: {
+      health: 5,              // Slight health benefit from comfort
+      happiness: 40,          // Maximum convenience and enjoyment
+      social: 50,             // Elite social status
+      environmental: -50,     // Large environmental footprint
+      timeCommitment: -5      // Maximum time savings with features
     },
     benefits: [
       'Ultimate performance and luxury',

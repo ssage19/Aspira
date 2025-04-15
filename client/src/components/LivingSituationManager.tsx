@@ -85,12 +85,16 @@ export function LivingSituationManager() {
     addStress,
     updateComfort,
     addPrestige,
+    addHappiness,
+    updateSocialConnections, 
     housingType,
     vehicleType,
     setHousing,
     setVehicle,
     getHousingExpense,
-    getTransportationExpense
+    getTransportationExpense,
+    addTimeCommitment,
+    reduceTimeCommitment
   } = useCharacter();
   
   const { showNotification } = useNotification();
@@ -205,10 +209,37 @@ export function LivingSituationManager() {
     // Update vehicle type
     setVehicle(option.type);
     
-    // Apply effects
-    updateComfort(option.effects.comfort / 2); // Apply immediately half of the effect
-    addStress(option.effects.stress / 2);
-    addPrestige(option.effects.prestige / 2);
+    // Apply all effects from the vehicle
+    updateComfort(option.effects.comfort);
+    addStress(option.effects.stress);
+    addPrestige(option.effects.prestige);
+    
+    // Apply additional effects (if available)
+    if (option.additionalEffects) {
+      // Apply health effects
+      if (option.additionalEffects.health !== undefined) {
+        addHealth(option.additionalEffects.health);
+      }
+      
+      // Apply social effects
+      if (option.additionalEffects.social !== undefined) {
+        updateSocialConnections(option.additionalEffects.social);
+      }
+      
+      // Apply environmental impact
+      if (option.additionalEffects.environmental !== undefined) {
+        // Directly update the environmental impact through state setter
+        useCharacter.setState(state => ({
+          environmentalImpact: Math.max(0, Math.min(100, state.environmentalImpact + option.additionalEffects.environmental))
+        }));
+        console.log(`Updated environmental impact by ${option.additionalEffects.environmental}. New value: ${useCharacter.getState().environmentalImpact}`);
+      }
+      
+      // Apply happiness effects
+      if (option.additionalEffects.happiness !== undefined) {
+        addHappiness(option.additionalEffects.happiness);
+      }
+    }
     
     // Time passes during purchase
     advanceTime();
