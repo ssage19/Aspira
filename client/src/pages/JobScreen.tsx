@@ -416,63 +416,78 @@ export default function JobScreen() {
   // Check for completed challenges based on game time and update progress
   useEffect(() => {
     if (challenges.length > 0 && currentGameDate) {
-      console.log("Checking challenge progress with date:", currentGameDate.toLocaleString());
+      console.log("🔄 Challenge check with game date:", currentGameDate.toLocaleString());
       
-      // Always make updates to force UI refresh
-      const updatedChallenges = [...challenges];
-      let hasUpdates = false;
-      
-      challenges.forEach((challenge, index) => {
-        if (challenge.inProgress && challenge.startDate && !challenge.completed) {
-          // Calculate days passed since challenge started
-          const startDate = new Date(challenge.startDate);
-          const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-          
-          // Convert days to months (every 30 days = 1 month in game time)
-          const monthsPassed = Math.floor(daysPassed / 30);
-          
-          console.log(`Challenge "${challenge.title}" progress: ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
-          
-          // If enough months have passed, mark challenge as ready for completion
-          if (monthsPassed >= challenge.completionTime) {
-            // Only notify if we're transitioning from not ready to ready
-            if (!challenge.readyForCompletion) {
-              setTimeout(() => {
-                toast.success(
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-5 w-5" />
-                    <div>
-                      <div className="font-semibold">Challenge Ready!</div>
-                      <div className="text-sm">{challenge.title} is ready to be completed</div>
-                    </div>
-                  </div>
-                );
-                // Audio removed
-              }, 500);
-            }
-            
-            updatedChallenges[index] = {
-              ...challenge,
-              // Mark it as ready and update the last progress check
-              readyForCompletion: true,
-              lastProgressUpdate: new Date(currentGameDate)
-            };
-            hasUpdates = true;
-          } else {
-            // Always update the challenge to ensure the UI shows correct progress
-            updatedChallenges[index] = {
-              ...challenge,
-              lastProgressUpdate: new Date(currentGameDate)
-            };
-            hasUpdates = true;
-          }
+      // Create a fresh copy of challenges to avoid reference issues
+      const updatedChallenges = challenges.map(challenge => {
+        // Skip challenges that aren't in progress
+        if (!challenge.inProgress || !challenge.startDate || challenge.completed) {
+          return challenge;
         }
+        
+        // Convert any string dates to Date objects for reliable calculation
+        const startDate = challenge.startDate instanceof Date 
+          ? challenge.startDate 
+          : new Date(challenge.startDate);
+        
+        // Calculate days passed since challenge started
+        const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+        
+        // Convert days to months (every 30 days = 1 month in game time)
+        const monthsPassed = Math.floor(daysPassed / 30);
+        
+        console.log(`🏆 Challenge "${challenge.title}": ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
+        
+        // Check if challenge is ready for completion
+        if (monthsPassed >= challenge.completionTime) {
+          // Only notify if we're transitioning from not ready to ready
+          if (!challenge.readyForCompletion) {
+            setTimeout(() => {
+              toast.success(
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-5 w-5" />
+                  <div>
+                    <div className="font-semibold">Challenge Ready!</div>
+                    <div className="text-sm">{challenge.title} is ready to be completed</div>
+                  </div>
+                </div>
+              );
+            }, 500);
+          }
+          
+          // Mark as ready for completion
+          return {
+            ...challenge,
+            readyForCompletion: true,
+            lastProgressUpdate: new Date(currentGameDate)
+          };
+        }
+        
+        // Always update the lastProgressUpdate to ensure UI refresh
+        return {
+          ...challenge,
+          lastProgressUpdate: new Date(currentGameDate)
+        };
       });
       
-      // Always update to ensure the progress bars refresh
+      // Always update the challenges to ensure the UI refreshes
       setChallenges(updatedChallenges);
+      
+      // Serialize for localStorage to ensure challenge data is properly saved
+      localStorage.setItem(`challenges-${job.id}`, JSON.stringify(
+        updatedChallenges.map(challenge => ({
+          ...challenge,
+          // Convert Date objects to ISO strings for proper serialization
+          startDate: challenge.startDate instanceof Date 
+            ? challenge.startDate.toISOString() 
+            : challenge.startDate,
+          lastProgressUpdate: challenge.lastProgressUpdate instanceof Date
+            ? challenge.lastProgressUpdate.toISOString()
+            : challenge.lastProgressUpdate
+        }))
+      ));
     }
-  }, [currentGameDate]);
+  }, [currentGameDate, job]);
   
   // Start working on a challenge
   const handleStartChallenge = (challenge: ChallengeType) => {
@@ -1141,37 +1156,11 @@ export default function JobScreen() {
                                       </div>
                                     </div>
                                     
-                                    {/* Use an inline component to force updates with the current time */}
-                                    {(() => {
-                                      // Get CURRENT time from the time store
-                                      const realTimeData = useTime.getState();
-                                      const realCurrentGameDate = realTimeData.currentGameDate;
-                                      
-                                      // Debug the date object
-                                      console.log("Current game date for progress bar:", realCurrentGameDate);
-                                      
-                                      if (!realCurrentGameDate || !challenge.startDate) {
-                                        return <Progress value={0} className="h-1" key={`${challenge.id}-progress-0`} />;
-                                      }
-                                      
-                                      const startDate = new Date(challenge.startDate);
-                                      const daysPassed = Math.floor((realCurrentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                                      const monthsPassed = Math.floor(daysPassed / 30);
-                                      
-                                      // Calculate percentage (0-100)
-                                      const percent = Math.min(100, (monthsPassed / challenge.completionTime) * 100);
-                                      
-                                      console.log(`PROGRESS BAR: Challenge ${challenge.id} (${challenge.title}) - ${percent.toFixed(1)}% complete`);
-                                      console.log(`Time difference: ${daysPassed} days (${monthsPassed} months) out of ${challenge.completionTime} months`);
-                                      
-                                      return (
-                                        <Progress
-                                          value={percent}
-                                          className="h-1"
-                                          key={`${challenge.id}-progress-${realTimeData.dayCounter}-${Date.now()}`}
-                                        />
-                                      );
-                                    })()}
+                                    {/* Self-updating progress component */}
+                                    <LiveChallengeProgress 
+                                      challenge={challenge} 
+                                      height="h-1"
+                                    />
                                   </div>
                                 )}
                               </div>
