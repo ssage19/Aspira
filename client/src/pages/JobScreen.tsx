@@ -113,7 +113,7 @@ export default function JobScreen() {
           description: getSkillChallengeDescription(skill, 'easy', currentJob.title),
           skill,
           difficultyLevel: 'easy',
-          xpReward: 1,
+          xpReward: 15,
           completionTime: 2, // Months
           completed: false
         });
@@ -125,7 +125,7 @@ export default function JobScreen() {
           description: getSkillChallengeDescription(skill, 'medium', currentJob.title),
           skill,
           difficultyLevel: 'medium',
-          xpReward: 2,
+          xpReward: 30,
           completionTime: 5,
           completed: false
         });
@@ -138,7 +138,7 @@ export default function JobScreen() {
             description: getSkillChallengeDescription(skill, 'hard', currentJob.title),
             skill,
             difficultyLevel: 'hard',
-            xpReward: 4,
+            xpReward: 60,
             completionTime: 10,
             completed: false
           });
@@ -154,10 +154,10 @@ export default function JobScreen() {
       challengeList.push({
         id: `${currentJob.id}-${randomSkill}-next`,
         title: `Prepare for advancement in ${randomSkill}`,
-        description: `Build your ${randomSkill} skills to prepare for your next role as ${nextJob.title}.`,
+        description: `Build your ${randomSkill} skills to prepare for your next role as ${nextJob.title}. Reward: 40 skill points.`,
         skill: randomSkill,
         difficultyLevel: 'medium',
-        xpReward: 3,
+        xpReward: 40,
         completionTime: 7,
         completed: false
       });
@@ -201,9 +201,9 @@ export default function JobScreen() {
   const getSkillChallengeDescription = (skill: string, difficulty: 'easy' | 'medium' | 'hard', jobTitle: string): string => {
     // Define reward values based on difficulty
     const rewards = {
-      easy: 1,
-      medium: 2,
-      hard: 4
+      easy: 15,
+      medium: 30,
+      hard: 60
     };
     
     const descriptions = {
@@ -973,14 +973,18 @@ export default function JobScreen() {
                               })()}
                             </div>
                           </div>
-                          <Progress value={(() => {
-                            if (!currentGameDate || !selectedChallenge.startDate) return 0;
-                            
-                            const startDate = new Date(selectedChallenge.startDate);
-                            const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                            const monthsPassed = Math.floor(daysPassed / 30);
-                            return Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
-                          })()} className="h-2" />
+                          <Progress 
+                            value={(() => {
+                              if (!currentGameDate || !selectedChallenge.startDate) return 0;
+                              
+                              const startDate = new Date(selectedChallenge.startDate);
+                              const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                              const monthsPassed = Math.floor(daysPassed / 30);
+                              return Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
+                            })()} 
+                            className="h-2"
+                            key={`detail-${selectedChallenge.id}-progress-${selectedChallenge.lastProgressUpdate?.getTime() || 0}-${currentGameDate.getTime()}`} 
+                          />
                           
                           <div className="flex justify-between mt-6 gap-4">
                             {selectedChallenge.readyForCompletion ? (
@@ -1099,7 +1103,7 @@ export default function JobScreen() {
                                       <div className="text-xs text-muted-foreground">Progress</div>
                                       <div className="text-xs text-muted-foreground">
                                         {(() => {
-                                          if (!currentGameDate) return '0%';
+                                          if (!currentGameDate || !challenge.startDate) return '0%';
                                           
                                           const startDate = new Date(challenge.startDate);
                                           const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -1110,14 +1114,18 @@ export default function JobScreen() {
                                         })()}
                                       </div>
                                     </div>
-                                    <Progress value={(() => {
-                                      if (!currentGameDate) return 0;
-                                      
-                                      const startDate = new Date(challenge.startDate);
-                                      const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                                      const monthsPassed = Math.floor(daysPassed / 30);
-                                      return Math.min(100, (monthsPassed / challenge.completionTime) * 100);
-                                    })()} className="h-1" />
+                                    <Progress 
+                                      value={(() => {
+                                        if (!currentGameDate || !challenge.startDate) return 0;
+                                        
+                                        const startDate = new Date(challenge.startDate);
+                                        const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+                                        const monthsPassed = Math.floor(daysPassed / 30);
+                                        return Math.min(100, (monthsPassed / challenge.completionTime) * 100);
+                                      })()} 
+                                      className="h-1"
+                                      key={`${challenge.id}-progress-${challenge.lastProgressUpdate?.getTime() || 0}`} 
+                                    />
                                   </div>
                                 )}
                               </div>
