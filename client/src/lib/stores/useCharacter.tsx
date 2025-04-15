@@ -3030,6 +3030,30 @@ export const useCharacter = create<CharacterState>()(
           // Update the current day in state for property income calculations
           state.currentDay = currentDay;
           
+          // If the character has a job, check if we need to award monthly skill points
+          if (state.job && state.job.monthsInPosition !== undefined) {
+            // Check if we've reached a 30-day milestone with the job
+            // The daysSincePromotion counter tracks job tenure
+            if (daysSincePromotion > 0 && daysSincePromotion % 30 === 0) {
+              console.log(`30-day job milestone reached! Days since promotion: ${daysSincePromotion}`);
+              
+              // Calculate skill points to award
+              if (state.job.skillGains) {
+                const earnedPoints = Object.values(state.job.skillGains).reduce((sum, gain) => sum + gain, 0);
+                
+                // Award skill points immediately
+                if (earnedPoints > 0) {
+                  // Use the function outside the state update to avoid circular reference
+                  get().awardSkillPoints(earnedPoints);
+                  console.log(`Awarded ${earnedPoints} skill points for completing 30 days with ${state.job.title}`);
+                  
+                  // Show a notification to the player
+                  toast.success(`Monthly career points awarded: ${earnedPoints} points`);
+                }
+              }
+            }
+          }
+          
           // Check for expired lifestyle items (vacations and experiences that have ended)
           // Use the game time instead of actual time for consistent expiration
           const expiredItems: LifestyleItem[] = [];
@@ -3494,7 +3518,6 @@ export const useCharacter = create<CharacterState>()(
           
           // Update job experience if employed
           let updatedJob = state.job;
-          let earnedPoints = 0;
           
           if (updatedJob) {
             // Increment months in current position
@@ -3503,20 +3526,11 @@ export const useCharacter = create<CharacterState>()(
               monthsInPosition: (updatedJob.monthsInPosition || 0) + 1
             };
             
-            // Calculate total skill points earned from the job's skill gains
-            if (updatedJob.skillGains) {
-              earnedPoints = Object.values(updatedJob.skillGains).reduce((sum, gain) => sum + gain, 0);
-              
-              // Log the skill points earned from job
-              console.log(`Monthly job skill points earned: ${earnedPoints} from ${state.job?.title}`);
-              
-              // Award the skill points immediately - this will be picked up in the return object
-              if (earnedPoints > 0) {
-                // Call the function to add to earned skill points
-                get().awardSkillPoints(earnedPoints);
-                console.log(`Awarded ${earnedPoints} skill points to character from monthly job update`);
-              }
-            }
+            // Log that we're incrementing the months in position
+            console.log(`Monthly update: ${updatedJob.title} - Months in position updated to ${updatedJob.monthsInPosition}`);
+            
+            // Note: Skill points are now handled in the daily update based on days in position
+            // to ensure more accurate tracking based on tenure, not calendar months
           }
           
           return {
