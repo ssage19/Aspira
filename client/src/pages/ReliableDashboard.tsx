@@ -335,7 +335,7 @@ export default function ReliableDashboard() {
                           </div>
                           <div className="relative pt-1">
                             <div className="overflow-hidden h-2 text-xs flex rounded backdrop-blur-sm bg-secondary/20 border border-primary/10">
-                              <div style={{ width: `${Math.min(stats.prestige, 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-400 to-amber-600 rounded"></div>
+                              <div style={{ width: `${Math.min(stats.prestige / 30, 100)}%` }} className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-gradient-to-r from-amber-400 to-amber-600 rounded"></div>
                             </div>
                           </div>
                         </div>
