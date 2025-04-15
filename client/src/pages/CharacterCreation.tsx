@@ -223,7 +223,7 @@ export default function CharacterCreation() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-40 bg-accent/10 rounded-full blur-lg"></div>
               
               {/* Title and logo container */}
-              <div className="flex items-center justify-center gap-12 mb-4">
+              <div className="flex items-center justify-center gap-4 mb-4">
                 {/* Aspira title - with its own decorative elements */}
                 <div className="relative">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-primary/15 rounded-full blur-md"></div>
