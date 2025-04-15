@@ -28,6 +28,7 @@ type ChallengeType = {
   inProgress?: boolean;
   startDate?: Date;
   readyForCompletion?: boolean;
+  lastProgressUpdate?: Date; // Track when progress was last updated
 };
 
 export default function JobScreen() {
@@ -198,6 +199,13 @@ export default function JobScreen() {
   };
   
   const getSkillChallengeDescription = (skill: string, difficulty: 'easy' | 'medium' | 'hard', jobTitle: string): string => {
+    // Define reward values based on difficulty
+    const rewards = {
+      easy: 1,
+      medium: 2,
+      hard: 4
+    };
+    
     const descriptions = {
       intelligence: {
         easy: `Complete a research project relevant to your role as ${jobTitle}.`,
@@ -226,8 +234,12 @@ export default function JobScreen() {
       }
     };
     
-    return descriptions[skill as keyof typeof descriptions]?.[difficulty] || 
+    // Get base description
+    const baseDescription = descriptions[skill as keyof typeof descriptions]?.[difficulty] || 
       `Complete a ${difficulty} challenge to improve your ${skill} skills.`;
+    
+    // Add reward info to the description
+    return `${baseDescription} Reward: ${rewards[difficulty]} skill points.`;
   };
 
   const getSkillColor = (skill: string): string => {
@@ -401,7 +413,7 @@ export default function JobScreen() {
     }
   }, [challenges, job]);
   
-  // Check for completed challenges based on game time
+  // Check for completed challenges based on game time and update progress
   useEffect(() => {
     if (challenges.length > 0 && currentGameDate) {
       const updatedChallenges = [...challenges];
@@ -436,8 +448,20 @@ export default function JobScreen() {
             
             updatedChallenges[index] = {
               ...challenge,
-              // Don't mark as completed yet, but indicate it's ready
-              readyForCompletion: true
+              // Mark it as ready and update the last progress check
+              readyForCompletion: true,
+              lastProgressUpdate: currentGameDate
+            };
+            hasUpdates = true;
+          } 
+          // Always update the challenge to ensure the UI shows correct progress
+          else if (!challenge.lastProgressUpdate || 
+            // Only update if a day has passed since last update to avoid excessive updates
+            Math.floor((currentGameDate.getTime() - (challenge.lastProgressUpdate?.getTime() || 0)) / (1000 * 60 * 60 * 24)) >= 1) {
+            
+            updatedChallenges[index] = {
+              ...challenge,
+              lastProgressUpdate: currentGameDate
             };
             hasUpdates = true;
           }
@@ -467,7 +491,12 @@ export default function JobScreen() {
     // Update the challenge to be in progress with current date
     const updatedChallenges = challenges.map(c => 
       c.id === challenge.id 
-        ? {...c, inProgress: true, startDate: new Date(currentGameDate)}
+        ? {
+            ...c, 
+            inProgress: true, 
+            startDate: new Date(currentGameDate),
+            lastProgressUpdate: new Date(currentGameDate) // Initialize progress tracking
+          }
         : c
     );
     
