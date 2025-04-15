@@ -1270,7 +1270,7 @@ export function SocialNetworking() {
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Used to schedule meetings and find new connections
-              <br /><span className="text-primary">Monthly boost: +100 base points + {Math.floor(networkingLevel / 10)} from network level</span>
+              <br /><span className="text-primary">Monthly boost: +25 base points</span>
               <br /><span className="text-primary">Also regenerates over time and from attending events</span>
             </p>
           </CardContent>
@@ -1284,7 +1284,7 @@ export function SocialNetworking() {
             <div className="flex items-center">
               <Users className="h-5 w-5 mr-2 text-purple-500" />
               <span className="text-2xl font-bold">{connections.length}</span>
-              <span className="text-sm text-muted-foreground ml-2">connections</span>
+              <span className="text-sm text-muted-foreground ml-2">/ 10 connections</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">Your professional network</p>
           </CardContent>
