@@ -320,8 +320,14 @@ export function Investments() {
         // Try to get the freshest price possible
         let latestPrice = 0;
         
-        // First check if we have it in the asset tracker's stock array for the most up-to-date value
-        if (assetTracker.stocks) {
+        // CRITICAL: First check global stock prices since that's where MarketPriceUpdater stores the persistent values
+        if (assetTracker.globalStockPrices && assetTracker.globalStockPrices[stock.id] > 0) {
+          latestPrice = assetTracker.globalStockPrices[stock.id];
+          // console.log(`Using global price for ${stock.id}: ${latestPrice}`);
+        }
+        
+        // Fallback: Check if we have it in the asset tracker's stock array for the most up-to-date value
+        if (latestPrice <= 0 && assetTracker.stocks) {
           const trackerStock = assetTracker.stocks.find((s: any) => s.id === stock.id);
           if (trackerStock && trackerStock.currentPrice > 0) {
             latestPrice = trackerStock.currentPrice;
