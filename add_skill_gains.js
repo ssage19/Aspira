@@ -12,63 +12,213 @@ const jobsFilePath = path.join(__dirname, 'client/src/lib/data/jobs.ts');
 // Read the jobs.ts file
 let jobsContent = fs.readFileSync(jobsFilePath, 'utf8');
 
-// Function to determine appropriate skill gains based on job level and requirements
-const determineSkillGains = (level, skillRequirements) => {
-  const defaultGains = {
-    entry: {
-      intelligence: 15,
-      technical: 15,
+// Function to determine appropriate skill gains based on job level and career category
+const determineSkillGains = (level, skillRequirements, jobData) => {
+  // Extract job category from the context if available
+  const categoryMatch = jobData ? jobData.match(/category: ['"]([^'"]+)['"]/) : null;
+  const category = categoryMatch ? categoryMatch[1] : 'unknown';
+  
+  // Primary and secondary skills by career category
+  const categorySkills = {
+    // Business-focused professions
+    'business': {
+      primary: 'leadership',
+      secondary: 'charisma',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
     },
-    junior: {
-      intelligence: 20, 
-      technical: 20,
-      leadership: 5
+    // Legal professions
+    'legal': {
+      primary: 'intelligence',
+      secondary: 'charisma',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
     },
-    mid: {
-      intelligence: 25,
-      technical: 20, 
-      leadership: 15
+    // Science professions
+    'science': {
+      primary: 'intelligence',
+      secondary: 'technical',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
     },
-    senior: {
-      intelligence: 25,
-      technical: 20,
-      leadership: 25,
-      charisma: 15
+    // Healthcare professions
+    'healthcare': {
+      primary: 'technical',
+      secondary: 'intelligence',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
     },
-    executive: {
-      intelligence: 30,
-      technical: 20,
-      leadership: 35,
-      charisma: 25
+    // Technology professions
+    'technology': {
+      primary: 'technical',
+      secondary: 'intelligence',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
+    },
+    // Education professions
+    'education': {
+      primary: 'intelligence',
+      secondary: 'charisma',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
+    },
+    // Creative professions
+    'creative': {
+      primary: 'creativity',
+      secondary: 'charisma',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
+    },
+    // Government professions
+    'government': {
+      primary: 'leadership',
+      secondary: 'intelligence',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
+    },
+    // Trade professions
+    'trade': {
+      primary: 'technical',
+      secondary: 'physical',
+      primaryValue: {
+        entry: 25,
+        junior: 30,
+        mid: 35,
+        senior: 40,
+        executive: 45
+      },
+      secondaryValue: {
+        entry: 15,
+        junior: 20,
+        mid: 25,
+        senior: 30,
+        executive: 35
+      }
+    },
+    // Default for unknown categories
+    'unknown': {
+      primary: 'intelligence',
+      secondary: 'technical',
+      primaryValue: {
+        entry: 20,
+        junior: 25,
+        mid: 30,
+        senior: 35,
+        executive: 40
+      },
+      secondaryValue: {
+        entry: 10,
+        junior: 15,
+        mid: 20,
+        senior: 25,
+        executive: 30
+      }
     }
   };
-
-  // For entry level, we just use defaults since there are no requirements
-  if (level === 'entry' || !skillRequirements || Object.keys(skillRequirements).length === 0) {
-    return defaultGains.entry;
-  }
-
-  // For other levels, customize based on the job's skill requirements
-  let gains = {...defaultGains[level]};
   
-  // Boost the skills that are required for the job
-  if (skillRequirements) {
-    Object.keys(skillRequirements).forEach(skill => {
-      if (!gains[skill]) {
-        gains[skill] = 10; // Add skill if not there
-      } else {
-        gains[skill] += 5; // Boost existing skill
-      }
-      
-      // Cap at reasonable values
-      if (gains[skill] > 40) gains[skill] = 40;
-    });
-  }
+  // Get the category config or default to unknown
+  const categoryConfig = categorySkills[category] || categorySkills.unknown;
   
-  // For creative jobs, boost creativity
-  if (skillRequirements && skillRequirements.creativity) {
-    gains.creativity = Math.max(gains.creativity || 0, 25);
-  }
+  // Create a gains object with exactly two skills
+  const gains = {};
+  gains[categoryConfig.primary] = categoryConfig.primaryValue[level] || categoryConfig.primaryValue.entry;
+  gains[categoryConfig.secondary] = categoryConfig.secondaryValue[level] || categoryConfig.secondaryValue.entry;
   
   return gains;
 };
@@ -88,7 +238,15 @@ const altJobRegex = /level: ['"](\w+)['"],(?:(?!skillGains).)*?skillRequirements
 const lastJobRegex = /level: ['"](\w+)['"],\s+title: ['"]([^'"]+)['"],\s+salary: (\d+),[\s\S]*?skillRequirements: (\{[^}]*\}),(?!\s+skillGains)/gs;
 
 // Function to process a match and add skillGains
-const processMatch = (match, level, title, salary, description, skillReqs) => {
+const processMatch = (match, level, title, salary, description, skillReqs, jobContext) => {
+  // Find the job context (the surrounding code) if it wasn't provided
+  if (!jobContext) {
+    // Try to get some context by searching a bit before where the match was found
+    const contextStart = Math.max(0, jobsContent.indexOf(match) - 500);
+    const contextEnd = jobsContent.indexOf(match) + match.length + 100;
+    jobContext = jobsContent.substring(contextStart, contextEnd);
+  }
+
   // Parse the skill requirements
   let requirements = {};
   try {
@@ -104,8 +262,8 @@ const processMatch = (match, level, title, salary, description, skillReqs) => {
     console.error(`Error parsing requirements for ${title || 'unknown job'}:`, e);
   }
 
-  // Generate appropriate skill gains
-  const skillGains = determineSkillGains(level, requirements);
+  // Generate appropriate skill gains using job context to determine category
+  const skillGains = determineSkillGains(level, requirements, jobContext);
   const skillGainsStr = skillGainsToString(skillGains);
 
   // Add skillGains property
@@ -169,7 +327,7 @@ modifiedContent = modifiedContent.replace(lastJobRegex, (match) => {
     }
     
     // Generate skill gains and format
-    const skillGains = determineSkillGains(level, requirements);
+    const skillGains = determineSkillGains(level, requirements, match);
     const skillGainsStr = skillGainsToString(skillGains);
     
     // Insert after skill requirements
