@@ -44,7 +44,7 @@ interface AttributeDetails {
 export function CharacterAttributes() {
   const { 
     health, 
-    skills: { intelligence, creativity, charisma, technical, leadership },
+    skills: { intelligence, creativity, charisma, technical, leadership, physical },
     stress, 
     socialConnections,
     freeTime,
@@ -117,8 +117,8 @@ export function CharacterAttributes() {
     };
   }, []);
   
-  // Calculate an average skill level for display
-  const skills = Math.round((intelligence + creativity + charisma + technical + leadership) / 5);
+  // Calculate total skill points from all skills combined (out of a maximum possible 6000)
+  const skills = intelligence + creativity + charisma + technical + leadership + physical;
   
   // Define attribute configuration with human-readable scales
   const attributeConfigs: Record<string, AttributeDetails> = {
@@ -150,8 +150,8 @@ export function CharacterAttributes() {
     skills: {
       name: 'Skills',
       icon: <BookOpen className="h-4 w-4" />,
-      description: 'Developed abilities and knowledge',
-      scale: ['0-200', '201-400', '401-600', '601-800', '801-1000'],
+      description: 'Total skill points (max 6000)',
+      scale: ['0-1200', '1201-2400', '2401-3600', '3601-4800', '4801-6000'],
       levels: ['Novice', 'Beginner', 'Intermediate', 'Advanced', 'Expert'],
       colors: ['text-gray-500', 'text-blue-400', 'text-blue-500', 'text-purple-500', 'text-purple-600']
     },
@@ -253,11 +253,11 @@ export function CharacterAttributes() {
         return 4; // Overwhelmed
       }
     } else if (attributeName === 'skills') {
-      // Special handling for skills with 0-1000 range
-      if (value >= 800) return 4;
-      if (value >= 600) return 3;
-      if (value >= 400) return 2;
-      if (value >= 200) return 1;
+      // Special handling for skills with 0-6000 range
+      if (value >= 4800) return 4;
+      if (value >= 3600) return 3;
+      if (value >= 2400) return 2;
+      if (value >= 1200) return 1;
       return 0;
     } else {
       // Standard percentile scales (0-100)
@@ -284,7 +284,7 @@ export function CharacterAttributes() {
     }
     
     if (attributeName === 'skills') {
-      return formatInteger(value); // No % for skills in the new 0-1000 range
+      return formatInteger(value); // No % for skills in the new 0-6000 range
     }
     
     return `${formatInteger(value)}%`; // Default to percentage format for other attributes
@@ -311,8 +311,8 @@ export function CharacterAttributes() {
       const ratio = freeTime / (timeCommitment || 1);
       progressValue = Math.min(100, Math.max(0, ratio * 33.33)); // Scale to make 3:1 ratio = 100%
     } else if (attributeName === 'skills') {
-      // Scale skills from 0-1000 range to 0-100 for progress bar display
-      progressValue = Math.min(100, Math.max(0, value / 10));
+      // Scale skills from 0-6000 range to 0-100 for progress bar display
+      progressValue = Math.min(100, Math.max(0, value / 60));
     } else {
       progressValue = value;
     }
