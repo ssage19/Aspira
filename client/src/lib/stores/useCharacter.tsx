@@ -684,7 +684,8 @@ export const useCharacter = create<CharacterState>()(
         
         set((state) => {
           // Convert to integer using Math.round
-          const newPrestige = Math.max(0, Math.min(100, Math.round(state.prestige + amount)));
+          // Increased maximum prestige from 100 to 3000 to give players a higher goal
+          const newPrestige = Math.max(0, Math.min(3000, Math.round(state.prestige + amount)));
           return { 
             prestige: newPrestige,
             // Add a timestamp field to force state updates

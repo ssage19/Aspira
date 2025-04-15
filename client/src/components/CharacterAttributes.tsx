@@ -186,10 +186,11 @@ export function CharacterAttributes() {
     prestige: {
       name: 'Prestige',
       icon: <Award className="h-4 w-4" />,
-      description: 'Social status and recognition',
-      scale: ['0-20', '21-40', '41-60', '61-80', '81+'],
+      description: 'Social status and recognition (max 3000)',
+      scale: ['0-600', '601-1200', '1201-1800', '1801-2400', '2401-3000'],
       levels: ['Unknown', 'Recognized', 'Respected', 'Influential', 'Elite'],
-      colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500']
+      colors: ['text-gray-500', 'text-blue-400', 'text-purple-500', 'text-purple-600', 'text-yellow-500'],
+      isSpecialScale: true
     },
     
     // Basic needs
@@ -255,6 +256,15 @@ export function CharacterAttributes() {
         if (adjustedFreeTime >= 20) return 3; // Hectic: 20-50 hrs free (~1-2 days)
         return 4; // Overwhelmed: <20 hrs free (<1 day)
       }
+      
+      if (attributeName === 'prestige') {
+        // Special handling for prestige with 0-3000 range
+        if (value >= 2400) return 4; // Elite: 2401-3000
+        if (value >= 1800) return 3; // Influential: 1801-2400
+        if (value >= 1200) return 2; // Respected: 1201-1800
+        if (value >= 600) return 1;  // Recognized: 601-1200
+        return 0;                    // Unknown: 0-600
+      }
     } else if (attributeName === 'skills') {
       // Special handling for skills with 0-6000 range
       if (value >= 4800) return 4;
@@ -318,6 +328,9 @@ export function CharacterAttributes() {
       const adjustedTimeCommitment = Math.min(timeCommitment, 168);
       const adjustedFreeTime = 168 - adjustedTimeCommitment;
       progressValue = Math.min(100, Math.max(0, (adjustedFreeTime / 120) * 100));
+    } else if (attributeName === 'prestige') {
+      // Scale prestige from 0-3000 range to 0-100 for progress bar display
+      progressValue = Math.min(100, Math.max(0, value / 30));
     } else if (attributeName === 'skills') {
       // Scale skills from 0-6000 range to 0-100 for progress bar display
       progressValue = Math.min(100, Math.max(0, value / 60));
