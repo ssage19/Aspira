@@ -127,9 +127,8 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
         className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
       />
       
-      {/* Always show text indicator of progress for debugging */}
-      <div className="flex justify-between text-xs mt-1 text-muted-foreground">
-        <span>{progressText}</span>
+      {/* Only show the days remaining without the percentage */}
+      <div className="flex justify-end text-xs mt-1 text-muted-foreground">
         <span>{timeLeftText}</span>
       </div>
     </>
@@ -1163,20 +1162,8 @@ export default function JobScreen() {
                       
                       {selectedChallenge.inProgress && selectedChallenge.startDate && (
                         <div className="mt-6">
-                          <div className="flex justify-between items-center mb-2">
+                          <div className="mb-2">
                             <div className="text-sm font-medium">Progress</div>
-                            <div className="text-sm text-muted-foreground">
-                              {(() => {
-                                if (!currentGameDate || !selectedChallenge.startDate) return '0%';
-                                
-                                const startDate = new Date(selectedChallenge.startDate);
-                                const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
-                                const monthsPassed = Math.floor(daysPassed / 30);
-                                const progressPercent = Math.min(100, Math.round((monthsPassed / selectedChallenge.completionTime) * 100));
-                                
-                                return `${progressPercent}%`;
-                              })()}
-                            </div>
                           </div>
                           <LiveChallengeProgress 
                             challenge={selectedChallenge} 
