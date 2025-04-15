@@ -23,6 +23,8 @@ import {
 } from 'lucide-react';
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
+import { CryptoPriceMonitor } from './CryptoPriceMonitor';
+import { StockPriceMonitor } from './StockPriceMonitor';
 import { formatCurrency, formatPercentage } from '../lib/utils';
 import { VolatilityLevel, Stock, bonds, cryptoCurrencies } from '../lib/data/investments';
 import { startupInvestments } from '../lib/data/investments';
