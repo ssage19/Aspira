@@ -127,8 +127,9 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
         className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
       />
       
-      {/* Only show time remaining */}
-      <div className="flex justify-end text-xs mt-1 text-muted-foreground">
+      {/* Always show text indicator of progress for debugging */}
+      <div className="flex justify-between text-xs mt-1 text-muted-foreground">
+        <span>{progressText}</span>
         <span>{timeLeftText}</span>
       </div>
     </>
