@@ -215,24 +215,25 @@ export default function CharacterCreation() {
       <Card className="w-full max-w-2xl shadow-xl backdrop-blur-md border-primary/20 bg-background/30 relative z-10">
         <CardHeader className="pb-3">
           <CardTitle className="text-center">
-            <div className="flex items-center justify-center gap-6 mb-2 relative">
+            <div className="flex items-center justify-center gap-8 mb-2 relative">
               {/* Shared decorative elements for the entire header */}
               <div className="absolute -top-10 -left-20 w-40 h-40 bg-primary/20 rounded-full blur-xl"></div>
               <div className="absolute -bottom-10 -right-20 w-40 h-40 bg-secondary/20 rounded-full blur-xl"></div>
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-32 bg-accent/10 rounded-full blur-lg"></div>
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-36 bg-accent/10 rounded-full blur-lg"></div>
               
               {/* Aspira title - with its own decorative elements */}
               <div className="relative">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-20 bg-primary/15 rounded-full blur-md"></div>
-                <div className="text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x relative z-10">
+                <div className="text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary via-secondary to-accent animate-gradient-x relative z-10">
                   Aspira
                 </div>
               </div>
               
-              {/* Logo with decorative elements */}
+              {/* Logo with decorative elements - increased size */}
               <div className="relative">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 bg-secondary/15 rounded-full blur-md"></div>
-                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-16 w-16 relative z-10 animate-pulse-slow" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 bg-secondary/20 rounded-full blur-md"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 bg-primary/15 rounded-full blur-lg"></div>
+                <img src="/images/aspira-new-logo.png" alt="Aspira Logo" className="h-24 w-24 relative z-10 animate-pulse-slow" />
               </div>
             </div>
             
