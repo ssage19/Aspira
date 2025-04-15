@@ -982,10 +982,14 @@ export default function JobScreen() {
                               const startDate = new Date(selectedChallenge.startDate);
                               const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                               const monthsPassed = Math.floor(daysPassed / 30);
-                              return Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
+                              
+                              const percent = Math.min(100, (monthsPassed / selectedChallenge.completionTime) * 100);
+                              console.log(`Detail view: Challenge ${selectedChallenge.id} progress: ${percent.toFixed(1)}%`);
+                              
+                              return percent;
                             })()} 
                             className="h-2"
-                            key={`detail-${selectedChallenge.id}-progress-${currentGameDate ? currentGameDate.getTime() : 0}`} 
+                            key={`detail-${selectedChallenge.id}-progress-${Date.now()}`} 
                           />
                           
                           <div className="flex justify-between mt-6 gap-4">
@@ -1120,13 +1124,24 @@ export default function JobScreen() {
                                       value={(() => {
                                         if (!currentGameDate || !challenge.startDate) return 0;
                                         
+                                        // Create a fresh Date object from the stored date string
                                         const startDate = new Date(challenge.startDate);
+                                        
+                                        // Calculate progress using the current game time
                                         const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
                                         const monthsPassed = Math.floor(daysPassed / 30);
-                                        return Math.min(100, (monthsPassed / challenge.completionTime) * 100);
+                                        
+                                        // Calculate percentage (0-100)
+                                        const percent = Math.min(100, (monthsPassed / challenge.completionTime) * 100);
+                                        
+                                        // Log for debugging
+                                        console.log(`Challenge ${challenge.id} progress: ${percent.toFixed(1)}% (${monthsPassed}/${challenge.completionTime} months)`);
+                                        
+                                        return percent;
                                       })()} 
                                       className="h-1"
-                                      key={`${challenge.id}-progress-${currentGameDate ? currentGameDate.getTime() : 0}`} 
+                                      // Use a key that will definitely change as game time updates
+                                      key={`${challenge.id}-progress-${Date.now()}`} 
                                     />
                                   </div>
                                 )}
