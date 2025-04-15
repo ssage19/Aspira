@@ -416,6 +416,9 @@ export default function JobScreen() {
   // Check for completed challenges based on game time and update progress
   useEffect(() => {
     if (challenges.length > 0 && currentGameDate) {
+      console.log("Checking challenge progress with date:", currentGameDate.toLocaleString());
+      
+      // Always make updates to force UI refresh
       const updatedChallenges = [...challenges];
       let hasUpdates = false;
       
@@ -427,6 +430,8 @@ export default function JobScreen() {
           
           // Convert days to months (every 30 days = 1 month in game time)
           const monthsPassed = Math.floor(daysPassed / 30);
+          
+          console.log(`Challenge "${challenge.title}" progress: ${monthsPassed}/${challenge.completionTime} months (${daysPassed} days)`);
           
           // If enough months have passed, mark challenge as ready for completion
           if (monthsPassed >= challenge.completionTime) {
@@ -450,31 +455,24 @@ export default function JobScreen() {
               ...challenge,
               // Mark it as ready and update the last progress check
               readyForCompletion: true,
-              lastProgressUpdate: currentGameDate
+              lastProgressUpdate: new Date(currentGameDate)
             };
             hasUpdates = true;
-          } 
-          // Always update the challenge to ensure the UI shows correct progress
-          else if (!challenge.lastProgressUpdate || 
-            // Only update if a day has passed since last update to avoid excessive updates
-            Math.floor((currentGameDate.getTime() - (challenge.lastProgressUpdate instanceof Date ? 
-              challenge.lastProgressUpdate.getTime() : 
-              new Date(challenge.lastProgressUpdate).getTime())) / (1000 * 60 * 60 * 24)) >= 1) {
-            
+          } else {
+            // Always update the challenge to ensure the UI shows correct progress
             updatedChallenges[index] = {
               ...challenge,
-              lastProgressUpdate: currentGameDate
+              lastProgressUpdate: new Date(currentGameDate)
             };
             hasUpdates = true;
           }
         }
       });
       
-      if (hasUpdates) {
-        setChallenges(updatedChallenges);
-      }
+      // Always update to ensure the progress bars refresh
+      setChallenges(updatedChallenges);
     }
-  }, [currentGameDate, challenges]);
+  }, [currentGameDate]);
   
   // Start working on a challenge
   const handleStartChallenge = (challenge: ChallengeType) => {
