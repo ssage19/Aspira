@@ -106,6 +106,8 @@ export function MarketPriceUpdater() {
   
   // Update crypto asset prices (refactored to match stock update pattern)
   const updateCryptoAssets = useCallback(() => {
+    console.log("MarketPriceUpdater: Running crypto price updates (24/7 market)");
+    
     // Setup for batch processing
     const updatedCryptoPrices: Record<string, number> = {};
     

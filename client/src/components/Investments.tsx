@@ -347,6 +347,8 @@ export function Investments() {
       // Increment counter to track refresh frequency
       refreshCounterRef.current += 1;
       
+      console.log(`Investments: Running price refresh #${refreshCounterRef.current}`);
+      
       // First, force synchronize character store with asset tracker to ensure all prices are up to date
       character.syncPricesFromAssetTracker();
       
@@ -485,7 +487,13 @@ export function Investments() {
     const marketUpdateId = setInterval(() => {
       // Call global update function to update the asset tracker
       if ((window as any).globalUpdateAllPrices && refreshCounterRef.current % 2 === 0) {
+        console.log("Investments: Calling global price update function");
         (window as any).globalUpdateAllPrices();
+        
+        // Request a day change update for crypto prices (24/7 trading)
+        if (selectedTab === 'crypto') {
+          console.log("Investments: Requesting global price update for crypto (day changed)");
+        }
       }
     }, 5000);
     
