@@ -50,9 +50,9 @@ export function MarketPriceUpdater() {
   
   // Helper function to get market factor based on market trend
   const getMarketFactor = useCallback((trend: string): number => {
-    if (trend === 'bull') return 1.05;
-    if (trend === 'bear') return 0.95;
-    return 1.0; // stable
+    if (trend === 'bull') return 1.08; // Increased bullish effect
+    if (trend === 'bear') return 0.97; // Decreased bearish effect (less negative)
+    return 1.01; // Slightly positive bias for stable market (realistic long-term growth)
   }, []);
 
   // Occasional updates to lifestyle item values (very low volatility)
@@ -130,18 +130,28 @@ export function MarketPriceUpdater() {
       else if (volatilityLevel === 'low') volatilityFactor *= 0.8;
       else if (volatilityLevel === 'very_low') volatilityFactor *= 0.6;
       
-      // Calculate market influences
+      // Calculate market influences with more realistic factors
       const marketFactor = 1 + ((getMarketFactor(marketTrend) - 1) * 0.3);
       const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
-      const baseChangePercent = (Math.random() * volatilityFactor) - (volatilityFactor * 0.5);
-      const marketEffect = ((marketFactor - 1) * 0.1);
+      
+      // Use adjusted random for more realistic long-term growth with volatility
+      const randomValue = Math.random();
+      const adjustedRandom = randomValue * 1.15 - 0.55; // Slightly stronger positive bias for crypto
+      const baseChangePercent = adjustedRandom * volatilityFactor;
+      
+      // Apply market effect with slightly stronger influence for crypto
+      const marketEffect = ((marketFactor - 1) * 0.15);
       
       // Combine influences
       let totalChangePercent = baseChangePercent + marketEffect + timeFactor;
       
-      // Force occasional opposite movement (35% chance)
-      if (Math.random() < 0.35) {
-        totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
+      // Add tiny natural growth factor (crypto tends to increase long term)
+      totalChangePercent += 0.0005; // Slightly stronger than stocks
+      
+      // Force occasional opposite movement (reduced to 30% chance for better growth)
+      if (Math.random() < 0.30) {
+        const originalDirection = Math.sign(totalChangePercent);
+        totalChangePercent = -originalDirection * Math.abs(totalChangePercent) * 0.75;
       }
       
       // Add occasional random bursts (10% chance)
@@ -220,21 +230,28 @@ export function MarketPriceUpdater() {
     console.log("MarketPriceUpdater: Updating", ownedBonds.length, "bonds");
     
     // Bonds are affected by market trends but very minimally
-    const marketInfluence = marketTrend === 'bull' ? 1.002 : marketTrend === 'bear' ? 0.998 : 1.0;
+    // Slightly improved market influence with small positive bias for long-term growth
+    const marketInfluence = marketTrend === 'bull' ? 1.003 : marketTrend === 'bear' ? 0.999 : 1.001;
     
     ownedBonds.forEach(bond => {
       if (!bond || bond.quantity <= 0) return;
       
       // Bonds are very stable, small random fluctuation
       const volatilityFactor = 0.01; // Reduced volatility for more stability
-      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
-      const randomFactor = normalizedRandom * volatilityFactor;
+      
+      // Use slightly biased random value for realistic long-term positive returns
+      const randomValue = Math.random();
+      const adjustedRandom = randomValue * 1.05 - 0.5; // 5% positive bias
+      const randomFactor = adjustedRandom * volatilityFactor;
+      
+      // Add tiny natural growth factor (bonds tend to return their face value over time)
+      const naturalGrowth = 0.0001; // Very small growth factor
       
       // Get current price from stored prices first, fall back to maturity/purchase price
       const currentValue = assetTracker.getAssetPrice(bond.id);
       const extendedBond = bond as ExtendedAsset;
       const baseValue = currentValue || extendedBond.maturityValue || bond.purchasePrice;
-      const newPrice = baseValue * marketInfluence * (1 + randomFactor);
+      const newPrice = baseValue * marketInfluence * (1 + randomFactor + naturalGrowth);
       
       // Update the bond in the asset tracker
       assetTracker.updateBond(bond.id, bond.quantity, parseFloat(newPrice.toFixed(2)));
@@ -306,7 +323,8 @@ export function MarketPriceUpdater() {
     console.log("MarketPriceUpdater: Updating", properties.length, "property values");
     
     // Real estate market has minimal market influence for more balanced price changes
-    const marketInfluence = marketTrend === 'bull' ? 1.002 : marketTrend === 'bear' ? 0.998 : 1.0;
+    // Improved market factor with slight positive bias (real estate tends to grow)
+    const marketInfluence = marketTrend === 'bull' ? 1.004 : marketTrend === 'bear' ? 0.999 : 1.001;
     
     properties.forEach(property => {
       if (!property) return;
@@ -317,14 +335,19 @@ export function MarketPriceUpdater() {
       // Properties have very low volatility
       const volatilityFactor = 0.01; // Even smaller movements for real estate
       
-      // Use normalized random for better balanced price movements
-      const normalizedRandom = (Math.random() * 2) - 1; // Range from -1 to +1
-      const randomFactor = normalizedRandom * volatilityFactor;
+      // Use biased random for realistic long-term positive returns
+      const randomValue = Math.random();
+      const adjustedRandom = randomValue * 1.08 - 0.5; // 8% positive bias (real estate appreciates)
+      const randomFactor = adjustedRandom * volatilityFactor;
+      
+      // Small natural appreciation factor (real estate tends to appreciate long-term)
+      const naturalGrowth = 0.0002; // Very small growth factor
       
       // Force contrarian movement occasionally to ensure both up and down trends
-      let finalFactor = randomFactor;
-      if (Math.random() < 0.25) { // 25% chance of opposite movement
-        finalFactor = -Math.abs(randomFactor) * 0.6;
+      let finalFactor = randomFactor + naturalGrowth;
+      if (Math.random() < 0.22) { // 22% chance of opposite movement (less than before)
+        const originalDirection = Math.sign(finalFactor);
+        finalFactor = -originalDirection * Math.abs(finalFactor) * 0.6;
         console.log(`MarketPriceUpdater: Forcing contrarian movement for property ${property.name}`);
       }
       
@@ -495,21 +518,28 @@ export function MarketPriceUpdater() {
         // Time-based component (very minor influence)
         const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
         
-        // Calculate truly random price movement with even distribution between positive and negative
-        // Use previous price as base with neutral expected value for changes
-        const baseChangePercent = (Math.random() * volatilityFactor) - (volatilityFactor * 0.5);
+        // Calculate random price movement with a slight bias toward positive returns
+        // This better simulates long-term market growth while maintaining volatility
+        // Adjusted to create a 55% chance of positive movement, 45% negative
+        const randomValue = Math.random(); // Random value between 0 and 1
+        const adjustedRandom = randomValue * 1.1 - 0.5; // Slight positive bias
+        const baseChangePercent = adjustedRandom * volatilityFactor;
         
         // Apply market influence as a subtle bias, not a guaranteed direction
-        const marketEffect = ((marketFactor - 1) * 0.1); // More subtle market influence
+        const marketEffect = ((marketFactor - 1) * 0.15); // Slightly stronger market influence
         
         // Combine random movement, market influence and time factor
         let totalChangePercent = baseChangePercent + marketEffect + timeFactor;
         
+        // Add a tiny natural growth factor (simulates overall market growth over time)
+        totalChangePercent += 0.0003; // Very small increment (~0.03% extra growth)
+        
         // Force occasional opposite direction movements regardless of market trend
-        // This ensures we don't get stuck in only upward or downward patterns
-        if (Math.random() < 0.35) { // 35% chance of contrarian movement
-          // If the total change is positive, make it negative and vice versa
-          totalChangePercent = -Math.abs(totalChangePercent) * 0.8;
+        // This ensures realistic price patterns with proper corrections
+        if (Math.random() < 0.30) { // Reduced to 30% chance (less contrarian movements)
+          // If the change is positive, make it negative and vice versa, but less severe
+          const originalDirection = Math.sign(totalChangePercent);
+          totalChangePercent = -originalDirection * Math.abs(totalChangePercent) * 0.7;
           console.log(`MarketPriceUpdater: Forcing contrarian movement for ${stock.id}: ${totalChangePercent.toFixed(4)}%`);
         }
         
