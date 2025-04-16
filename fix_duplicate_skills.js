@@ -1,5 +1,5 @@
 // Script to fix duplicate skillGains in jobs.ts
-const fs = require('fs');
+import fs from 'fs';
 
 const filePath = './client/src/lib/data/jobs.ts';
 const fileContent = fs.readFileSync(filePath, 'utf8');

@@ -48,7 +48,8 @@ const determineSkillGains = (level, skillRequirements, jobData) => {
             title.includes('executive') || 
             title.includes('business') ||
             title.includes('sales') ||
-            title.includes('entrepreneur')) {
+            title.includes('entrepreneur') ||
+            title.includes('coordinator')) {
           category = 'business';
         }
         
@@ -57,7 +58,8 @@ const determineSkillGains = (level, skillRequirements, jobData) => {
                 title.includes('attorney') || 
                 title.includes('legal') || 
                 title.includes('judge') || 
-                title.includes('paralegal')) {
+                title.includes('paralegal') ||
+                title.includes('law')) {
           category = 'legal';
         }
         
@@ -68,11 +70,91 @@ const determineSkillGains = (level, skillRequirements, jobData) => {
                 title.includes('software') || 
                 title.includes('it ') || 
                 title.includes('web') || 
-                title.includes('data scientist')) {
+                title.includes('data scientist') ||
+                title.includes('tech') ||
+                title.includes('system') ||
+                title.includes('network') ||
+                title.includes('database')) {
           category = 'technology';
         }
         
-        // Other categories can be added as needed
+        // Healthcare category indicators
+        else if (title.includes('doctor') ||
+                title.includes('nurse') ||
+                title.includes('medical') ||
+                title.includes('health') ||
+                title.includes('physician') ||
+                title.includes('therapist') ||
+                title.includes('surgeon')) {
+          category = 'healthcare';
+        }
+        
+        // Education category indicators
+        else if (title.includes('teacher') ||
+                title.includes('professor') ||
+                title.includes('instructor') ||
+                title.includes('educator') ||
+                title.includes('tutor') ||
+                title.includes('school')) {
+          category = 'education';
+        }
+        
+        // Creative category indicators
+        else if (title.includes('artist') ||
+                title.includes('designer') ||
+                title.includes('writer') ||
+                title.includes('creative') ||
+                title.includes('graphic') ||
+                title.includes('ux') ||
+                title.includes('ui') ||
+                title.includes('photographer') ||
+                title.includes('musician')) {
+          category = 'creative';
+        }
+        
+        // Science category indicators
+        else if (title.includes('scientist') ||
+                title.includes('researcher') ||
+                title.includes('lab') ||
+                title.includes('biologist') ||
+                title.includes('chemist') ||
+                title.includes('physicist')) {
+          category = 'science';
+        }
+        
+        // Government category indicators
+        else if (title.includes('government') ||
+                title.includes('policy') ||
+                title.includes('mayor') ||
+                title.includes('senator') ||
+                title.includes('representative') ||
+                title.includes('president') ||
+                title.includes('diplomat') ||
+                title.includes('congress')) {
+          category = 'government';
+        }
+        
+        // Trade category indicators
+        else if (title.includes('mechanic') ||
+                title.includes('plumber') ||
+                title.includes('electrician') ||
+                title.includes('carpenter') ||
+                title.includes('construction') ||
+                title.includes('technician') ||
+                title.includes('maintenance')) {
+          category = 'trade';
+        }
+        
+        // Finance category indicators
+        else if (title.includes('finance') ||
+                title.includes('accountant') ||
+                title.includes('financial') ||
+                title.includes('banker') ||
+                title.includes('investment') ||
+                title.includes('bank') ||
+                title.includes('analyst')) {
+          category = 'finance';
+        }
       }
     }
   }
