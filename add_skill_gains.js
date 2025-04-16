@@ -15,8 +15,69 @@ let jobsContent = fs.readFileSync(jobsFilePath, 'utf8');
 // Function to determine appropriate skill gains based on job level and career category
 const determineSkillGains = (level, skillRequirements, jobData) => {
   // Extract job category from the context if available
+  let category = 'unknown';
+  
+  // Method 1: Look for explicit category in the job object
   const categoryMatch = jobData ? jobData.match(/category: ['"]([^'"]+)['"]/) : null;
-  const category = categoryMatch ? categoryMatch[1] : 'unknown';
+  if (categoryMatch) {
+    category = categoryMatch[1];
+  } 
+  // Method 2: Look for category in parent object context
+  else if (jobData) {
+    // Look for category in parent structure (up to 500 chars before the job entry)
+    const startIndex = Math.max(0, jobsContent.indexOf(jobData) - 500);
+    const contextSection = jobsContent.substring(startIndex, jobsContent.indexOf(jobData));
+    
+    const parentCategoryMatch = contextSection.match(/category: ['"]([^'"]+)['"]/);
+    if (parentCategoryMatch) {
+      category = parentCategoryMatch[1];
+    }
+    
+    // Method 3: Look for explicit name indicators in job title
+    if (category === 'unknown' && jobData) {
+      // Look for common job titles that indicate category
+      const jobTitle = jobData.match(/title: ['"]([^'"]+)['"]/);
+      if (jobTitle) {
+        const title = jobTitle[1].toLowerCase();
+        
+        // Business category indicators
+        if (title.includes('marketing') || 
+            title.includes('manager') || 
+            title.includes('director') || 
+            title.includes('ceo') || 
+            title.includes('executive') || 
+            title.includes('business') ||
+            title.includes('sales') ||
+            title.includes('entrepreneur')) {
+          category = 'business';
+        }
+        
+        // Legal category indicators
+        else if (title.includes('lawyer') || 
+                title.includes('attorney') || 
+                title.includes('legal') || 
+                title.includes('judge') || 
+                title.includes('paralegal')) {
+          category = 'legal';
+        }
+        
+        // Technology category indicators
+        else if (title.includes('developer') || 
+                title.includes('programmer') || 
+                title.includes('engineer') || 
+                title.includes('software') || 
+                title.includes('it ') || 
+                title.includes('web') || 
+                title.includes('data scientist')) {
+          category = 'technology';
+        }
+        
+        // Other categories can be added as needed
+      }
+    }
+  }
+  
+  console.log(`Job level: ${level}, detected category: ${category}`);
   
   // Primary and secondary skills by career category
   const categorySkills = {
@@ -229,13 +290,14 @@ const skillGainsToString = (gains) => {
 };
 
 // Regular expression to find jobs without skillGains - more comprehensive pattern
-const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (\d+),\s+description: ['"](.+?)['"],\s+skillRequirements: (\{[^}]*\}),(?!\s+skillGains)/g;
+// Changed to find ALL job entries, not just ones without skillGains
+const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (\d+),\s+description: ['"](.+?)['"],\s+skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},)?/g;
 
-// More inclusive pattern to catch other variations
-const altJobRegex = /level: ['"](\w+)['"],(?:(?!skillGains).)*?skillRequirements: (\{[^}]*\}),(?:(?!skillGains).)*?(?=happinessImpact)/gs;
+// More inclusive pattern to catch other variations - modified to handle existing skillGains
+const altJobRegex = /level: ['"](\w+)['"].*?skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},)?.*?(?=happinessImpact)/gs;
 
-// Ultra aggressive pattern to catch any remaining jobs by specific formatting
-const lastJobRegex = /level: ['"](\w+)['"],\s+title: ['"]([^'"]+)['"],\s+salary: (\d+),[\s\S]*?skillRequirements: (\{[^}]*\}),(?!\s+skillGains)/gs;
+// Ultra aggressive pattern to catch any remaining jobs by specific formatting - modified to handle existing skillGains
+const lastJobRegex = /level: ['"](\w+)['"],\s+title: ['"]([^'"]+)['"],\s+salary: (\d+),[\s\S]*?skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},)?/gs;
 
 // Function to process a match and add skillGains
 const processMatch = (match, level, title, salary, description, skillReqs, jobContext) => {
