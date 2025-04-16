@@ -291,7 +291,7 @@ const skillGainsToString = (gains) => {
 
 // Regular expression to find jobs without skillGains - more comprehensive pattern
 // Changed to find ALL job entries, not just ones without skillGains
-const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (\d+),\s+description: ['"](.+?)['"],\s+skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},)?/g;
+const jobLevelRegex = /level: ['"](\w+)['"],\s+title: ['"](.+?)['"],\s+salary: (\d+),\s+description: ['"](.+?)['"],\s+skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},?){1,3}/g;
 
 // More inclusive pattern to catch other variations - modified to handle existing skillGains
 const altJobRegex = /level: ['"](\w+)['"].*?skillRequirements: (\{[^}]*\}),(?:\s+skillGains: \{[^}]*\},)?.*?(?=happinessImpact)/gs;

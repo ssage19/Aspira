@@ -8363,8 +8363,6 @@ export const professions: Profession[] = [
           physical: 500
         },
         skillGains: { leadership: 45, charisma: 35 },
-        skillGains: { intelligence: 40, technical: 30 },
-        skillGains: { leadership: 45, charisma: 35 },
         happinessImpact: 15,
         prestigeImpact: 35,
         timeCommitment: 50,
