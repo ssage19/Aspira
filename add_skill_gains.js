@@ -299,7 +299,7 @@ const determineSkillGains = (level, skillRequirements, jobData) => {
     // Government professions
     'government': {
       primary: 'leadership',
-      secondary: 'intelligence',
+      secondary: 'charisma',
       primaryValue: {
         entry: 25,
         junior: 30,
