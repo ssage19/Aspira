@@ -127,12 +127,19 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       setSpinning(false);
       
       if (isWin) {
-        const winAmount = betAmount * selectedBet.payout - betAmount;
-        onWin(winAmount);
-        toast.success(`You won ${formatCurrency(winAmount)}!`);
+        // Calculate the net winnings (profit only)
+        // For example: a bet of $100 on red (1:1) returns $200 total, but the profit is $100
+        const totalReturn = betAmount * selectedBet.payout;
+        const netProfit = totalReturn - betAmount;
+        
+        // Set state for displaying the total return
+        setWinAmount(totalReturn);
+        
+        // Use onWin with just the profit amount
+        onWin(netProfit);
       } else {
+        setWinAmount(0);
         onLoss(betAmount);
-        toast.error(`You lost ${formatCurrency(betAmount)}`);
       }
     }, 500);
   };

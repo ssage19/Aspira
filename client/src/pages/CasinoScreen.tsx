@@ -19,17 +19,27 @@ export default function CasinoScreen() {
   const { playSuccess, playHit } = useAudio();
   const [activeGame, setActiveGame] = useState<'blackjack' | 'roulette' | 'poker'>('blackjack');
 
-  // Handle winning and losing money
+  // Handle winning and losing money with improved tracking
   const handleWin = (amount: number) => {
+    // Add the net winnings (the amount parameter is the net profit)
     addWealth(amount);
     playSuccess();
-    toast.success(`You won ${formatCurrency(amount)}!`);
+    toast.success(`You won ${formatCurrency(amount)}!`, {
+      style: { background: 'rgba(22, 163, 74, 0.2)', color: '#fff' },
+      icon: '💰',
+    });
+    console.log(`Casino win tracked: +${amount}`);
   };
 
   const handleLoss = (amount: number) => {
+    // Deduct the bet amount (always a positive number)
     addWealth(-amount);
     playHit();
-    toast.error(`You lost ${formatCurrency(amount)}`);
+    toast.error(`You lost ${formatCurrency(amount)}`, {
+      style: { background: 'rgba(220, 38, 38, 0.2)', color: '#fff' },
+      icon: '💸',
+    });
+    console.log(`Casino loss tracked: -${amount}`);
   };
 
   return (

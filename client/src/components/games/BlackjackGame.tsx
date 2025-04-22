@@ -43,6 +43,7 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
   const [gameState, setGameState] = useState<'betting' | 'playing' | 'dealerTurn' | 'gameOver'>('betting');
   const [betAmount, setBetAmount] = useState(100);
   const [result, setResult] = useState<'win' | 'lose' | 'push' | null>(null);
+  const [displayWinnings, setDisplayWinnings] = useState<number>(0);
   
   // Initialize a new deck of cards
   const initializeDeck = () => {
@@ -229,16 +230,26 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     
     if (result === 'win') {
       if (blackjack) {
-        // Blackjack pays 3:2
+        // Blackjack pays 3:2 (that's a 1.5x profit)
         const winnings = Math.floor(betAmount * 1.5);
         onWin(winnings);
+        
+        // Display the total return in the UI
+        setDisplayWinnings(betAmount + winnings);
       } else {
+        // Regular win (1:1 payout)
         onWin(betAmount);
+        
+        // Display the total return in the UI
+        setDisplayWinnings(betAmount * 2);
       }
     } else if (result === 'lose') {
       onLoss(betAmount);
+      setDisplayWinnings(0);
+    } else {
+      // Push - money is returned
+      setDisplayWinnings(betAmount);
     }
-    // Push doesn't change player's balance
   };
   
   // Get card display value
@@ -388,18 +399,36 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
               <div className="text-center">
                 <div className="mb-4">
                   {result === 'win' && (
-                    <div className="text-xl font-bold text-green-500">
-                      You win {formatCurrency(betAmount)}!
+                    <div>
+                      <div className="text-xl font-bold text-green-500">
+                        You win!
+                      </div>
+                      <div className="text-lg mt-1">
+                        <span className="text-muted-foreground">Total return:</span>{' '}
+                        <span className="text-green-400 font-bold">{formatCurrency(displayWinnings)}</span>
+                      </div>
                     </div>
                   )}
                   {result === 'lose' && (
-                    <div className="text-xl font-bold text-red-500">
-                      You lose {formatCurrency(betAmount)}!
+                    <div>
+                      <div className="text-xl font-bold text-red-500">
+                        You lose!
+                      </div>
+                      <div className="text-lg mt-1">
+                        <span className="text-muted-foreground">Lost:</span>{' '}
+                        <span className="text-red-400 font-bold">{formatCurrency(betAmount)}</span>
+                      </div>
                     </div>
                   )}
                   {result === 'push' && (
-                    <div className="text-xl font-bold text-yellow-500">
-                      Push! Your bet is returned.
+                    <div>
+                      <div className="text-xl font-bold text-yellow-500">
+                        Push!
+                      </div>
+                      <div className="text-lg mt-1">
+                        <span className="text-muted-foreground">Returned:</span>{' '}
+                        <span className="text-yellow-400 font-bold">{formatCurrency(betAmount)}</span>
+                      </div>
                     </div>
                   )}
                 </div>
