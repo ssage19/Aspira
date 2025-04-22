@@ -77,6 +77,7 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
   const [handEvaluation, setHandEvaluation] = useState<HandRankInfo | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [dealerMessage, setDealerMessage] = useState("Place your bet to begin");
+  const [totalWinnings, setTotalWinnings] = useState(0);
   
   // Initialize a new deck of cards
   const initializeDeck = () => {
@@ -203,16 +204,23 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
     // Determine win/loss
     setTimeout(() => {
       if (evaluation.multiplier > 0) {
-        // Player wins
-        const winAmount = betAmount * evaluation.multiplier;
-        onWin(winAmount);
-        setDealerMessage(`You win ${formatCurrency(winAmount)} with ${evaluation.name}!`);
-        toast.success(`You won with ${evaluation.name}!`);
+        // Calculate the correct payout
+        // For example: on a $100 bet with a pair (1x multiplier), player should get $200 back (original bet + winnings)
+        const totalReturn = betAmount * evaluation.multiplier + betAmount;
+        const netProfit = totalReturn - betAmount;  // This is just the profit portion
+        
+        // Store the total return for display
+        setTotalWinnings(totalReturn);
+        
+        // Send only the profit/winnings to the onWin handler
+        onWin(netProfit);
+        setDealerMessage(`You win with ${evaluation.name}!`);
+        
       } else {
         // Player loses
+        setTotalWinnings(0);
         onLoss(betAmount);
         setDealerMessage(`You lose with ${evaluation.name}. Try again!`);
-        toast.error("Better luck next time!");
       }
     }, 500);
   };
@@ -317,6 +325,7 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
     setSelectedCards([]);
     setHandEvaluation(null);
     setDealerMessage("Place your bet to begin");
+    setTotalWinnings(0);
   };
   
   // Adjust bet amount
@@ -457,11 +466,27 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
                 <div className="font-bold">
                   {handEvaluation.name}
                 </div>
-                <div className="text-sm">
+                <div className="text-sm mb-1">
                   {handEvaluation.multiplier > 0 
                     ? `Pays ${handEvaluation.multiplier}x` 
                     : 'No payout'}
                 </div>
+                
+                {/* Show total winnings */}
+                {gamePhase === 'showdown' && (
+                  <div className="mt-2 pt-2 border-t border-white/20">
+                    {totalWinnings > 0 ? (
+                      <div>
+                        <div className="text-sm text-green-300">Total Return:</div>
+                        <div className="text-xl font-bold text-yellow-400">{formatCurrency(totalWinnings)}</div>
+                      </div>
+                    ) : (
+                      <div className="text-red-300 font-bold">
+                        Loss: {formatCurrency(betAmount)}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </>

@@ -33,6 +33,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   const [selectedBet, setSelectedBet] = useState<BetOption | null>(null);
   const [betAmount, setBetAmount] = useState(100);
   const [lastResults, setLastResults] = useState<number[]>([]);
+  const [winAmount, setWinAmount] = useState<number>(0);
   
   // Define bet options
   const betOptions: BetOption[] = [
@@ -148,6 +149,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   const resetGame = () => {
     setSelectedBet(null);
     setResult(null);
+    setWinAmount(0);
   };
   
   return (
@@ -206,6 +208,20 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               +$100
             </Button>
           </div>
+          
+          {/* Win display */}
+          {result !== null && !spinning && (
+            <div className={`w-full mb-4 p-3 rounded-md text-center ${winAmount > 0 ? 'bg-green-800/50' : 'bg-red-800/30'}`}>
+              {winAmount > 0 ? (
+                <div>
+                  <div className="text-lg font-bold text-green-400">You Won!</div>
+                  <div className="text-yellow-400 font-bold text-xl">{formatCurrency(winAmount)}</div>
+                </div>
+              ) : (
+                <div className="text-lg font-bold text-red-400">You Lost</div>
+              )}
+            </div>
+          )}
           
           {/* Spin button */}
           <Button 
