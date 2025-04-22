@@ -1,35 +1,60 @@
-import React, { Suspense, useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useState, useEffect, useRef } from 'react';
+import { Canvas, useThree, useLoader } from '@react-three/fiber';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { avatarAccessories, getAccessoryById } from '../lib/data/avatarAccessories';
 import { PerspectiveCamera, OrbitControls, useGLTF } from '@react-three/drei';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 interface CustomAvatarPreviewProps {
   size?: 'sm' | 'md' | 'lg';
   showPlaceholder?: boolean;
 }
 
+// Preload the models to avoid loading issues
+// Using strings in an array to preload models
+const modelsToPreload = [
+  '/models/accessories/default_body.glb',
+  '/models/accessories/default_hair.glb',
+  '/models/accessories/fancy_hair.glb', 
+  '/models/accessories/professional_hair.glb',
+  '/models/accessories/casual_outfit.glb',
+  '/models/accessories/business_suit.glb',
+  '/models/accessories/sports_outfit.glb',
+  '/models/accessories/designer_clothes.glb',
+  '/models/accessories/reading_glasses.glb',
+  '/models/accessories/luxury_sunglasses.glb',
+  '/models/accessories/luxury_watch.glb',
+  '/models/accessories/premium_headphones.glb'
+];
+
+// Preload the models
+modelsToPreload.forEach(path => {
+  useGLTF.preload(path);
+});
+
 // Component to render the custom avatar with accessories
 function AvatarModel() {
   const characterState = useCharacter();
   const { selectedAccessories = {}, avatarSkinTone, avatarBodyType, avatarHeight } = characterState;
   const [modelError, setModelError] = useState<boolean>(false);
+  const { scene: baseScene } = useLoader(GLTFLoader, '/models/accessories/default_body.glb', 
+    (loader) => {
+      // Add any loader configuration here
+    },
+    (error) => {
+      console.error("Error loading base model with GLTFLoader:", error);
+      setModelError(true);
+    }
+  );
   
-  // Create refs and load base model - with try/catch for error handling
-  let baseModel: any = null;
-  try {
-    baseModel = useGLTF('/models/accessories/default_body.glb');
-  } catch (error) {
-    console.error("Error loading base model:", error);
-    if (!modelError) setModelError(true);
-  }
+  const baseModel = useRef(baseScene ? baseScene.clone() : null);
   
   // Handle skin tone as material color
-  React.useEffect(() => {
+  useEffect(() => {
     try {
-      if (baseModel && baseModel.scene) {
-        baseModel.scene.traverse((obj: any) => {
+      if (baseModel.current) {
+        baseModel.current.traverse((obj: any) => {
           if (obj.isMesh && obj.material) {
             // Clone material to avoid affecting other instances
             obj.material = obj.material.clone();
@@ -54,7 +79,7 @@ function AvatarModel() {
   const heightFactor = avatarHeight || 1;
   
   // Show fallback mesh if there's an error or model is null
-  if (modelError || !baseModel || !baseModel.scene) {
+  if (modelError || !baseModel.current) {
     return (
       <mesh>
         <boxGeometry args={[1, 2, 1]} />
@@ -67,7 +92,7 @@ function AvatarModel() {
     <group>
       {/* Base body model */}
       <primitive 
-        object={baseModel.scene.clone()} 
+        object={baseModel.current} 
         scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]} 
       />
       
@@ -94,14 +119,17 @@ function AccessoryModel({ modelPath, scale = 1 }: {
   scale?: number | [number, number, number];
 }) {
   const [modelError, setModelError] = useState<boolean>(false);
-  let model: any = null;
+  const { scene } = useLoader(GLTFLoader, modelPath, 
+    (loader) => {
+      // Add any loader configuration here
+    },
+    (error) => {
+      console.error(`Error loading accessory model ${modelPath}:`, error);
+      setModelError(true);
+    }
+  );
   
-  try {
-    model = useGLTF(modelPath);
-  } catch (error) {
-    console.error(`Error loading accessory model ${modelPath}:`, error);
-    if (!modelError) setModelError(true);
-  }
+  const model = useRef(scene ? scene.clone() : null);
   
   // Handle scale whether it's a single number or an array
   const scaleVector = Array.isArray(scale) 
@@ -109,15 +137,25 @@ function AccessoryModel({ modelPath, scale = 1 }: {
     : new THREE.Vector3(scale, scale, scale);
   
   // Return null if there's an error or the model isn't loaded properly
-  if (modelError || !model || !model.scene) {
+  if (modelError || !model.current) {
     return null; 
   }
   
   return (
     <primitive 
-      object={model.scene.clone()} 
+      object={model.current} 
       scale={scaleVector}
     />
+  );
+}
+
+// Debug component to render when models fail to load
+function DebugBox() {
+  return (
+    <mesh position={[0, 0, 0]}>
+      <boxGeometry args={[1, 2, 1]} />
+      <meshStandardMaterial color="red" />
+    </mesh>
   );
 }
 
@@ -133,6 +171,8 @@ export default function CustomAvatarPreview({
     lg: 'w-48 h-48'
   };
   
+  const [loadError, setLoadError] = useState(false);
+  
   return (
     <div className={`${sizeClasses[size]} bg-muted/30 rounded-md relative overflow-hidden`}>
       {showPlaceholder ? (
@@ -143,12 +183,14 @@ export default function CustomAvatarPreview({
           </svg>
         </div>
       ) : (
-        <Canvas className="w-full h-full">
-          <ambientLight intensity={0.5} />
+        <Canvas className="w-full h-full" onCreated={({ gl }) => {
+          gl.localClippingEnabled = true;
+        }}>
+          <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
           <PerspectiveCamera makeDefault position={[0, 1.5, 2]} />
-          <Suspense fallback={null}>
-            <AvatarModel />
+          <Suspense fallback={<DebugBox />}>
+            {loadError ? <DebugBox /> : <AvatarModel />}
           </Suspense>
           <OrbitControls 
             enableZoom={false}

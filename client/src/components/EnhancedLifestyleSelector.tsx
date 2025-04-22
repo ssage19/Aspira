@@ -177,7 +177,8 @@ export function EnhancedLifestyleSelector() {
       // Import avatar accessories related functionality
       import('../lib/data/avatarAccessories').then(({ avatarAccessories, getAvailableAccessories }) => {
         // Get the full list of character's lifestyle items including this new one
-        const updatedLifestyleItems = [...characterState.lifestyleItems];
+        const character = useCharacter.getState();
+        const updatedLifestyleItems = [...character.lifestyleItems];
         const availableAccessories = getAvailableAccessories(updatedLifestyleItems);
         
         // Find accessories specifically linked to this item
@@ -192,7 +193,7 @@ export function EnhancedLifestyleSelector() {
           newAccessories.forEach(accessory => {
             if (!typesSeen.has(accessory.type)) {
               // Select this accessory
-              characterState.selectAccessory(accessory.type, accessory.id);
+              character.selectAccessory(accessory.type, accessory.id);
               typesSeen.add(accessory.type);
               
               // Show toast about the unlocked accessory
