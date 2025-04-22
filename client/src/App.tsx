@@ -20,7 +20,6 @@ import ChallengesScreen from "./pages/ChallengesScreen";
 import PrestigeScreen from "./pages/PrestigeScreen";
 import BusinessScreen from "./pages/BusinessScreen";
 import { NetworkingScreen } from "./pages/NetworkingScreen";
-import AvatarCustomizationScreen from "./pages/AvatarCustomizationScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
@@ -316,7 +315,6 @@ function App() {
                 <Route path="/prestige" element={<PrestigeScreen />} />
                 <Route path="/business" element={<BusinessScreen />} />
                 <Route path="/networking" element={<NetworkingScreen />} />
-                <Route path="/avatar" element={<AvatarCustomizationScreen />} />
                 <Route path="/test" element={<TestPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

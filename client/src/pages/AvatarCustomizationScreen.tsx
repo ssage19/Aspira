@@ -4,8 +4,6 @@ import CustomAvatarPreview from '../components/CustomAvatarPreview';
 import { 
   avatarAccessories, 
   getAvailableAccessories, 
-  getAccessoriesByType,
-  AvatarAccessoryType,
   AvatarAccessoryMapping
 } from '../lib/data/avatarAccessories';
 import { 
@@ -15,17 +13,14 @@ import {
   TabsTrigger 
 } from '../components/ui/tabs';
 import { Button } from '../components/ui/button';
-import { Input } from '../components/ui/input';
-import { Label } from '../components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../components/ui/card';
-import { Separator } from '../components/ui/separator';
 import { 
   User, 
   Brush, 
   Shirt, 
   Glasses, 
-  Palette, 
-  ArrowLeft, 
+  Watch,
+  Laptop,
   ChevronLeft, 
   Sparkles 
 } from 'lucide-react';
@@ -35,7 +30,7 @@ import { useNavigate } from 'react-router-dom';
 export default function AvatarCustomizationScreen() {
   const navigate = useNavigate();
   const character = useCharacter();
-  const [activeTab, setActiveTab] = useState<string>('body');
+  const [activeTab, setActiveTab] = useState<string>('outfit');
   
   // Get all available accessories based on owned lifestyle items
   const availableAccessories = getAvailableAccessories(character.lifestyleItems || []);
@@ -57,11 +52,6 @@ export default function AvatarCustomizationScreen() {
     character.selectAccessory(type, id);
   };
   
-  // Handle accessory removal
-  const handleRemoveAccessory = (type: string) => {
-    character.removeAccessory(type);
-  };
-  
   // Get icon for accessory type
   const getIconForType = (type: string) => {
     switch (type) {
@@ -69,29 +59,10 @@ export default function AvatarCustomizationScreen() {
       case 'hair': return <Brush className="h-4 w-4" />;
       case 'outfit': return <Shirt className="h-4 w-4" />;
       case 'eyewear': return <Glasses className="h-4 w-4" />;
-      case 'accessory': return <Sparkles className="h-4 w-4" />;
-      default: return <Palette className="h-4 w-4" />;
+      case 'accessory': return <Watch className="h-4 w-4" />;
+      case 'tech': return <Laptop className="h-4 w-4" />;
+      default: return <User className="h-4 w-4" />;
     }
-  };
-  
-  // Handle skin tone change
-  const handleSkinToneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    character.updateAvatarSkinTone(e.target.value);
-  };
-  
-  // Handle eye color change
-  const handleEyeColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    character.updateAvatarEyeColor(e.target.value);
-  };
-  
-  // Handle body type change
-  const handleBodyTypeChange = (bodyType: 'slim' | 'average' | 'athletic') => {
-    character.updateAvatarBodyType(bodyType);
-  };
-  
-  // Handle height change
-  const handleHeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    character.updateAvatarHeight(parseFloat(e.target.value));
   };
   
   return (
@@ -102,128 +73,53 @@ export default function AvatarCustomizationScreen() {
           Back to dashboard
         </Button>
         <div>
-          <h1 className="text-3xl font-bold">Avatar Customization</h1>
-          <p className="text-gray-500">Customize your avatar's appearance</p>
+          <h1 className="text-3xl font-bold">Lifestyle Choices</h1>
+          <p className="text-gray-500">Select items that reflect your character's lifestyle</p>
         </div>
       </div>
       
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Avatar Preview */}
+        {/* Character Preview */}
         <div className="lg:col-span-1">
           <Card className="mb-6">
             <CardHeader>
-              <CardTitle>Your Avatar</CardTitle>
-              <CardDescription>Preview your character</CardDescription>
+              <CardTitle>Your Character</CardTitle>
+              <CardDescription>Your selected lifestyle items</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              <div className="w-64 h-64 mb-4">
-                <CustomAvatarPreview size="xl" />
+              <div className="w-48 h-48 mb-4">
+                <CustomAvatarPreview size="lg" />
               </div>
               
-              <div className="grid grid-cols-3 gap-2 w-full">
-                {Object.entries(character.selectedAccessories || {}).map(([type, id]) => {
-                  const accessory = avatarAccessories.find(a => a.id === id);
-                  return accessory ? (
-                    <Badge key={id} variant="outline" className="flex items-center justify-center">
-                      {getIconForType(type)}
-                      <span className="ml-1 text-xs truncate">{accessory.name}</span>
-                    </Badge>
-                  ) : null;
-                })}
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Physical Features</CardTitle>
-              <CardDescription>Adjust your avatar's appearance</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <Label>Skin Tone</Label>
-                  <div className="flex items-center mt-2">
-                    <Input 
-                      type="color" 
-                      value={character.avatarSkinTone || '#F5D0A9'} 
-                      onChange={handleSkinToneChange}
-                      className="w-12 h-8 p-1" 
-                    />
-                    <div 
-                      className="ml-4 w-8 h-8 rounded-full border" 
-                      style={{ backgroundColor: character.avatarSkinTone || '#F5D0A9' }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Eye Color</Label>
-                  <div className="flex items-center mt-2">
-                    <Input 
-                      type="color" 
-                      value={character.avatarEyeColor || '#6B8E23'} 
-                      onChange={handleEyeColorChange}
-                      className="w-12 h-8 p-1"
-                    />
-                    <div 
-                      className="ml-4 w-8 h-8 rounded-full border" 
-                      style={{ backgroundColor: character.avatarEyeColor || '#6B8E23' }}
-                    ></div>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Body Type</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Button 
-                      size="sm" 
-                      variant={character.avatarBodyType === 'slim' ? 'default' : 'outline'}
-                      onClick={() => handleBodyTypeChange('slim')}
-                    >
-                      Slim
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={character.avatarBodyType === 'average' ? 'default' : 'outline'}
-                      onClick={() => handleBodyTypeChange('average')}
-                    >
-                      Average
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={character.avatarBodyType === 'athletic' ? 'default' : 'outline'}
-                      onClick={() => handleBodyTypeChange('athletic')}
-                    >
-                      Athletic
-                    </Button>
-                  </div>
-                </div>
-                
-                <div>
-                  <Label>Height: {Math.round(((character.avatarHeight || 0.5) * 100))}%</Label>
-                  <Input 
-                    type="range" 
-                    min="0.1" 
-                    max="1" 
-                    step="0.01" 
-                    value={character.avatarHeight || 0.5} 
-                    onChange={handleHeightChange}
-                    className="mt-2"
-                  />
+              <div className="w-full mt-4">
+                <h3 className="font-semibold text-sm mb-2">Selected Items:</h3>
+                <div className="space-y-2">
+                  {Object.entries(character.selectedAccessories || {}).length > 0 ? (
+                    Object.entries(character.selectedAccessories || {}).map(([type, id]) => {
+                      const accessory = avatarAccessories.find(a => a.id === id);
+                      return accessory ? (
+                        <Badge key={id} variant="outline" className="flex items-center justify-start p-2 w-full">
+                          {getIconForType(type)}
+                          <span className="ml-2 text-sm truncate">{accessory.name}</span>
+                        </Badge>
+                      ) : null;
+                    })
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic">No items selected yet</p>
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
         
-        {/* Accessory Selection */}
+        {/* Item Selection */}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>Accessories</CardTitle>
+              <CardTitle>Available Options</CardTitle>
               <CardDescription>
-                Customize your avatar with accessories from your lifestyle choices
+                Choose items that reflect your lifestyle and status
               </CardDescription>
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList className="flex flex-wrap mb-4">
