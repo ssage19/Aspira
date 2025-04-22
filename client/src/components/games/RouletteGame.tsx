@@ -471,8 +471,15 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     // Position the ball in the final winning pocket
     if (ballRef.current) {
       // The ball needs to be positioned at the top (270 degrees)
+      // Since we want the ball to land directly on the number, we need to adjust it to match the exact position
+      const anglePerPocket = 360 / WHEEL_SEQUENCE.length;
+      const resultAngle = 270; // Top position
+
+      // Calculate any additional offset needed to ensure alignment with the wheel position
       ballRef.current.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.3, 1)';
-      ballRef.current.style.transform = 'rotate(270deg)';
+      ballRef.current.style.transform = `rotate(${resultAngle}deg)`;
+      
+      console.log(`Positioning ball at ${resultAngle}deg to match result ${finalResult}`);
     }
     
     // Process results after the animations complete
@@ -626,10 +633,14 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                             <div 
                               className="absolute text-white font-bold text-xs"
                               style={{
-                                top: '6px',
+                                top: '10px',
                                 left: '50%',
-                                transform: 'translateX(-50%) rotate(180deg)',
-                                textShadow: '0px 0px 2px rgba(0,0,0,0.7)',
+                                transform: 'translateX(-50%)',
+                                textShadow: '0px 0px 3px rgba(0,0,0,0.9)',
+                                zIndex: 20,
+                                fontSize: '11px',
+                                fontWeight: 'bold',
+                                whiteSpace: 'nowrap',
                               }}
                             >
                               {number}
@@ -681,8 +692,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   style={{ 
                     position: 'absolute',
                     left: 'calc(50% - 5px)', 
-                    top: '-115px', // Position at the outer edge of the wheel
-                    transformOrigin: '5px 115px', // Pivot from the center of the wheel
+                    top: '-130px', // Position at the outer edge of the wheel between the numbers
+                    transformOrigin: '5px 130px', // Pivot from the center of the wheel
                     boxShadow: '0 0 4px 2px rgba(255,255,255,0.7)',
                   }}
                 ></div>
