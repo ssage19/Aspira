@@ -181,6 +181,9 @@ interface CharacterState {
   // State synchronization helper
   lastUpdated?: number; // Timestamp to ensure state changes are noticed by all subscribers
   
+  // Avatar customization
+  avatarUrl: string | null;
+  
   // Transportation & Housing
   hasVehicle: boolean;
   vehicleType: 'none' | 'bicycle' | 'economy' | 'standard' | 'luxury' | 'premium';
@@ -897,6 +900,13 @@ export const useCharacter = create<CharacterState>()(
         });
         
         console.log(`Updated free time by ${hours} hours. Free time: ${get().freeTime}`);
+        saveState();
+      },
+      
+      // Avatar customization
+      updateAvatarUrl: (url) => {
+        set({ avatarUrl: url });
+        console.log("Avatar URL updated:", url);
         saveState();
       },
       

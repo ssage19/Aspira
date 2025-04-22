@@ -6,16 +6,19 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { Character } from '../components/Character';
 import GameUI from '../components/GameUI';
 import { Button } from '../components/ui/button';
-import { ChevronLeft, Sparkles, User, Shirt } from 'lucide-react';
+import { ChevronLeft, Sparkles, User, Shirt, Cog } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import ReadyPlayerMeAvatar from '../components/ReadyPlayerMeAvatar';
 import { ACCESSORY_MAPPINGS, AccessoryMapping } from '../lib/data/avatarAccessories';
 import { allEnhancedLifestyleItems } from '../lib/data/enhancedLifestyleItems';
 
 export default function AvatarCustomizationScreen() {
   const navigate = useNavigate();
-  const { lifestyleItems } = useCharacter();
+  const { lifestyleItems, avatarUrl } = useCharacter();
   const [autoRotate, setAutoRotate] = useState(true);
   const [cameraPosition, setCameraPosition] = useState({ x: 3, y: 2, z: 3 });
+  const [activeTab, setActiveTab] = useState(avatarUrl ? "readyplayerme" : "default");
   
   // Get accessories based on character's lifestyle items
   const unlockedAccessories = ACCESSORY_MAPPINGS.filter(acc => {
@@ -56,58 +59,84 @@ export default function AvatarCustomizationScreen() {
             <div className="md:col-span-2">
               <Card className="shadow-md">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg flex items-center">
-                    <User className="h-4 w-4 mr-2 text-primary" />
-                    Avatar Preview
-                  </CardTitle>
-                  <CardDescription>
-                    Your character reflects your lifestyle choices
-                  </CardDescription>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <CardTitle className="text-lg flex items-center">
+                        <User className="h-4 w-4 mr-2 text-primary" />
+                        Avatar Preview
+                      </CardTitle>
+                      <CardDescription>
+                        Your character reflects your lifestyle choices
+                      </CardDescription>
+                    </div>
+                  </div>
                 </CardHeader>
                 
                 <CardContent className="p-0">
-                  <div className="relative w-full h-[500px] bg-gradient-to-b from-slate-900 to-indigo-900">
-                    <Canvas shadows>
-                      <color attach="background" args={["transparent"]} />
-                      
-                      <PerspectiveCamera 
-                        makeDefault 
-                        position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]} 
-                        fov={50}
-                      />
-                      
-                      <OrbitControls 
-                        enablePan={false}
-                        autoRotate={autoRotate}
-                        autoRotateSpeed={1}
-                        minPolarAngle={Math.PI/6}
-                        maxPolarAngle={Math.PI/2}
-                      />
-                      
-                      <ambientLight intensity={0.6} />
-                      <directionalLight 
-                        position={[5, 5, 5]} 
-                        intensity={0.8} 
-                        castShadow 
-                        shadow-mapSize={[1024, 1024]}
-                      />
-                      
-                      <Character position={[0, -1, 0]} scale={1.2} />
-                      <Environment preset="city" />
-                    </Canvas>
-                    
-                    {/* Controls */}
-                    <div className="absolute bottom-4 right-4 flex space-x-2">
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        className="bg-black/30 hover:bg-black/50 text-white"
-                        onClick={() => setAutoRotate(!autoRotate)}
-                      >
-                        {autoRotate ? "Pause Rotation" : "Auto Rotate"}
-                      </Button>
+                  <Tabs
+                    defaultValue={activeTab}
+                    value={activeTab}
+                    onValueChange={setActiveTab}
+                    className="w-full"
+                  >
+                    <div className="px-4 pt-2">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="default">Default Avatar</TabsTrigger>
+                        <TabsTrigger value="readyplayerme">Ready Player Me</TabsTrigger>
+                      </TabsList>
                     </div>
-                  </div>
+                    
+                    <TabsContent value="default" className="mt-0">
+                      <div className="relative w-full h-[500px] bg-gradient-to-b from-slate-900 to-indigo-900">
+                        <Canvas shadows>
+                          <color attach="background" args={["transparent"]} />
+                          
+                          <PerspectiveCamera 
+                            makeDefault 
+                            position={[cameraPosition.x, cameraPosition.y, cameraPosition.z]} 
+                            fov={50}
+                          />
+                          
+                          <OrbitControls 
+                            enablePan={false}
+                            autoRotate={autoRotate}
+                            autoRotateSpeed={1}
+                            minPolarAngle={Math.PI/6}
+                            maxPolarAngle={Math.PI/2}
+                          />
+                          
+                          <ambientLight intensity={0.6} />
+                          <directionalLight 
+                            position={[5, 5, 5]} 
+                            intensity={0.8} 
+                            castShadow 
+                            shadow-mapSize={[1024, 1024]}
+                          />
+                          
+                          <Character position={[0, -1, 0]} scale={1.2} />
+                          <Environment preset="city" />
+                        </Canvas>
+                        
+                        {/* Controls */}
+                        <div className="absolute bottom-4 right-4 flex space-x-2">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            className="bg-black/30 hover:bg-black/50 text-white"
+                            onClick={() => setAutoRotate(!autoRotate)}
+                          >
+                            {autoRotate ? "Pause Rotation" : "Auto Rotate"}
+                          </Button>
+                        </div>
+                      </div>
+                    </TabsContent>
+                    
+                    <TabsContent value="readyplayerme" className="mt-0 p-4">
+                      <ReadyPlayerMeAvatar 
+                        onBack={() => setActiveTab("default")}
+                      />
+                    </TabsContent>
+                  </Tabs>
                 </CardContent>
               </Card>
             </div>
