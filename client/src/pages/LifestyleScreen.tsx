@@ -36,16 +36,6 @@ export default function LifestyleScreen() {
               <ChevronLeft className="h-5 w-5 mr-2" />
               Back to Dashboard
             </Button>
-            
-            <Button 
-              variant="outline"
-              size="default"
-              onClick={() => navigate('/avatar')}
-              className="bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20 text-indigo-500 shadow-sm"
-            >
-              <Shirt className="h-5 w-5 mr-2" />
-              Customize Avatar
-            </Button>
           </div>
           
           <Tabs defaultValue="lifestyle" className="mb-8">
