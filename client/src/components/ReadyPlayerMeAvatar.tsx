@@ -12,10 +12,10 @@ interface ReadyPlayerMeAvatarProps {
 
 export function ReadyPlayerMeAvatar({ onBack }: ReadyPlayerMeAvatarProps) {
   const navigate = useNavigate();
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const { avatarUrl: storedAvatarUrl, updateAvatarUrl } = useCharacter();
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(storedAvatarUrl);
   const [showAvatarCreator, setShowAvatarCreator] = useState(false);
   const [showInfoDialog, setShowInfoDialog] = useState(false);
-  const { updateAvatarUrl } = useCharacter(); // Assuming we add this to the character store
   
   // Function to open Ready Player Me in a new tab/window
   const openReadyPlayerMe = () => {
@@ -88,7 +88,10 @@ export function ReadyPlayerMeAvatar({ onBack }: ReadyPlayerMeAvatarProps) {
                 <Button onClick={openReadyPlayerMe}>
                   Edit Avatar
                 </Button>
-                <Button variant="outline" onClick={() => setAvatarUrl(null)}>
+                <Button variant="outline" onClick={() => {
+                  setAvatarUrl(null);
+                  updateAvatarUrl(null);
+                }}>
                   Remove Avatar
                 </Button>
               </div>

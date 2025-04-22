@@ -469,7 +469,9 @@ export const useCharacter = create<CharacterState>()(
           weeklyUpdate: state.weeklyUpdate,
           monthlyUpdate: state.monthlyUpdate,
           saveState: state.saveState,
-          resetCharacter: state.resetCharacter
+          resetCharacter: state.resetCharacter,
+          // Avatar customization
+          updateAvatarUrl: state.updateAvatarUrl
         }));
         
         // Sync the assets with AssetTracker store after character creation
