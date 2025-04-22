@@ -45,7 +45,7 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
       const accessoriesForItemId = getAccessoriesForLifestyleItem(item.id);
       
       // Find accessories that match this lifestyle type
-      const accessoriesForItemType = typeof item.type === 'string' ? 
+      const accessoriesForItemType: AccessoryMapping[] = typeof item.type === 'string' ? 
         getAccessoriesForLifestyleType(item.type) : [];
       
       // Combine both sets
@@ -157,8 +157,15 @@ function AccessoryModel({ path, position, rotation, scale }: {
 
 // Preload models
 useGLTF.preload('/models/base_avatar.glb');
-ACCESSORY_MAPPINGS.forEach(accessory => {
-  useGLTF.preload(accessory.modelPath);
+
+// Only preload the models we've actually generated
+const existingModels = [
+  '/models/accessories/business_suit.glb',
+  '/models/accessories/sports_outfit.glb'
+];
+
+existingModels.forEach(modelPath => {
+  useGLTF.preload(modelPath);
 });
 
 export default EnhancedCharacter;
