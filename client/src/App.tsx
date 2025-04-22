@@ -20,6 +20,7 @@ import ChallengesScreen from "./pages/ChallengesScreen";
 import PrestigeScreen from "./pages/PrestigeScreen";
 import BusinessScreen from "./pages/BusinessScreen";
 import { NetworkingScreen } from "./pages/NetworkingScreen";
+import CasinoScreen from "./pages/CasinoScreen";
 import TestPage from "./pages/TestPage";
 import NotFound from "./pages/not-found";
 import { RandomEventModal } from "./components/RandomEventModal";
