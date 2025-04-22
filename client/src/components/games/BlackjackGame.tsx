@@ -2,15 +2,31 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { Dices, DollarSign, ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
+import { 
+  Dices, DollarSign, ChevronUp, ChevronDown, RotateCcw, 
+  Split as SplitIcon, Plus, Minus, Maximize2
+} from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'sonner';
+import { Input } from '../ui/input';
 
 // Define card types
 interface PlayingCard {
   suit: 'hearts' | 'diamonds' | 'clubs' | 'spades';
   value: number; // 1 (Ace) through 13 (King)
   faceUp: boolean;
+  id: string; // Unique identifier for animation/tracking
+}
+
+// Define a hand type to track multiple hands
+interface PlayerHand {
+  id: string;
+  cards: PlayingCard[];
+  bet: number;
+  status: 'playing' | 'stood' | 'busted' | 'blackjack' | 'doubled' | 'complete';
+  result: 'win' | 'lose' | 'push' | null;
+  doubledDown: boolean;
+  payout: number;
 }
 
 // Suit symbols
@@ -38,19 +54,33 @@ interface BlackjackGameProps {
 export default function BlackjackGame({ onWin, onLoss, playerBalance }: BlackjackGameProps) {
   // Game state
   const [deck, setDeck] = useState<PlayingCard[]>([]);
-  const [dealerHand, setDealerHand] = useState<PlayingCard[]>([]);
-  const [playerHand, setPlayerHand] = useState<PlayingCard[]>([]);
+  const [dealerCards, setDealerCards] = useState<PlayingCard[]>([]);
+  const [playerHands, setPlayerHands] = useState<PlayerHand[]>([]);
+  const [activeHandIndex, setActiveHandIndex] = useState<number>(0);
   const [gameState, setGameState] = useState<'betting' | 'playing' | 'dealerTurn' | 'gameOver'>('betting');
-  const [betAmount, setBetAmount] = useState(100);
-  const [result, setResult] = useState<'win' | 'lose' | 'push' | null>(null);
-  const [displayWinnings, setDisplayWinnings] = useState<number>(0);
+  const [baseBetAmount, setBaseBetAmount] = useState(100);
+  const [customBetInput, setCustomBetInput] = useState('100');
+  const [numberOfHands, setNumberOfHands] = useState(1);
+  const [totalBet, setTotalBet] = useState<number>(0);
+  const [totalWinnings, setTotalWinnings] = useState<number>(0);
   
-  // Calculate the value of a hand (accounting for Aces) - Optimized with useCallback
-  const calculateHandValue = useCallback((hand: PlayingCard[]): number => {
+  // Flags to prevent race conditions
+  const dealerTurnInProgress = React.useRef(false);
+  const payoutProcessed = React.useRef(false);
+  
+  // Generate a unique ID for cards and hands
+  const generateId = useCallback(() => {
+    return Math.random().toString(36).substring(2, 9);
+  }, []);
+  
+  // Calculate the value of a hand (accounting for Aces)
+  const calculateHandValue = useCallback((cards: PlayingCard[]): number => {
     let value = 0;
     let aces = 0;
     
-    hand.forEach(card => {
+    cards.forEach(card => {
+      if (!card.faceUp) return; // Skip face down cards
+      
       if (card.value === 1) {
         // Ace
         aces += 1;
@@ -72,6 +102,28 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     return value;
   }, []);
   
+  // Check if a hand can be split (has exactly 2 cards of the same value)
+  const canSplitHand = useCallback((hand: PlayerHand): boolean => {
+    if (hand.cards.length !== 2) return false;
+    if (hand.doubledDown) return false;
+    if (hand.status !== 'playing') return false;
+    
+    const card1Value = hand.cards[0].value > 10 ? 10 : hand.cards[0].value;
+    const card2Value = hand.cards[1].value > 10 ? 10 : hand.cards[1].value;
+    
+    return card1Value === card2Value;
+  }, []);
+  
+  // Check if a hand can be doubled down (has exactly 2 cards and total value 9-11)
+  const canDoubleDown = useCallback((hand: PlayerHand): boolean => {
+    if (hand.cards.length !== 2) return false;
+    if (hand.doubledDown) return false;
+    if (hand.status !== 'playing') return false;
+    
+    const handValue = calculateHandValue(hand.cards);
+    return handValue >= 9 && handValue <= 11;
+  }, [calculateHandValue]);
+  
   // Initialize a new deck of cards
   const initializeDeck = useCallback(() => {
     const newDeck: PlayingCard[] = [];
@@ -79,13 +131,18 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     
     suits.forEach(suit => {
       for (let value = 1; value <= 13; value++) {
-        newDeck.push({ suit, value, faceUp: true });
+        newDeck.push({ 
+          suit, 
+          value, 
+          faceUp: true,
+          id: `${suit}-${value}-${generateId()}`
+        });
       }
     });
     
     // Shuffle the deck
     return shuffleDeck(newDeck);
-  }, []);
+  }, [generateId]);
   
   // Shuffle the deck
   const shuffleDeck = useCallback((deckToShuffle: PlayingCard[]) => {
@@ -102,194 +159,440 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     if (deck.length === 0) {
       const newDeck = initializeDeck();
       setDeck(newDeck.slice(1));
-      return { ...newDeck[0], faceUp };
+      return { ...newDeck[0], faceUp, id: `${newDeck[0].suit}-${newDeck[0].value}-${generateId()}` };
     }
     
-    const card = { ...deck[0], faceUp };
-    setDeck(deck.slice(1));
+    const card = { ...deck[0], faceUp, id: `${deck[0].suit}-${deck[0].value}-${generateId()}` };
+    setDeck(prevDeck => prevDeck.slice(1));
     return card;
-  }, [deck, initializeDeck]);
+  }, [deck, initializeDeck, generateId]);
   
-  // Track if payout has been processed already
-  const payoutProcessed = React.useRef(false);
-  
-  // Game over handler - determine winnings with safeguard against multiple payouts
-  const handleGameOver = useCallback((result: 'win' | 'lose' | 'push', blackjack: boolean = false) => {
-    // Set game state and result for UI
-    setGameState('gameOver');
-    setResult(result);
-    
-    // Prevent multiple payouts for the same game
+  // Handle processing the final results and payouts
+  const processGameResults = useCallback(() => {
+    // Prevent multiple payouts
     if (payoutProcessed.current) {
-      console.log("Payout already processed, skipping duplicate payout");
+      console.log("Results already processed, skipping");
       return;
     }
     
-    // Mark payout as processed
+    // Mark as processed
     payoutProcessed.current = true;
     
-    if (result === 'win') {
-      if (blackjack) {
-        // Blackjack pays 3:2 (that's a 1.5x profit)
-        const winnings = Math.floor(betAmount * 1.5);
-        onWin(winnings);
+    let totalPayout = 0;
+    let totalAmountBet = 0;
+    
+    // Process each hand's result
+    const updatedHands = playerHands.map(hand => {
+      let result: 'win' | 'lose' | 'push' | null = null;
+      let payout = 0;
+      
+      totalAmountBet += hand.bet;
+      
+      // Early detection of blackjack
+      const isBlackjack = hand.cards.length === 2 && calculateHandValue(hand.cards) === 21;
+      const dealerHasBlackjack = dealerCards.length === 2 && calculateHandValue(dealerCards) === 21;
+      
+      // For busted hands
+      if (hand.status === 'busted') {
+        result = 'lose';
+        payout = 0;
+      } 
+      // For blackjack
+      else if (isBlackjack) {
+        if (dealerHasBlackjack) {
+          // Push if both have blackjack
+          result = 'push';
+          payout = hand.bet;
+        } else {
+          // Blackjack pays 3:2
+          result = 'win';
+          payout = hand.bet + Math.floor(hand.bet * 1.5);
+        }
+      } 
+      // For regular hands
+      else {
+        const handValue = calculateHandValue(hand.cards);
+        const dealerValue = calculateHandValue(dealerCards);
         
-        // Display the total return in the UI
-        setDisplayWinnings(betAmount + winnings);
-        console.log(`Blackjack win: paying ${winnings} on bet of ${betAmount}`);
-      } else {
-        // Regular win (1:1 payout)
-        onWin(betAmount);
-        
-        // Display the total return in the UI
-        setDisplayWinnings(betAmount * 2);
-        console.log(`Regular win: paying ${betAmount} on bet of ${betAmount}`);
+        if (dealerValue > 21) {
+          // Dealer busts
+          result = 'win';
+          payout = hand.bet * 2; // Original bet + winnings
+        } else if (dealerValue > handValue) {
+          // Dealer wins
+          result = 'lose';
+          payout = 0;
+        } else if (dealerValue < handValue) {
+          // Player wins
+          result = 'win';
+          payout = hand.bet * 2; // Original bet + winnings
+        } else {
+          // Push (tie)
+          result = 'push';
+          payout = hand.bet;
+        }
       }
-    } else if (result === 'lose') {
-      onLoss(betAmount);
-      setDisplayWinnings(0);
-      console.log(`Loss: player lost ${betAmount}`);
+      
+      // Add to total payout
+      totalPayout += payout;
+      
+      // Return updated hand
+      return {
+        ...hand,
+        result,
+        payout,
+        status: 'complete' as const
+      };
+    });
+    
+    // Update player hands with results
+    setPlayerHands(updatedHands);
+    
+    // Calculate net winnings/losses
+    const netWinnings = totalPayout - totalAmountBet;
+    setTotalWinnings(netWinnings);
+    
+    // Update player balance
+    if (netWinnings > 0) {
+      onWin(netWinnings);
+      toast.success(`You won ${formatCurrency(netWinnings)}!`);
+    } else if (netWinnings < 0) {
+      onLoss(Math.abs(netWinnings));
+      toast.error(`You lost ${formatCurrency(Math.abs(netWinnings))}`);
     } else {
-      // Push - money is returned
-      setDisplayWinnings(betAmount);
-      console.log(`Push: returning ${betAmount}`);
+      toast.info("Push - no win or loss");
     }
-  }, [betAmount, onWin, onLoss]);
-  
-  // Player stands (dealer's turn) - optimized with useCallback
-  const stand = useCallback(() => {
-    setGameState('dealerTurn');
     
-    // Flip dealer's hidden card
-    const revealedDealerHand = dealerHand.map(card => ({ ...card, faceUp: true }));
-    setDealerHand(revealedDealerHand);
-    
-    // Dealer's turn logic will be handled by useEffect
-  }, [dealerHand]);
+    console.log(`Game results processed: Bet ${totalAmountBet}, Payout ${totalPayout}, Net ${netWinnings}`);
+  }, [playerHands, dealerCards, calculateHandValue, onWin, onLoss]);
   
-  // Player hits (draws a card) - optimized with useCallback
-  const hit = useCallback(() => {
+  // Player actions - Hit
+  const handleHit = useCallback(() => {
+    if (gameState !== 'playing' || activeHandIndex >= playerHands.length) return;
+    
+    // Get active hand
+    const activeHand = playerHands[activeHandIndex];
+    if (activeHand.status !== 'playing') return;
+    
+    // Deal a new card
     const newCard = dealCard();
-    const newHand = [...playerHand, newCard];
-    setPlayerHand(newHand);
     
-    const handValue = calculateHandValue(newHand);
+    // Add card to the hand
+    const updatedHand = {
+      ...activeHand,
+      cards: [...activeHand.cards, newCard]
+    };
+    
+    // Check for bust
+    const handValue = calculateHandValue([...activeHand.cards, newCard]);
     if (handValue > 21) {
-      // Player busts
-      handleGameOver('lose');
-    } else if (handValue === 21) {
-      // Player has 21, dealer's turn
-      stand();
+      updatedHand.status = 'busted' as const;
     }
-  }, [playerHand, dealCard, calculateHandValue, stand, handleGameOver]);
+    
+    // Update the hand in the array
+    const updatedHands = [...playerHands];
+    updatedHands[activeHandIndex] = updatedHand;
+    setPlayerHands(updatedHands);
+    
+    // If hand busted, move to next hand or dealer turn
+    if (updatedHand.status === 'busted') {
+      // Check if this is the last hand
+      if (activeHandIndex === playerHands.length - 1) {
+        // All hands complete, dealer's turn
+        setGameState('dealerTurn');
+      } else {
+        // Move to next hand
+        setActiveHandIndex(activeHandIndex + 1);
+      }
+    }
+  }, [gameState, activeHandIndex, playerHands, dealCard, calculateHandValue]);
   
-  // Start a new game
+  // Player actions - Stand
+  const handleStand = useCallback(() => {
+    if (gameState !== 'playing' || activeHandIndex >= playerHands.length) return;
+    
+    // Get active hand
+    const activeHand = playerHands[activeHandIndex];
+    if (activeHand.status !== 'playing') return;
+    
+    // Mark hand as stood
+    const updatedHand = {
+      ...activeHand,
+      status: 'stood' as const
+    };
+    
+    // Update the hand in the array
+    const updatedHands = [...playerHands];
+    updatedHands[activeHandIndex] = updatedHand;
+    setPlayerHands(updatedHands);
+    
+    // Check if this is the last hand
+    if (activeHandIndex === playerHands.length - 1) {
+      // All hands complete, dealer's turn
+      setGameState('dealerTurn');
+    } else {
+      // Move to next hand
+      setActiveHandIndex(activeHandIndex + 1);
+    }
+  }, [gameState, activeHandIndex, playerHands]);
+  
+  // Player actions - Double Down
+  const handleDoubleDown = useCallback(() => {
+    if (gameState !== 'playing' || activeHandIndex >= playerHands.length) return;
+    
+    // Get active hand
+    const activeHand = playerHands[activeHandIndex];
+    if (!canDoubleDown(activeHand)) return;
+    
+    // Check if player has enough balance
+    if (activeHand.bet > playerBalance) {
+      toast.error("Not enough balance to double down");
+      return;
+    }
+    
+    // Deal one more card
+    const newCard = dealCard();
+    
+    // Update the hand
+    const updatedHand = {
+      ...activeHand,
+      cards: [...activeHand.cards, newCard],
+      bet: activeHand.bet * 2, // Double the bet
+      doubledDown: true,
+      status: 'stood' as const // Automatically stand after doubling down
+    };
+    
+    // Update total bet
+    setTotalBet(prev => prev + activeHand.bet);
+    
+    // Update the hand in the array
+    const updatedHands = [...playerHands];
+    updatedHands[activeHandIndex] = updatedHand;
+    setPlayerHands(updatedHands);
+    
+    // Check if this is the last hand
+    if (activeHandIndex === playerHands.length - 1) {
+      // All hands complete, dealer's turn
+      setGameState('dealerTurn');
+    } else {
+      // Move to next hand
+      setActiveHandIndex(activeHandIndex + 1);
+    }
+  }, [gameState, activeHandIndex, playerHands, canDoubleDown, playerBalance, dealCard]);
+  
+  // Player actions - Split
+  const handleSplit = useCallback(() => {
+    if (gameState !== 'playing' || activeHandIndex >= playerHands.length) return;
+    
+    // Get active hand
+    const activeHand = playerHands[activeHandIndex];
+    if (!canSplitHand(activeHand)) return;
+    
+    // Check if player has enough balance
+    if (activeHand.bet > playerBalance) {
+      toast.error("Not enough balance to split");
+      return;
+    }
+    
+    // Create two new hands from the split
+    const card1 = activeHand.cards[0];
+    const card2 = activeHand.cards[1];
+    
+    // Deal a new card to each hand
+    const newCard1 = dealCard();
+    const newCard2 = dealCard();
+    
+    const hand1: PlayerHand = {
+      id: `split-1-${generateId()}`,
+      cards: [card1, newCard1],
+      bet: activeHand.bet,
+      status: 'playing',
+      result: null,
+      doubledDown: false,
+      payout: 0
+    };
+    
+    const hand2: PlayerHand = {
+      id: `split-2-${generateId()}`,
+      cards: [card2, newCard2],
+      bet: activeHand.bet,
+      status: 'playing',
+      result: null,
+      doubledDown: false,
+      payout: 0
+    };
+    
+    // Update total bet
+    setTotalBet(prev => prev + activeHand.bet);
+    
+    // Replace current hand with the two new hands
+    const updatedHands = [...playerHands];
+    updatedHands.splice(activeHandIndex, 1, hand1, hand2);
+    setPlayerHands(updatedHands);
+    
+    // Keep active hand index the same (now pointing to hand1)
+    // Play will continue with the first split hand
+  }, [gameState, activeHandIndex, playerHands, canSplitHand, playerBalance, dealCard, generateId]);
+  
+  // Start game with current bet and number of hands
   const startGame = useCallback(() => {
-    if (betAmount <= 0) {
-      toast.error("Please enter a valid bet amount");
+    // Validate inputs
+    const betAmount = parseInt(customBetInput, 10);
+    if (isNaN(betAmount) || betAmount < 10) {
+      toast.error("Please enter a valid bet amount (minimum 10)");
       return;
     }
     
-    if (betAmount > playerBalance) {
-      toast.error("You don't have enough money for this bet");
+    if (numberOfHands < 1 || numberOfHands > 5) {
+      toast.error("Please choose between 1 and 5 hands");
       return;
     }
     
-    // Reset the payout processed flag for the new game
+    const totalBetRequired = betAmount * numberOfHands;
+    if (totalBetRequired > playerBalance) {
+      toast.error("You don't have enough balance for this bet");
+      return;
+    }
+    
+    // Reset any previous game state
     payoutProcessed.current = false;
+    dealerTurnInProgress.current = false;
     
     // Initialize a new deck
     const newDeck = initializeDeck();
     setDeck(newDeck);
     
-    // Deal initial cards
-    const pHand = [
-      { ...newDeck[0], faceUp: true },
-      { ...newDeck[1], faceUp: true }
-    ];
-    const dHand = [
-      { ...newDeck[2], faceUp: true },
-      { ...newDeck[3], faceUp: false }
-    ];
+    // Deal initial cards for each player hand
+    const initialPlayerHands: PlayerHand[] = [];
     
-    setPlayerHand(pHand);
-    setDealerHand(dHand);
-    setDeck(newDeck.slice(4));
-    setGameState('playing');
-    setResult(null);
-    
-    // Check for blackjack
-    if (calculateHandValue(pHand) === 21) {
-      if (calculateHandValue([{ ...dHand[0], faceUp: true }, { ...dHand[1], faceUp: true }]) === 21) {
-        // Both have blackjack, it's a push
-        handleGameOver('push');
-      } else {
-        // Player has blackjack, pays 3:2
-        handleGameOver('win', true);
-      }
-    }
-  }, [betAmount, playerBalance, initializeDeck, calculateHandValue, handleGameOver]);
-  
-  // Handle dealer's turn - using a ref to track if dealer's turn is in progress
-  const dealerTurnInProgress = React.useRef(false);
-  
-  useEffect(() => {
-    // Only run this effect when gameState changes to dealerTurn and not already in progress
-    if (gameState === 'dealerTurn' && !dealerTurnInProgress.current) {
-      // Set flag to prevent multiple executions
-      dealerTurnInProgress.current = true;
+    for (let i = 0; i < numberOfHands; i++) {
+      // Deal 2 cards for this hand
+      const card1 = { ...newDeck.shift()!, faceUp: true, id: generateId() };
+      const card2 = { ...newDeck.shift()!, faceUp: true, id: generateId() };
       
-      const dealerPlay = async () => {
-        let currentDealerHand = [...dealerHand];
-        
-        // Make sure all dealer cards are face up
-        currentDealerHand = currentDealerHand.map(card => ({ ...card, faceUp: true }));
-        setDealerHand(currentDealerHand);
+      // Create the hand
+      const hand: PlayerHand = {
+        id: `hand-${i}-${generateId()}`,
+        cards: [card1, card2],
+        bet: betAmount,
+        status: 'playing',
+        result: null,
+        doubledDown: false,
+        payout: 0
+      };
+      
+      // Check for blackjack
+      if (calculateHandValue([card1, card2]) === 21) {
+        hand.status = 'blackjack' as const;
+      }
+      
+      initialPlayerHands.push(hand);
+    }
+    
+    // Deal dealer's cards
+    const dealerCard1 = { ...newDeck.shift()!, faceUp: true, id: generateId() };
+    const dealerCard2 = { ...newDeck.shift()!, faceUp: false, id: generateId() };
+    
+    // Set game state
+    setDealerCards([dealerCard1, dealerCard2]);
+    setPlayerHands(initialPlayerHands);
+    setActiveHandIndex(0); // Start with the first hand
+    setDeck(newDeck);
+    setGameState('playing');
+    setTotalBet(betAmount * numberOfHands);
+    setTotalWinnings(0);
+    
+    // Store bet amount for next game
+    setBaseBetAmount(betAmount);
+    
+    // Check if all hands are blackjack
+    const allBlackjack = initialPlayerHands.every(hand => hand.status === 'blackjack');
+    if (allBlackjack) {
+      // Skip to dealer's turn
+      setGameState('dealerTurn');
+    }
+  }, [customBetInput, numberOfHands, playerBalance, initializeDeck, generateId, calculateHandValue]);
+  
+  // Handle dealer's turn
+  useEffect(() => {
+    if (gameState !== 'dealerTurn' || dealerTurnInProgress.current) return;
+    
+    // Set flag to prevent multiple executions
+    dealerTurnInProgress.current = true;
+    
+    const dealerPlay = async () => {
+      // Flip dealer's hidden card
+      const revealedDealerCards = dealerCards.map(card => ({ ...card, faceUp: true }));
+      setDealerCards(revealedDealerCards);
+      
+      // Add a slight delay for animation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // Check if any player hands are still active (not busted)
+      const activeHandsExist = playerHands.some(hand => hand.status !== 'busted');
+      
+      // Only draw cards if there are active hands
+      if (activeHandsExist) {
+        let currentDealerCards = [...revealedDealerCards];
+        let dealerValue = calculateHandValue(currentDealerCards);
         
         // Dealer draws until 17 or higher
-        let dealerValue = calculateHandValue(currentDealerHand);
-        
-        // Add a slight delay for animation
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         while (dealerValue < 17) {
           const newCard = dealCard();
-          currentDealerHand = [...currentDealerHand, newCard];
-          setDealerHand(currentDealerHand);
+          currentDealerCards = [...currentDealerCards, newCard];
+          setDealerCards(currentDealerCards);
           
-          dealerValue = calculateHandValue(currentDealerHand);
+          dealerValue = calculateHandValue(currentDealerCards);
           
           // Add a slight delay for animation
           await new Promise(resolve => setTimeout(resolve, 500));
         }
-        
-        // Determine the winner
-        const playerValue = calculateHandValue(playerHand);
-        
-        if (dealerValue > 21) {
-          // Dealer busts
-          handleGameOver('win');
-        } else if (dealerValue > playerValue) {
-          // Dealer wins
-          handleGameOver('lose');
-        } else if (dealerValue < playerValue) {
-          // Player wins
-          handleGameOver('win');
-        } else {
-          // Push (tie)
-          handleGameOver('push');
-        }
-        
-        // Reset the flag when dealer's turn is complete
-        dealerTurnInProgress.current = false;
-      };
+      }
       
-      dealerPlay();
-    } else if (gameState !== 'dealerTurn') {
-      // Reset the flag when we exit dealer turn state
+      // Process final results
+      setGameState('gameOver');
+      processGameResults();
+      
+      // Reset the flag
       dealerTurnInProgress.current = false;
+    };
+    
+    dealerPlay();
+  }, [gameState, dealerCards, playerHands, dealCard, calculateHandValue, processGameResults]);
+  
+  // Reset the game
+  const resetGame = useCallback(() => {
+    setGameState('betting');
+    setDealerCards([]);
+    setPlayerHands([]);
+    setActiveHandIndex(0);
+    setTotalBet(0);
+    setTotalWinnings(0);
+    payoutProcessed.current = false;
+    dealerTurnInProgress.current = false;
+  }, []);
+  
+  // Handle custom bet input
+  const handleCustomBetInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers
+    if (/^\d*$/.test(value)) {
+      setCustomBetInput(value);
     }
-  }, [gameState, calculateHandValue, dealCard, handleGameOver]);
+  }, []);
+  
+  // Update number of hands
+  const incrementHands = useCallback(() => {
+    if (numberOfHands < 5) {
+      setNumberOfHands(numberOfHands + 1);
+    }
+  }, [numberOfHands]);
+  
+  const decrementHands = useCallback(() => {
+    if (numberOfHands > 1) {
+      setNumberOfHands(numberOfHands - 1);
+    }
+  }, [numberOfHands]);
   
   // Get card display value
   const getCardDisplayValue = useCallback((card: PlayingCard) => {
@@ -301,43 +604,13 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     return card.value.toString();
   }, []);
   
-  // Get suit color
-  const getSuitColor = useCallback((suit: 'hearts' | 'diamonds' | 'clubs' | 'spades') => {
-    return suit === 'hearts' || suit === 'diamonds' ? 'text-red-600' : 'text-black';
-  }, []);
-  
-  // Reset the game
-  const resetGame = useCallback(() => {
-    setGameState('betting');
-    setPlayerHand([]);
-    setDealerHand([]);
-    setResult(null);
-    
-    // Reset the payout processed flag
-    payoutProcessed.current = false;
-  }, []);
-  
-  // Increase bet amount
-  const increaseBet = useCallback(() => {
-    if (betAmount + 100 <= playerBalance) {
-      setBetAmount(betAmount + 100);
-    }
-  }, [betAmount, playerBalance]);
-  
-  // Decrease bet amount
-  const decreaseBet = useCallback(() => {
-    if (betAmount - 100 >= 100) {
-      setBetAmount(betAmount - 100);
-    }
-  }, [betAmount]);
-  
-  // Render a card - optimized with useCallback and enhanced styling
-  const renderCard = useCallback((card: PlayingCard, index: number) => {
+  // Render a card with enhanced styling
+  const renderCard = useCallback((card: PlayingCard, index: number, isActive: boolean = false) => {
     if (!card.faceUp) {
       return (
         <div 
-          key={index} 
-          className="relative w-[100px] h-[140px] bg-gradient-to-br from-blue-800 to-blue-900 rounded-lg shadow-xl m-2 transform hover:rotate-1 transition-transform duration-200"
+          key={card.id || index} 
+          className={`relative w-[100px] h-[140px] bg-gradient-to-br from-blue-800 to-blue-900 rounded-lg shadow-xl m-2 transform hover:rotate-1 transition-transform duration-200 ${isActive ? 'ring-2 ring-amber-400 ring-offset-2' : ''}`}
           style={{ 
             boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4)'
           }}
@@ -365,8 +638,8 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     
     return (
       <div 
-        key={index} 
-        className="relative w-[100px] h-[140px] bg-white rounded-lg shadow-xl m-2 transform hover:rotate-1 transition-transform duration-200 overflow-hidden"
+        key={card.id || index} 
+        className={`relative w-[100px] h-[140px] bg-white rounded-lg shadow-xl m-2 transform hover:rotate-1 transition-transform duration-200 overflow-hidden ${isActive ? 'ring-2 ring-amber-400 ring-offset-2' : ''}`}
         style={{ 
           boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2)'
         }}
@@ -413,28 +686,110 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     );
   }, [getCardDisplayValue]);
   
-  // Memoize dealer hand display
-  const dealerHandDisplay = useMemo(() => {
-    return dealerHand.map((card, index) => renderCard(card, index));
-  }, [dealerHand, renderCard]);
+  // Render hands
+  const renderPlayerHand = useCallback((hand: PlayerHand, index: number) => {
+    const isActive = index === activeHandIndex && gameState === 'playing';
+    const handValue = calculateHandValue(hand.cards);
+    
+    // Determine status indicator color and text
+    let statusColor = "bg-blue-600";
+    let statusText = `${handValue}`;
+    
+    if (hand.status === 'busted') {
+      statusColor = "bg-red-600";
+      statusText = "Bust";
+    } else if (hand.status === 'blackjack') {
+      statusColor = "bg-amber-500";
+      statusText = "Blackjack!";
+    } else if (hand.status === 'stood') {
+      statusColor = "bg-purple-600";
+      statusText = `${handValue} (Stood)`;
+    }
+    
+    // Show game results if game is over
+    if (gameState === 'gameOver') {
+      if (hand.result === 'win') {
+        statusColor = "bg-green-600";
+        statusText = `Win ${formatCurrency(hand.payout)}`;
+      } else if (hand.result === 'lose') {
+        statusColor = "bg-red-600";
+        statusText = `Lose ${formatCurrency(hand.bet)}`;
+      } else if (hand.result === 'push') {
+        statusColor = "bg-amber-500";
+        statusText = `Push (${formatCurrency(hand.bet)})`;
+      }
+    }
+    
+    return (
+      <div 
+        key={hand.id} 
+        className={`relative mb-8 p-3 rounded-lg ${isActive ? 'bg-blue-900/30 border border-amber-500/50' : 'bg-blue-900/10'}`}
+      >
+        <div className="flex items-center mb-2 justify-between">
+          <div className="flex items-center">
+            <span className="text-sm font-bold text-yellow-100 mr-1">Hand {index + 1}:</span>
+            <span className={`ml-1 px-2 py-0.5 rounded text-xs text-white ${statusColor}`}>
+              {statusText}
+            </span>
+          </div>
+          <div className="text-yellow-100 text-xs">
+            Bet: {formatCurrency(hand.bet)}
+          </div>
+        </div>
+        <div className="flex flex-wrap justify-center">
+          {hand.cards.map((card, cardIndex) => 
+            renderCard(card, cardIndex, isActive)
+          )}
+        </div>
+        
+        {/* Action buttons for active hand */}
+        {isActive && (
+          <div className="mt-4 flex justify-center gap-2">
+            <Button onClick={handleHit} className="bg-green-800 hover:bg-green-900 text-white">
+              Hit
+            </Button>
+            <Button onClick={handleStand} className="bg-purple-800 hover:bg-purple-900 text-white">
+              Stand
+            </Button>
+            {canDoubleDown(hand) && (
+              <Button 
+                onClick={handleDoubleDown} 
+                className="bg-amber-800 hover:bg-amber-900 text-white"
+                disabled={hand.bet > playerBalance}
+              >
+                <Maximize2 className="h-4 w-4 mr-1" />
+                Double
+              </Button>
+            )}
+            {canSplitHand(hand) && (
+              <Button 
+                onClick={handleSplit} 
+                className="bg-blue-800 hover:bg-blue-900 text-white"
+                disabled={hand.bet > playerBalance}
+              >
+                <SplitIcon className="h-4 w-4 mr-1" />
+                Split
+              </Button>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }, [
+    activeHandIndex, 
+    gameState, 
+    calculateHandValue, 
+    renderCard, 
+    handleHit, 
+    handleStand, 
+    handleDoubleDown,
+    handleSplit,
+    canDoubleDown,
+    canSplitHand,
+    playerBalance
+  ]);
   
-  // Memoize player hand display
-  const playerHandDisplay = useMemo(() => {
-    return playerHand.map((card, index) => renderCard(card, index));
-  }, [playerHand, renderCard]);
-  
-  // Memoize dealer hand value
-  const dealerHandValue = useMemo(() => {
-    return dealerHand.some(card => !card.faceUp) 
-      ? '?' 
-      : calculateHandValue(dealerHand);
-  }, [dealerHand, calculateHandValue]);
-  
-  // Memoize player hand value
-  const playerHandValue = useMemo(() => {
-    return calculateHandValue(playerHand);
-  }, [playerHand, calculateHandValue]);
-  
+  // Render UI
   return (
     <div className="flex flex-col">
       <div className="text-center mb-6">
@@ -443,7 +798,7 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       </div>
       
       {/* Main game table with dark blue felt background */}
-      <div className="relative bg-blue-900 border-8 border-amber-950/80 rounded-3xl shadow-2xl p-10 min-h-[400px] overflow-hidden">
+      <div className="relative bg-blue-900 border-8 border-amber-950/80 rounded-3xl shadow-2xl p-8 min-h-[400px] overflow-hidden">
         {/* Background texture and details */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1IiBoZWlnaHQ9IjUiPgo8cmVjdCB3aWR0aD0iNSIgaGVpZ2h0PSI1IiBmaWxsPSIjMWUzYThhIj48L3JlY3Q+CjxwYXRoIGQ9Ik0wIDVMNSAwWk02IDRMNCA2Wk0tMSAxTDEgLTFaIiBzdHJva2U9IiMxYzM0N2QiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8L3N2Zz4=')] opacity-40"></div>
         
@@ -463,140 +818,131 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
         {/* Golden table trim at the bottom */}
         <div className="absolute bottom-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-700 via-yellow-500 to-amber-700"></div>
         
-        {gameState === 'betting' ? (
-          <div className="relative z-10 flex flex-col items-center py-14">
-            <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center mb-8 shadow-xl border-4 border-amber-600">
-              <span className="text-amber-500 text-4xl font-bold font-mono">21</span>
-            </div>
-            
-            <h3 className="text-xl font-bold mb-6 text-yellow-100/80">Place Your Bet</h3>
-            
-            <div className="flex items-center mb-8">
-              <Button variant="outline" size="icon" onClick={decreaseBet} className="bg-black/30 border border-amber-600 hover:bg-black/50 text-amber-500">
-                <ChevronDown />
-              </Button>
-              <div className="mx-4 px-6 py-3 bg-black/40 border border-amber-600 rounded-md">
-                <div className="flex items-center text-2xl font-bold text-amber-400">
-                  <DollarSign className="h-5 w-5 mr-1" />
-                  <span>{betAmount}</span>
+        <div className="relative z-10">
+          {gameState === 'betting' ? (
+            <div className="flex flex-col items-center py-10">
+              <div className="w-24 h-24 rounded-full bg-black flex items-center justify-center mb-8 shadow-xl border-4 border-amber-600">
+                <span className="text-amber-500 text-4xl font-bold font-mono">21</span>
+              </div>
+              
+              <h3 className="text-xl font-bold mb-6 text-yellow-100/80">Place Your Bet</h3>
+              
+              {/* Custom bet input */}
+              <div className="flex items-center mb-4">
+                <div className="flex items-center">
+                  <span className="text-yellow-100 mr-2">Bet:</span>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-amber-400" />
+                    <Input
+                      type="text"
+                      value={customBetInput}
+                      onChange={handleCustomBetInput}
+                      className="pl-9 w-32 bg-black/30 border-amber-600 text-amber-400 focus:ring-amber-500"
+                    />
+                  </div>
                 </div>
               </div>
-              <Button variant="outline" size="icon" onClick={increaseBet} className="bg-black/30 border border-amber-600 hover:bg-black/50 text-amber-500">
-                <ChevronUp />
+              
+              {/* Number of hands selection */}
+              <div className="flex items-center mb-6">
+                <span className="text-yellow-100 mr-2">Hands:</span>
+                <Button variant="outline" size="icon" onClick={decrementHands} className="bg-black/30 border border-amber-600 hover:bg-black/50 text-amber-500">
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <div className="mx-2 px-4 py-2 bg-black/40 border border-amber-600 rounded-md min-w-[40px] text-center">
+                  <span className="text-lg font-bold text-amber-400">{numberOfHands}</span>
+                </div>
+                <Button variant="outline" size="icon" onClick={incrementHands} className="bg-black/30 border border-amber-600 hover:bg-black/50 text-amber-500">
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              {/* Total bet calculation */}
+              <div className="bg-black/20 rounded-md py-2 px-4 mb-6 border border-amber-700/30">
+                <div className="flex items-center">
+                  <span className="text-yellow-100 mr-2">Total Bet:</span>
+                  <span className="text-amber-400 font-bold">
+                    {formatCurrency(parseInt(customBetInput || '0', 10) * numberOfHands)}
+                  </span>
+                </div>
+              </div>
+              
+              {/* Betting chips illustration */}
+              <div className="flex mb-6">
+                <div className="w-12 h-12 rounded-full bg-green-600 border-2 border-white -mr-2 shadow-md flex items-center justify-center text-white font-bold">25</div>
+                <div className="w-12 h-12 rounded-full bg-red-600 border-2 border-white -mr-2 shadow-md flex items-center justify-center text-white font-bold">5</div>
+                <div className="w-12 h-12 rounded-full bg-blue-600 border-2 border-white shadow-md flex items-center justify-center text-white font-bold">10</div>
+              </div>
+              
+              <Button 
+                size="lg" 
+                onClick={startGame}
+                disabled={parseInt(customBetInput || '0', 10) * numberOfHands > playerBalance}
+                className="bg-amber-600 hover:bg-amber-700 text-white border-2 border-amber-300/30 shadow-lg px-8"
+              >
+                Deal Cards
               </Button>
             </div>
-            
-            {/* Betting chips illustration */}
-            <div className="flex mb-6">
-              <div className="w-12 h-12 rounded-full bg-green-600 border-2 border-white -mr-2 shadow-md flex items-center justify-center text-white font-bold">25</div>
-              <div className="w-12 h-12 rounded-full bg-red-600 border-2 border-white -mr-2 shadow-md flex items-center justify-center text-white font-bold">5</div>
-              <div className="w-12 h-12 rounded-full bg-blue-600 border-2 border-white shadow-md flex items-center justify-center text-white font-bold">10</div>
-            </div>
-            
-            <Button 
-              size="lg" 
-              onClick={startGame}
-              disabled={betAmount > playerBalance}
-              className="bg-amber-600 hover:bg-amber-700 text-white border-2 border-amber-300/30 shadow-lg px-8"
-            >
-              Deal Cards
-            </Button>
-          </div>
-        ) : (
-          <div className="relative z-10">
-            {/* Dealer's hand area */}
-            <div className="mb-10 pt-4">
-              <div className="flex items-center mb-2">
-                <h3 className="text-lg font-bold text-yellow-100">Dealer's Hand</h3>
-                <span className="ml-2 px-2 py-1 bg-black/30 border border-amber-700/40 rounded text-sm text-amber-300">
-                  {dealerHandValue}
-                </span>
+          ) : (
+            <div>
+              {/* Dealer's area */}
+              <div className="mb-8 pt-1">
+                <div className="flex items-center mb-2">
+                  <h3 className="text-lg font-bold text-yellow-100">Dealer's Hand</h3>
+                  <span className="ml-2 px-2 py-1 bg-black/30 border border-amber-700/40 rounded text-sm text-amber-300">
+                    {dealerCards.some(card => !card.faceUp) ? '?' : calculateHandValue(dealerCards)}
+                  </span>
+                </div>
+                <div className="flex flex-wrap justify-center">
+                  {dealerCards.map((card, index) => renderCard(card, index))}
+                </div>
               </div>
-              <div className="flex flex-wrap justify-center">
-                {dealerHandDisplay}
-              </div>
-            </div>
-            
-            {/* Player's hand area */}
-            <div className="mb-8">
-              <div className="flex items-center mb-2">
-                <h3 className="text-lg font-bold text-yellow-100">Your Hand</h3>
-                <span className="ml-2 px-2 py-1 bg-black/30 border border-amber-700/40 rounded text-sm text-amber-300">
-                  {playerHandValue}
-                </span>
-              </div>
-              <div className="flex flex-wrap justify-center">
-                {playerHandDisplay}
-              </div>
-            </div>
-            
-            {/* Game controls */}
-            <div className="flex justify-center gap-4 mt-8">
-              {gameState === 'playing' && (
-                <>
-                  <Button onClick={hit} className="bg-green-800 hover:bg-green-900 text-white border border-green-600/50 px-6">
-                    Hit
-                  </Button>
-                  <Button onClick={stand} className="bg-amber-800 hover:bg-amber-900 text-white border border-amber-600/50 px-6">
-                    Stand
-                  </Button>
-                </>
-              )}
               
+              {/* Divider */}
+              <div className="border-t border-amber-800/30 my-6"></div>
+              
+              {/* Player's hands area */}
+              <div className="mt-6">
+                {playerHands.map((hand, index) => renderPlayerHand(hand, index))}
+              </div>
+              
+              {/* Game Over controls and summary */}
               {gameState === 'gameOver' && (
-                <div className="text-center bg-black/20 p-4 rounded-xl border border-amber-700/30">
-                  <div className="mb-4">
-                    {result === 'win' && (
+                <div className="mt-6 p-4 rounded-xl border border-amber-700/30 bg-black/20">
+                  <div className="text-center mb-4">
+                    <h3 className="text-xl font-bold text-amber-400 mb-2">Game Results</h3>
+                    <div className="flex justify-center gap-4 text-sm">
                       <div>
-                        <div className="text-2xl font-bold text-amber-400">
-                          You win!
-                        </div>
-                        <div className="text-lg mt-1">
-                          <span className="text-yellow-100/70">Total return:</span>{' '}
-                          <span className="text-amber-400 font-bold">{formatCurrency(displayWinnings)}</span>
-                        </div>
+                        <span className="text-yellow-100/70">Total Bet:</span>
+                        <span className="text-yellow-400 font-bold ml-1">{formatCurrency(totalBet)}</span>
                       </div>
-                    )}
-                    {result === 'lose' && (
                       <div>
-                        <div className="text-2xl font-bold text-red-400">
-                          You lose!
-                        </div>
-                        <div className="text-lg mt-1">
-                          <span className="text-yellow-100/70">Lost:</span>{' '}
-                          <span className="text-red-400 font-bold">{formatCurrency(betAmount)}</span>
-                        </div>
+                        <span className="text-yellow-100/70">Net:</span>
+                        <span className={`font-bold ml-1 ${totalWinnings >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                          {totalWinnings >= 0 ? '+' : ''}{formatCurrency(totalWinnings)}
+                        </span>
                       </div>
-                    )}
-                    {result === 'push' && (
-                      <div>
-                        <div className="text-2xl font-bold text-yellow-400">
-                          Push!
-                        </div>
-                        <div className="text-lg mt-1">
-                          <span className="text-yellow-100/70">Returned:</span>{' '}
-                          <span className="text-yellow-400 font-bold">{formatCurrency(betAmount)}</span>
-                        </div>
-                      </div>
-                    )}
+                    </div>
                   </div>
                   
-                  <Button 
-                    onClick={resetGame} 
-                    className="bg-amber-600 hover:bg-amber-700 text-white border border-amber-500/50"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Play Again
-                  </Button>
+                  <div className="flex justify-center">
+                    <Button 
+                      onClick={resetGame} 
+                      className="bg-amber-600 hover:bg-amber-700 text-white border border-amber-500/50"
+                    >
+                      <RotateCcw className="h-4 w-4 mr-2" />
+                      Play Again
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       
       <div className="mt-4 text-sm text-amber-300/70 text-center italic">
-        <p>House Rules: Dealer stands on 17. Blackjack pays 3:2. No insurance or splitting.</p>
+        <p>House Rules: Dealer stands on 17. Blackjack pays 3:2. No insurance offered.</p>
       </div>
     </div>
   );
