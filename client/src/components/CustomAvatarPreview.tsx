@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { avatarAccessories, getAccessoryById } from '../lib/data/avatarAccessories';
@@ -14,24 +14,35 @@ interface CustomAvatarPreviewProps {
 function AvatarModel() {
   const characterState = useCharacter();
   const { selectedAccessories = {}, avatarSkinTone, avatarBodyType, avatarHeight } = characterState;
+  const [modelError, setModelError] = useState<boolean>(false);
   
-  // Create refs and load base model
-  const baseModel = useGLTF('/models/accessories/default_body.glb');
+  // Create refs and load base model - with try/catch for error handling
+  let baseModel: any = null;
+  try {
+    baseModel = useGLTF('/models/accessories/default_body.glb');
+  } catch (error) {
+    console.error("Error loading base model:", error);
+    if (!modelError) setModelError(true);
+  }
   
   // Handle skin tone as material color
   React.useEffect(() => {
-    if (baseModel && baseModel.scene) {
-      baseModel.scene.traverse((obj: any) => {
-        if (obj.isMesh && obj.material && obj.name.includes('body')) {
-          // Clone material to avoid affecting other instances
-          obj.material = obj.material.clone();
-          
-          // Apply skin tone if available
-          if (avatarSkinTone) {
-            obj.material.color = new THREE.Color(avatarSkinTone);
+    try {
+      if (baseModel && baseModel.scene) {
+        baseModel.scene.traverse((obj: any) => {
+          if (obj.isMesh && obj.material) {
+            // Clone material to avoid affecting other instances
+            obj.material = obj.material.clone();
+            
+            // Apply skin tone if available
+            if (avatarSkinTone) {
+              obj.material.color = new THREE.Color(avatarSkinTone);
+            }
           }
-        }
-      });
+        });
+      }
+    } catch (error) {
+      console.error("Error applying skin tone:", error);
     }
   }, [baseModel, avatarSkinTone]);
   
@@ -41,6 +52,15 @@ function AvatarModel() {
   
   // Apply height
   const heightFactor = avatarHeight || 1;
+  
+  if (modelError) {
+    return (
+      <mesh>
+        <boxGeometry args={[1, 2, 1]} />
+        <meshStandardMaterial color={avatarSkinTone || "#F5D0A9"} />
+      </mesh>
+    );
+  }
   
   return (
     <group>
@@ -72,16 +92,27 @@ function AccessoryModel({ modelPath, scale = 1 }: {
   modelPath: string;
   scale?: number | [number, number, number];
 }) {
-  const { scene } = useGLTF(modelPath);
+  const [modelError, setModelError] = useState(false);
+  const model = useGLTF(modelPath, 
+    undefined, 
+    (error) => {
+      console.error(`Error loading accessory model ${modelPath}:`, error);
+      setModelError(true);
+    }
+  );
   
   // Handle scale whether it's a single number or an array
   const scaleVector = Array.isArray(scale) 
     ? new THREE.Vector3(...scale)
     : new THREE.Vector3(scale, scale, scale);
   
+  if (modelError) {
+    return null; // Don't render anything if there's an error loading the model
+  }
+  
   return (
     <primitive 
-      object={scene.clone()} 
+      object={model.scene.clone()} 
       scale={scaleVector}
     />
   );
