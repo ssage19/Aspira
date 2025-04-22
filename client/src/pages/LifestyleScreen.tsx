@@ -5,7 +5,7 @@ import { Essentials } from '../components/Essentials';
 import { EnhancedLifestyleSelector } from '../components/EnhancedLifestyleSelector';
 import { EnhancedLifestyleManager } from '../components/EnhancedLifestyleManager';
 import { Button } from '../components/ui/button';
-import { ChevronLeft, Sparkles } from 'lucide-react';
+import { ChevronLeft, Sparkles, User, Shirt } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -26,15 +26,27 @@ export default function LifestyleScreen() {
         <GameUI />
         
         <div className="p-4 pt-20 max-w-5xl mx-auto">
-          <Button 
-            variant="outline" 
-            size="default"
-            onClick={() => navigate('/')}
-            className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm w-full sm:w-auto"
-          >
-            <ChevronLeft className="h-5 w-5 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <Button 
+              variant="outline" 
+              size="default"
+              onClick={() => navigate('/')}
+              className="bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm"
+            >
+              <ChevronLeft className="h-5 w-5 mr-2" />
+              Back to Dashboard
+            </Button>
+            
+            <Button 
+              variant="outline"
+              size="default"
+              onClick={() => navigate('/avatar')}
+              className="bg-indigo-500/10 hover:bg-indigo-500/20 border-indigo-500/20 text-indigo-500 shadow-sm"
+            >
+              <Shirt className="h-5 w-5 mr-2" />
+              Customize Avatar
+            </Button>
+          </div>
           
           <Tabs defaultValue="lifestyle" className="mb-8">
             <TabsList className="mb-4 flex flex-wrap gap-0.5">

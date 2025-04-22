@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { GLTF } from 'three-stdlib';
-import { ACCESSORY_MAPPINGS, AccessoryMapping, getExclusiveAccessories, findAccessoriesForLifestyleItem } from '../lib/data/avatarAccessories';
+import { ACCESSORY_MAPPINGS, AccessoryMapping, getAccessoriesForLifestyleItem, getAccessoriesForLifestyleType } from '../lib/data/avatarAccessories';
 
 // Define the types for our models
 type GLTFResult = GLTF & {
@@ -41,8 +41,15 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
     
     // Find accessories for each lifestyle item
     lifestyleItems.forEach(item => {
-      // Find accessories that match this lifestyle item
-      const accessoriesForItem = findAccessoriesForLifestyleItem(item.id, item.type);
+      // Find accessories that match this lifestyle item ID
+      const accessoriesForItemId = getAccessoriesForLifestyleItem(item.id);
+      
+      // Find accessories that match this lifestyle type
+      const accessoriesForItemType = typeof item.type === 'string' ? 
+        getAccessoriesForLifestyleType(item.type) : [];
+      
+      // Combine both sets
+      const accessoriesForItem = [...accessoriesForItemId, ...accessoriesForItemType];
       
       // Add to our list if we found any
       if (accessoriesForItem.length > 0) {
@@ -50,16 +57,22 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
       }
     });
     
-    // Handle exclusive accessories (only one per category)
-    const finalAccessories = getExclusiveAccessories(allMatchingAccessories);
-    
-    // Wealth-based filtering
-    const wealthFilteredAccessories = finalAccessories.filter(acc => 
-      !acc.minWealth || (acc.minWealth && wealth >= acc.minWealth)
+    // Remove duplicates (by ID)
+    const uniqueAccessories = Array.from(
+      new Map(allMatchingAccessories.map(item => [item.id, item])).values()
     );
     
-    setActiveAccessories(wealthFilteredAccessories);
-    console.log(`Avatar has ${wealthFilteredAccessories.length} accessories based on lifestyle choices`);
+    // Handle exclusive accessories (only one per category)
+    // Group by category and take the latest one
+    const categoryMap = new Map<string, AccessoryMapping>();
+    uniqueAccessories.forEach(accessory => {
+      categoryMap.set(accessory.category, accessory);
+    });
+    
+    const finalAccessories = Array.from(categoryMap.values());
+    
+    setActiveAccessories(finalAccessories);
+    console.log(`Avatar has ${finalAccessories.length} accessories based on lifestyle choices`);
   }, [lifestyleItems, wealth]);
   
   // Add subtle animation
@@ -123,16 +136,21 @@ function AccessoryModel({ path, position, rotation, scale }: {
   path: string;
   position: [number, number, number];
   rotation: [number, number, number];
-  scale: number;
+  scale: number | [number, number, number];
 }) {
   const { scene } = useGLTF(path) as unknown as GLTFResult;
+  
+  // Handle scale whether it's a single number or an array
+  const scaleVector = Array.isArray(scale) 
+    ? new THREE.Vector3(...scale)
+    : new THREE.Vector3(scale, scale, scale);
   
   return (
     <primitive 
       object={scene.clone()} 
       position={new THREE.Vector3(...position)}
       rotation={new THREE.Euler(...rotation)}
-      scale={[scale, scale, scale]}
+      scale={scaleVector}
     />
   );
 }

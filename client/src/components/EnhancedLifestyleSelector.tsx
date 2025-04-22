@@ -877,65 +877,64 @@ export function EnhancedLifestyleSelector() {
         
         {/* Lifestyle Choices */}
         <div className="lg:col-span-3">
-      
-      <Tabs value={activeTab} defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
-        <TabsList className="mb-6 flex flex-wrap gap-0.5">
-          <TabsTrigger value="owned" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
-            <span className="mr-1 flex-shrink-0">
-              {React.cloneElement(getCategoryIcon('owned'), { className: 'h-3 w-3' })}
-            </span>
-            <span className="whitespace-nowrap text-xs">My Choices</span>
-          </TabsTrigger>
-          <TabsTrigger value="wellness" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
-            <span className="mr-1 flex-shrink-0">
-              {React.cloneElement(getCategoryIcon('wellness'), { className: 'h-3 w-3' })}
-            </span>
-            <span className="whitespace-nowrap text-xs">Wellness</span>
-          </TabsTrigger>
-          <TabsTrigger value="social" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
-            <span className="mr-1 flex-shrink-0">
-              {React.cloneElement(getCategoryIcon('social'), { className: 'h-3 w-3' })}
-            </span>
-            <span className="whitespace-nowrap text-xs">Social</span>
-          </TabsTrigger>
-          <TabsTrigger value="habits" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
-            <span className="mr-1 flex-shrink-0">
-              {React.cloneElement(getCategoryIcon('habits'), { className: 'h-3 w-3' })}
-            </span>
-            <span className="whitespace-nowrap text-xs">Habits</span>
-          </TabsTrigger>
-          <TabsTrigger value="education" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
-            <span className="mr-1 flex-shrink-0">
-              {React.cloneElement(getCategoryIcon('education'), { className: 'h-3 w-3' })}
-            </span>
-            <span className="whitespace-nowrap text-xs">Education</span>
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="owned">
-          {renderOwnedItems()}
-        </TabsContent>
-        
-        <TabsContent value="wellness">
-          {renderLifestyleItems()}
-        </TabsContent>
-        
-        <TabsContent value="social">
-          {renderLifestyleItems()}
-        </TabsContent>
-        
-        <TabsContent value="habits">
-          {renderLifestyleItems()}
-        </TabsContent>
-        
-        <TabsContent value="education">
-          {renderLifestyleItems()}
-        </TabsContent>
-      </Tabs>
-      
-      {renderItemDetailsModal()}
+          <Tabs value={activeTab} defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
+            <TabsList className="mb-6 flex flex-wrap gap-0.5">
+              <TabsTrigger value="owned" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
+                <span className="mr-1 flex-shrink-0">
+                  {React.cloneElement(getCategoryIcon('owned'), { className: 'h-3 w-3' })}
+                </span>
+                <span className="whitespace-nowrap text-xs">My Choices</span>
+              </TabsTrigger>
+              <TabsTrigger value="wellness" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
+                <span className="mr-1 flex-shrink-0">
+                  {React.cloneElement(getCategoryIcon('wellness'), { className: 'h-3 w-3' })}
+                </span>
+                <span className="whitespace-nowrap text-xs">Wellness</span>
+              </TabsTrigger>
+              <TabsTrigger value="social" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
+                <span className="mr-1 flex-shrink-0">
+                  {React.cloneElement(getCategoryIcon('social'), { className: 'h-3 w-3' })}
+                </span>
+                <span className="whitespace-nowrap text-xs">Social</span>
+              </TabsTrigger>
+              <TabsTrigger value="habits" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
+                <span className="mr-1 flex-shrink-0">
+                  {React.cloneElement(getCategoryIcon('habits'), { className: 'h-3 w-3' })}
+                </span>
+                <span className="whitespace-nowrap text-xs">Habits</span>
+              </TabsTrigger>
+              <TabsTrigger value="education" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
+                <span className="mr-1 flex-shrink-0">
+                  {React.cloneElement(getCategoryIcon('education'), { className: 'h-3 w-3' })}
+                </span>
+                <span className="whitespace-nowrap text-xs">Education</span>
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="owned">
+              {renderOwnedItems()}
+            </TabsContent>
+            
+            <TabsContent value="wellness">
+              {renderLifestyleItems()}
+            </TabsContent>
+            
+            <TabsContent value="social">
+              {renderLifestyleItems()}
+            </TabsContent>
+            
+            <TabsContent value="habits">
+              {renderLifestyleItems()}
+            </TabsContent>
+            
+            <TabsContent value="education">
+              {renderLifestyleItems()}
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
+      
+      {renderItemDetailsModal()}
     </div>
   );
 }

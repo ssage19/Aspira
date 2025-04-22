@@ -1,106 +1,197 @@
-import * as THREE from 'three';
+/**
+ * Accessory mapping types for connecting lifestyle items to visual accessories
+ */
 
-// Define the types for accessory mapping
+export type AccessoryCategory = 'outfit' | 'headwear' | 'eyewear' | 'footwear' | 'accessory' | 'jewelry';
+
 export interface AccessoryMapping {
-  // ID of the accessory for reference
   id: string;
-  // Display name for the accessory
   name: string;
-  // Path to the 3D model
+  category: AccessoryCategory;
   modelPath: string;
-  // Type of lifestyle item this corresponds to
-  lifestyleType: string | string[];
-  // Specific lifestyle item IDs that trigger this accessory
-  lifestyleIds: string[];
-  // Minimum wealth required to unlock this accessory
-  minWealth?: number;
-  // Position offset for the accessory
+  lifestyleIds: string[]; // IDs of lifestyle items that grant this accessory
+  lifestyleType?: string | string[]; // Type(s) of lifestyle items that grant this accessory
+  scale?: [number, number, number];
   position?: [number, number, number];
-  // Rotation for the accessory
   rotation?: [number, number, number];
-  // Scale for the accessory (default 1)
-  scale?: number;
-  // Category for grouping accessories
-  category: 'clothing' | 'accessories' | 'physical' | 'status';
-  // Whether this accessory replaces others in the same category
-  exclusive?: boolean;
-  // Additional attributes affected by this accessory
-  attributes?: {
-    prestige?: number;
-    happiness?: number;
-    confidence?: number;
-  };
+  attachmentPoint?: string; // Which part of the base model to attach to
 }
 
-// Define mappings between lifestyle items and 3D accessories
+// Define the accessory mappings
 export const ACCESSORY_MAPPINGS: AccessoryMapping[] = [
+  // Outfits
   {
-    id: 'business-suit',
+    id: 'business_suit',
     name: 'Business Suit',
+    category: 'outfit',
     modelPath: '/models/accessories/business_suit.glb',
+    lifestyleIds: ['luxury_tailored_suit', 'luxury_designer_clothing'],
     lifestyleType: 'luxury',
-    lifestyleIds: ['designer-clothes', 'designer-wardrobe', 'luxury-clothing'],
+    scale: [1, 1, 1],
     position: [0, 0, 0],
-    rotation: [0, 0, 0],
-    scale: 1,
-    category: 'clothing',
-    exclusive: true,
-    attributes: {
-      prestige: 15,
-      confidence: 10
-    }
+    rotation: [0, 0, 0]
   },
   {
-    id: 'sports-outfit',
+    id: 'sports_outfit',
     name: 'Sports Outfit',
+    category: 'outfit',
     modelPath: '/models/accessories/sports_outfit.glb',
-    lifestyleType: ['wellness', 'fitness'],
-    lifestyleIds: ['gym-membership', 'personal-trainer', 'fitness-equipment'],
+    lifestyleIds: ['wellness_gym_membership', 'wellness_personal_trainer'],
+    lifestyleType: 'wellness',
+    scale: [1, 1, 1],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0]
+  },
+  {
+    id: 'casual_outfit',
+    name: 'Casual Outfit',
+    category: 'outfit',
+    modelPath: '/models/accessories/casual_outfit.glb',
+    lifestyleIds: [],
+    lifestyleType: ['habit', 'lifestyle'],
+    scale: [1, 1, 1],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0]
+  },
+  
+  // Headwear
+  {
+    id: 'luxury_hat',
+    name: 'Luxury Hat',
+    category: 'headwear',
+    modelPath: '/models/accessories/luxury_hat.glb',
+    lifestyleIds: ['luxury_designer_clothing', 'luxury_exclusive_club'],
+    lifestyleType: 'luxury',
+    scale: [1, 1, 1],
+    position: [0, 1.6, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'head'
+  },
+  {
+    id: 'sports_headband',
+    name: 'Sports Headband',
+    category: 'headwear',
+    modelPath: '/models/accessories/sports_headband.glb',
+    lifestyleIds: ['wellness_gym_membership', 'wellness_sports_equipment'],
+    lifestyleType: 'wellness',
+    scale: [1, 1, 1],
+    position: [0, 1.6, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'head'
+  },
+  
+  // Eyewear
+  {
+    id: 'designer_glasses',
+    name: 'Designer Glasses',
+    category: 'eyewear',
+    modelPath: '/models/accessories/designer_glasses.glb',
+    lifestyleIds: ['luxury_designer_accessories'],
+    lifestyleType: 'luxury',
+    scale: [1, 1, 1],
+    position: [0, 1.5, 0.1],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'head'
+  },
+  {
+    id: 'sports_sunglasses',
+    name: 'Sports Sunglasses',
+    category: 'eyewear',
+    modelPath: '/models/accessories/sports_sunglasses.glb',
+    lifestyleIds: ['wellness_sports_equipment', 'luxury_vacation_home'],
+    lifestyleType: ['wellness', 'vacation'],
+    scale: [1, 1, 1],
+    position: [0, 1.5, 0.1],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'head'
+  },
+  
+  // Footwear
+  {
+    id: 'luxury_shoes',
+    name: 'Luxury Shoes',
+    category: 'footwear',
+    modelPath: '/models/accessories/luxury_shoes.glb',
+    lifestyleIds: ['luxury_designer_footwear', 'luxury_designer_clothing'],
+    lifestyleType: 'luxury',
+    scale: [1, 1, 1],
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: 1,
-    category: 'clothing',
-    exclusive: true,
-    attributes: {
-      happiness: 10,
-      confidence: 5
-    }
+    attachmentPoint: 'feet'
+  },
+  {
+    id: 'running_shoes',
+    name: 'Running Shoes',
+    category: 'footwear',
+    modelPath: '/models/accessories/running_shoes.glb',
+    lifestyleIds: ['wellness_gym_membership', 'wellness_sports_equipment'],
+    lifestyleType: 'wellness',
+    scale: [1, 1, 1],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'feet'
+  },
+  
+  // Accessories
+  {
+    id: 'smartwatch',
+    name: 'Smartwatch',
+    category: 'accessory',
+    modelPath: '/models/accessories/smartwatch.glb',
+    lifestyleIds: ['wellness_fitness_tracker', 'tech_wearable_device'],
+    lifestyleType: ['wellness', 'tech'],
+    scale: [1, 1, 1],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'wrist_left'
+  },
+  {
+    id: 'luxury_watch',
+    name: 'Luxury Watch',
+    category: 'accessory',
+    modelPath: '/models/accessories/luxury_watch.glb',
+    lifestyleIds: ['luxury_designer_accessories', 'luxury_fine_watch'],
+    lifestyleType: 'luxury',
+    scale: [1, 1, 1],
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'wrist_left'
+  },
+  
+  // Jewelry
+  {
+    id: 'necklace',
+    name: 'Necklace',
+    category: 'jewelry',
+    modelPath: '/models/accessories/necklace.glb',
+    lifestyleIds: ['luxury_fine_jewelry'],
+    lifestyleType: 'luxury',
+    scale: [1, 1, 1],
+    position: [0, 1.2, 0],
+    rotation: [0, 0, 0],
+    attachmentPoint: 'neck'
   }
 ];
 
-// Helper function to find accessories for a given lifestyle item
-export function findAccessoriesForLifestyleItem(itemId: string, itemType: string): AccessoryMapping[] {
-  return ACCESSORY_MAPPINGS.filter(accessory => {
-    // Check if the item ID directly matches
-    if (accessory.lifestyleIds.includes(itemId)) {
-      return true;
-    }
-    
-    // Check if the item type matches
-    if (typeof accessory.lifestyleType === 'string') {
-      return accessory.lifestyleType === itemType;
-    } else if (Array.isArray(accessory.lifestyleType)) {
-      return accessory.lifestyleType.includes(itemType);
-    }
-    
-    return false;
-  });
+/**
+ * Get the accessory mappings for a specific lifestyle item
+ * @param lifestyleItemId - The ID of the lifestyle item
+ */
+export function getAccessoriesForLifestyleItem(lifestyleItemId: string): AccessoryMapping[] {
+  return ACCESSORY_MAPPINGS.filter(accessory => accessory.lifestyleIds.includes(lifestyleItemId));
 }
 
-// Helper function to get exclusive accessories per category
-export function getExclusiveAccessories(accessories: AccessoryMapping[]): AccessoryMapping[] {
-  const categoryMap: { [key: string]: AccessoryMapping } = {};
-  
-  // For each category, keep only the last exclusive accessory
-  accessories.forEach(accessory => {
-    if (accessory.exclusive) {
-      categoryMap[accessory.category] = accessory;
+/**
+ * Get the accessory mappings for a specific lifestyle type
+ * @param lifestyleType - The type of lifestyle
+ */
+export function getAccessoriesForLifestyleType(lifestyleType: string): AccessoryMapping[] {
+  return ACCESSORY_MAPPINGS.filter(accessory => {
+    if (typeof accessory.lifestyleType === 'string') {
+      return accessory.lifestyleType === lifestyleType;
+    } else if (Array.isArray(accessory.lifestyleType)) {
+      return accessory.lifestyleType.includes(lifestyleType);
     }
+    return false;
   });
-  
-  // Add all non-exclusive accessories
-  const nonExclusives = accessories.filter(acc => !acc.exclusive);
-  
-  // Combine the exclusive categories with non-exclusive accessories
-  return [...Object.values(categoryMap), ...nonExclusives];
 }
