@@ -13,6 +13,11 @@ const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 
 const BLACK_NUMBERS = [2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35];
 const ZERO = 0;
 
+// Standard European roulette wheel sequence (not sequential)
+const WHEEL_SEQUENCE = [
+  0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+];
+
 // Define all bet types
 type BetType = 'red' | 'black' | 'even' | 'odd' | 'low' | 'high' | 'dozen' | 'column' | 'number';
 
@@ -276,9 +281,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     setSpinning(true);
     
     // Animated wheel spinning effect
-    const spinTime = 3000; // 3 seconds
-    const intervalTime = 100; // 100ms between updates
+    const spinTime = 5000; // 5 seconds for more dramatic effect
+    const intervalTime = 50; // 50ms between updates for smoother animation
     const iterations = spinTime / intervalTime;
+    
+    // Sound effects would go here in a real implementation
+    console.log("Wheel spinning started");
     
     // For visual spinning effect through multiple numbers
     await new Promise(resolve => {
@@ -288,18 +296,38 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
           return;
         }
         
-        // Update with a random number for animation effect
-        setResult(Math.floor(Math.random() * 37));
+        // Update with a random number for animation effect during spin
+        if (iteration % 4 === 0) {
+          setResult(Math.floor(Math.random() * 37));
+        }
         
-        // Animate the wheel
+        // Animate the wheel - start fast, then slow down with easeOut
         if (wheelRef.current) {
-          const rotation = (iteration / iterations) * 1440; // 4 full rotations
+          // Acceleration curve - fast at first, then slower
+          const progress = iteration / iterations;
+          const easeOut = 1 - Math.pow(1 - progress, 3); // Cubic ease out for natural slowdown
+          
+          // Start with rapid rotation (10 spins) that gradually slows down
+          const rotation = easeOut * 3600; // 10 full rotations total
           wheelRef.current.style.transform = `rotate(${rotation}deg)`;
         }
         
-        // Animate the ball in the opposite direction but slower
+        // Animate the ball in the opposite direction but slower, with delay before settling
         if (ballRef.current) {
-          const ballRotation = -((iteration / iterations) * 1800); // 5 full rotations opposite
+          const progress = iteration / iterations;
+          // Ball moves opposite to wheel initially, then appears to settle as wheel slows
+          let ballRotation;
+          
+          if (progress < 0.7) {
+            // Ball spins freely in opposite direction at first
+            ballRotation = -((progress / 0.7) * 2520); // 7 full rotations opposite
+          } else {
+            // Ball starts to "catch" in a pocket as wheel slows
+            const settlingProgress = (progress - 0.7) / 0.3;
+            const settling = 1 - Math.pow(1 - settlingProgress, 5); // Stronger easing for settling
+            ballRotation = -2520 + (settling * 2520); // Ball gradually stops spinning
+          }
+          
           ballRef.current.style.transform = `rotate(${ballRotation}deg)`;
         }
         
@@ -316,26 +344,37 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     setResult(finalResult);
     setLastResults(prev => [finalResult, ...prev].slice(0, 10));
     
-    // Set a final rotation position for the wheel based on the result
+    console.log(`Final result: ${finalResult}`);
+    
+    // Calculate final wheel position to align the winning number at the top
     if (wheelRef.current) {
-      // Map the result to a wheel position (0-36 maps to 0-360 degrees plus some random offset)
-      const finalPosition = (finalResult * 9.73) + 1440 + (Math.random() * 5); // 4 rotations plus position
-      wheelRef.current.style.transition = 'transform 1s ease-out';
+      // Each number takes up 360/37 ≈ 9.73 degrees
+      // We want to position the winning number at the top (12 o'clock position)
+      // Compute a final position where finalResult is at the top
+      const numberPositionOffset = finalResult * (360 / 37);
+      const finalPosition = 3600 + numberPositionOffset; // 10 rotations + position
+      
+      wheelRef.current.style.transition = 'transform 2s cubic-bezier(0.1, 0.7, 0.1, 1)'; // Custom easing for realistic stop
       wheelRef.current.style.transform = `rotate(${finalPosition}deg)`;
+      
+      // Sound effect for ball settling would go here
     }
     
     // Ball lands in the result pocket
     if (ballRef.current) {
-      ballRef.current.style.transition = 'transform 1s ease-out';
+      // Position the ball in the winning pocket at the top
+      ballRef.current.style.transition = 'transform 2s cubic-bezier(0.1, 0.7, 0.1, 1)';
       ballRef.current.style.transform = 'rotate(0deg)';
     }
     
-    // Slight delay before processing results
+    // Slight delay before processing results to allow animation to complete
     setTimeout(() => {
       setSpinning(false);
       spinInProgress.current = false;
       processResults(finalResult);
-    }, 1000);
+      
+      // Sound effect for win/loss would go here
+    }, 2000);
   }, [activeBets, playerBalance, processResults, totalBet]);
   
   // Start a new game
@@ -401,37 +440,72 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
           {/* Left section - Wheel and active bets */}
           <div className="flex flex-col items-center">
             {/* Physical roulette wheel display */}
-            <div className="relative w-64 h-64 mb-6">
+            <div className="relative w-72 h-72 mb-6">
               {/* Wooden wheel base */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-700 to-amber-900 border-8 border-amber-950/60 shadow-inner"></div>
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-8 border-amber-950/80 shadow-xl"></div>
               
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-2 rounded-full bg-gradient-to-br from-green-700 to-green-900 border-4 border-amber-700/40 shadow-inner flex items-center justify-center transition-transform duration-[3s] ease-out"
+                className="absolute inset-4 rounded-full bg-gradient-to-br from-amber-700 to-amber-900 border-4 border-amber-950/60 shadow-inner flex items-center justify-center transition-transform duration-[3s] ease-out"
                 style={{ willChange: 'transform' }}
               >
-                {/* Wheel center */}
-                <div className="absolute w-12 h-12 rounded-full bg-amber-800 z-10 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-full bg-amber-600"></div>
+                {/* Wheel pocket markers */}
+                {WHEEL_SEQUENCE.map((number, i) => {
+                  const angle = (i / WHEEL_SEQUENCE.length) * 360;
+                  const isRed = RED_NUMBERS.includes(number);
+                  const slotWidth = 24; // Slightly wider pockets
+                  
+                  return (
+                    <div 
+                      key={`pocket-${i}`} 
+                      className="absolute" 
+                      style={{
+                        width: `${slotWidth}px`,
+                        height: '42px',
+                        background: number === 0 ? '#0a8f0a' : RED_NUMBERS.includes(number) ? '#c71212' : '#000',
+                        transform: `rotate(${angle}deg) translateY(-96px)`,
+                        transformOrigin: 'center bottom',
+                        zIndex: 5,
+                        borderLeft: '1px solid rgba(255,255,255,0.1)',
+                        borderRight: '1px solid rgba(0,0,0,0.3)',
+                      }}
+                    >
+                      <div className="w-full h-full flex items-center justify-center text-white font-bold text-xs">
+                        {number}
+                      </div>
+                    </div>
+                  );
+                })}
+                
+                {/* Wheel center with golden spinner */}
+                <div className="absolute w-24 h-24 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 z-10 flex items-center justify-center shadow-md">
+                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                    {/* Wheel spinner arms */}
+                    <div className="absolute w-1 h-12 bg-yellow-200 rounded-full"></div>
+                    <div className="absolute w-12 h-1 bg-yellow-200 rounded-full"></div>
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 shadow-inner"></div>
+                  </div>
                 </div>
                 
                 {/* Ball track around the wheel */}
-                <div className="absolute inset-0 rounded-full border-8 border-amber-800/40"></div>
+                <div className="absolute inset-0 rounded-full border-8 border-amber-800/60"></div>
                 
                 {/* Ball */}
                 <div ref={ballRef} className="absolute" style={{ willChange: 'transform' }}>
-                  <div className="absolute w-4 h-4 rounded-full bg-white shadow-lg" style={{ 
+                  <div className="absolute w-4 h-4 rounded-full bg-gray-100 shadow-lg" style={{ 
                     left: 'calc(50% - 8px)', 
                     top: '10px',
-                    transformOrigin: '8px 110px'
+                    transformOrigin: '8px 122px'
                   }}></div>
                 </div>
                 
-                {/* Result display in the center */}
+                {/* Result display on the bottom */}
                 {result !== null && (
-                  <div className={`absolute inset-0 flex items-center justify-center z-20 text-4xl font-bold ${getNumberColor(result)}`}>
-                    {result}
+                  <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center z-20 p-1 bg-black/40 backdrop-blur-sm rounded-b-full">
+                    <div className={`text-2xl font-bold ${result === 0 ? 'text-green-400' : RED_NUMBERS.includes(result) ? 'text-red-400' : 'text-white'}`}>
+                      {result}
+                    </div>
                   </div>
                 )}
               </div>
