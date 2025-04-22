@@ -320,8 +320,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     // We want the winning number to end at the top (270 degrees)
     const targetAngle = 270 - resultAngle;
     
-    // Increase spin duration back to 3 seconds
-    const spinDuration = 3000;
+    // Set spin duration to 10 seconds as requested
+    const spinDuration = 10000;
     
     // Reset wheel and ball positions
     if (wheelRef.current) {
@@ -361,9 +361,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     // ---- WHEEL ANIMATION ----
     if (wheelRef.current) {
-      // Add one full rotation (360 degrees) to the target position
-      // This makes the spin shorter but still shows a complete rotation
-      const finalPosition = 360 + targetAngle;
+      // For a 10 second spin, add multiple full rotations (4) to the target position
+      // This makes the spin look more realistic with the wheel doing several rotations
+      const finalPosition = (4 * 360) + targetAngle; // 4 full rotations + target angle
       
       // Apply the spin with a cubic-bezier for natural slowing down
       wheelRef.current.style.transition = `transform ${spinDuration}ms cubic-bezier(0.2, 0.8, 0.3, 1)`;
@@ -375,28 +375,36 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       // Instead of using CSS transitions, use the Web Animations API
       // This gives much more control over the animation keyframes
       
-      // Create a more elaborate animation for the ball
-      // The ball should spin around multiple times before landing
+      // Create a much more elaborate 10-second animation for the ball
+      // The ball should spin around many more times to match the longer duration
       ballRef.current.animate([
         // Start at a random position
         { transform: 'rotate(0deg)' },
         
-        // First, make multiple spins quickly with irregular speed to look more realistic
-        { transform: 'rotate(1080deg)', offset: 0.2 }, // 3 full rotations quickly
-        { transform: 'rotate(1800deg)', offset: 0.4 }, // 5 full rotations at different speed
+        // First phase: Very fast spinning (first 3 seconds - 30%)
+        { transform: 'rotate(1800deg)', offset: 0.1 }, // 5 rotations
+        { transform: 'rotate(3600deg)', offset: 0.2 }, // 10 rotations
+        { transform: 'rotate(5040deg)', offset: 0.3 }, // 14 rotations
         
-        // Start slowing down with some wobble
-        { transform: 'rotate(2160deg)', offset: 0.6 }, // 6 full rotations
+        // Second phase: Starts slowing down but still fast (next 3 seconds - 30%)
+        { transform: 'rotate(6120deg)', offset: 0.4 }, // 17 rotations
+        { transform: 'rotate(6840deg)', offset: 0.5 }, // 19 rotations
+        { transform: 'rotate(7200deg)', offset: 0.6 }, // 20 rotations
         
-        // Final approach with subtle bounces to simulate ball movement
-        { transform: 'rotate(2280deg)', offset: 0.75 },
-        { transform: 'rotate(2340deg)', offset: 0.85 },
-        { transform: 'rotate(2360deg)', offset: 0.9 },
-        { transform: 'rotate(2368deg)', offset: 0.95 },
+        // Third phase: Noticeably slowing (next 2 seconds - 20%)
+        { transform: 'rotate(7380deg)', offset: 0.7 }, // 20.5 rotations
+        { transform: 'rotate(7488deg)', offset: 0.8 }, // 20.8 rotations
         
-        // End with the ball aligned perfectly at 270 degrees + multiple full rotations
-        // This positions the ball at the top of the wheel where we display the result
-        { transform: 'rotate(2430deg)' } // 6.75 full rotations to end at top (270 deg)
+        // Final phase: Ball starts bouncing between pockets (last 2 seconds - 20%)
+        { transform: 'rotate(7524deg)', offset: 0.85 }, // Bouncing
+        { transform: 'rotate(7542deg)', offset: 0.9 }, // Smaller bounces
+        { transform: 'rotate(7551deg)', offset: 0.93 }, // Final small bounces
+        { transform: 'rotate(7556deg)', offset: 0.96 }, // Settling in
+        { transform: 'rotate(7558deg)', offset: 0.98 }, // Almost stopped
+        
+        // End exactly at the correct position (7560 + 270 degrees = 21 full rotations plus 270 degrees)
+        // This positions the ball at the top of the wheel (270 degrees) where we display the result
+        { transform: 'rotate(7830deg)' } // 21.75 rotations to end at top (270 deg)
       ], {
         duration: spinDuration,
         easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)', // Match the wheel's easing function
@@ -525,7 +533,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-3000 ease-out"
+                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-[10000ms] ease-out"
                 style={{ willChange: 'transform' }}
               >
                 {/* Number pocket ring */}
