@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Button } from '../ui/button';
 import { DollarSign, RotateCcw, Play } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
@@ -89,16 +89,29 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     setSpinning(true);
     
-    // Animated spinning effect
-    const spinTime = 3000; // 3 seconds
-    const intervalTime = 100; // 100ms between updates
+    // More efficient animated spinning effect
+    const spinTime = 2000; // 2 seconds (reduced from 3)
+    const intervalTime = 200; // 200ms between updates (increased from 100ms)
     const iterations = spinTime / intervalTime;
     
-    for (let i = 0; i < iterations; i++) {
-      await new Promise(resolve => setTimeout(resolve, intervalTime));
-      // Update with a random number each time for animation effect
-      setResult(Math.floor(Math.random() * 37));
-    }
+    // Use a single timeout instead of many small ones
+    await new Promise(resolve => {
+      const animateSpinning = (iteration = 0) => {
+        if (iteration >= iterations) {
+          resolve(true);
+          return;
+        }
+        
+        // Update with a random number for animation effect
+        setResult(Math.floor(Math.random() * 37));
+        
+        // Schedule next animation frame
+        setTimeout(() => animateSpinning(iteration + 1), intervalTime);
+      };
+      
+      // Start animation
+      animateSpinning();
+    });
     
     // Final result
     const finalResult = Math.floor(Math.random() * 37);
@@ -276,53 +289,62 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
             </div>
           )}
           
-          {/* Basic bet options */}
+          {/* Basic bet options - Optimized with useMemo */}
           <div className="grid grid-cols-2 gap-2 mb-4">
-            {betOptions.map((bet, index) => (
-              <Button 
-                key={index}
-                onClick={() => handleSelectBet(bet)}
-                className={`${bet.color} ${bet.hoverColor} text-white ${
-                  selectedBet?.type === bet.type && selectedBet?.label === bet.label ? 
-                  'ring-2 ring-yellow-500' : ''
-                }`}
-              >
-                {bet.label}
-              </Button>
-            ))}
+            {useMemo(() => (
+              betOptions.map((bet, index) => (
+                <Button 
+                  key={index}
+                  onClick={() => handleSelectBet(bet)}
+                  className={`${bet.color} ${bet.hoverColor} text-white ${
+                    selectedBet?.type === bet.type && selectedBet?.label === bet.label ? 
+                    'ring-2 ring-yellow-500' : ''
+                  }`}
+                >
+                  {bet.label}
+                </Button>
+              ))
+            ), [selectedBet?.type, selectedBet?.label])}
           </div>
           
           {/* Number selections */}
           <div>
             <h4 className="text-sm font-bold mb-2">Single Numbers (Pays 35:1)</h4>
             <div className="grid grid-cols-3 gap-1">
-              {/* Zero */}
-              <Button 
-                onClick={() => handleSelectBet(numberBetOptions[0])}
-                className={`bg-green-600 hover:bg-green-700 text-white ${
-                  selectedBet?.type === 'number' && selectedBet?.value === 0 ? 
-                  'ring-2 ring-yellow-500' : ''
-                }`}
-              >
-                0
-              </Button>
+              {/* Zero - Optimized with useMemo */}
+              {useMemo(() => (
+                <Button 
+                  onClick={() => handleSelectBet(numberBetOptions[0])}
+                  className={`bg-green-600 hover:bg-green-700 text-white ${
+                    selectedBet?.type === 'number' && selectedBet?.value === 0 ? 
+                    'ring-2 ring-yellow-500' : ''
+                  }`}
+                >
+                  0
+                </Button>
+              ), [selectedBet?.type, selectedBet?.value])}
               
-              {/* Grid of numbers 1-36 */}
+              {/* Grid of numbers 1-36 - Optimized to reduce re-renders */}
               <div className="col-span-2 grid grid-cols-6 gap-1">
-                {Array.from({ length: 36 }, (_, i) => i + 1).map(num => (
-                  <Button 
-                    key={num}
-                    size="sm"
-                    onClick={() => handleSelectBet(numberBetOptions[num])}
-                    className={`${RED_NUMBERS.includes(num) ? 'bg-red-600 hover:bg-red-700' : 'bg-black hover:bg-gray-800'} 
-                      text-white p-0 h-8 ${
-                      selectedBet?.type === 'number' && selectedBet?.value === num ? 
-                      'ring-2 ring-yellow-500' : ''
-                    }`}
-                  >
-                    {num}
-                  </Button>
-                ))}
+                {useMemo(() => (
+                  Array.from({ length: 36 }, (_, i) => {
+                    const num = i + 1;
+                    return (
+                      <Button 
+                        key={num}
+                        size="sm"
+                        onClick={() => handleSelectBet(numberBetOptions[num])}
+                        className={`${RED_NUMBERS.includes(num) ? 'bg-red-600 hover:bg-red-700' : 'bg-black hover:bg-gray-800'} 
+                          text-white p-0 h-8 ${
+                          selectedBet?.type === 'number' && selectedBet?.value === num ? 
+                          'ring-2 ring-yellow-500' : ''
+                        }`}
+                      >
+                        {num}
+                      </Button>
+                    );
+                  })
+                ), [selectedBet?.type, selectedBet?.value])}
               </div>
             </div>
           </div>
