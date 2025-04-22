@@ -129,12 +129,8 @@ export function ReadyPlayerMeAvatar({ onBack }: ReadyPlayerMeAvatarProps) {
         <CardContent className="space-y-4">
           {avatarUrl ? (
             <div className="space-y-4">
-              <div className="aspect-square w-full max-w-md mx-auto bg-gray-100 rounded-lg flex items-center justify-center overflow-hidden">
-                <img 
-                  src={avatarUrl} 
-                  alt="Your Ready Player Me Avatar" 
-                  className="w-full h-full object-cover"
-                />
+              <div className="aspect-square w-full max-w-md mx-auto bg-gray-100 rounded-lg overflow-hidden">
+                <AvatarPreview url={avatarUrl} className="w-full h-full" />
               </div>
               <div className="flex justify-center space-x-3">
                 <Button onClick={openReadyPlayerMe}>
