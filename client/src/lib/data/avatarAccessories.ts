@@ -1,162 +1,171 @@
 import { LifestyleItem } from '../stores/useCharacter';
 
-// Define types for our avatar system
+// Define accessory types
 export type AvatarAccessoryType = 
-  | 'hair' 
-  | 'eyewear' 
-  | 'facialHair'
+  | 'hair'
   | 'outfit'
+  | 'eyewear'
   | 'accessory'
-  | 'hat'
-  | 'skin'
   | 'body';
 
-// Base avatar properties
-export interface BaseAvatarConfig {
-  skinTone: string; // hex color
-  bodyType: 'slim' | 'average' | 'athletic';
-  height: number; // 0-1 scale
-  eyeColor: string; // hex color
-}
-
-// Mapping between lifestyle items and avatar accessories
+// Interface for avatar accessories
 export interface AvatarAccessoryMapping {
   id: string;
   name: string;
   type: AvatarAccessoryType;
-  modelPath: string; // Path to the 3D model or texture
-  lifestyleItemId?: string; // Optional ID of the lifestyle item it's associated with
-  thumbnail?: string; // Optional thumbnail image
-  defaultSelected?: boolean; // If this should be selected by default
-  exclusive?: boolean; // If this is exclusive with other items of the same type
+  modelPath: string;
+  lifestyleItemId?: string; // Optional ID of the lifestyle item that unlocks this accessory
+  lifestyleItemType?: string; // Optional type of lifestyle item that unlocks this
+  defaultUnlocked?: boolean; // Is this accessory available by default?
+  prestigeRequired?: number; // Optional prestige requirement
 }
 
-// Create a base configuration
-export const defaultAvatarConfig: BaseAvatarConfig = {
-  skinTone: '#F5D0A9', // Default skin tone
-  bodyType: 'average',
-  height: 0.5,
-  eyeColor: '#6B8E23', // Default eye color
-};
-
-// Array of available avatar accessories
+// List of all avatar accessories
 export const avatarAccessories: AvatarAccessoryMapping[] = [
-  // Basic body types - always available
+  // Body types (always available)
   {
-    id: 'body-default',
+    id: 'body_default',
     name: 'Default Body',
     type: 'body',
-    modelPath: '/models/avatars/body_default.glb',
-    defaultSelected: true,
+    modelPath: '/models/accessories/default_body.glb',
+    defaultUnlocked: true
   },
   
-  // Basic hairstyles - always available
+  // Hair styles
   {
-    id: 'hair-short',
-    name: 'Short Hair',
+    id: 'hair_default',
+    name: 'Default Hair',
     type: 'hair',
-    modelPath: '/models/avatars/hair_short.glb',
-    defaultSelected: true,
+    modelPath: '/models/accessories/default_hair.glb',
+    defaultUnlocked: true
   },
   {
-    id: 'hair-long',
-    name: 'Long Hair',
+    id: 'hair_fancy',
+    name: 'Fancy Hair',
     type: 'hair',
-    modelPath: '/models/avatars/hair_long.glb'
+    modelPath: '/models/accessories/fancy_hair.glb',
+    lifestyleItemType: 'luxury',
+    prestigeRequired: 20
   },
   {
-    id: 'hair-bald',
-    name: 'Bald',
+    id: 'hair_professional',
+    name: 'Professional Hair',
     type: 'hair',
-    modelPath: '/models/avatars/hair_bald.glb'
+    modelPath: '/models/accessories/professional_hair.glb',
+    lifestyleItemId: 'lifestyle_salon_membership'
   },
   
-  // Outfits - linked to lifestyle items
+  // Outfits
   {
-    id: 'outfit-casual',
+    id: 'outfit_default',
     name: 'Casual Outfit',
     type: 'outfit',
-    modelPath: '/models/avatars/outfit_casual.glb',
-    defaultSelected: true,
+    modelPath: '/models/accessories/casual_outfit.glb',
+    defaultUnlocked: true
   },
   {
-    id: 'outfit-business',
+    id: 'outfit_business',
     name: 'Business Suit',
     type: 'outfit',
-    modelPath: '/models/avatars/outfit_business.glb',
-    lifestyleItemId: 'business-suit',
+    modelPath: '/models/accessories/business_suit.glb',
+    lifestyleItemType: 'luxury'
   },
   {
-    id: 'outfit-sports',
+    id: 'outfit_sports',
     name: 'Sports Outfit',
     type: 'outfit',
-    modelPath: '/models/avatars/outfit_sports.glb',
-    lifestyleItemId: 'premium-gym-membership',
+    modelPath: '/models/accessories/sports_outfit.glb',
+    lifestyleItemType: 'wellness'
   },
   {
-    id: 'outfit-yoga',
-    name: 'Yoga Outfit',
+    id: 'outfit_luxury',
+    name: 'Designer Clothes',
     type: 'outfit',
-    modelPath: '/models/avatars/outfit_yoga.glb',
-    lifestyleItemId: 'yoga-classes',
+    modelPath: '/models/accessories/designer_clothes.glb',
+    lifestyleItemType: 'luxury',
+    prestigeRequired: 50
   },
   
-  // Accessories - linked to lifestyle items
+  // Eyewear
   {
-    id: 'accessory-watch',
-    name: 'Luxury Watch',
-    type: 'accessory',
-    modelPath: '/models/avatars/accessory_watch.glb',
-    lifestyleItemId: 'luxury-watch',
-  },
-  {
-    id: 'accessory-necklace',
-    name: 'Designer Necklace',
-    type: 'accessory',
-    modelPath: '/models/avatars/accessory_necklace.glb',
-    lifestyleItemId: 'designer-jewelry',
-  },
-  
-  // Eyewear - linked to lifestyle items
-  {
-    id: 'eyewear-glasses',
-    name: 'Designer Glasses',
+    id: 'eyewear_glasses',
+    name: 'Reading Glasses',
     type: 'eyewear',
-    modelPath: '/models/avatars/eyewear_glasses.glb',
-    lifestyleItemId: 'designer-eyewear',
+    modelPath: '/models/accessories/reading_glasses.glb',
+    lifestyleItemType: 'education'
   },
   {
-    id: 'eyewear-sunglasses',
+    id: 'eyewear_sunglasses',
     name: 'Luxury Sunglasses',
     type: 'eyewear',
-    modelPath: '/models/avatars/eyewear_sunglasses.glb',
-    lifestyleItemId: 'luxury-sunglasses',
+    modelPath: '/models/accessories/luxury_sunglasses.glb',
+    lifestyleItemType: 'luxury',
+    prestigeRequired: 30
   },
+  
+  // Other accessories
+  {
+    id: 'accessory_watch',
+    name: 'Luxury Watch',
+    type: 'accessory',
+    modelPath: '/models/accessories/luxury_watch.glb',
+    lifestyleItemType: 'luxury',
+    prestigeRequired: 40
+  },
+  {
+    id: 'accessory_headphones',
+    name: 'Premium Headphones',
+    type: 'accessory',
+    modelPath: '/models/accessories/premium_headphones.glb',
+    lifestyleItemId: 'lifestyle_music_streaming'
+  }
 ];
 
-// Function to get avatar accessories available based on owned lifestyle items
-export function getAvailableAccessories(ownedLifestyleItems: LifestyleItem[]): AvatarAccessoryMapping[] {
-  // Get all default accessories (those without a lifestyleItemId or with defaultSelected)
-  const defaultAccessories = avatarAccessories.filter(
-    accessory => !accessory.lifestyleItemId || accessory.defaultSelected
-  );
-  
-  // Get all accessories linked to owned lifestyle items
-  const ownedItemIds = ownedLifestyleItems.map(item => item.id);
-  const unlockedAccessories = avatarAccessories.filter(
-    accessory => accessory.lifestyleItemId && ownedItemIds.includes(accessory.lifestyleItemId)
-  );
-  
-  // Combine and return all available accessories
-  return [...defaultAccessories, ...unlockedAccessories];
+/**
+ * Get all accessories of a specific type
+ */
+export function getAccessoriesByType(type: AvatarAccessoryType): AvatarAccessoryMapping[] {
+  return avatarAccessories.filter(accessory => accessory.type === type);
 }
 
-// Function to get a specific accessory by ID
+/**
+ * Get an accessory by its ID
+ */
 export function getAccessoryById(id: string): AvatarAccessoryMapping | undefined {
   return avatarAccessories.find(accessory => accessory.id === id);
 }
 
-// Function to get all accessories of a specific type
-export function getAccessoriesByType(type: AvatarAccessoryType): AvatarAccessoryMapping[] {
-  return avatarAccessories.filter(accessory => accessory.type === type);
+/**
+ * Get all accessories that are available based on the player's owned lifestyle items
+ */
+export function getAvailableAccessories(lifestyleItems: LifestyleItem[]): AvatarAccessoryMapping[] {
+  // Default unlocked accessories are always available
+  const defaultAccessories = avatarAccessories.filter(accessory => accessory.defaultUnlocked);
+  
+  // Accessories unlocked by lifestyle items
+  const unlockedByLifestyle: AvatarAccessoryMapping[] = [];
+  
+  // Check each accessory against the player's lifestyle items
+  lifestyleItems.forEach(item => {
+    // Find accessories unlocked by this specific item ID
+    const byItemId = avatarAccessories.filter(
+      accessory => accessory.lifestyleItemId === item.id
+    );
+    
+    // Find accessories unlocked by this item type
+    const byItemType = avatarAccessories.filter(
+      accessory => accessory.lifestyleItemType === item.type
+    );
+    
+    // Add all matches to our collection
+    unlockedByLifestyle.push(...byItemId, ...byItemType);
+  });
+  
+  // Combine default and unlocked accessories, removing duplicates
+  const allAccessories = [...defaultAccessories, ...unlockedByLifestyle];
+  const uniqueAccessories = Array.from(
+    new Map(allAccessories.map(item => [item.id, item])).values()
+  );
+  
+  return uniqueAccessories;
 }

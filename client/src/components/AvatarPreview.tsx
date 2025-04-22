@@ -32,7 +32,7 @@ export function AvatarPreview({ url, className = "" }: AvatarPreviewProps) {
   if (error) {
     return (
       <div className={`flex flex-col items-center justify-center p-4 bg-muted/50 ${className}`}>
-        <Cube3d className="h-12 w-12 text-destructive" />
+        <div className="h-12 w-12 text-destructive">⚠️</div>
         <p className="mt-2 text-sm text-destructive">Error loading avatar</p>
       </div>
     );

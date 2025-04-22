@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { GLTF } from 'three-stdlib';
-import { ACCESSORY_MAPPINGS, AccessoryMapping, getAccessoriesForLifestyleItem, getAccessoriesForLifestyleType } from '../lib/data/avatarAccessories';
+import { avatarAccessories, AvatarAccessoryMapping, getAvailableAccessories, getAccessoriesByType } from '../lib/data/avatarAccessories';
 
 // Define the types for our models
 type GLTFResult = GLTF & {
@@ -20,7 +20,7 @@ type GLTFResult = GLTF & {
 export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
   const characterRef = useRef<THREE.Group>(null);
   const { wealth, lifestyleItems } = useCharacter();
-  const [activeAccessories, setActiveAccessories] = useState<AccessoryMapping[]>([]);
+  const [activeAccessories, setActiveAccessories] = useState<AvatarAccessoryMapping[]>([]);
   
   // Load the base character model
   const { scene: characterScene, animations } = useGLTF('/models/base_avatar.glb') as unknown as GLTFResult;
@@ -36,43 +36,20 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
       return;
     }
     
-    // All matching accessories
-    let allMatchingAccessories: AccessoryMapping[] = [];
+    // Get all available accessories based on owned lifestyle items
+    const availableAccessories = getAvailableAccessories(lifestyleItems);
     
-    // Find accessories for each lifestyle item
-    lifestyleItems.forEach(item => {
-      // Find accessories that match this lifestyle item ID
-      const accessoriesForItemId = getAccessoriesForLifestyleItem(item.id);
-      
-      // Find accessories that match this lifestyle type
-      const accessoriesForItemType: AccessoryMapping[] = typeof item.type === 'string' ? 
-        getAccessoriesForLifestyleType(item.type) : [];
-      
-      // Combine both sets
-      const accessoriesForItem = [...accessoriesForItemId, ...accessoriesForItemType];
-      
-      // Add to our list if we found any
-      if (accessoriesForItem.length > 0) {
-        allMatchingAccessories = [...allMatchingAccessories, ...accessoriesForItem];
-      }
-    });
+    // Get all currently selected accessories from character state
+    const { selectedAccessories } = useCharacter.getState();
     
-    // Remove duplicates (by ID)
-    const uniqueAccessories = Array.from(
-      new Map(allMatchingAccessories.map(item => [item.id, item])).values()
+    // Filter to only selected accessories that are available
+    const selectedAccessoryIds = selectedAccessories ? Object.values(selectedAccessories) : [];
+    const activeAccessoryItems = availableAccessories.filter(
+      accessory => selectedAccessoryIds.includes(accessory.id)
     );
     
-    // Handle exclusive accessories (only one per category)
-    // Group by category and take the latest one
-    const categoryMap = new Map<string, AccessoryMapping>();
-    uniqueAccessories.forEach(accessory => {
-      categoryMap.set(accessory.category, accessory);
-    });
-    
-    const finalAccessories = Array.from(categoryMap.values());
-    
-    setActiveAccessories(finalAccessories);
-    console.log(`Avatar has ${finalAccessories.length} accessories based on lifestyle choices`);
+    setActiveAccessories(activeAccessoryItems);
+    console.log(`Avatar has ${activeAccessoryItems.length} accessories based on selections and lifestyle items`);
   }, [lifestyleItems, wealth]);
   
   // Add subtle animation
@@ -122,9 +99,6 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
         <AccessoryModel 
           key={index}
           path={accessory.modelPath}
-          position={accessory.position || [0, 0, 0]}
-          rotation={accessory.rotation || [0, 0, 0]}
-          scale={accessory.scale || 1}
         />
       ))}
     </group>
@@ -132,11 +106,11 @@ export function EnhancedCharacter({ position = [0, 0, 0], scale = 1 }) {
 }
 
 // Component to load and render an accessory model
-function AccessoryModel({ path, position, rotation, scale }: {
+function AccessoryModel({ path, position = [0, 0, 0], rotation = [0, 0, 0], scale = 1 }: {
   path: string;
-  position: [number, number, number];
-  rotation: [number, number, number];
-  scale: number | [number, number, number];
+  position?: [number, number, number];
+  rotation?: [number, number, number];
+  scale?: number | [number, number, number];
 }) {
   const { scene } = useGLTF(path) as unknown as GLTFResult;
   
