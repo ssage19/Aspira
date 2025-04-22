@@ -280,101 +280,207 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     setSpinning(true);
     
-    // Animated wheel spinning effect
-    const spinTime = 5000; // 5 seconds for more dramatic effect
-    const intervalTime = 50; // 50ms between updates for smoother animation
+    // Animated wheel spinning effect - more realistic physics
+    const spinTime = 7000; // 7 seconds for more dramatic effect
+    const intervalTime = 16; // ~60fps for smoother animation
     const iterations = spinTime / intervalTime;
     
-    // Sound effects would go here in a real implementation
     console.log("Wheel spinning started");
+    
+    // Prepare the wheel for animation
+    if (wheelRef.current) {
+      wheelRef.current.style.transition = 'none';
+    }
+    
+    if (ballRef.current) {
+      ballRef.current.style.transition = 'none';
+    }
+    
+    // Generate the final result at the start (but don't show it yet)
+    const finalResult = Math.floor(Math.random() * 37);
+    console.log(`Generated result: ${finalResult}`);
+    
+    // Find the position of the result in the wheel sequence
+    const resultIndex = WHEEL_SEQUENCE.indexOf(finalResult);
+    if (resultIndex === -1) {
+      console.error(`Result ${finalResult} not found in wheel sequence`);
+    }
+    
+    // Hide the result during spinning
+    setResult(null);
     
     // For visual spinning effect through multiple numbers
     await new Promise(resolve => {
-      const animateSpinning = (iteration = 0) => {
-        if (iteration >= iterations) {
-          resolve(true);
-          return;
-        }
+      // Wheel physics values
+      const initialWheelSpeed = 2; // Revolutions per second
+      const deceleration = 0.2; // How quickly wheel slows down
+      let wheelPosition = 0; // Current rotation in degrees
+      let wheelVelocity = initialWheelSpeed * 360; // Initial degrees per second
+      
+      // Ball physics values
+      const initialBallSpeed = 3; // Revolutions per second in opposite direction
+      const ballDeceleration = 0.3; // Ball slows down faster than wheel
+      const ballJitter = 0.2; // Random ball movement factor
+      let ballPosition = 180; // Start on opposite side
+      let ballVelocity = initialBallSpeed * 360; // Initial degrees per second
+      let ballFreeFalling = true; // Ball is initially free-falling
+      let lastTime = performance.now();
+      
+      // Calculate the final landing position in advance
+      // The ball should land in the pocket corresponding to the result
+      const targetAngle = (resultIndex * (360 / WHEEL_SEQUENCE.length));
+      
+      const animateSpinning = (time = performance.now()) => {
+        // Calculate time elapsed since last frame
+        const elapsed = (time - lastTime) / 1000; // seconds
+        lastTime = time;
         
-        // Update with a random number for animation effect during spin
-        if (iteration % 4 === 0) {
-          setResult(Math.floor(Math.random() * 37));
-        }
+        // Update wheel position based on velocity and elapsed time
+        wheelPosition += wheelVelocity * elapsed;
+        // Apply deceleration
+        wheelVelocity = Math.max(0, wheelVelocity - (deceleration * wheelVelocity * elapsed));
         
-        // Animate the wheel - start fast, then slow down with easeOut
+        // Update wheel display
         if (wheelRef.current) {
-          // Acceleration curve - fast at first, then slower
-          const progress = iteration / iterations;
-          const easeOut = 1 - Math.pow(1 - progress, 3); // Cubic ease out for natural slowdown
-          
-          // Start with rapid rotation (10 spins) that gradually slows down
-          const rotation = easeOut * 3600; // 10 full rotations total
-          wheelRef.current.style.transform = `rotate(${rotation}deg)`;
+          wheelRef.current.style.transform = `rotate(${wheelPosition}deg)`;
         }
         
-        // Animate the ball in the opposite direction but slower, with delay before settling
-        if (ballRef.current) {
-          const progress = iteration / iterations;
-          // Ball moves opposite to wheel initially, then appears to settle as wheel slows
-          let ballRotation;
-          
-          if (progress < 0.7) {
-            // Ball spins freely in opposite direction at first
-            ballRotation = -((progress / 0.7) * 2520); // 7 full rotations opposite
-          } else {
-            // Ball starts to "catch" in a pocket as wheel slows
-            const settlingProgress = (progress - 0.7) / 0.3;
-            const settling = 1 - Math.pow(1 - settlingProgress, 5); // Stronger easing for settling
-            ballRotation = -2520 + (settling * 2520); // Ball gradually stops spinning
+        // Show a flashing number during the fast spinning phase
+        if (wheelVelocity > 200) {
+          // Only change every few frames for readability
+          if (Math.random() > 0.7) {
+            setResult(Math.floor(Math.random() * 37));
           }
-          
-          ballRef.current.style.transform = `rotate(${ballRotation}deg)`;
         }
         
-        // Schedule next animation frame
-        setTimeout(() => animateSpinning(iteration + 1), intervalTime);
+        // Ball animation
+        if (ballRef.current) {
+          // Ball initially spins opposite to the wheel
+          if (ballFreeFalling) {
+            // Update ball position based on velocity and elapsed time
+            ballPosition -= ballVelocity * elapsed;
+            
+            // Add some jitter/wobble to the ball movement during free fall
+            const jitter = Math.sin(time / 100) * ballJitter * Math.min(1, ballVelocity / 100);
+            
+            // Apply deceleration to ball
+            ballVelocity = Math.max(0, ballVelocity - (ballDeceleration * ballVelocity * elapsed));
+            
+            // When ball slows down enough, it should "fall" into the wheel and match wheel speed
+            if (ballVelocity < wheelVelocity * 0.8) {
+              ballFreeFalling = false;
+              console.log("Ball landing on the wheel");
+            }
+            
+            // Ball rotation with jitter
+            ballRef.current.style.transform = `rotate(${ballPosition + jitter * 10}deg)`;
+          } else {
+            // Once the ball falls on the wheel, it moves with the wheel but gradually
+            // adjusts to align with the final result
+            
+            // Calculate the current normalized position of the wheel
+            const normalizedWheelPos = wheelPosition % 360;
+            
+            // When the wheel is slowing down and almost stopped
+            if (wheelVelocity < 50) {
+              // Gradually adjust ball position to match the final result
+              // Calculate how close we are to stopping (0 = still moving, 1 = stopped)
+              const stoppingFactor = 1 - (wheelVelocity / 50);
+              
+              // Calculate current wheel position normalized to match pocket positions
+              const currentWheelPocket = normalizedWheelPos / (360 / WHEEL_SEQUENCE.length);
+              
+              // Ball should gradually move to align with targetAngle
+              // We want to have the ball rotate to align with the target angle when the wheel stops
+              const ballAdjustment = stoppingFactor * (targetAngle - ballPosition);
+              
+              // Apply adjustment to ball position
+              ballPosition += ballAdjustment * 0.1;
+              
+              // Set temporary result for visual feedback
+              if (stoppingFactor > 0.5) {
+                const tempIndex = Math.floor(currentWheelPocket) % WHEEL_SEQUENCE.length;
+                const tempResult = WHEEL_SEQUENCE[tempIndex >= 0 ? tempIndex : WHEEL_SEQUENCE.length + tempIndex];
+                setResult(tempResult);
+              }
+            } else {
+              // Ball rotates with wheel but with some slight deviation
+              ballPosition = normalizedWheelPos + 180 + (Math.sin(time / 300) * 10);
+            }
+            
+            // Apply the ball position
+            ballRef.current.style.transform = `rotate(${ballPosition}deg)`;
+          }
+        }
+        
+        // Continue animation until wheel almost stops
+        if (wheelVelocity > 0.5) {
+          requestAnimationFrame(animateSpinning);
+        } else {
+          // Animation complete - resolve to continue game flow
+          resolve(true);
+        }
       };
       
-      // Start animation
-      animateSpinning();
+      // Start animation using requestAnimationFrame for smoother performance
+      requestAnimationFrame(animateSpinning);
     });
     
-    // Final result
-    const finalResult = Math.floor(Math.random() * 37);
+    // Set final result and add to history
     setResult(finalResult);
     setLastResults(prev => [finalResult, ...prev].slice(0, 10));
     
-    console.log(`Final result: ${finalResult}`);
+    console.log(`Final result: ${finalResult} (index ${resultIndex})`);
     
-    // Calculate final wheel position to align the winning number at the top
+    // Calculate exact final wheel position to align the winning number
     if (wheelRef.current) {
-      // Each number takes up 360/37 ≈ 9.73 degrees
-      // We want to position the winning number at the top (12 o'clock position)
-      // Compute a final position where finalResult is at the top
-      const numberPositionOffset = finalResult * (360 / 37);
-      const finalPosition = 3600 + numberPositionOffset; // 10 rotations + position
+      // Find the exact angle needed to position the winning number correctly
+      // The angle per pocket in a 37-number wheel
+      const anglePerPocket = 360 / WHEEL_SEQUENCE.length;
       
-      wheelRef.current.style.transition = 'transform 2s cubic-bezier(0.1, 0.7, 0.1, 1)'; // Custom easing for realistic stop
+      // Calculate the angle for the result pocket
+      const resultAngle = resultIndex * anglePerPocket;
+      
+      // Final position should be a multiple of 360 plus the result angle
+      // We first normalize the current position to 0-360
+      const currentPos = parseFloat(wheelRef.current.style.transform.replace('rotate(', '').replace('deg)', '')) || 0;
+      const currentNormalized = currentPos % 360;
+      
+      // Calculate how much we need to rotate to reach the desired position
+      // We want the result number to be at the top (270 degrees in CSS rotation)
+      const targetPos = 270 - resultAngle;
+      
+      // Calculate the shortest path to the target
+      let adjustment = targetPos - currentNormalized;
+      
+      // Ensure we always rotate forward by adding 360 if needed
+      if (adjustment < 0) {
+        adjustment += 360;
+      }
+      
+      // Add a full rotation for a smoother finish
+      const finalPosition = currentPos + adjustment + 360;
+      
+      console.log(`Positioning wheel at ${finalPosition.toFixed(2)}deg for number ${finalResult}`);
+      
+      // Apply final position with a smooth transition
+      wheelRef.current.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.3, 1)';
       wheelRef.current.style.transform = `rotate(${finalPosition}deg)`;
-      
-      // Sound effect for ball settling would go here
     }
     
-    // Ball lands in the result pocket
+    // Position the ball in the final winning pocket
     if (ballRef.current) {
-      // Position the ball in the winning pocket at the top
-      ballRef.current.style.transition = 'transform 2s cubic-bezier(0.1, 0.7, 0.1, 1)';
-      ballRef.current.style.transform = 'rotate(0deg)';
+      // The ball needs to be positioned at the top (270 degrees)
+      ballRef.current.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.3, 1)';
+      ballRef.current.style.transform = 'rotate(270deg)';
     }
     
-    // Slight delay before processing results to allow animation to complete
+    // Process results after the animations complete
     setTimeout(() => {
       setSpinning(false);
       spinInProgress.current = false;
       processResults(finalResult);
-      
-      // Sound effect for win/loss would go here
-    }, 2000);
+    }, 3200);
   }, [activeBets, playerBalance, processResults, totalBet]);
   
   // Start a new game
@@ -440,75 +546,119 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
           {/* Left section - Wheel and active bets */}
           <div className="flex flex-col items-center">
             {/* Physical roulette wheel display */}
-            <div className="relative w-72 h-72 mb-6">
+            <div className="relative w-80 h-80 mb-6 mx-auto">
               {/* Wooden wheel base */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-8 border-amber-950/80 shadow-xl"></div>
+              
+              {/* Outer decorative ring */}
+              <div className="absolute inset-[10px] rounded-full border-4 border-amber-700/70 bg-gradient-to-br from-amber-700/20 to-amber-950/20"></div>
               
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-4 rounded-full bg-gradient-to-br from-amber-700 to-amber-900 border-4 border-amber-950/60 shadow-inner flex items-center justify-center transition-transform duration-[3s] ease-out"
+                className="absolute inset-[24px] rounded-full bg-amber-800 border-4 border-amber-950/40 shadow-inner flex items-center justify-center transition-transform duration-[3s] ease-out"
                 style={{ willChange: 'transform' }}
               >
-                {/* Wheel pocket markers */}
-                {WHEEL_SEQUENCE.map((number, i) => {
-                  const angle = (i / WHEEL_SEQUENCE.length) * 360;
-                  const isRed = RED_NUMBERS.includes(number);
-                  const slotWidth = 24; // Slightly wider pockets
-                  
-                  return (
-                    <div 
-                      key={`pocket-${i}`} 
-                      className="absolute" 
-                      style={{
-                        width: `${slotWidth}px`,
-                        height: '42px',
-                        background: number === 0 ? '#0a8f0a' : RED_NUMBERS.includes(number) ? '#c71212' : '#000',
-                        transform: `rotate(${angle}deg) translateY(-96px)`,
-                        transformOrigin: 'center bottom',
-                        zIndex: 5,
-                        borderLeft: '1px solid rgba(255,255,255,0.1)',
-                        borderRight: '1px solid rgba(0,0,0,0.3)',
-                      }}
-                    >
-                      <div className="w-full h-full flex items-center justify-center text-white font-bold text-xs">
-                        {number}
-                      </div>
-                    </div>
-                  );
-                })}
+                {/* Background surface for the wheel */}
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-700 to-amber-900"></div>
                 
-                {/* Wheel center with golden spinner */}
-                <div className="absolute w-24 h-24 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 z-10 flex items-center justify-center shadow-md">
-                  <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
-                    {/* Wheel spinner arms */}
-                    <div className="absolute w-1 h-12 bg-yellow-200 rounded-full"></div>
-                    <div className="absolute w-12 h-1 bg-yellow-200 rounded-full"></div>
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-amber-600 shadow-inner"></div>
+                {/* Wheel pocket markers in a circle */}
+                <div className="absolute inset-0">
+                  {WHEEL_SEQUENCE.map((number, i) => {
+                    const angle = (i / WHEEL_SEQUENCE.length) * 360;
+                    const isRed = RED_NUMBERS.includes(number);
+                    // Calculate the inner and outer radius of the pocket segment
+                    const innerRadius = 28; // Distance from center to inner edge
+                    const outerRadius = 115; // Distance from center to outer edge
+                    
+                    return (
+                      <div 
+                        key={`pocket-${i}`} 
+                        className="absolute top-1/2 left-1/2 origin-center"
+                        style={{
+                          width: `${outerRadius * 2}px`,
+                          height: `${outerRadius * 2}px`,
+                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
+                        }}
+                      >
+                        {/* Pocket segment */}
+                        <div 
+                          style={{
+                            position: 'absolute',
+                            width: `${outerRadius - innerRadius}px`,
+                            height: `${2 * Math.PI * outerRadius / WHEEL_SEQUENCE.length}px`,
+                            top: '0px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            backgroundColor: number === 0 ? '#0a8f0a' : isRed ? '#c71212' : '#000',
+                            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+                            borderLeft: '1px solid rgba(255,255,255,0.1)',
+                            borderRight: '1px solid rgba(0,0,0,0.3)',
+                            zIndex: 5,
+                          }}
+                        >
+                          {/* Number label */}
+                          <div 
+                            className="absolute text-white font-bold text-xs"
+                            style={{
+                              top: '7px',
+                              left: '50%',
+                              transform: 'translateX(-50%) rotate(180deg)',
+                              textShadow: '0px 0px 2px rgba(0,0,0,0.7)',
+                            }}
+                          >
+                            {number}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Central circle of the wheel */}
+                <div className="absolute w-[110px] h-[110px] rounded-full bg-gradient-to-br from-amber-600 to-amber-800 z-10 flex items-center justify-center shadow-md">
+                  <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
+                    {/* Wheel spinner cross */}
+                    <div className="absolute w-1.5 h-16 bg-yellow-200 rounded-full"></div>
+                    <div className="absolute w-16 h-1.5 bg-yellow-200 rounded-full"></div>
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 shadow-inner"></div>
                   </div>
                 </div>
                 
                 {/* Ball track around the wheel */}
-                <div className="absolute inset-0 rounded-full border-8 border-amber-800/60"></div>
+                <div className="absolute inset-[-10px] rounded-full border-4 border-amber-800/60 z-20"></div>
                 
-                {/* Ball */}
-                <div ref={ballRef} className="absolute" style={{ willChange: 'transform' }}>
-                  <div className="absolute w-4 h-4 rounded-full bg-gray-100 shadow-lg" style={{ 
-                    left: 'calc(50% - 8px)', 
-                    top: '10px',
-                    transformOrigin: '8px 122px'
-                  }}></div>
+                {/* Ball - a small white sphere that moves around the wheel */}
+                <div ref={ballRef} className="absolute z-30" style={{ willChange: 'transform' }}>
+                  <div 
+                    className="w-4 h-4 rounded-full bg-gray-100 shadow-xl" 
+                    style={{ 
+                      position: 'absolute',
+                      left: 'calc(50% - 8px)', 
+                      top: '-115px', // Position at the outer edge of the wheel
+                      transformOrigin: '8px 115px', // Pivot from the center of the wheel
+                      boxShadow: '0 0 5px 2px rgba(255,255,255,0.5)',
+                    }}
+                  ></div>
                 </div>
-                
-                {/* Result display on the bottom */}
-                {result !== null && (
-                  <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center z-20 p-1 bg-black/40 backdrop-blur-sm rounded-b-full">
-                    <div className={`text-2xl font-bold ${result === 0 ? 'text-green-400' : RED_NUMBERS.includes(result) ? 'text-red-400' : 'text-white'}`}>
-                      {result}
-                    </div>
-                  </div>
-                )}
               </div>
+              
+              {/* Static ball track outer ring */}
+              <div className="absolute inset-[16px] rounded-full border-2 border-amber-700/50"></div>
+              
+              {/* Result display under the wheel */}
+              {result !== null && (
+                <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-center">
+                  <div className={`
+                    text-2xl font-bold px-4 py-1 rounded-full 
+                    ${result === 0 ? 'bg-green-600 text-white' : 
+                      RED_NUMBERS.includes(result) ? 'bg-red-600 text-white' : 
+                      'bg-black text-white'}`
+                  }>
+                    {result}
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Previous results */}
