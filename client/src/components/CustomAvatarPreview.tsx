@@ -15,7 +15,7 @@ function DebugCube() {
   }, []);
   
   return (
-    <mesh position={[0, 0, 0]}>
+    <mesh position={[-1.5, -1, 0]} scale={[0.3, 0.3, 0.3]}>
       <boxGeometry args={[1, 1, 1]} />
       <meshStandardMaterial color="red" />
     </mesh>
@@ -48,37 +48,37 @@ function SimpleAvatar() {
   }, [skinColor]);
   
   return (
-    // Main group
-    <group name="avatarGroup">
+    // Main group - scale down to 0.7 to fit in view
+    <group name="avatarGroup" scale={[0.7, 0.7, 0.7]}>
       {/* Head */}
-      <mesh position={[0, 0.5, 0]}>
-        <sphereGeometry args={[0.3, 16, 16]} />
+      <mesh position={[0, 0.4, 0]}>
+        <sphereGeometry args={[0.25, 16, 16]} />
         <meshStandardMaterial color={skinColor} />
       </mesh>
       
       {/* Body */}
       <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[0.5, 0.7, 0.3]} />
+        <boxGeometry args={[0.4, 0.5, 0.25]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Arms */}
-      <mesh position={[-0.3, 0, 0]}>
-        <boxGeometry args={[0.1, 0.5, 0.1]} />
+      <mesh position={[-0.25, 0, 0]}>
+        <boxGeometry args={[0.1, 0.4, 0.1]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
-      <mesh position={[0.3, 0, 0]}>
-        <boxGeometry args={[0.1, 0.5, 0.1]} />
+      <mesh position={[0.25, 0, 0]}>
+        <boxGeometry args={[0.1, 0.4, 0.1]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Legs */}
-      <mesh position={[-0.15, -0.6, 0]}>
-        <boxGeometry args={[0.15, 0.5, 0.15]} />
+      <mesh position={[-0.12, -0.4, 0]}>
+        <boxGeometry args={[0.12, 0.4, 0.12]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
-      <mesh position={[0.15, -0.6, 0]}>
-        <boxGeometry args={[0.15, 0.5, 0.15]} />
+      <mesh position={[0.12, -0.4, 0]}>
+        <boxGeometry args={[0.12, 0.4, 0.12]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
     </group>
@@ -131,8 +131,8 @@ export default function CustomAvatarPreview({
             <SimpleAvatar />
           </Suspense>
           
-          {/* Camera */}
-          <PerspectiveCamera makeDefault position={[0, 0, 3]} />
+          {/* Camera - moved further back, wider FOV, and raised up slightly to show full avatar */}
+          <PerspectiveCamera makeDefault position={[0, 0.2, 5]} fov={50} />
           
           {/* Controls */}
           <OrbitControls 
