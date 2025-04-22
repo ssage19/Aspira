@@ -525,7 +525,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
             <div className="grid grid-cols-2 gap-4 w-full">
               <Button 
                 size="lg" 
-                onClick={spinWheel}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log("Spinning wheel");
+                  spinWheel();
+                }}
                 disabled={spinning || activeBets.length === 0 || totalBet > playerBalance}
                 className="bg-amber-600 hover:bg-amber-700 text-white"
               >
@@ -535,7 +539,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               
               <Button 
                 size="lg" 
-                onClick={result !== null ? startNewGame : resetBets}
+                onClick={(e) => {
+                  e.preventDefault();
+                  console.log(result !== null ? "Starting new game" : "Clearing bets");
+                  result !== null ? startNewGame() : resetBets();
+                }}
                 disabled={spinning}
                 variant="outline"
                 className="border-amber-600 text-amber-500 hover:bg-amber-900/30"
@@ -625,7 +633,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 <div className="flex">
                   <Button
                     className="w-full h-12 bg-green-700 hover:bg-green-600 text-white rounded-none border border-amber-900/30"
-                    onClick={() => addBet(numberBetOptions[0])}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log("Placing bet on 0");
+                      addBet(numberBetOptions[0]);
+                    }}
                     disabled={spinning}
                   >
                     0
@@ -640,7 +652,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                         <Button
                           key={number}
                           className={`w-full h-12 ${RED_NUMBERS.includes(number) ? 'bg-red-700 hover:bg-red-600' : 'bg-zinc-900 hover:bg-zinc-800'} text-white rounded-none border border-amber-900/30`}
-                          onClick={() => addBet(numberBetOptions[number])}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log(`Placing bet on number ${number}`);
+                            addBet(numberBetOptions[number]);
+                          }}
                           disabled={spinning}
                         >
                           {number}
@@ -657,7 +673,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     <Button
                       key={`dozen-${index}`}
                       className="h-10 bg-purple-900 hover:bg-purple-800 text-white rounded-none border border-amber-900/30"
-                      onClick={() => addBet(bet)}
+                      onClick={(e) => {
+                        e.preventDefault(); 
+                        console.log(`Placing bet on ${bet.label}`);
+                        addBet(bet);
+                      }}
                       disabled={spinning}
                     >
                       {bet.label}
