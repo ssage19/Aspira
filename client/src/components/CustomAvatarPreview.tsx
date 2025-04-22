@@ -1,86 +1,87 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
+import { OrthographicCamera } from '@react-three/drei';
+import * as THREE from 'three';
 
 interface CustomAvatarPreviewProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   showPlaceholder?: boolean;
 }
 
-// Simple debug cube to ensure rendering is working
-function DebugCube() {
-  useEffect(() => {
-    console.log("Debug cube rendered");
-  }, []);
-  
-  return (
-    <mesh position={[-1.5, -1, 0]} scale={[0.3, 0.3, 0.3]}>
-      <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial color="red" />
-    </mesh>
-  );
-}
-
 // Very simple avatar model with basic shapes
 function SimpleAvatar() {
+  // Get a ref to the group for animation
+  const groupRef = useRef<THREE.Group>(null);
+  
+  // Get character state for colors
   const character = useCharacter();
   const skinColor = character.avatarSkinTone || "#F5D0A9";
-  const outfitType = character.selectedAccessories?.outfit || "";
+  const hairColor = character.selectedAccessories?.hair === 'hair_fancy' 
+    ? "#6B4226" : "#3B2E1F"; // Default brown hair
   
-  // Very basic outfit color based on type
+  // Simple outfit color selection based on type
+  const outfitType = character.selectedAccessories?.outfit || "";
   const outfitColor = 
     outfitType === 'outfit_business' ? "#303030" : 
     outfitType === 'outfit_sports' ? "#4267B2" : 
     outfitType === 'outfit_luxury' ? "#A36B2C" : 
-    "#5591AF"; // default/casual
+    "#5591AF"; // Default casual outfit
   
-  // Add rotation animation
-  useFrame((state) => {
-    const group = state.scene.getObjectByName("avatarGroup");
-    if (group) {
-      group.rotation.y += 0.01;
+  // Simple rotation animation
+  useFrame(() => {
+    if (groupRef.current) {
+      groupRef.current.rotation.y += 0.01;
     }
   });
   
-  useEffect(() => {
-    console.log("Avatar model is rendering with skin color:", skinColor);
-  }, [skinColor]);
-  
   return (
-    // Main group - scale down to 0.7 to fit in view
-    <group name="avatarGroup" scale={[0.7, 0.7, 0.7]}>
+    <group ref={groupRef}>
       {/* Head */}
-      <mesh position={[0, 0.4, 0]}>
-        <sphereGeometry args={[0.25, 16, 16]} />
+      <mesh position={[0, 0.6, 0]}>
+        <sphereGeometry args={[0.4, 16, 16]} />
         <meshStandardMaterial color={skinColor} />
+      </mesh>
+      
+      {/* Hair */}
+      <mesh position={[0, 0.9, 0]}>
+        <boxGeometry args={[0.5, 0.2, 0.5]} />
+        <meshStandardMaterial color={hairColor} />
       </mesh>
       
       {/* Body */}
       <mesh position={[0, 0, 0]}>
-        <boxGeometry args={[0.4, 0.5, 0.25]} />
+        <boxGeometry args={[0.6, 0.8, 0.3]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Arms */}
-      <mesh position={[-0.25, 0, 0]}>
-        <boxGeometry args={[0.1, 0.4, 0.1]} />
+      <mesh position={[-0.4, 0, 0]}>
+        <boxGeometry args={[0.2, 0.6, 0.2]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
-      <mesh position={[0.25, 0, 0]}>
-        <boxGeometry args={[0.1, 0.4, 0.1]} />
+      <mesh position={[0.4, 0, 0]}>
+        <boxGeometry args={[0.2, 0.6, 0.2]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Legs */}
-      <mesh position={[-0.12, -0.4, 0]}>
-        <boxGeometry args={[0.12, 0.4, 0.12]} />
+      <mesh position={[-0.2, -0.7, 0]}>
+        <boxGeometry args={[0.2, 0.6, 0.2]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
-      <mesh position={[0.12, -0.4, 0]}>
-        <boxGeometry args={[0.12, 0.4, 0.12]} />
+      <mesh position={[0.2, -0.7, 0]}>
+        <boxGeometry args={[0.2, 0.6, 0.2]} />
         <meshStandardMaterial color={outfitColor} />
       </mesh>
+      
+      {/* Glasses if selected */}
+      {character.selectedAccessories?.eyewear && (
+        <mesh position={[0, 0.6, 0.25]} rotation={[0, 0, 0]}>
+          <torusGeometry args={[0.2, 0.03, 8, 16, Math.PI]} />
+          <meshStandardMaterial color="#555555" />
+        </mesh>
+      )}
     </group>
   );
 }
@@ -98,15 +99,8 @@ export default function CustomAvatarPreview({
     xl: 'w-64 h-64'
   };
   
-  useEffect(() => {
-    console.log("CustomAvatarPreview rendered with size:", size);
-  }, [size]);
-  
   return (
-    <div 
-      className={`${sizeClasses[size]} bg-muted/30 rounded-md relative overflow-hidden`}
-      style={{border: '1px solid #4444ff'}} // Debug border
-    >
+    <div className={`${sizeClasses[size]} rounded-md overflow-hidden bg-gradient-to-b from-slate-800 to-slate-900`}>
       {showPlaceholder ? (
         <div className="absolute inset-0 flex items-center justify-center text-muted-foreground">
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -115,30 +109,25 @@ export default function CustomAvatarPreview({
           </svg>
         </div>
       ) : (
-        <Canvas style={{background: 'rgba(30,30,30,0.3)'}}>
-          {/* Basic lighting */}
-          <ambientLight intensity={1.5} />
-          <directionalLight position={[5, 5, 5]} intensity={1} />
+        <Canvas>
+          {/* Lighting */}
+          <ambientLight intensity={0.8} />
+          <directionalLight position={[0, 2, 5]} intensity={1.2} />
+          <directionalLight position={[-5, -2, -5]} intensity={0.5} color="#6080ff" />
           
-          {/* Debug grid to help with orientation */}
-          <gridHelper args={[10, 10, '#444444', '#222222']} />
+          {/* Use Orthographic Camera with fixed zoom level */}
+          <OrthographicCamera
+            makeDefault
+            position={[0, 0, 5]}
+            zoom={70}
+            near={0.1}
+            far={1000}
+          />
           
-          {/* Debug cube for visibility testing */}
-          <DebugCube />
-          
-          {/* Avatar */}
+          {/* Avatar Model */}
           <Suspense fallback={null}>
             <SimpleAvatar />
           </Suspense>
-          
-          {/* Camera - moved further back, wider FOV, and raised up slightly to show full avatar */}
-          <PerspectiveCamera makeDefault position={[0, 0.2, 5]} fov={50} />
-          
-          {/* Controls */}
-          <OrbitControls 
-            enableZoom={false}
-            enablePan={false}
-          />
         </Canvas>
       )}
     </div>
