@@ -53,7 +53,8 @@ function AvatarModel() {
   // Apply height
   const heightFactor = avatarHeight || 1;
   
-  if (modelError) {
+  // Show fallback mesh if there's an error or model is null
+  if (modelError || !baseModel || !baseModel.scene) {
     return (
       <mesh>
         <boxGeometry args={[1, 2, 1]} />
@@ -92,22 +93,24 @@ function AccessoryModel({ modelPath, scale = 1 }: {
   modelPath: string;
   scale?: number | [number, number, number];
 }) {
-  const [modelError, setModelError] = useState(false);
-  const model = useGLTF(modelPath, 
-    undefined, 
-    (error) => {
-      console.error(`Error loading accessory model ${modelPath}:`, error);
-      setModelError(true);
-    }
-  );
+  const [modelError, setModelError] = useState<boolean>(false);
+  let model: any = null;
+  
+  try {
+    model = useGLTF(modelPath);
+  } catch (error) {
+    console.error(`Error loading accessory model ${modelPath}:`, error);
+    if (!modelError) setModelError(true);
+  }
   
   // Handle scale whether it's a single number or an array
   const scaleVector = Array.isArray(scale) 
     ? new THREE.Vector3(...scale)
     : new THREE.Vector3(scale, scale, scale);
   
-  if (modelError) {
-    return null; // Don't render anything if there's an error loading the model
+  // Return null if there's an error or the model isn't loaded properly
+  if (modelError || !model || !model.scene) {
+    return null; 
   }
   
   return (
