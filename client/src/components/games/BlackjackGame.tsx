@@ -226,8 +226,8 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
           // Player wins
           result = 'win';
           payout = hand.bet * 2; // Original bet + winnings
-        } else {
-          // Push (tie)
+        } else if (dealerValue === handValue) {
+          // Push (tie) - explicitly check for equal values
           result = 'push';
           payout = hand.bet;
         }
@@ -715,8 +715,8 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
         statusColor = "bg-red-600";
         statusText = `Lose ${formatCurrency(hand.bet)}`;
       } else if (hand.result === 'push') {
-        statusColor = "bg-amber-500";
-        statusText = `Push (${formatCurrency(hand.bet)})`;
+        statusColor = "bg-blue-500";
+        statusText = `Tie - Push (${formatCurrency(hand.bet)})`;
       }
     }
     
