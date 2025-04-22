@@ -252,6 +252,9 @@ interface CharacterState {
   reduceTimeCommitment: (hours: number) => void;
   updateFreeTime: (hours: number) => void;
   
+  // Avatar customization
+  updateAvatarUrl: (url: string | null) => void;
+  
   // Assets management
   addAsset: (asset: Asset) => void;
   sellAsset: (assetId: string, quantity: number) => number;
@@ -342,6 +345,9 @@ const getDefaultCharacter = () => {
     
     // State synchronization helper - ALWAYS use fresh timestamp
     lastUpdated: currentTimestamp,
+    
+    // Avatar customization
+    avatarUrl: null as string | null, // Ready Player Me avatar URL
     
     // Transportation & Housing
     hasVehicle: false,
