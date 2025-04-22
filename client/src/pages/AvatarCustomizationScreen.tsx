@@ -40,8 +40,8 @@ export default function AvatarCustomizationScreen() {
   const availableAccessories = getAvailableAccessories(character.lifestyleItems || []);
   
   // Group accessories by type
-  const accessoryTypeMap: Record<string, typeof availableAccessories> = {};
-  availableAccessories.forEach(acc => {
+  const accessoryTypeMap: Record<string, AvatarAccessoryMapping[]> = {};
+  availableAccessories.forEach((acc: AvatarAccessoryMapping) => {
     if (!accessoryTypeMap[acc.type]) {
       accessoryTypeMap[acc.type] = [];
     }
