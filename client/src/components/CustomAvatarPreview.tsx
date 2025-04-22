@@ -1,17 +1,33 @@
-import React, { Suspense, useState } from 'react';
-import { Canvas } from '@react-three/fiber';
+import React, { Suspense, useState, useEffect } from 'react';
+import { Canvas, useThree } from '@react-three/fiber';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
+import { PerspectiveCamera, OrbitControls, Stats } from '@react-three/drei';
 
 interface CustomAvatarPreviewProps {
   size?: 'sm' | 'md' | 'lg';
   showPlaceholder?: boolean;
 }
 
-// Component to render placeholder boxes for avatar parts when models fail to load
+// Component to adjust camera to properly see the avatar
+function CameraAdjuster() {
+  const { camera } = useThree();
+  
+  useEffect(() => {
+    // Position camera to properly see the avatar
+    camera.position.set(0, 0, 3); // Move camera back a bit more
+    camera.lookAt(0, 0, 0); // Look at the center
+    console.log("Camera positioned at:", camera.position);
+  }, [camera]);
+  
+  return null;
+}
+
+// Component to render placeholder boxes for avatar parts
 function SimpleAvatarModel() {
   const characterState = useCharacter();
   const { selectedAccessories = {}, avatarSkinTone, avatarBodyType, avatarHeight } = characterState;
+  
+  console.log("Rendering avatar model with:", { selectedAccessories, avatarSkinTone, avatarBodyType, avatarHeight });
   
   // Apply body type as scaling
   const bodyScaleFactor = avatarBodyType === 'slim' ? 0.9 : 
@@ -40,8 +56,13 @@ function SimpleAvatarModel() {
     return "#3B2E1F"; // Default hair - brown
   };
   
+  const outfitColor = getOutfitColor();
+  const hairColor = getHairColor();
+  
+  console.log("Avatar colors:", { bodyColor, outfitColor, hairColor });
+  
   return (
-    <group scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]}>
+    <group scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]} position={[0, -0.5, 0]}>
       {/* Base body - torso */}
       <mesh position={[0, 0, 0]}>
         <boxGeometry args={[0.8, 1, 0.4]} />
@@ -57,27 +78,27 @@ function SimpleAvatarModel() {
       {/* Arms */}
       <mesh position={[-0.5, 0, 0]}>
         <boxGeometry args={[0.2, 0.8, 0.2]} />
-        <meshStandardMaterial color={getOutfitColor()} />
+        <meshStandardMaterial color={outfitColor} />
       </mesh>
       <mesh position={[0.5, 0, 0]}>
         <boxGeometry args={[0.2, 0.8, 0.2]} />
-        <meshStandardMaterial color={getOutfitColor()} />
+        <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Legs */}
       <mesh position={[-0.25, -0.9, 0]}>
         <boxGeometry args={[0.25, 0.8, 0.3]} />
-        <meshStandardMaterial color={getOutfitColor()} />
+        <meshStandardMaterial color={outfitColor} />
       </mesh>
       <mesh position={[0.25, -0.9, 0]}>
         <boxGeometry args={[0.25, 0.8, 0.3]} />
-        <meshStandardMaterial color={getOutfitColor()} />
+        <meshStandardMaterial color={outfitColor} />
       </mesh>
       
       {/* Hair */}
       <mesh position={[0, 1, 0]}>
         <boxGeometry args={[0.35, 0.15, 0.35]} />
-        <meshStandardMaterial color={getHairColor()} />
+        <meshStandardMaterial color={hairColor} />
       </mesh>
       
       {/* Accessories - glasses if present */}
@@ -117,6 +138,16 @@ function SimpleAvatarModel() {
   );
 }
 
+// A simple mesh to debug if the canvas is rendering at all
+function DebugCube() {
+  return (
+    <mesh position={[0, 0, 0]}>
+      <boxGeometry args={[1, 1, 1]} />
+      <meshStandardMaterial color="red" />
+    </mesh>
+  );
+}
+
 export default function CustomAvatarPreview({ 
   size = 'md',
   showPlaceholder = false
@@ -129,6 +160,8 @@ export default function CustomAvatarPreview({
     lg: 'w-48 h-48'
   };
   
+  const [debugMode] = useState(true);
+  
   return (
     <div className={`${sizeClasses[size]} bg-muted/30 rounded-md relative overflow-hidden`}>
       {showPlaceholder ? (
@@ -139,13 +172,31 @@ export default function CustomAvatarPreview({
           </svg>
         </div>
       ) : (
-        <Canvas className="w-full h-full">
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[10, 10, 5]} intensity={1} />
-          <PerspectiveCamera makeDefault position={[0, 0, 2.5]} />
-          <Suspense fallback={null}>
+        <Canvas style={{ background: 'rgba(0,0,0,0.2)' }} shadows>
+          {/* Lighting */}
+          <ambientLight intensity={1.0} />
+          <directionalLight 
+            position={[2, 2, 5]} 
+            intensity={1.5} 
+            castShadow 
+            shadow-mapSize-width={1024} 
+            shadow-mapSize-height={1024} 
+          />
+          <directionalLight position={[-5, -5, -5]} intensity={0.5} />
+          
+          {/* Camera Setup */}
+          <PerspectiveCamera makeDefault position={[0, 0, 3]} fov={45} />
+          <CameraAdjuster />
+          
+          {/* Avatar Model */}
+          <Suspense fallback={<DebugCube />}>
             <SimpleAvatarModel />
           </Suspense>
+          
+          {/* Debug cube to ensure canvas is working */}
+          {debugMode && <DebugCube />}
+          
+          {/* Controls */}
           <OrbitControls 
             enableZoom={false}
             minPolarAngle={Math.PI / 4}
@@ -154,6 +205,9 @@ export default function CustomAvatarPreview({
             autoRotate
             autoRotateSpeed={1}
           />
+          
+          {/* Performance stats (debug only) */}
+          {debugMode && <Stats />}
         </Canvas>
       )}
     </div>
