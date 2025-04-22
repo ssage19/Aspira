@@ -4,7 +4,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
 
 interface CustomAvatarPreviewProps {
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   showPlaceholder?: boolean;
 }
 
@@ -129,7 +129,8 @@ export default function CustomAvatarPreview({
   const sizeClasses = {
     sm: 'w-16 h-16',
     md: 'w-32 h-32',
-    lg: 'w-48 h-48'
+    lg: 'w-48 h-48',
+    xl: 'w-64 h-64'
   };
   
   return (

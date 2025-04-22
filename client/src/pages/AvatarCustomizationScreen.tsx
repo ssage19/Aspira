@@ -116,8 +116,8 @@ export default function AvatarCustomizationScreen() {
               <CardDescription>Preview your character</CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
-              <div className="w-48 h-48 mb-4">
-                <CustomAvatarPreview size="lg" />
+              <div className="w-64 h-64 mb-4">
+                <CustomAvatarPreview size="xl" />
               </div>
               
               <div className="grid grid-cols-3 gap-2 w-full">
