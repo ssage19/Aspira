@@ -64,9 +64,10 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
   const [totalBet, setTotalBet] = useState<number>(0);
   const [totalWinnings, setTotalWinnings] = useState<number>(0);
   
-  // Flags to prevent race conditions
+  // Flags to prevent race conditions and tracking final state
   const dealerTurnInProgress = React.useRef(false);
   const payoutProcessed = React.useRef(false);
+  const finalDealerCardsRef = React.useRef<PlayingCard[]>([]);
   
   // Generate a unique ID for cards and hands
   const generateId = useCallback(() => {
@@ -78,18 +79,27 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     let value = 0;
     let aces = 0;
     
+    // Log the cards being evaluated
+    console.log("Calculating hand value for cards:", cards.map(c => `${c.value} of ${c.suit} (faceUp: ${c.faceUp})`));
+    
     cards.forEach(card => {
-      if (!card.faceUp) return; // Skip face down cards
+      if (!card.faceUp) {
+        console.log(`Skipping face down card: ${card.value} of ${card.suit}`);
+        return; // Skip face down cards
+      }
       
       if (card.value === 1) {
         // Ace
         aces += 1;
         value += 11;
+        console.log(`Added Ace (${card.suit}) as 11, current total: ${value}`);
       } else if (card.value > 10) {
         // Face card
         value += 10;
+        console.log(`Added face card ${card.value} of ${card.suit} as 10, current total: ${value}`);
       } else {
         value += card.value;
+        console.log(`Added ${card.value} of ${card.suit}, current total: ${value}`);
       }
     });
     
@@ -97,8 +107,10 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     while (value > 21 && aces > 0) {
       value -= 10; // Change Ace from 11 to 1
       aces -= 1;
+      console.log(`Adjusted Ace from 11 to 1, new total: ${value}`);
     }
     
+    console.log(`Final hand value: ${value}`);
     return value;
   }, []);
   
@@ -181,10 +193,15 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     let totalPayout = 0;
     let totalAmountBet = 0;
     
+    // Use the final dealer cards ref if available, or fallback to the dealerCards state
+    // This helps avoid race conditions where state updates haven't fully propagated
+    const cardsToUse = finalDealerCardsRef.current.length > 0 ? finalDealerCardsRef.current : dealerCards;
+    console.log("USING CARDS FOR EVALUATION:", cardsToUse.map(c => `${c.value} of ${c.suit}`));
+    
     // Get final dealer value
-    const finalDealerValue = calculateHandValue(dealerCards);
+    const finalDealerValue = calculateHandValue(cardsToUse);
     console.log("FINAL DEALER VALUE:", finalDealerValue);
-    const dealerHasBlackjack = dealerCards.length === 2 && finalDealerValue === 21;
+    const dealerHasBlackjack = cardsToUse.length === 2 && finalDealerValue === 21;
     const dealerBusted = finalDealerValue > 21;
     
     // Process each hand's result
@@ -229,24 +246,35 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       }
       // CASE 4: Compare values (neither busted)
       else {
-        // Dealer has higher value
-        if (finalDealerValue > handValue) {
-          result = 'lose';
-          payout = 0;
-          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} > Player ${handValue}, Player loses ${hand.bet}`);
-        }
-        // Player has higher value 
-        else if (finalDealerValue < handValue) {
-          result = 'win';
-          payout = hand.bet * 2; // Original bet + winnings
-          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} < Player ${handValue}, Player wins ${payout}`);
-        }
-        // Equal values - push
-        else {
-          result = 'push';
-          payout = hand.bet;
-          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} = Player ${handValue}, Push ${hand.bet}`);
-        }
+        // DEEP DEBUG - Print type and actual values to catch any issues
+      console.log(`DEEP DEBUG - Types: Dealer value type: ${typeof finalDealerValue}, Player value type: ${typeof handValue}`);
+      console.log(`DEEP DEBUG - Strict equality check: ${finalDealerValue === handValue}, Greater than: ${finalDealerValue > handValue}, Less than: ${finalDealerValue < handValue}`);
+      console.log(`DEEP DEBUG - Math comparison: ${finalDealerValue} > ${handValue} = ${finalDealerValue > handValue}`);
+      
+      if (finalDealerValue > handValue) {
+        // Dealer has higher value - PLAYER LOSES
+        result = 'lose';
+        payout = 0;
+        console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} > Player ${handValue}, Player LOSES ${hand.bet}`);
+      } 
+      else if (finalDealerValue < handValue) {
+        // Player has higher value - PLAYER WINS 
+        result = 'win';
+        payout = hand.bet * 2; // Original bet + winnings
+        console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} < Player ${handValue}, Player WINS ${payout}`);
+      }
+      else if (finalDealerValue === handValue) {
+        // Equal values - PUSH
+        result = 'push';
+        payout = hand.bet;
+        console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} === Player ${handValue}, PUSH ${hand.bet}`);
+      }
+      else {
+        // This should never happen, but just in case there's some weird comparison issue
+        console.error(`Hand ${hand.id}: ERROR in comparison - Dealer: ${finalDealerValue}, Player: ${handValue}`);
+        result = 'lose'; // Default to player losing if something goes wrong
+        payout = 0;
+      }
       }
       
       // Add to total payout
@@ -537,40 +565,69 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     dealerTurnInProgress.current = true;
     
     const dealerPlay = async () => {
+      // Critical debug
+      console.log("DEALER PLAY START - Current dealer cards:", dealerCards);
+      
       // Flip dealer's hidden card
       const revealedDealerCards = dealerCards.map(card => ({ ...card, faceUp: true }));
       setDealerCards(revealedDealerCards);
+      
+      console.log("REVEALED DEALER CARDS:", revealedDealerCards);
+      console.log("DEALER VALUE AFTER REVEAL:", calculateHandValue(revealedDealerCards));
       
       // Add a slight delay for animation
       await new Promise(resolve => setTimeout(resolve, 500));
       
       // Check if any player hands are still active (not busted)
       const activeHandsExist = playerHands.some(hand => hand.status !== 'busted');
+      console.log("ACTIVE HANDS EXIST:", activeHandsExist);
+      
+      // Track the dealer's current cards locally to ensure correct state
+      let finalDealerCards = [...revealedDealerCards];
+      let dealerValue = calculateHandValue(finalDealerCards);
       
       // Only draw cards if there are active hands
       if (activeHandsExist) {
-        let currentDealerCards = [...revealedDealerCards];
-        let dealerValue = calculateHandValue(currentDealerCards);
+        console.log("DEALER INITIAL VALUE:", dealerValue);
         
         // Dealer draws until 17 or higher
         while (dealerValue < 17) {
           const newCard = dealCard();
-          currentDealerCards = [...currentDealerCards, newCard];
-          setDealerCards(currentDealerCards);
+          console.log("DEALER DRAWS:", `${newCard.value} of ${newCard.suit}`);
           
-          dealerValue = calculateHandValue(currentDealerCards);
+          finalDealerCards = [...finalDealerCards, newCard];
+          setDealerCards(finalDealerCards);
+          
+          dealerValue = calculateHandValue(finalDealerCards);
+          console.log("NEW DEALER VALUE:", dealerValue);
           
           // Add a slight delay for animation
           await new Promise(resolve => setTimeout(resolve, 500));
         }
       }
       
-      // Process final results
-      console.log("Dealer's turn completed, processing final results");
-      console.log("Dealer final cards:", dealerCards);
-      console.log("Dealer final value:", calculateHandValue(dealerCards));
+      // Process final results - use the local dealer cards variable to ensure
+      // we're using the correct final state
+      console.log("==========================================");
+      console.log("DEALER'S TURN COMPLETED - FINAL STATE");
+      console.log("==========================================");
+      console.log("Final dealer cards:", finalDealerCards);
+      console.log("Final dealer value:", calculateHandValue(finalDealerCards));
+      console.log("Player hands:", playerHands.map(h => ({ 
+        id: h.id, 
+        value: calculateHandValue(h.cards),
+        cards: h.cards.map(c => `${c.value} of ${c.suit}`),
+        status: h.status
+      })));
+      
+      // Store the final dealer cards to a ref to ensure we use this value in processGameResults
+      finalDealerCardsRef.current = finalDealerCards;
       
       setGameState('gameOver');
+      
+      // Small delay to ensure all state updates have propagated
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
       processGameResults();
       
       // Reset the flag
