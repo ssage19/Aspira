@@ -243,22 +243,35 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     // Calculate net winnings (total winnings - total bet)
     const totalBetAmount = updatedBets.reduce((sum, bet) => sum + bet.bet, 0);
-    const netWinnings = totalWinAmount - totalBetAmount;
-    setTotalWinnings(netWinnings);
     
-    // Update player balance
-    if (netWinnings > 0) {
-      onWin(netWinnings);
-      toast.success(`You won ${formatCurrency(netWinnings)}!`);
-    } else if (netWinnings < 0) {
-      onLoss(Math.abs(netWinnings));
-      toast.error(`You lost ${formatCurrency(Math.abs(netWinnings))}`);
+    // Important: Since we already deducted the bet amount at the start of the spin,
+    // we only need to add the winnings here, not subtract the bet amount again
+    setTotalWinnings(totalWinAmount);
+    
+    // Update player balance - only add winnings, not deduct bets 
+    // (bets were already deducted at the beginning of the spin)
+    if (totalWinAmount > 0) {
+      // Add the winnings to the player balance
+      onWin(totalWinAmount);
+      
+      // Show different messages based on net result
+      if (totalWinAmount > totalBetAmount) {
+        // Net profit
+        toast.success(`You won ${formatCurrency(totalWinAmount - totalBetAmount)}!`);
+      } else if (totalWinAmount === totalBetAmount) {
+        // Break even
+        toast.info(`You broke even. Your bet was returned.`);
+      } else {
+        // Partial loss (some bets won, but overall still a loss)
+        toast.info(`You recovered ${formatCurrency(totalWinAmount)}.`);
+      }
     } else {
-      toast.info("No win or loss");
+      // Complete loss - no need to call onLoss again as we already deducted the bet
+      toast.error(`You lost ${formatCurrency(totalBetAmount)}`);
     }
     
-    console.log(`Game results: Bet ${totalBetAmount}, Winnings ${totalWinAmount}, Net ${netWinnings}`);
-  }, [activeBets, determineBetWin, onWin, onLoss]);
+    console.log(`Game results: Bet ${totalBetAmount}, Winnings ${totalWinAmount}`);
+  }, [activeBets, determineBetWin, onWin]);
   
   // Spin the roulette wheel
   const spinWheel = useCallback(() => {
@@ -405,7 +418,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       
       console.log(`Spin complete: result ${finalResult}`);
     }, spinDuration + 100); // Add a small buffer after animation ends
-  }, [activeBets, playerBalance, processResults, totalBet]);
+  }, [activeBets, playerBalance, processResults, totalBet, onLoss]);
   
   // Start a new game
   const startNewGame = useCallback(() => {
