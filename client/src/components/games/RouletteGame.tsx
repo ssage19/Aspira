@@ -320,8 +320,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     // We want the winning number to end at the top (270 degrees)
     const targetAngle = 270 - resultAngle;
     
-    // Make animation duration shorter (1.5 seconds)
-    const spinDuration = 1500;
+    // Increase spin duration back to 3 seconds
+    const spinDuration = 3000;
     
     // Reset wheel and ball positions
     if (wheelRef.current) {
@@ -375,25 +375,31 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       // Instead of using CSS transitions, use the Web Animations API
       // This gives much more control over the animation keyframes
       
+      // Create a more elaborate animation for the ball
+      // The ball should spin around multiple times before landing
       ballRef.current.animate([
-        // Start position
+        // Start at a random position
         { transform: 'rotate(0deg)' },
         
-        // First, move counter-clockwise a bit to give momentum
-        { transform: 'rotate(-120deg)', offset: 0.2 },
+        // First, make multiple spins quickly with irregular speed to look more realistic
+        { transform: 'rotate(1080deg)', offset: 0.2 }, // 3 full rotations quickly
+        { transform: 'rotate(1800deg)', offset: 0.4 }, // 5 full rotations at different speed
         
-        // Then move to halfway position
-        { transform: 'rotate(100deg)', offset: 0.5 },
+        // Start slowing down with some wobble
+        { transform: 'rotate(2160deg)', offset: 0.6 }, // 6 full rotations
         
-        // Add a small bounce to make it look realistic
-        { transform: 'rotate(240deg)', offset: 0.8 },
-        { transform: 'rotate(260deg)', offset: 0.9 },
+        // Final approach with subtle bounces to simulate ball movement
+        { transform: 'rotate(2280deg)', offset: 0.75 },
+        { transform: 'rotate(2340deg)', offset: 0.85 },
+        { transform: 'rotate(2360deg)', offset: 0.9 },
+        { transform: 'rotate(2368deg)', offset: 0.95 },
         
-        // End at exactly 270 degrees to match winning number at top
-        { transform: 'rotate(270deg)' }
+        // End with the ball aligned perfectly at 270 degrees + multiple full rotations
+        // This positions the ball at the top of the wheel where we display the result
+        { transform: 'rotate(2430deg)' } // 6.75 full rotations to end at top (270 deg)
       ], {
         duration: spinDuration,
-        easing: 'ease-out',
+        easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)', // Match the wheel's easing function
         fill: 'forwards'
       });
     }
@@ -519,7 +525,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-1500 ease-out"
+                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-3000 ease-out"
                 style={{ willChange: 'transform' }}
               >
                 {/* Number pocket ring */}
@@ -646,22 +652,28 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 </div>
               </div>
               
-              {/* Ball - white sphere that moves around the wheel */}
-              <div ref={ballRef} className="absolute z-30" style={{ willChange: 'transform' }}>
+              {/* Ball track ring - This is where the ball will spin */}
+              <div className="absolute inset-[40px] rounded-full border-2 border-amber-950/40">
+                {/* Ball - white sphere that moves around the outer track */}
                 <div 
-                  className="w-[12px] h-[12px] rounded-full bg-white" 
+                  ref={ballRef} 
+                  className="absolute top-1/2 left-1/2 w-0 h-0 z-30" 
                   style={{ 
-                    position: 'absolute',
-                    left: 'calc(50% - 6px)', 
-                    top: '-103px', // Position at the radius matching the numbers exactly
-                    transformOrigin: '6px 103px', // Pivot from the center of the wheel
-                    boxShadow: '0 0 5px 2px rgba(255,255,255,0.8)',
+                    willChange: 'transform',
+                    transformOrigin: 'center',
                   }}
-                ></div>
+                >
+                  <div 
+                    className="w-[12px] h-[12px] rounded-full bg-white" 
+                    style={{ 
+                      position: 'absolute',
+                      left: '-6px', 
+                      top: '-120px', // Positioned at the ball track radius (further out than before)
+                      boxShadow: '0 0 5px 2px rgba(255,255,255,0.8)',
+                    }}
+                  ></div>
+                </div>
               </div>
-              
-              {/* Ball track ring */}
-              <div className="absolute inset-[40px] rounded-full border-2 border-amber-950/40"></div>
               
               {/* Result display under the wheel */}
               {result !== null && (
