@@ -7,7 +7,8 @@ import {
 } from '../lib/data/enhancedLifestyleItems';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
-import { AvatarPreview } from './AvatarPreview';
+import CustomAvatarPreview from './CustomAvatarPreview';
+import { User } from 'lucide-react';
 import { 
   Tabs, 
   TabsContent, 
@@ -872,9 +873,8 @@ export function EnhancedLifestyleSelector() {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         {/* Avatar Preview */}
         <div className="lg:col-span-1">
-          {/* We'll temporarily fix this to use the simple avatar display */}
           <div className="aspect-square w-full bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
-            <User className="h-16 w-16 text-gray-400" />
+            <CustomAvatarPreview size="lg" />
           </div>
         </div>
         
