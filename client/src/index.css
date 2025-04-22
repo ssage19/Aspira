@@ -352,3 +352,11 @@ canvas {
   box-shadow: 0 4px 20px rgba(49, 112, 190, 0.15);
   @apply bg-white/10 border-[#3170BE]/20;
 }
+
+/* Remove focus outlines from casino game buttons */
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+  ring-color: transparent !important;
+  ring-offset-color: transparent !important;
+}
