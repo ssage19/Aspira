@@ -546,111 +546,156 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
           {/* Left section - Wheel and active bets */}
           <div className="flex flex-col items-center">
             {/* Physical roulette wheel display */}
-            <div className="relative w-80 h-80 mb-6 mx-auto">
-              {/* Wooden wheel base */}
-              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-800 to-amber-950 border-8 border-amber-950/80 shadow-xl"></div>
+            <div className="relative w-[320px] h-[320px] mb-6 mx-auto">
+              {/* Outer rim - golden edge */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 border-4 border-yellow-600 shadow-xl"></div>
               
-              {/* Outer decorative ring */}
-              <div className="absolute inset-[10px] rounded-full border-4 border-amber-700/70 bg-gradient-to-br from-amber-700/20 to-amber-950/20"></div>
+              {/* Wooden wheel base with timing marks */}
+              <div className="absolute inset-[4px] rounded-full bg-gradient-to-br from-amber-600 to-amber-800">
+                {/* Timing marks on outer ring */}
+                {[...Array(12)].map((_, i) => {
+                  const angle = (i / 12) * 360;
+                  return (
+                    <div 
+                      key={`mark-${i}`} 
+                      className="absolute"
+                      style={{
+                        width: '12px',
+                        height: '3px',
+                        backgroundColor: '#f3d19e',
+                        top: '10px',
+                        left: '50%',
+                        transform: `translateX(-50%) rotate(${angle}deg) translateY(-145px)`,
+                        transformOrigin: 'center 145px',
+                      }}
+                    ></div>
+                  );
+                })}
+              </div>
+              
+              {/* Number track ring */}
+              <div className="absolute inset-[30px] rounded-full bg-gradient-to-br from-amber-700 to-amber-900 border-2 border-amber-950/70 flex items-center justify-center">
+                {/* Subtle radial shading */}
+                <div className="absolute inset-0 rounded-full bg-gradient-radial from-amber-600/20 via-transparent to-amber-950/40"></div>
+              </div>
               
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-[24px] rounded-full bg-amber-800 border-4 border-amber-950/40 shadow-inner flex items-center justify-center transition-transform duration-[3s] ease-out"
+                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-[3s] ease-out"
                 style={{ willChange: 'transform' }}
               >
-                {/* Background surface for the wheel */}
-                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-700 to-amber-900"></div>
-                
-                {/* Wheel pocket markers in a circle */}
-                <div className="absolute inset-0">
-                  {WHEEL_SEQUENCE.map((number, i) => {
-                    const angle = (i / WHEEL_SEQUENCE.length) * 360;
-                    const isRed = RED_NUMBERS.includes(number);
-                    // Calculate the inner and outer radius of the pocket segment
-                    const innerRadius = 28; // Distance from center to inner edge
-                    const outerRadius = 115; // Distance from center to outer edge
-                    
-                    return (
-                      <div 
-                        key={`pocket-${i}`} 
-                        className="absolute top-1/2 left-1/2 origin-center"
-                        style={{
-                          width: `${outerRadius * 2}px`,
-                          height: `${outerRadius * 2}px`,
-                          transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                        }}
-                      >
-                        {/* Pocket segment */}
+                {/* Number pocket ring */}
+                <div className="absolute inset-[30px] rounded-full overflow-hidden">
+                  {/* Pocket segments in a circle */}
+                  <div className="absolute inset-0 rounded-full">
+                    {WHEEL_SEQUENCE.map((number, i) => {
+                      const angle = (i / WHEEL_SEQUENCE.length) * 360;
+                      const isRed = RED_NUMBERS.includes(number);
+                      // Calculate the inner and outer radius for the proper segment shape
+                      const innerRadius = 75; // Inner radius where pocket segments start
+                      const outerRadius = 130; // Outer radius where pocket segments end
+                      
+                      return (
                         <div 
+                          key={`pocket-${i}`} 
+                          className="absolute top-1/2 left-1/2 origin-center"
                           style={{
-                            position: 'absolute',
-                            width: `${outerRadius - innerRadius}px`,
-                            height: `${2 * Math.PI * outerRadius / WHEEL_SEQUENCE.length}px`,
-                            top: '0px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            backgroundColor: number === 0 ? '#0a8f0a' : isRed ? '#c71212' : '#000',
-                            clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-                            borderLeft: '1px solid rgba(255,255,255,0.1)',
-                            borderRight: '1px solid rgba(0,0,0,0.3)',
-                            zIndex: 5,
+                            width: `${outerRadius * 2}px`,
+                            height: `${outerRadius * 2}px`,
+                            transform: `translate(-50%, -50%) rotate(${angle}deg)`,
                           }}
                         >
-                          {/* Number label */}
+                          {/* Pocket segment */}
                           <div 
-                            className="absolute text-white font-bold text-xs"
                             style={{
-                              top: '7px',
+                              position: 'absolute',
+                              width: `${outerRadius - innerRadius}px`,
+                              height: `${2 * Math.PI * (innerRadius + (outerRadius - innerRadius)/2) / WHEEL_SEQUENCE.length}px`,
+                              top: '0px',
                               left: '50%',
-                              transform: 'translateX(-50%) rotate(180deg)',
-                              textShadow: '0px 0px 2px rgba(0,0,0,0.7)',
+                              transform: 'translateX(-50%)',
+                              backgroundColor: number === 0 ? '#0a8f0a' : isRed ? '#d10a0a' : '#000',
+                              clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
+                              borderLeft: '1px solid rgba(255,255,255,0.2)',
+                              borderRight: '1px solid rgba(0,0,0,0.3)',
+                              zIndex: 5,
                             }}
                           >
-                            {number}
+                            {/* Number label */}
+                            <div 
+                              className="absolute text-white font-bold text-xs"
+                              style={{
+                                top: '6px',
+                                left: '50%',
+                                transform: 'translateX(-50%) rotate(180deg)',
+                                textShadow: '0px 0px 2px rgba(0,0,0,0.7)',
+                              }}
+                            >
+                              {number}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
-                
-                {/* Central circle of the wheel */}
-                <div className="absolute w-[110px] h-[110px] rounded-full bg-gradient-to-br from-amber-600 to-amber-800 z-10 flex items-center justify-center shadow-md">
-                  <div className="w-[80px] h-[80px] rounded-full bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center">
-                    {/* Wheel spinner cross */}
-                    <div className="absolute w-1.5 h-16 bg-yellow-200 rounded-full"></div>
-                    <div className="absolute w-16 h-1.5 bg-yellow-200 rounded-full"></div>
-                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500 to-amber-700 shadow-inner"></div>
+                      );
+                    })}
                   </div>
                 </div>
                 
-                {/* Ball track around the wheel */}
-                <div className="absolute inset-[-10px] rounded-full border-4 border-amber-800/60 z-20"></div>
+                {/* Central wood platform */}
+                <div className="absolute inset-[75px] rounded-full bg-gradient-to-br from-amber-500 to-amber-700 z-10">
+                  {/* Subtle wood grain effect */}
+                  <div className="absolute inset-0 rounded-full opacity-30">
+                    {[...Array(8)].map((_, i) => (
+                      <div
+                        key={`grain-${i}`}
+                        className="absolute bg-amber-950/10"
+                        style={{
+                          height: '1px',
+                          width: '100%',
+                          top: `${i * 14 + 10}%`,
+                          transform: `rotate(${i * 20}deg)`,
+                        }}
+                      ></div>
+                    ))}
+                  </div>
+                </div>
                 
-                {/* Ball - a small white sphere that moves around the wheel */}
-                <div ref={ballRef} className="absolute z-30" style={{ willChange: 'transform' }}>
-                  <div 
-                    className="w-4 h-4 rounded-full bg-gray-100 shadow-xl" 
-                    style={{ 
-                      position: 'absolute',
-                      left: 'calc(50% - 8px)', 
-                      top: '-115px', // Position at the outer edge of the wheel
-                      transformOrigin: '8px 115px', // Pivot from the center of the wheel
-                      boxShadow: '0 0 5px 2px rgba(255,255,255,0.5)',
-                    }}
-                  ></div>
+                {/* Center hub with spinner */}
+                <div className="absolute w-[60px] h-[60px] z-20 rounded-full bg-gradient-to-br from-amber-600 to-amber-800 flex items-center justify-center shadow-inner">
+                  {/* Hub details */}
+                  <div className="absolute w-[40px] h-[40px] rounded-full bg-black/20"></div>
+                  
+                  {/* Spinner arms */}
+                  <div className="relative w-full h-full flex items-center justify-center">
+                    <div className="absolute w-[3px] h-[60px] bg-gradient-to-b from-yellow-300 to-yellow-600"></div>
+                    <div className="absolute w-[60px] h-[3px] bg-gradient-to-r from-yellow-300 to-yellow-600"></div>
+                    <div className="absolute w-[12px] h-[12px] rounded-full bg-gray-900"></div>
+                  </div>
                 </div>
               </div>
               
-              {/* Static ball track outer ring */}
-              <div className="absolute inset-[16px] rounded-full border-2 border-amber-700/50"></div>
+              {/* Ball - white sphere that moves around the wheel */}
+              <div ref={ballRef} className="absolute z-30" style={{ willChange: 'transform' }}>
+                <div 
+                  className="w-[10px] h-[10px] rounded-full bg-gray-100" 
+                  style={{ 
+                    position: 'absolute',
+                    left: 'calc(50% - 5px)', 
+                    top: '-115px', // Position at the outer edge of the wheel
+                    transformOrigin: '5px 115px', // Pivot from the center of the wheel
+                    boxShadow: '0 0 4px 2px rgba(255,255,255,0.7)',
+                  }}
+                ></div>
+              </div>
+              
+              {/* Ball track ring */}
+              <div className="absolute inset-[40px] rounded-full border-2 border-amber-950/40"></div>
               
               {/* Result display under the wheel */}
               {result !== null && (
                 <div className="absolute -bottom-8 left-0 right-0 flex items-center justify-center">
                   <div className={`
-                    text-2xl font-bold px-4 py-1 rounded-full 
+                    text-xl font-bold px-3 py-1 rounded-full 
                     ${result === 0 ? 'bg-green-600 text-white' : 
                       RED_NUMBERS.includes(result) ? 'bg-red-600 text-white' : 
                       'bg-black text-white'}`
