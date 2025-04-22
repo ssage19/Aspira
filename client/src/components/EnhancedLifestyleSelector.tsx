@@ -7,6 +7,7 @@ import {
 } from '../lib/data/enhancedLifestyleItems';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
+import { AvatarPreview } from './AvatarPreview';
 import { 
   Tabs, 
   TabsContent, 
@@ -868,6 +869,15 @@ export function EnhancedLifestyleSelector() {
         </p>
       </div>
       
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+        {/* Avatar Preview */}
+        <div className="lg:col-span-1">
+          <AvatarPreview />
+        </div>
+        
+        {/* Lifestyle Choices */}
+        <div className="lg:col-span-3">
+      
       <Tabs value={activeTab} defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
         <TabsList className="mb-6 flex flex-wrap gap-0.5">
           <TabsTrigger value="owned" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
@@ -924,6 +934,8 @@ export function EnhancedLifestyleSelector() {
       </Tabs>
       
       {renderItemDetailsModal()}
+        </div>
+      </div>
     </div>
   );
 }
