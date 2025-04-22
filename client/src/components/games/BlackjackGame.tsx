@@ -181,62 +181,78 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     let totalPayout = 0;
     let totalAmountBet = 0;
     
+    // Get final dealer value
+    const finalDealerValue = calculateHandValue(dealerCards);
+    console.log("FINAL DEALER VALUE:", finalDealerValue);
+    const dealerHasBlackjack = dealerCards.length === 2 && finalDealerValue === 21;
+    const dealerBusted = finalDealerValue > 21;
+    
     // Process each hand's result
     const updatedHands = playerHands.map(hand => {
       let result: 'win' | 'lose' | 'push' | null = null;
       let payout = 0;
       
+      // Add bet to total
       totalAmountBet += hand.bet;
       
-      // Early detection of blackjack
-      const isBlackjack = hand.cards.length === 2 && calculateHandValue(hand.cards) === 21;
-      const dealerHasBlackjack = dealerCards.length === 2 && calculateHandValue(dealerCards) === 21;
+      // Calculate final hand value
+      const handValue = calculateHandValue(hand.cards);
+      const isBlackjack = hand.cards.length === 2 && handValue === 21;
       
-      // For busted hands
+      console.log(`Processing hand ${hand.id}: Value=${handValue}, Status=${hand.status}, Dealer=${finalDealerValue}`);
+      
+      // CASE 1: Player busted
       if (hand.status === 'busted') {
         result = 'lose';
         payout = 0;
-      } 
-      // For blackjack
+        console.log(`Hand ${hand.id}: Player busted, loses ${hand.bet}`);
+      }
+      // CASE 2: Player has blackjack
       else if (isBlackjack) {
         if (dealerHasBlackjack) {
           // Push if both have blackjack
           result = 'push';
           payout = hand.bet;
+          console.log(`Hand ${hand.id}: Both have blackjack, push ${hand.bet}`);
         } else {
           // Blackjack pays 3:2
           result = 'win';
           payout = hand.bet + Math.floor(hand.bet * 1.5);
+          console.log(`Hand ${hand.id}: Player has blackjack, wins ${payout}`);
         }
-      } 
-      // For regular hands
+      }
+      // CASE 3: Dealer busted (and player didn't)
+      else if (dealerBusted) {
+        result = 'win';
+        payout = hand.bet * 2; // Original bet + winnings
+        console.log(`Hand ${hand.id}: Dealer busted, player wins ${payout}`);
+      }
+      // CASE 4: Compare values (neither busted)
       else {
-        const handValue = calculateHandValue(hand.cards);
-        const dealerValue = calculateHandValue(dealerCards);
-        
-        if (dealerValue > 21) {
-          // Dealer busts
-          result = 'win';
-          payout = hand.bet * 2; // Original bet + winnings
-        } else if (dealerValue > handValue) {
-          // Dealer wins
+        // Dealer has higher value
+        if (finalDealerValue > handValue) {
           result = 'lose';
           payout = 0;
-        } else if (dealerValue < handValue) {
-          // Player wins
+          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} > Player ${handValue}, Player loses ${hand.bet}`);
+        }
+        // Player has higher value 
+        else if (finalDealerValue < handValue) {
           result = 'win';
           payout = hand.bet * 2; // Original bet + winnings
-        } else if (dealerValue === handValue) {
-          // Push (tie) - explicitly check for equal values
+          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} < Player ${handValue}, Player wins ${payout}`);
+        }
+        // Equal values - push
+        else {
           result = 'push';
           payout = hand.bet;
+          console.log(`Hand ${hand.id}: Dealer ${finalDealerValue} = Player ${handValue}, Push ${hand.bet}`);
         }
       }
       
       // Add to total payout
       totalPayout += payout;
       
-      // Return updated hand
+      // Return updated hand with result
       return {
         ...hand,
         result,
@@ -550,6 +566,10 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       }
       
       // Process final results
+      console.log("Dealer's turn completed, processing final results");
+      console.log("Dealer final cards:", dealerCards);
+      console.log("Dealer final value:", calculateHandValue(dealerCards));
+      
       setGameState('gameOver');
       processGameResults();
       
