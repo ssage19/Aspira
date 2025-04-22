@@ -261,7 +261,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   }, [activeBets, determineBetWin, onWin, onLoss]);
   
   // Spin the roulette wheel
-  const spinWheel = useCallback(async () => {
+  const spinWheel = useCallback(() => {
     // Check if there are any active bets
     if (activeBets.length === 0) {
       toast.error("Please place at least one bet before spinning");
@@ -280,232 +280,131 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     setSpinning(true);
     
-    // Animated wheel spinning effect - more realistic physics
-    const spinTime = 7000; // 7 seconds for more dramatic effect
-    const intervalTime = 16; // ~60fps for smoother animation
-    const iterations = spinTime / intervalTime;
+    // Deduct bet amount from balance directly handled by the parent
+    onLoss(totalBet); // Call onLoss to deduct the bet amount from the player's balance
     
-    console.log("Wheel spinning started");
-    
-    // Prepare the wheel for animation
-    if (wheelRef.current) {
-      wheelRef.current.style.transition = 'none';
-    }
-    
-    if (ballRef.current) {
-      ballRef.current.style.transition = 'none';
-    }
-    
-    // Generate the final result at the start (but don't show it yet)
+    // Generate random result
     const finalResult = Math.floor(Math.random() * 37);
-    console.log(`Generated result: ${finalResult}`);
     
-    // Find the position of the result in the wheel sequence
+    // Find the result position in the wheel sequence
     const resultIndex = WHEEL_SEQUENCE.indexOf(finalResult);
     if (resultIndex === -1) {
       console.error(`Result ${finalResult} not found in wheel sequence`);
+      return;
     }
     
-    // Hide the result during spinning
+    console.log(`Wheel result: ${finalResult} (index ${resultIndex})`);
+    
+    // Hide current result during spinning
     setResult(null);
     
-    // For visual spinning effect through multiple numbers
-    await new Promise(resolve => {
-      // Wheel physics values
-      const initialWheelSpeed = 2; // Revolutions per second
-      const deceleration = 0.2; // How quickly wheel slows down
-      let wheelPosition = 0; // Current rotation in degrees
-      let wheelVelocity = initialWheelSpeed * 360; // Initial degrees per second
-      
-      // Ball physics values
-      const initialBallSpeed = 3; // Revolutions per second in opposite direction
-      const ballDeceleration = 0.3; // Ball slows down faster than wheel
-      const ballJitter = 0.2; // Random ball movement factor
-      let ballPosition = 180; // Start on opposite side
-      let ballVelocity = initialBallSpeed * 360; // Initial degrees per second
-      let ballFreeFalling = true; // Ball is initially free-falling
-      let lastTime = performance.now();
-      
-      // Calculate the final landing position in advance
-      // The ball should land in the pocket corresponding to the result
-      const targetAngle = (resultIndex * (360 / WHEEL_SEQUENCE.length));
-      
-      const animateSpinning = (time = performance.now()) => {
-        // Calculate time elapsed since last frame
-        const elapsed = (time - lastTime) / 1000; // seconds
-        lastTime = time;
-        
-        // Update wheel position based on velocity and elapsed time
-        wheelPosition += wheelVelocity * elapsed;
-        // Apply deceleration
-        wheelVelocity = Math.max(0, wheelVelocity - (deceleration * wheelVelocity * elapsed));
-        
-        // Update wheel display
-        if (wheelRef.current) {
-          wheelRef.current.style.transform = `rotate(${wheelPosition}deg)`;
-        }
-        
-        // Show a flashing number during the fast spinning phase
-        if (wheelVelocity > 200) {
-          // Only change every few frames for readability
-          if (Math.random() > 0.7) {
-            setResult(Math.floor(Math.random() * 37));
-          }
-        }
-        
-        // Ball animation
-        if (ballRef.current) {
-          // Ball initially spins opposite to the wheel
-          if (ballFreeFalling) {
-            // Update ball position based on velocity and elapsed time
-            ballPosition -= ballVelocity * elapsed;
-            
-            // Add some jitter/wobble to the ball movement during free fall
-            const jitter = Math.sin(time / 100) * ballJitter * Math.min(1, ballVelocity / 100);
-            
-            // Apply deceleration to ball
-            ballVelocity = Math.max(0, ballVelocity - (ballDeceleration * ballVelocity * elapsed));
-            
-            // When ball slows down enough, it should "fall" into the wheel and match wheel speed
-            if (ballVelocity < wheelVelocity * 0.8) {
-              ballFreeFalling = false;
-              console.log("Ball landing on the wheel");
-            }
-            
-            // Ball rotation with jitter
-            ballRef.current.style.transform = `rotate(${ballPosition + jitter * 10}deg)`;
-          } else {
-            // Once the ball falls on the wheel, it moves with the wheel but gradually
-            // adjusts to align with the final result
-            
-            // Calculate the current normalized position of the wheel
-            const normalizedWheelPos = wheelPosition % 360;
-            
-            // When the wheel is slowing down and almost stopped
-            if (wheelVelocity < 50) {
-              // Gradually adjust ball position to match the final result
-              // Calculate how close we are to stopping (0 = still moving, 1 = stopped)
-              const stoppingFactor = 1 - (wheelVelocity / 50);
-              
-              // Calculate current wheel position normalized to match pocket positions
-              const currentWheelPocket = normalizedWheelPos / (360 / WHEEL_SEQUENCE.length);
-              
-              // Ball should gradually move to align with targetAngle
-              // We want to have the ball rotate to align with the target angle when the wheel stops
-              const ballAdjustment = stoppingFactor * (targetAngle - ballPosition);
-              
-              // Apply adjustment to ball position
-              ballPosition += ballAdjustment * 0.1;
-              
-              // Set temporary result for visual feedback
-              if (stoppingFactor > 0.5) {
-                const tempIndex = Math.floor(currentWheelPocket) % WHEEL_SEQUENCE.length;
-                const tempResult = WHEEL_SEQUENCE[tempIndex >= 0 ? tempIndex : WHEEL_SEQUENCE.length + tempIndex];
-                setResult(tempResult);
-              }
-            } else {
-              // Ball rotates with wheel but with some slight deviation
-              ballPosition = normalizedWheelPos + 180 + (Math.sin(time / 300) * 10);
-            }
-            
-            // Apply the ball position
-            ballRef.current.style.transform = `rotate(${ballPosition}deg)`;
-          }
-        }
-        
-        // Continue animation until wheel almost stops
-        if (wheelVelocity > 0.5) {
-          requestAnimationFrame(animateSpinning);
-        } else {
-          // Animation complete - resolve to continue game flow
-          resolve(true);
-        }
-      };
-      
-      // Start animation using requestAnimationFrame for smoother performance
-      requestAnimationFrame(animateSpinning);
-    });
+    // ---- SIMPLIFIED ANIMATION CODE ----
     
-    // Set final result and add to history
-    setResult(finalResult);
-    setLastResults(prev => [finalResult, ...prev].slice(0, 10));
+    // Calculate the angles and positions
+    const anglePerPocket = 360 / WHEEL_SEQUENCE.length;
+    const resultAngle = resultIndex * anglePerPocket;
     
-    console.log(`Final result: ${finalResult} (index ${resultIndex})`);
+    // We want the winning number to end at the top (270 degrees)
+    const targetAngle = 270 - resultAngle;
     
-    // Calculate exact final wheel position to align the winning number
+    // Make animation duration shorter (1.5 seconds)
+    const spinDuration = 1500;
+    
+    // Reset wheel and ball positions
     if (wheelRef.current) {
-      // Find the exact angle needed to position the winning number correctly
-      // The angle per pocket in a 37-number wheel
-      const anglePerPocket = 360 / WHEEL_SEQUENCE.length;
-      
-      // Calculate the angle for the result pocket
-      const resultAngle = resultIndex * anglePerPocket;
-      
-      // Final position should be a multiple of 360 plus the result angle
-      // We first normalize the current position to 0-360
-      const currentPos = parseFloat(wheelRef.current.style.transform.replace('rotate(', '').replace('deg)', '')) || 0;
-      const currentNormalized = currentPos % 360;
-      
-      // Calculate how much we need to rotate to reach the desired position
-      // We want the result number to be at the top (270 degrees in CSS rotation)
-      const targetPos = 270 - resultAngle;
-      
-      // Calculate the shortest path to the target
-      let adjustment = targetPos - currentNormalized;
-      
-      // Ensure we always rotate forward by adding 360 if needed
-      if (adjustment < 0) {
-        adjustment += 360;
+      wheelRef.current.style.transition = 'none';
+      wheelRef.current.style.transform = 'rotate(0deg)';
+    }
+    
+    if (ballRef.current) {
+      ballRef.current.style.transition = 'none';
+      ballRef.current.style.transform = 'rotate(0deg)';
+    }
+    
+    // Force reflow to ensure the reset styles are applied
+    if (wheelRef.current) wheelRef.current.offsetHeight;
+    if (ballRef.current) ballRef.current.offsetHeight;
+    
+    // Show random numbers during initial spin
+    let flashingNumbersTimer: number | null = null;
+    let flashIndex = 0;
+    
+    flashingNumbersTimer = window.setInterval(() => {
+      flashIndex++;
+      if (flashIndex < 10) {
+        // Show random numbers at start
+        const randomNum = Math.floor(Math.random() * 37);
+        setResult(randomNum);
+      } else {
+        // Show the actual result at the end
+        setResult(finalResult);
+        
+        // Clear the interval
+        if (flashingNumbersTimer !== null) {
+          clearInterval(flashingNumbersTimer);
+        }
       }
+    }, 150);
+    
+    // ---- WHEEL ANIMATION ----
+    if (wheelRef.current) {
+      // Add one full rotation (360 degrees) to the target position
+      // This makes the spin shorter but still shows a complete rotation
+      const finalPosition = 360 + targetAngle;
       
-      // Add a full rotation for a smoother finish
-      const finalPosition = currentPos + adjustment + 360;
-      
-      console.log(`Positioning wheel at ${finalPosition.toFixed(2)}deg for number ${finalResult}`);
-      
-      // Set shorter spin duration for faster animation
-      const wheelDuration = 2000; // 2 seconds instead of 3
-
-      // Apply final position with a smooth transition
-      wheelRef.current.style.transition = `transform ${wheelDuration}ms cubic-bezier(0.2, 0.9, 0.3, 1)`;
+      // Apply the spin with a cubic-bezier for natural slowing down
+      wheelRef.current.style.transition = `transform ${spinDuration}ms cubic-bezier(0.2, 0.8, 0.3, 1)`;
       wheelRef.current.style.transform = `rotate(${finalPosition}deg)`;
     }
     
-    // Position the ball in the final winning pocket
+    // ---- COMPLETELY REDESIGNED BALL ANIMATION ----
     if (ballRef.current) {
-      // Use direct CSS transitions instead of Web Animations API for better synchronization
-      // The ball needs to rotate to exactly match the wheel when it stops
-
-      // Create a simpler animation that's easier to synchronize
-      // Make the ball travel the opposite way of the wheel
-      ballRef.current.style.transition = 'none';
-      ballRef.current.style.transform = 'rotate(0deg)';
+      // Instead of using CSS transitions, use the Web Animations API
+      // This gives much more control over the animation keyframes
       
-      // Set a fixed animation duration
-      const ballDuration = 2000; // 2 seconds to match wheel duration
-      
-      // Force a reflow to ensure the initial position is applied
-      if (ballRef.current) {
-        ballRef.current.offsetHeight;
+      ballRef.current.animate([
+        // Start position
+        { transform: 'rotate(0deg)' },
         
-        // Set the final position - with the ball at the exact top position (270 degrees)
-        // This ensures it will be perfectly aligned with the winning number
-        const finalBallPosition = 270;
+        // First, move counter-clockwise a bit to give momentum
+        { transform: 'rotate(-120deg)', offset: 0.2 },
         
-        // Apply the transition after resetting the position
-        ballRef.current.style.transition = `transform ${ballDuration}ms cubic-bezier(0.3, 0.9, 0.2, 1)`;
-        ballRef.current.style.transform = `rotate(${finalBallPosition}deg)`;
+        // Then move to halfway position
+        { transform: 'rotate(100deg)', offset: 0.5 },
         
-        console.log(`Ball transition set to match wheel's final position at ${finalBallPosition}deg`);
-      }
+        // Add a small bounce to make it look realistic
+        { transform: 'rotate(240deg)', offset: 0.8 },
+        { transform: 'rotate(260deg)', offset: 0.9 },
+        
+        // End at exactly 270 degrees to match winning number at top
+        { transform: 'rotate(270deg)' }
+      ], {
+        duration: spinDuration,
+        easing: 'ease-out',
+        fill: 'forwards'
+      });
     }
     
-    // Process results after the animations complete
+    // Set results and process bets after animation completes
     setTimeout(() => {
+      // Clear any remaining timers
+      if (flashingNumbersTimer !== null) {
+        clearInterval(flashingNumbersTimer);
+      }
+      
+      // Update results
+      setResult(finalResult);
+      setLastResults(prev => [finalResult, ...prev].slice(0, 10));
+      
+      // End spin state
       setSpinning(false);
       spinInProgress.current = false;
+      
+      // Process bet results
       processResults(finalResult);
-    }, 2200); // 2s animation + 200ms buffer
+      
+      console.log(`Spin complete: result ${finalResult}`);
+    }, spinDuration + 100); // Add a small buffer after animation ends
   }, [activeBets, playerBalance, processResults, totalBet]);
   
   // Start a new game
@@ -607,7 +506,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Spinning wheel with pockets */}
               <div 
                 ref={wheelRef}
-                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-[3s] ease-out"
+                className="absolute inset-[30px] rounded-full overflow-hidden flex items-center justify-center transition-transform duration-1500 ease-out"
                 style={{ willChange: 'transform' }}
               >
                 {/* Number pocket ring */}
