@@ -316,6 +316,7 @@ function App() {
                 <Route path="/prestige" element={<PrestigeScreen />} />
                 <Route path="/business" element={<BusinessScreen />} />
                 <Route path="/networking" element={<NetworkingScreen />} />
+                <Route path="/casino" element={<CasinoScreen />} />
                 <Route path="/test" element={<TestPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

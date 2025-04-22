@@ -10,7 +10,8 @@ import {
   Trophy, 
   Crown, 
   Users,
-  Store
+  Store,
+  Dice1
 } from 'lucide-react';
 
 /**
@@ -37,6 +38,7 @@ export function MobileNavigation() {
     { icon: <Building className="h-5 w-5" />, label: 'Property', path: '/properties' },
     { icon: <ShoppingBag className="h-5 w-5" />, label: 'Lifestyle', path: '/lifestyle' },
     { icon: <Store className="h-5 w-5" />, label: 'Business', path: '/business' },
+    { icon: <Dice1 className="h-5 w-5" />, label: 'Casino', path: '/casino' },
     { icon: <Target className="h-5 w-5" />, label: 'Challenges', path: '/challenges' },
     { icon: <Trophy className="h-5 w-5" />, label: 'Achieve', path: '/achievements' },
     { icon: <Crown className="h-5 w-5" />, label: 'Prestige', path: '/prestige' },
