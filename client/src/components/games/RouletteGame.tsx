@@ -386,7 +386,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   
   // Render European Roulette table layout
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full max-w-7xl mx-auto">
       <div className="text-center mb-6">
         <h2 className="text-4xl font-bold text-amber-500 font-serif">EUROPEAN ROULETTE</h2>
         <p className="text-yellow-200/80 mt-1">Place multiple bets on numbers, colors, or sections</p>
@@ -395,9 +395,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       {/* Main roulette table */}
       <div className="relative bg-green-800 border-8 border-amber-950/80 rounded-3xl shadow-2xl p-8 overflow-hidden">
         {/* Background texture - subtle gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-800 to-green-900"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-green-800 to-green-900 pointer-events-none"></div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
           {/* Left section - Wheel and active bets */}
           <div className="flex flex-col items-center">
             {/* Physical roulette wheel display */}
@@ -489,7 +489,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                           size="sm" 
                           variant="ghost" 
                           className="h-8 text-red-400 hover:text-red-300 hover:bg-red-900/30"
-                          onClick={() => removeBet(bet.id)}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            console.log(`Removing bet on ${bet.label}`);
+                            removeBet(bet.id);
+                          }}
                           disabled={spinning}
                         >
                           Remove
@@ -624,7 +628,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
             </div>
             
             {/* Roulette table layout */}
-            <div className="bg-green-900/60 rounded-lg p-4">
+            <div className="bg-green-900/60 rounded-lg p-4 relative z-10">
               <h3 className="text-lg font-bold mb-4 text-yellow-300">Betting Table</h3>
               
               {/* Table layout */}
