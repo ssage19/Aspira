@@ -463,42 +463,41 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       
       console.log(`Positioning wheel at ${finalPosition.toFixed(2)}deg for number ${finalResult}`);
       
+      // Set shorter spin duration for faster animation
+      const wheelDuration = 2000; // 2 seconds instead of 3
+
       // Apply final position with a smooth transition
-      wheelRef.current.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.3, 1)';
+      wheelRef.current.style.transition = `transform ${wheelDuration}ms cubic-bezier(0.2, 0.9, 0.3, 1)`;
       wheelRef.current.style.transform = `rotate(${finalPosition}deg)`;
     }
     
     // Position the ball in the final winning pocket
     if (ballRef.current) {
-      // First, spin the ball in the opposite direction for 2 seconds, then slow down to land on the winning number
-      // The ball needs to end at the opposite position from where the wheel ends
-      // Since the wheel spins clockwise (negative degrees), the ball spins counter-clockwise (positive degrees)
+      // Use direct CSS transitions instead of Web Animations API for better synchronization
+      // The ball needs to rotate to exactly match the wheel when it stops
+
+      // Create a simpler animation that's easier to synchronize
+      // Make the ball travel the opposite way of the wheel
+      ballRef.current.style.transition = 'none';
+      ballRef.current.style.transform = 'rotate(0deg)';
       
-      // Calculate exact ball angle to match the winning number at the top
-      const ballStartRotations = 8; // Make sure ball spins enough times
-      const ballStartPos = ballStartRotations * 360;
+      // Set a fixed animation duration
+      const ballDuration = 2000; // 2 seconds to match wheel duration
       
-      // The final position needs to be exactly at the top (270 degrees)
-      const ballFinalPosition = 270;
-      
-      // Use the Web Animations API for more fluid animation
-      const ballAnimation = ballRef.current.animate([
-        { transform: 'rotate(0deg)' }, // Start position
-        { transform: `rotate(${ballStartPos * 0.6}deg)`, offset: 0.4 }, // Fast initial spin
-        { transform: `rotate(${ballStartPos}deg)`, offset: 0.8 }, // Begin slowing down
-        { transform: `rotate(${ballFinalPosition}deg)` } // Land on final position
-      ], {
-        duration: 3000, // Match wheel spin duration
-        easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)', // Slightly different easing for ball bounce effect
-        fill: 'forwards'
-      });
-      
-      // Store the final transform when animation completes
-      ballAnimation.onfinish = () => {
-        ballRef.current.style.transform = `rotate(${ballFinalPosition}deg)`;
-      };
-      
-      console.log(`Ball animation: Starting at 0deg, spinning through ${ballStartPos}deg and landing at ${ballFinalPosition}deg to match result ${finalResult}`);
+      // Force a reflow to ensure the initial position is applied
+      if (ballRef.current) {
+        ballRef.current.offsetHeight;
+        
+        // Set the final position - with the ball at the exact top position (270 degrees)
+        // This ensures it will be perfectly aligned with the winning number
+        const finalBallPosition = 270;
+        
+        // Apply the transition after resetting the position
+        ballRef.current.style.transition = `transform ${ballDuration}ms cubic-bezier(0.3, 0.9, 0.2, 1)`;
+        ballRef.current.style.transform = `rotate(${finalBallPosition}deg)`;
+        
+        console.log(`Ball transition set to match wheel's final position at ${finalBallPosition}deg`);
+      }
     }
     
     // Process results after the animations complete
@@ -506,7 +505,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       setSpinning(false);
       spinInProgress.current = false;
       processResults(finalResult);
-    }, 3200);
+    }, 2200); // 2s animation + 200ms buffer
   }, [activeBets, playerBalance, processResults, totalBet]);
   
   // Start a new game
