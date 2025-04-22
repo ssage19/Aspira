@@ -129,8 +129,45 @@ export function ReadyPlayerMeAvatar({ onBack }: ReadyPlayerMeAvatarProps) {
         <CardContent className="space-y-4">
           {avatarUrl ? (
             <div className="space-y-4">
-              <div className="aspect-square w-full max-w-md mx-auto bg-gray-100 rounded-lg overflow-hidden">
-                <AvatarPreview url={avatarUrl} className="w-full h-full" />
+              <div className="aspect-square w-full max-w-md mx-auto bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center relative">
+                {avatarUrl && (
+                  <>
+                    {/* For GLB models, show a PNG preview if available */}
+                    {avatarUrl.endsWith('.glb') ? (
+                      <div className="flex flex-col items-center justify-center text-center p-4">
+                        <img 
+                          src={avatarUrl.replace('.glb', '.png')} 
+                          alt="Avatar Preview" 
+                          className="w-full h-full object-contain"
+                          onError={(e) => {
+                            console.error('Failed to load preview image');
+                            e.currentTarget.style.display = 'none';
+                            // Show a fallback icon
+                            const fallbackDiv = document.createElement('div');
+                            fallbackDiv.className = 'flex flex-col items-center justify-center';
+                            fallbackDiv.innerHTML = `
+                              <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-primary">
+                                <path d="M17 11l-5-5-5 5"/>
+                                <path d="M17 18l-5-5-5 5"/>
+                              </svg>
+                              <p class="mt-2 text-sm">3D Avatar Model</p>
+                            `;
+                            e.currentTarget.parentElement?.appendChild(fallbackDiv);
+                          }}
+                        />
+                        <div className="mt-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                          3D Avatar Model
+                        </div>
+                      </div>
+                    ) : (
+                      <img 
+                        src={avatarUrl} 
+                        alt="Your Avatar" 
+                        className="w-full h-full object-contain"
+                      />
+                    )}
+                  </>
+                )}
               </div>
               <div className="flex justify-center space-x-3">
                 <Button onClick={openReadyPlayerMe}>
