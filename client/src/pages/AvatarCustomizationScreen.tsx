@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, PerspectiveCamera, Environment, Stats } from '@react-three/drei';
+import { OrbitControls, PerspectiveCamera, Environment } from '@react-three/drei';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { Character } from '../components/Character';
 import GameUI from '../components/GameUI';
@@ -94,8 +94,6 @@ export default function AvatarCustomizationScreen() {
                       
                       <Character position={[0, -1, 0]} scale={1.2} />
                       <Environment preset="city" />
-                      
-                      {process.env.NODE_ENV === 'development' && <Stats />}
                     </Canvas>
                     
                     {/* Controls */}
