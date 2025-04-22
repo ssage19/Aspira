@@ -1,16 +1,23 @@
-import { useRef, useEffect } from 'react';
-import { useGLTF } from '@react-three/drei';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCharacter } from '../lib/stores/useCharacter';
+import { EnhancedCharacter } from './EnhancedCharacter';
 
 export function Character({ position = [0, 0, 0], scale = 1 }) {
   const characterRef = useRef<THREE.Group>(null);
   const wealth = useCharacter(state => state.wealth);
+  const lifestyleItems = useCharacter(state => state.lifestyleItems);
   
-  // In a real implementation, we'd load a character model
-  // Since we don't have a model, we'll create a simple representation
+  // Check if we have any lifestyle items that should trigger the enhanced character
+  const useEnhancedCharacter = lifestyleItems && lifestyleItems.length > 0;
   
+  // If we have lifestyle items, use the enhanced character with accessories
+  if (useEnhancedCharacter) {
+    return <EnhancedCharacter position={position} scale={scale} />;
+  }
+  
+  // Otherwise, use the simple character (legacy implementation)
   useFrame(() => {
     if (characterRef.current) {
       // Add some subtle animation
