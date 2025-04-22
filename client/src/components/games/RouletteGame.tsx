@@ -122,6 +122,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     // Parse bet amount from input (minimum 10)
     const betAmount = Math.max(10, parseInt(customBetInput, 10) || 100);
     
+    console.log(`Placing a bet: ${betOption.label} for ${betAmount}`);
+    
     // Check if player has enough balance
     if (betAmount > playerBalance - totalBet) {
       toast.error("You don't have enough balance for this bet");
@@ -168,6 +170,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   const adjustBetAmount = useCallback((amount: number) => {
     const currentValue = parseInt(customBetInput, 10) || 0;
     const newValue = Math.max(10, currentValue + amount);
+    console.log(`Adjusting bet: ${currentValue} + ${amount} = ${newValue}`);
     setCustomBetInput(newValue.toString());
   }, [customBetInput]);
   
@@ -220,14 +223,17 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       const winnings = isWin ? bet.bet * bet.payout : 0;
       totalWinAmount += winnings;
       
+      // Create a properly typed result
+      const result: 'win' | 'lose' | null = isWin ? 'win' : 'lose';
+      
       return {
         ...bet,
-        result: isWin ? 'win' : 'lose',
-        winnings: winnings
+        result,
+        winnings
       };
     });
     
-    // Update the bets with results
+    // Update the bets with results 
     setActiveBets(updatedBets);
     
     // Calculate net winnings (total winnings - total bet)
@@ -388,8 +394,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       
       {/* Main roulette table */}
       <div className="relative bg-green-800 border-8 border-amber-950/80 rounded-3xl shadow-2xl p-8 overflow-hidden">
-        {/* Background pattern */}
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIgMkgyMlYyMkgyVjJaIiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTNhMjAiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8cGF0aCBkPSJNMjIgMkg0MlYyMkgyMlYyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWUzYTIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPHBhdGggZD0iTTQyIDJINjJWMjJINDJWMloiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzFlM2EyMCIgc3Ryb2tlLXdpZHRoPSIxIj48L3BhdGg+CjxwYXRoIGQ9Ik0yIDIySDIyVjQySDJWMjJaIiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTNhMjAiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8cGF0aCBkPSJNMjIgMjJINDJWNDJIMjJWMjJaIiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTNhMjAiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8cGF0aCBkPSJNNDIgMjJINjJWNDJINDJWMjJaIiBmaWxsPSJub25lIiBzdHJva2U9IiMxZTNhMjAiIHN0cm9rZS13aWR0aD0iMSI+PC9wYXRoPgo8cGF0aCBkPSJNMiA0MkgyMlY2MkgyVjQyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWUzYTIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPHBhdGggZD0iTTIyIDQySDQyVjYySDIyVjQyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWUzYTIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPHBhdGggZD0iTTQyIDQySDYyVjYySDQyVjQyWiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMWUzYTIwIiBzdHJva2Utd2lkdGg9IjEiPjwvcGF0aD4KPC9zdmc+')] opacity-40"></div>
+        {/* Background texture - subtle gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-green-800 to-green-900"></div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Left section - Wheel and active bets */}
@@ -552,7 +558,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               <div className="flex items-center gap-3 mb-3">
                 <Button 
                   size="sm" 
-                  onClick={() => adjustBetAmount(-100)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log("Decreasing bet amount");
+                    adjustBetAmount(-100);
+                  }}
                   disabled={parseInt(customBetInput, 10) <= 100 || spinning}
                   className="bg-amber-700 hover:bg-amber-800"
                 >
@@ -572,7 +582,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 
                 <Button 
                   size="sm" 
-                  onClick={() => adjustBetAmount(100)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log("Increasing bet amount");
+                    adjustBetAmount(100);
+                  }}
                   disabled={spinning}
                   className="bg-amber-700 hover:bg-amber-800"
                 >
@@ -586,7 +600,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   <Button 
                     key={amount}
                     size="sm"
-                    onClick={() => setCustomBetInput(amount.toString())}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log(`Setting bet to ${amount}`);
+                      setCustomBetInput(amount.toString());
+                    }}
                     disabled={spinning}
                     variant="outline"
                     className="border-amber-600/50 hover:bg-amber-900/30 text-yellow-200"
@@ -660,7 +678,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     <Button
                       key={`bottom-${index}`}
                       className={`h-10 ${item.color || 'bg-blue-900 hover:bg-blue-800'} text-white rounded-none border border-amber-900/30`}
-                      onClick={() => addBet(item.bet)}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(`Placing bet on ${item.label}`);
+                        addBet(item.bet);
+                      }}
                       disabled={spinning}
                     >
                       {item.label}
@@ -675,7 +697,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   <Button
                     key={`column-${index}`}
                     className="bg-indigo-800 hover:bg-indigo-700 text-white"
-                    onClick={() => addBet(bet)}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      console.log(`Placing bet on ${bet.label}`);
+                      addBet(bet);
+                    }}
                     disabled={spinning}
                   >
                     {bet.label}
