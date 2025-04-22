@@ -470,16 +470,35 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
     
     // Position the ball in the final winning pocket
     if (ballRef.current) {
-      // The ball needs to be positioned at the top (270 degrees)
-      // Since we want the ball to land directly on the number, we need to adjust it to match the exact position
-      const anglePerPocket = 360 / WHEEL_SEQUENCE.length;
-      const resultAngle = 270; // Top position
-
-      // Calculate any additional offset needed to ensure alignment with the wheel position
-      ballRef.current.style.transition = 'transform 3s cubic-bezier(0.2, 0.9, 0.3, 1)';
-      ballRef.current.style.transform = `rotate(${resultAngle}deg)`;
+      // First, spin the ball in the opposite direction for 2 seconds, then slow down to land on the winning number
+      // The ball needs to end at the opposite position from where the wheel ends
+      // Since the wheel spins clockwise (negative degrees), the ball spins counter-clockwise (positive degrees)
       
-      console.log(`Positioning ball at ${resultAngle}deg to match result ${finalResult}`);
+      // Calculate exact ball angle to match the winning number at the top
+      const ballStartRotations = 8; // Make sure ball spins enough times
+      const ballStartPos = ballStartRotations * 360;
+      
+      // The final position needs to be exactly at the top (270 degrees)
+      const ballFinalPosition = 270;
+      
+      // Use the Web Animations API for more fluid animation
+      const ballAnimation = ballRef.current.animate([
+        { transform: 'rotate(0deg)' }, // Start position
+        { transform: `rotate(${ballStartPos * 0.6}deg)`, offset: 0.4 }, // Fast initial spin
+        { transform: `rotate(${ballStartPos}deg)`, offset: 0.8 }, // Begin slowing down
+        { transform: `rotate(${ballFinalPosition}deg)` } // Land on final position
+      ], {
+        duration: 3000, // Match wheel spin duration
+        easing: 'cubic-bezier(0.2, 0.8, 0.3, 1)', // Slightly different easing for ball bounce effect
+        fill: 'forwards'
+      });
+      
+      // Store the final transform when animation completes
+      ballAnimation.onfinish = () => {
+        ballRef.current.style.transform = `rotate(${ballFinalPosition}deg)`;
+      };
+      
+      console.log(`Ball animation: Starting at 0deg, spinning through ${ballStartPos}deg and landing at ${ballFinalPosition}deg to match result ${finalResult}`);
     }
     
     // Process results after the animations complete
@@ -593,62 +612,93 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 style={{ willChange: 'transform' }}
               >
                 {/* Number pocket ring */}
-                <div className="absolute inset-[30px] rounded-full overflow-hidden">
-                  {/* Pocket segments in a circle */}
-                  <div className="absolute inset-0 rounded-full">
-                    {WHEEL_SEQUENCE.map((number, i) => {
-                      const angle = (i / WHEEL_SEQUENCE.length) * 360;
-                      const isRed = RED_NUMBERS.includes(number);
-                      // Calculate the inner and outer radius for the proper segment shape
-                      const innerRadius = 75; // Inner radius where pocket segments start
-                      const outerRadius = 130; // Outer radius where pocket segments end
-                      
-                      return (
-                        <div 
-                          key={`pocket-${i}`} 
-                          className="absolute top-1/2 left-1/2 origin-center"
-                          style={{
-                            width: `${outerRadius * 2}px`,
-                            height: `${outerRadius * 2}px`,
-                            transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-                          }}
-                        >
-                          {/* Pocket segment */}
-                          <div 
-                            style={{
-                              position: 'absolute',
-                              width: `${outerRadius - innerRadius}px`,
-                              height: `${2 * Math.PI * (innerRadius + (outerRadius - innerRadius)/2) / WHEEL_SEQUENCE.length}px`,
-                              top: '0px',
-                              left: '50%',
-                              transform: 'translateX(-50%)',
-                              backgroundColor: number === 0 ? '#0a8f0a' : isRed ? '#d10a0a' : '#000',
-                              clipPath: 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%)',
-                              borderLeft: '1px solid rgba(255,255,255,0.2)',
-                              borderRight: '1px solid rgba(0,0,0,0.3)',
-                              zIndex: 5,
-                            }}
-                          >
-                            {/* Number label */}
-                            <div 
-                              className="absolute text-white font-bold text-xs"
+                <div className="absolute inset-0 rounded-full overflow-hidden">
+                  {/* Colored number ring */}
+                  <div className="absolute inset-[30px] rounded-full border-2 border-amber-950/70 flex items-center justify-center">
+                    {/* Numbers ring - matches exactly with the reference image */}
+                    <div className="absolute inset-0 rounded-full overflow-hidden">
+                      {/* First create the colored background segments */}
+                      <svg className="w-full h-full" viewBox="0 0 260 260">
+                        <defs>
+                          <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#b45309" />
+                            <stop offset="100%" stopColor="#92400e" />
+                          </linearGradient>
+                        </defs>
+                        {/* Central wooden area */}
+                        <circle cx="130" cy="130" r="75" fill="url(#woodGrain)" />
+                        
+                        {/* Number segments */}
+                        {WHEEL_SEQUENCE.map((number, i) => {
+                          const angle = (i / WHEEL_SEQUENCE.length) * 360;
+                          const startAngle = angle - (360 / WHEEL_SEQUENCE.length / 2);
+                          const endAngle = angle + (360 / WHEEL_SEQUENCE.length / 2);
+                          const isRed = RED_NUMBERS.includes(number);
+                          const color = number === 0 ? '#0a8f0a' : isRed ? '#d10a0a' : '#000';
+                          
+                          // Calculate SVG arc path
+                          const innerRadius = 75;
+                          const outerRadius = 130;
+                          const startRadians = (startAngle * Math.PI) / 180;
+                          const endRadians = (endAngle * Math.PI) / 180;
+                          
+                          const startX1 = 130 + innerRadius * Math.cos(startRadians);
+                          const startY1 = 130 + innerRadius * Math.sin(startRadians);
+                          const endX1 = 130 + innerRadius * Math.cos(endRadians);
+                          const endY1 = 130 + innerRadius * Math.sin(endRadians);
+                          
+                          const startX2 = 130 + outerRadius * Math.cos(startRadians);
+                          const startY2 = 130 + outerRadius * Math.sin(startRadians);
+                          const endX2 = 130 + outerRadius * Math.cos(endRadians);
+                          const endY2 = 130 + outerRadius * Math.sin(endRadians);
+                          
+                          const largeArcFlag = endAngle - startAngle > 180 ? 1 : 0;
+                          
+                          return (
+                            <path
+                              key={`segment-${i}`}
+                              d={`
+                                M ${startX1} ${startY1}
+                                A ${innerRadius} ${innerRadius} 0 ${largeArcFlag} 1 ${endX1} ${endY1}
+                                L ${endX2} ${endY2}
+                                A ${outerRadius} ${outerRadius} 0 ${largeArcFlag} 0 ${startX2} ${startY2}
+                                Z
+                              `}
+                              fill={color}
+                              stroke="rgba(255,255,255,0.3)"
+                              strokeWidth="1"
+                            />
+                          );
+                        })}
+                        
+                        {/* Add number labels on top of segments */}
+                        {WHEEL_SEQUENCE.map((number, i) => {
+                          const angle = (i / WHEEL_SEQUENCE.length) * 360;
+                          const radius = 103; // Position for the text
+                          const x = 130 + radius * Math.cos((angle * Math.PI) / 180);
+                          const y = 130 + radius * Math.sin((angle * Math.PI) / 180);
+                          
+                          return (
+                            <text
+                              key={`number-${i}`}
+                              x={x}
+                              y={y}
+                              fill="white"
+                              fontFamily="Arial, sans-serif"
+                              fontSize="11"
+                              fontWeight="bold"
+                              textAnchor="middle"
+                              dominantBaseline="middle"
                               style={{
-                                top: '10px',
-                                left: '50%',
-                                transform: 'translateX(-50%)',
                                 textShadow: '0px 0px 3px rgba(0,0,0,0.9)',
-                                zIndex: 20,
-                                fontSize: '11px',
-                                fontWeight: 'bold',
-                                whiteSpace: 'nowrap',
                               }}
                             >
                               {number}
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
+                            </text>
+                          );
+                        })}
+                      </svg>
+                    </div>
                   </div>
                 </div>
                 
@@ -688,13 +738,13 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Ball - white sphere that moves around the wheel */}
               <div ref={ballRef} className="absolute z-30" style={{ willChange: 'transform' }}>
                 <div 
-                  className="w-[10px] h-[10px] rounded-full bg-gray-100" 
+                  className="w-[12px] h-[12px] rounded-full bg-white" 
                   style={{ 
                     position: 'absolute',
-                    left: 'calc(50% - 5px)', 
-                    top: '-130px', // Position at the outer edge of the wheel between the numbers
-                    transformOrigin: '5px 130px', // Pivot from the center of the wheel
-                    boxShadow: '0 0 4px 2px rgba(255,255,255,0.7)',
+                    left: 'calc(50% - 6px)', 
+                    top: '-103px', // Position at the radius matching the numbers exactly
+                    transformOrigin: '6px 103px', // Pivot from the center of the wheel
+                    boxShadow: '0 0 5px 2px rgba(255,255,255,0.8)',
                   }}
                 ></div>
               </div>
