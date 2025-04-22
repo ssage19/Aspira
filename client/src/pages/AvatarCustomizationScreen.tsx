@@ -5,7 +5,8 @@ import {
   avatarAccessories, 
   getAvailableAccessories, 
   getAccessoriesByType,
-  AvatarAccessoryType 
+  AvatarAccessoryType,
+  AvatarAccessoryMapping
 } from '../lib/data/avatarAccessories';
 import { 
   Tabs, 
@@ -237,7 +238,7 @@ export default function AvatarCustomizationScreen() {
                 {accessoryTypes.map(type => (
                   <TabsContent key={type} value={type}>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 mt-2">
-                      {accessoryTypeMap[type].map((accessory, index) => {
+                      {accessoryTypeMap[type].map((accessory: AvatarAccessoryMapping, index: number) => {
                         const isSelected = character.selectedAccessories?.[type] === accessory.id;
                         return (
                           <div 
@@ -256,6 +257,18 @@ export default function AvatarCustomizationScreen() {
                                 <div className="text-xs text-gray-500 mt-1">
                                   Unlocked
                                   <Sparkles className="h-3 w-3 ml-1 inline text-amber-500" />
+                                </div>
+                              )}
+                              
+                              {accessory.prestigeRequired && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Prestige: {accessory.prestigeRequired}+
+                                </div>
+                              )}
+                              
+                              {accessory.defaultUnlocked && (
+                                <div className="text-xs text-emerald-500 mt-1">
+                                  Default
                                 </div>
                               )}
                             </div>

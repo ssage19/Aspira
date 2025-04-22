@@ -172,6 +172,49 @@ export function EnhancedLifestyleSelector() {
     // Add item to character
     addLifestyleItem(lifestyleItem);
     
+    // Check for avatar accessory unlocks based on this lifestyle item
+    try {
+      // Import avatar accessories related functionality
+      import('../lib/data/avatarAccessories').then(({ avatarAccessories, getAvailableAccessories }) => {
+        // Get the full list of character's lifestyle items including this new one
+        const updatedLifestyleItems = [...character.lifestyleItems];
+        const availableAccessories = getAvailableAccessories(updatedLifestyleItems);
+        
+        // Find accessories specifically linked to this item
+        const newAccessories = availableAccessories.filter(
+          acc => acc.lifestyleItemId === item.id || acc.lifestyleItemType === item.type
+        );
+        
+        // Automatically select one new accessory of each type
+        if (newAccessories.length > 0) {
+          const typesSeen = new Set<string>();
+          
+          newAccessories.forEach(accessory => {
+            if (!typesSeen.has(accessory.type)) {
+              // Select this accessory
+              character.selectAccessory(accessory.type, accessory.id);
+              typesSeen.add(accessory.type);
+              
+              // Show toast about the unlocked accessory
+              setTimeout(() => {
+                toast.success(
+                  <div>
+                    <p className="font-bold">New Accessory Unlocked!</p>
+                    <p className="text-sm">{accessory.name}</p>
+                  </div>, 
+                  { duration: 3000 }
+                );
+              }, 1500); // Show after the main purchase toast
+            }
+          });
+        }
+      }).catch(error => {
+        console.error("Failed to check for avatar accessories:", error);
+      });
+    } catch (error) {
+      console.error("Error with avatar accessory unlock check:", error);
+    }
+    
     // Play success sound
     playSuccess();
     
