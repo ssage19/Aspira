@@ -1,75 +1,17 @@
-import React, { Suspense, useState, useEffect, useRef } from 'react';
-import { Canvas, useThree, useLoader } from '@react-three/fiber';
+import React, { Suspense, useState } from 'react';
+import { Canvas } from '@react-three/fiber';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { avatarAccessories, getAccessoryById } from '../lib/data/avatarAccessories';
-import { PerspectiveCamera, OrbitControls, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { PerspectiveCamera, OrbitControls } from '@react-three/drei';
 
 interface CustomAvatarPreviewProps {
   size?: 'sm' | 'md' | 'lg';
   showPlaceholder?: boolean;
 }
 
-// Preload the models to avoid loading issues
-// Using strings in an array to preload models
-const modelsToPreload = [
-  '/models/accessories/default_body.glb',
-  '/models/accessories/default_hair.glb',
-  '/models/accessories/fancy_hair.glb', 
-  '/models/accessories/professional_hair.glb',
-  '/models/accessories/casual_outfit.glb',
-  '/models/accessories/business_suit.glb',
-  '/models/accessories/sports_outfit.glb',
-  '/models/accessories/designer_clothes.glb',
-  '/models/accessories/reading_glasses.glb',
-  '/models/accessories/luxury_sunglasses.glb',
-  '/models/accessories/luxury_watch.glb',
-  '/models/accessories/premium_headphones.glb'
-];
-
-// Preload the models
-modelsToPreload.forEach(path => {
-  useGLTF.preload(path);
-});
-
-// Component to render the custom avatar with accessories
-function AvatarModel() {
+// Component to render placeholder boxes for avatar parts when models fail to load
+function SimpleAvatarModel() {
   const characterState = useCharacter();
   const { selectedAccessories = {}, avatarSkinTone, avatarBodyType, avatarHeight } = characterState;
-  const [modelError, setModelError] = useState<boolean>(false);
-  const { scene: baseScene } = useLoader(GLTFLoader, '/models/accessories/default_body.glb', 
-    (loader) => {
-      // Add any loader configuration here
-    },
-    (error) => {
-      console.error("Error loading base model with GLTFLoader:", error);
-      setModelError(true);
-    }
-  );
-  
-  const baseModel = useRef(baseScene ? baseScene.clone() : null);
-  
-  // Handle skin tone as material color
-  useEffect(() => {
-    try {
-      if (baseModel.current) {
-        baseModel.current.traverse((obj: any) => {
-          if (obj.isMesh && obj.material) {
-            // Clone material to avoid affecting other instances
-            obj.material = obj.material.clone();
-            
-            // Apply skin tone if available
-            if (avatarSkinTone) {
-              obj.material.color = new THREE.Color(avatarSkinTone);
-            }
-          }
-        });
-      }
-    } catch (error) {
-      console.error("Error applying skin tone:", error);
-    }
-  }, [baseModel, avatarSkinTone]);
   
   // Apply body type as scaling
   const bodyScaleFactor = avatarBodyType === 'slim' ? 0.9 : 
@@ -78,84 +20,100 @@ function AvatarModel() {
   // Apply height
   const heightFactor = avatarHeight || 1;
   
-  // Show fallback mesh if there's an error or model is null
-  if (modelError || !baseModel.current) {
-    return (
-      <mesh>
-        <boxGeometry args={[1, 2, 1]} />
-        <meshStandardMaterial color={avatarSkinTone || "#F5D0A9"} />
+  // Body color based on skin tone or default
+  const bodyColor = avatarSkinTone || "#F5D0A9";
+  
+  // Get outfit color based on selected outfit
+  const getOutfitColor = () => {
+    const outfitId = selectedAccessories.outfit;
+    if (outfitId === 'outfit_business') return "#303030"; // Business suit - dark
+    if (outfitId === 'outfit_sports') return "#4267B2"; // Sports outfit - blue
+    if (outfitId === 'outfit_luxury') return "#A36B2C"; // Designer clothes - gold/brown
+    return "#5591AF"; // Default/casual outfit - blue-ish
+  };
+  
+  // Get hair color based on selected hairstyle
+  const getHairColor = () => {
+    const hairId = selectedAccessories.hair;
+    if (hairId === 'hair_fancy') return "#6B4226"; // Fancy hair - rich brown
+    if (hairId === 'hair_professional') return "#2B2B2B"; // Professional hair - dark
+    return "#3B2E1F"; // Default hair - brown
+  };
+  
+  return (
+    <group scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]}>
+      {/* Base body - torso */}
+      <mesh position={[0, 0, 0]}>
+        <boxGeometry args={[0.8, 1, 0.4]} />
+        <meshStandardMaterial color={bodyColor} />
       </mesh>
-    );
-  }
-  
-  return (
-    <group>
-      {/* Base body model */}
-      <primitive 
-        object={baseModel.current} 
-        scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]} 
-      />
       
-      {/* Selected accessories */}
-      {Object.entries(selectedAccessories).map(([type, accessoryId]) => {
-        const accessory = getAccessoryById(accessoryId);
-        if (!accessory) return null;
-        
-        return (
-          <AccessoryModel 
-            key={accessoryId}
-            modelPath={accessory.modelPath}
-            scale={[bodyScaleFactor, heightFactor, bodyScaleFactor]}
-          />
-        );
-      })}
+      {/* Head */}
+      <mesh position={[0, 0.85, 0]}>
+        <sphereGeometry args={[0.3, 16, 16]} />
+        <meshStandardMaterial color={bodyColor} />
+      </mesh>
+      
+      {/* Arms */}
+      <mesh position={[-0.5, 0, 0]}>
+        <boxGeometry args={[0.2, 0.8, 0.2]} />
+        <meshStandardMaterial color={getOutfitColor()} />
+      </mesh>
+      <mesh position={[0.5, 0, 0]}>
+        <boxGeometry args={[0.2, 0.8, 0.2]} />
+        <meshStandardMaterial color={getOutfitColor()} />
+      </mesh>
+      
+      {/* Legs */}
+      <mesh position={[-0.25, -0.9, 0]}>
+        <boxGeometry args={[0.25, 0.8, 0.3]} />
+        <meshStandardMaterial color={getOutfitColor()} />
+      </mesh>
+      <mesh position={[0.25, -0.9, 0]}>
+        <boxGeometry args={[0.25, 0.8, 0.3]} />
+        <meshStandardMaterial color={getOutfitColor()} />
+      </mesh>
+      
+      {/* Hair */}
+      <mesh position={[0, 1, 0]}>
+        <boxGeometry args={[0.35, 0.15, 0.35]} />
+        <meshStandardMaterial color={getHairColor()} />
+      </mesh>
+      
+      {/* Accessories - glasses if present */}
+      {selectedAccessories.eyewear && (
+        <mesh position={[0, 0.85, 0.2]} rotation={[0, 0, 0]}>
+          <torusGeometry args={[0.15, 0.03, 8, 16, Math.PI]} />
+          <meshStandardMaterial color="#555555" />
+        </mesh>
+      )}
+      
+      {/* Watch if present */}
+      {selectedAccessories.accessory === 'accessory_watch' && (
+        <mesh position={[-0.5, -0.2, 0.15]} rotation={[0, 0, 0]}>
+          <cylinderGeometry args={[0.08, 0.08, 0.05, 16]} />
+          <meshStandardMaterial color="#FFD700" />
+        </mesh>
+      )}
+      
+      {/* Headphones if present */}
+      {selectedAccessories.accessory === 'accessory_headphones' && (
+        <group position={[0, 0.9, 0]}>
+          <mesh position={[0, 0.1, 0]}>
+            <torusGeometry args={[0.3, 0.05, 8, 16, Math.PI]} />
+            <meshStandardMaterial color="#222222" />
+          </mesh>
+          <mesh position={[-0.3, 0, 0]} rotation={[0, 0, Math.PI/2]}>
+            <cylinderGeometry args={[0.1, 0.1, 0.05, 16]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+          <mesh position={[0.3, 0, 0]} rotation={[0, 0, Math.PI/2]}>
+            <cylinderGeometry args={[0.1, 0.1, 0.05, 16]} />
+            <meshStandardMaterial color="#000000" />
+          </mesh>
+        </group>
+      )}
     </group>
-  );
-}
-
-// Component to load and render an accessory model
-function AccessoryModel({ modelPath, scale = 1 }: { 
-  modelPath: string;
-  scale?: number | [number, number, number];
-}) {
-  const [modelError, setModelError] = useState<boolean>(false);
-  const { scene } = useLoader(GLTFLoader, modelPath, 
-    (loader) => {
-      // Add any loader configuration here
-    },
-    (error) => {
-      console.error(`Error loading accessory model ${modelPath}:`, error);
-      setModelError(true);
-    }
-  );
-  
-  const model = useRef(scene ? scene.clone() : null);
-  
-  // Handle scale whether it's a single number or an array
-  const scaleVector = Array.isArray(scale) 
-    ? new THREE.Vector3(...scale)
-    : new THREE.Vector3(scale, scale, scale);
-  
-  // Return null if there's an error or the model isn't loaded properly
-  if (modelError || !model.current) {
-    return null; 
-  }
-  
-  return (
-    <primitive 
-      object={model.current} 
-      scale={scaleVector}
-    />
-  );
-}
-
-// Debug component to render when models fail to load
-function DebugBox() {
-  return (
-    <mesh position={[0, 0, 0]}>
-      <boxGeometry args={[1, 2, 1]} />
-      <meshStandardMaterial color="red" />
-    </mesh>
   );
 }
 
@@ -171,8 +129,6 @@ export default function CustomAvatarPreview({
     lg: 'w-48 h-48'
   };
   
-  const [loadError, setLoadError] = useState(false);
-  
   return (
     <div className={`${sizeClasses[size]} bg-muted/30 rounded-md relative overflow-hidden`}>
       {showPlaceholder ? (
@@ -183,14 +139,12 @@ export default function CustomAvatarPreview({
           </svg>
         </div>
       ) : (
-        <Canvas className="w-full h-full" onCreated={({ gl }) => {
-          gl.localClippingEnabled = true;
-        }}>
+        <Canvas className="w-full h-full">
           <ambientLight intensity={0.8} />
           <directionalLight position={[10, 10, 5]} intensity={1} />
-          <PerspectiveCamera makeDefault position={[0, 1.5, 2]} />
-          <Suspense fallback={<DebugBox />}>
-            {loadError ? <DebugBox /> : <AvatarModel />}
+          <PerspectiveCamera makeDefault position={[0, 0, 2.5]} />
+          <Suspense fallback={null}>
+            <SimpleAvatarModel />
           </Suspense>
           <OrbitControls 
             enableZoom={false}
