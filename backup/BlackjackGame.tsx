@@ -45,6 +45,81 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
   const [result, setResult] = useState<'win' | 'lose' | 'push' | null>(null);
   const [displayWinnings, setDisplayWinnings] = useState<number>(0);
   
+  // Initialize a new deck of cards
+  const initializeDeck = () => {
+    const newDeck: PlayingCard[] = [];
+    const suits: ('hearts' | 'diamonds' | 'clubs' | 'spades')[] = ['hearts', 'diamonds', 'clubs', 'spades'];
+    
+    suits.forEach(suit => {
+      for (let value = 1; value <= 13; value++) {
+        newDeck.push({ suit, value, faceUp: true });
+      }
+    });
+    
+    // Shuffle the deck
+    return shuffleDeck(newDeck);
+  };
+  
+  // Shuffle the deck
+  const shuffleDeck = (deckToShuffle: PlayingCard[]) => {
+    const shuffled = [...deckToShuffle];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  };
+  
+  // Deal a card from the deck
+  const dealCard = (faceUp: boolean = true): PlayingCard => {
+    if (deck.length === 0) {
+      const newDeck = initializeDeck();
+      setDeck(newDeck.slice(1));
+      return { ...newDeck[0], faceUp };
+    }
+    
+    const card = { ...deck[0], faceUp };
+    setDeck(deck.slice(1));
+    return card;
+  };
+  
+  // Start a new game
+  const startGame = () => {
+    if (betAmount <= 0) {
+      toast.error("Please enter a valid bet amount");
+      return;
+    }
+    
+    if (betAmount > playerBalance) {
+      toast.error("You don't have enough money for this bet");
+      return;
+    }
+    
+    // Initialize a new deck
+    const newDeck = initializeDeck();
+    setDeck(newDeck);
+    
+    // Deal initial cards
+    const pHand = [dealCard(), dealCard()];
+    const dHand = [dealCard(), dealCard(false)];
+    
+    setPlayerHand(pHand);
+    setDealerHand(dHand);
+    setGameState('playing');
+    setResult(null);
+    
+    // Check for blackjack
+    if (calculateHandValue(pHand) === 21) {
+      if (calculateHandValue([{ ...dHand[0], faceUp: true }, { ...dHand[1], faceUp: true }]) === 21) {
+        // Both have blackjack, it's a push
+        handleGameOver('push');
+      } else {
+        // Player has blackjack, pays 3:2
+        handleGameOver('win', true);
+      }
+    }
+  };
+  
   // Calculate the value of a hand (accounting for Aces) - Optimized with useCallback
   const calculateHandValue = useCallback((hand: PlayingCard[]): number => {
     let value = 0;
@@ -71,74 +146,7 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     
     return value;
   }, []);
-  
-  // Initialize a new deck of cards
-  const initializeDeck = useCallback(() => {
-    const newDeck: PlayingCard[] = [];
-    const suits: ('hearts' | 'diamonds' | 'clubs' | 'spades')[] = ['hearts', 'diamonds', 'clubs', 'spades'];
-    
-    suits.forEach(suit => {
-      for (let value = 1; value <= 13; value++) {
-        newDeck.push({ suit, value, faceUp: true });
-      }
-    });
-    
-    // Shuffle the deck
-    return shuffleDeck(newDeck);
-  }, []);
-  
-  // Shuffle the deck
-  const shuffleDeck = useCallback((deckToShuffle: PlayingCard[]) => {
-    const shuffled = [...deckToShuffle];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled;
-  }, []);
-  
-  // Deal a card from the deck
-  const dealCard = useCallback((faceUp: boolean = true): PlayingCard => {
-    if (deck.length === 0) {
-      const newDeck = initializeDeck();
-      setDeck(newDeck.slice(1));
-      return { ...newDeck[0], faceUp };
-    }
-    
-    const card = { ...deck[0], faceUp };
-    setDeck(deck.slice(1));
-    return card;
-  }, [deck, initializeDeck]);
-  
-  // Game over handler - determine winnings
-  const handleGameOver = useCallback((result: 'win' | 'lose' | 'push', blackjack: boolean = false) => {
-    setGameState('gameOver');
-    setResult(result);
-    
-    if (result === 'win') {
-      if (blackjack) {
-        // Blackjack pays 3:2 (that's a 1.5x profit)
-        const winnings = Math.floor(betAmount * 1.5);
-        onWin(winnings);
-        
-        // Display the total return in the UI
-        setDisplayWinnings(betAmount + winnings);
-      } else {
-        // Regular win (1:1 payout)
-        onWin(betAmount);
-        
-        // Display the total return in the UI
-        setDisplayWinnings(betAmount * 2);
-      }
-    } else if (result === 'lose') {
-      onLoss(betAmount);
-      setDisplayWinnings(0);
-    } else {
-      // Push - money is returned
-      setDisplayWinnings(betAmount);
-    }
-  }, [betAmount, onWin, onLoss]);
-  
+
   // Player stands (dealer's turn) - optimized with useCallback
   const stand = useCallback(() => {
     setGameState('dealerTurn');
@@ -164,51 +172,7 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       // Player has 21, dealer's turn
       stand();
     }
-  }, [playerHand, dealCard, calculateHandValue, stand, handleGameOver]);
-  
-  // Start a new game
-  const startGame = useCallback(() => {
-    if (betAmount <= 0) {
-      toast.error("Please enter a valid bet amount");
-      return;
-    }
-    
-    if (betAmount > playerBalance) {
-      toast.error("You don't have enough money for this bet");
-      return;
-    }
-    
-    // Initialize a new deck
-    const newDeck = initializeDeck();
-    setDeck(newDeck);
-    
-    // Deal initial cards
-    const pHand = [
-      { ...newDeck[0], faceUp: true },
-      { ...newDeck[1], faceUp: true }
-    ];
-    const dHand = [
-      { ...newDeck[2], faceUp: true },
-      { ...newDeck[3], faceUp: false }
-    ];
-    
-    setPlayerHand(pHand);
-    setDealerHand(dHand);
-    setDeck(newDeck.slice(4));
-    setGameState('playing');
-    setResult(null);
-    
-    // Check for blackjack
-    if (calculateHandValue(pHand) === 21) {
-      if (calculateHandValue([{ ...dHand[0], faceUp: true }, { ...dHand[1], faceUp: true }]) === 21) {
-        // Both have blackjack, it's a push
-        handleGameOver('push');
-      } else {
-        // Player has blackjack, pays 3:2
-        handleGameOver('win', true);
-      }
-    }
-  }, [betAmount, playerBalance, initializeDeck, calculateHandValue, handleGameOver]);
+  }, [playerHand, dealCard, calculateHandValue, stand]);
   
   // Handle dealer's turn
   useEffect(() => {
@@ -257,45 +221,74 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       
       dealerPlay();
     }
-  }, [gameState, dealerHand, playerHand, dealCard, calculateHandValue, handleGameOver]);
+  }, [gameState, dealerHand, playerHand, calculateHandValue, dealCard]);
+  
+  // Handle game over
+  const handleGameOver = (result: 'win' | 'lose' | 'push', blackjack: boolean = false) => {
+    setGameState('gameOver');
+    setResult(result);
+    
+    if (result === 'win') {
+      if (blackjack) {
+        // Blackjack pays 3:2 (that's a 1.5x profit)
+        const winnings = Math.floor(betAmount * 1.5);
+        onWin(winnings);
+        
+        // Display the total return in the UI
+        setDisplayWinnings(betAmount + winnings);
+      } else {
+        // Regular win (1:1 payout)
+        onWin(betAmount);
+        
+        // Display the total return in the UI
+        setDisplayWinnings(betAmount * 2);
+      }
+    } else if (result === 'lose') {
+      onLoss(betAmount);
+      setDisplayWinnings(0);
+    } else {
+      // Push - money is returned
+      setDisplayWinnings(betAmount);
+    }
+  };
   
   // Get card display value
-  const getCardDisplayValue = useCallback((card: PlayingCard) => {
+  const getCardDisplayValue = (card: PlayingCard) => {
     if (!card.faceUp) return '?';
     
     if (card.value === 1 || card.value > 10) {
       return CARD_VALUES[card.value as keyof typeof CARD_VALUES];
     }
     return card.value.toString();
-  }, []);
+  };
   
   // Get suit color
-  const getSuitColor = useCallback((suit: 'hearts' | 'diamonds' | 'clubs' | 'spades') => {
+  const getSuitColor = (suit: 'hearts' | 'diamonds' | 'clubs' | 'spades') => {
     return suit === 'hearts' || suit === 'diamonds' ? 'text-red-600' : 'text-black';
-  }, []);
+  };
   
   // Reset the game
-  const resetGame = useCallback(() => {
+  const resetGame = () => {
     setGameState('betting');
     setPlayerHand([]);
     setDealerHand([]);
     setResult(null);
-  }, []);
+  };
   
   // Increase bet amount
-  const increaseBet = useCallback(() => {
+  const increaseBet = () => {
     if (betAmount + 100 <= playerBalance) {
       setBetAmount(betAmount + 100);
     }
-  }, [betAmount, playerBalance]);
+  };
   
   // Decrease bet amount
-  const decreaseBet = useCallback(() => {
+  const decreaseBet = () => {
     if (betAmount - 100 >= 100) {
       setBetAmount(betAmount - 100);
     }
-  }, [betAmount]);
-  
+  };
+
   // Render a card - optimized with useCallback
   const renderCard = useCallback((card: PlayingCard, index: number) => {
     if (!card.faceUp) {
@@ -322,29 +315,7 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
         </div>
       </div>
     );
-  }, [getCardDisplayValue, getSuitColor]);
-  
-  // Memoize dealer hand display
-  const dealerHandDisplay = useMemo(() => {
-    return dealerHand.map((card, index) => renderCard(card, index));
-  }, [dealerHand, renderCard]);
-  
-  // Memoize player hand display
-  const playerHandDisplay = useMemo(() => {
-    return playerHand.map((card, index) => renderCard(card, index));
-  }, [playerHand, renderCard]);
-  
-  // Memoize dealer hand value
-  const dealerHandValue = useMemo(() => {
-    return dealerHand.some(card => !card.faceUp) 
-      ? '?' 
-      : calculateHandValue(dealerHand);
-  }, [dealerHand, calculateHandValue]);
-  
-  // Memoize player hand value
-  const playerHandValue = useMemo(() => {
-    return calculateHandValue(playerHand);
-  }, [playerHand, calculateHandValue]);
+  }, []);
   
   return (
     <div className="flex flex-col">
@@ -388,11 +359,17 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
             <div className="flex items-center mb-2">
               <h3 className="text-lg font-bold">Dealer's Hand</h3>
               <span className="ml-2 px-2 py-1 bg-black/20 rounded text-sm">
-                {dealerHandValue}
+                {useMemo(() => {
+                  return dealerHand.some(card => !card.faceUp) 
+                    ? '?' 
+                    : calculateHandValue(dealerHand);
+                }, [dealerHand])}
               </span>
             </div>
             <div className="flex flex-wrap">
-              {dealerHandDisplay}
+              {useMemo(() => 
+                dealerHand.map((card, index) => renderCard(card, index))
+              , [dealerHand, renderCard])}
             </div>
           </div>
           
@@ -401,11 +378,13 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
             <div className="flex items-center mb-2">
               <h3 className="text-lg font-bold">Your Hand</h3>
               <span className="ml-2 px-2 py-1 bg-black/20 rounded text-sm">
-                {playerHandValue}
+                {useMemo(() => calculateHandValue(playerHand), [playerHand])}
               </span>
             </div>
             <div className="flex flex-wrap">
-              {playerHandDisplay}
+              {useMemo(() => 
+                playerHand.map((card, index) => renderCard(card, index))
+              , [playerHand, renderCard])}
             </div>
           </div>
           

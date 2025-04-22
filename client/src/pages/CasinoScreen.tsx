@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -19,8 +19,8 @@ export default function CasinoScreen() {
   const { playSuccess, playHit } = useAudio();
   const [activeGame, setActiveGame] = useState<'blackjack' | 'roulette' | 'poker'>('blackjack');
 
-  // Handle winning and losing money with improved tracking
-  const handleWin = (amount: number) => {
+  // Handle winning and losing money with improved tracking - optimized with useCallback
+  const handleWin = useCallback((amount: number) => {
     // Add the net winnings (the amount parameter is the net profit)
     addWealth(amount);
     playSuccess();
@@ -29,9 +29,9 @@ export default function CasinoScreen() {
       icon: '💰',
     });
     console.log(`Casino win tracked: +${amount}`);
-  };
+  }, [addWealth, playSuccess]);
 
-  const handleLoss = (amount: number) => {
+  const handleLoss = useCallback((amount: number) => {
     // Deduct the bet amount (always a positive number)
     addWealth(-amount);
     playHit();
@@ -40,7 +40,7 @@ export default function CasinoScreen() {
       icon: '💸',
     });
     console.log(`Casino loss tracked: -${amount}`);
-  };
+  }, [addWealth, playHit]);
 
   return (
     <div className="w-full min-h-screen pt-2 pb-24">
@@ -120,15 +120,21 @@ export default function CasinoScreen() {
             
             <div className="bg-gradient-to-b from-black/10 to-black/20 backdrop-blur-md border border-slate-200/10 rounded-lg p-8 shadow-xl">
               <TabsContent value="blackjack">
-                <BlackjackGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                {useMemo(() => (
+                  <BlackjackGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                ), [handleWin, handleLoss, wealth])}
               </TabsContent>
               
               <TabsContent value="roulette">
-                <RouletteGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                {useMemo(() => (
+                  <RouletteGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                ), [handleWin, handleLoss, wealth])}
               </TabsContent>
               
               <TabsContent value="poker">
-                <PokerGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                {useMemo(() => (
+                  <PokerGame onWin={handleWin} onLoss={handleLoss} playerBalance={wealth} />
+                ), [handleWin, handleLoss, wealth])}
               </TabsContent>
             </div>
           </Tabs>
