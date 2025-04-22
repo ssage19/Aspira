@@ -110,10 +110,23 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     return card;
   }, [deck, initializeDeck]);
   
-  // Game over handler - determine winnings
+  // Track if payout has been processed already
+  const payoutProcessed = React.useRef(false);
+  
+  // Game over handler - determine winnings with safeguard against multiple payouts
   const handleGameOver = useCallback((result: 'win' | 'lose' | 'push', blackjack: boolean = false) => {
+    // Set game state and result for UI
     setGameState('gameOver');
     setResult(result);
+    
+    // Prevent multiple payouts for the same game
+    if (payoutProcessed.current) {
+      console.log("Payout already processed, skipping duplicate payout");
+      return;
+    }
+    
+    // Mark payout as processed
+    payoutProcessed.current = true;
     
     if (result === 'win') {
       if (blackjack) {
@@ -123,19 +136,23 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
         
         // Display the total return in the UI
         setDisplayWinnings(betAmount + winnings);
+        console.log(`Blackjack win: paying ${winnings} on bet of ${betAmount}`);
       } else {
         // Regular win (1:1 payout)
         onWin(betAmount);
         
         // Display the total return in the UI
         setDisplayWinnings(betAmount * 2);
+        console.log(`Regular win: paying ${betAmount} on bet of ${betAmount}`);
       }
     } else if (result === 'lose') {
       onLoss(betAmount);
       setDisplayWinnings(0);
+      console.log(`Loss: player lost ${betAmount}`);
     } else {
       // Push - money is returned
       setDisplayWinnings(betAmount);
+      console.log(`Push: returning ${betAmount}`);
     }
   }, [betAmount, onWin, onLoss]);
   
@@ -178,6 +195,9 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
       return;
     }
     
+    // Reset the payout processed flag for the new game
+    payoutProcessed.current = false;
+    
     // Initialize a new deck
     const newDeck = initializeDeck();
     setDeck(newDeck);
@@ -210,9 +230,15 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     }
   }, [betAmount, playerBalance, initializeDeck, calculateHandValue, handleGameOver]);
   
-  // Handle dealer's turn
+  // Handle dealer's turn - using a ref to track if dealer's turn is in progress
+  const dealerTurnInProgress = React.useRef(false);
+  
   useEffect(() => {
-    if (gameState === 'dealerTurn') {
+    // Only run this effect when gameState changes to dealerTurn and not already in progress
+    if (gameState === 'dealerTurn' && !dealerTurnInProgress.current) {
+      // Set flag to prevent multiple executions
+      dealerTurnInProgress.current = true;
+      
       const dealerPlay = async () => {
         let currentDealerHand = [...dealerHand];
         
@@ -253,11 +279,17 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
           // Push (tie)
           handleGameOver('push');
         }
+        
+        // Reset the flag when dealer's turn is complete
+        dealerTurnInProgress.current = false;
       };
       
       dealerPlay();
+    } else if (gameState !== 'dealerTurn') {
+      // Reset the flag when we exit dealer turn state
+      dealerTurnInProgress.current = false;
     }
-  }, [gameState, dealerHand, playerHand, dealCard, calculateHandValue, handleGameOver]);
+  }, [gameState, calculateHandValue, dealCard, handleGameOver]);
   
   // Get card display value
   const getCardDisplayValue = useCallback((card: PlayingCard) => {
@@ -280,6 +312,9 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
     setPlayerHand([]);
     setDealerHand([]);
     setResult(null);
+    
+    // Reset the payout processed flag
+    payoutProcessed.current = false;
   }, []);
   
   // Increase bet amount
