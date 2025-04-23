@@ -90,6 +90,7 @@ interface F1Team {
     position: number;
     track: string;
     date: string;
+    prize?: number; // Prize money earned
   }[];
   upgrades: {
     aerodynamics: number;
@@ -104,6 +105,9 @@ interface F1Team {
   raceSimulations: {
     [raceId: string]: number; // Tracks number of simulations per race
   };
+  // Track which races have been completed and processed
+  completedRaces: string[]; // Array of raceIds that have been completed
+  purchaseDate: string; // Date when the team was purchased, used to determine missed races
 }
 
 interface F1Driver {
@@ -856,32 +860,50 @@ const availableDrivers: F1Driver[] = [
   }
 ];
 
-// Upcoming races
-const upcomingRaces = [
-  { id: 'r1', name: 'Bahrain Grand Prix', date: '3/20/2025', prestige: 3, difficulty: 3, track: 'Bahrain International Circuit', country: 'Bahrain' },
-  { id: 'r2', name: 'Saudi Arabian Grand Prix', date: '4/3/2025', prestige: 3, difficulty: 4, track: 'Jeddah Corniche Circuit', country: 'Saudi Arabia' },
-  { id: 'r3', name: 'Australian Grand Prix', date: '4/17/2025', prestige: 4, difficulty: 3, track: 'Albert Park Circuit', country: 'Australia' },
-  { id: 'r4', name: 'Japanese Grand Prix', date: '4/30/2025', prestige: 4, difficulty: 5, track: 'Suzuka Circuit', country: 'Japan' },
-  { id: 'r5', name: 'Chinese Grand Prix', date: '5/14/2025', prestige: 3, difficulty: 3, track: 'Shanghai International Circuit', country: 'China' },
-  { id: 'r6', name: 'Miami Grand Prix', date: '5/28/2025', prestige: 4, difficulty: 3, track: 'Miami International Autodrome', country: 'USA' },
-  { id: 'r7', name: 'Emilia Romagna Grand Prix', date: '6/11/2025', prestige: 3, difficulty: 4, track: 'Autodromo Enzo e Dino Ferrari', country: 'Italy' },
-  { id: 'r8', name: 'Monaco Grand Prix', date: '6/25/2025', prestige: 5, difficulty: 5, track: 'Circuit de Monaco', country: 'Monaco' },
-  { id: 'r9', name: 'Canadian Grand Prix', date: '7/9/2025', prestige: 4, difficulty: 3, track: 'Circuit Gilles Villeneuve', country: 'Canada' },
-  { id: 'r10', name: 'Spanish Grand Prix', date: '7/23/2025', prestige: 3, difficulty: 2, track: 'Circuit de Barcelona-Catalunya', country: 'Spain' },
-  { id: 'r11', name: 'Austrian Grand Prix', date: '8/6/2025', prestige: 3, difficulty: 3, track: 'Red Bull Ring', country: 'Austria' },
-  { id: 'r12', name: 'British Grand Prix', date: '8/20/2025', prestige: 4, difficulty: 3, track: 'Silverstone Circuit', country: 'United Kingdom' },
-  { id: 'r13', name: 'Hungarian Grand Prix', date: '9/3/2025', prestige: 3, difficulty: 4, track: 'Hungaroring', country: 'Hungary' },
-  { id: 'r14', name: 'Belgian Grand Prix', date: '9/17/2025', prestige: 4, difficulty: 4, track: 'Circuit de Spa-Francorchamps', country: 'Belgium' },
-  { id: 'r15', name: 'Dutch Grand Prix', date: '10/1/2025', prestige: 3, difficulty: 3, track: 'Circuit Zandvoort', country: 'Netherlands' },
-  { id: 'r16', name: 'Italian Grand Prix', date: '10/15/2025', prestige: 4, difficulty: 2, track: 'Autodromo Nazionale Monza', country: 'Italy' },
-  { id: 'r17', name: 'Azerbaijan Grand Prix', date: '10/29/2025', prestige: 3, difficulty: 4, track: 'Baku City Circuit', country: 'Azerbaijan' },
-  { id: 'r18', name: 'Singapore Grand Prix', date: '11/12/2025', prestige: 4, difficulty: 5, track: 'Marina Bay Street Circuit', country: 'Singapore' },
-  { id: 'r19', name: 'United States Grand Prix', date: '11/26/2025', prestige: 4, difficulty: 3, track: 'Circuit of the Americas', country: 'USA' },
-  { id: 'r20', name: 'Mexico City Grand Prix', date: '12/10/2025', prestige: 3, difficulty: 4, track: 'Autódromo Hermanos Rodríguez', country: 'Mexico' },
-  { id: 'r21', name: 'Brazilian Grand Prix', date: '12/24/2025', prestige: 4, difficulty: 3, track: 'Autódromo José Carlos Pace', country: 'Brazil' },
-  { id: 'r22', name: 'Las Vegas Grand Prix', date: '1/7/2026', prestige: 4, difficulty: 4, track: 'Las Vegas Strip Circuit', country: 'USA' },
-  { id: 'r23', name: 'Qatar Grand Prix', date: '1/21/2026', prestige: 3, difficulty: 3, track: 'Losail International Circuit', country: 'Qatar' },
-  { id: 'r24', name: 'Abu Dhabi Grand Prix', date: '2/4/2026', prestige: 4, difficulty: 3, track: 'Yas Marina Circuit', country: 'UAE' }
+// F1 race interface with prize money
+interface F1Race {
+  id: string;
+  name: string;
+  date: string;
+  prestige: number;
+  difficulty: number;
+  track: string;
+  country: string;
+  // Base prize money for winning (in millions)
+  prizeMoney?: {
+    first: number;
+    second: number;
+    third: number;
+    points: number; // Additional money per points position (4-10)
+  };
+}
+
+// Race season data with prize money
+const seasonRaces: F1Race[] = [
+  { id: 'r1', name: 'Bahrain Grand Prix', date: '3/20/2025', prestige: 3, difficulty: 3, track: 'Bahrain International Circuit', country: 'Bahrain', prizeMoney: { first: 2.5, second: 1.8, third: 1.4, points: 0.2 } },
+  { id: 'r2', name: 'Saudi Arabian Grand Prix', date: '4/3/2025', prestige: 3, difficulty: 4, track: 'Jeddah Corniche Circuit', country: 'Saudi Arabia', prizeMoney: { first: 2.6, second: 1.9, third: 1.5, points: 0.25 } },
+  { id: 'r3', name: 'Australian Grand Prix', date: '4/17/2025', prestige: 4, difficulty: 3, track: 'Albert Park Circuit', country: 'Australia', prizeMoney: { first: 2.4, second: 1.7, third: 1.3, points: 0.2 } },
+  { id: 'r4', name: 'Japanese Grand Prix', date: '4/30/2025', prestige: 4, difficulty: 5, track: 'Suzuka Circuit', country: 'Japan', prizeMoney: { first: 2.7, second: 2.0, third: 1.6, points: 0.25 } },
+  { id: 'r5', name: 'Chinese Grand Prix', date: '5/14/2025', prestige: 3, difficulty: 3, track: 'Shanghai International Circuit', country: 'China', prizeMoney: { first: 2.3, second: 1.6, third: 1.2, points: 0.2 } },
+  { id: 'r6', name: 'Miami Grand Prix', date: '5/28/2025', prestige: 4, difficulty: 3, track: 'Miami International Autodrome', country: 'USA', prizeMoney: { first: 3.0, second: 2.2, third: 1.8, points: 0.3 } },
+  { id: 'r7', name: 'Emilia Romagna Grand Prix', date: '6/11/2025', prestige: 3, difficulty: 4, track: 'Autodromo Enzo e Dino Ferrari', country: 'Italy', prizeMoney: { first: 2.2, second: 1.5, third: 1.1, points: 0.2 } },
+  { id: 'r8', name: 'Monaco Grand Prix', date: '6/25/2025', prestige: 5, difficulty: 5, track: 'Circuit de Monaco', country: 'Monaco', prizeMoney: { first: 3.5, second: 2.6, third: 2.0, points: 0.4 } },
+  { id: 'r9', name: 'Canadian Grand Prix', date: '7/9/2025', prestige: 4, difficulty: 3, track: 'Circuit Gilles Villeneuve', country: 'Canada', prizeMoney: { first: 2.5, second: 1.8, third: 1.4, points: 0.25 } },
+  { id: 'r10', name: 'Spanish Grand Prix', date: '7/23/2025', prestige: 3, difficulty: 2, track: 'Circuit de Barcelona-Catalunya', country: 'Spain', prizeMoney: { first: 2.1, second: 1.4, third: 1.0, points: 0.15 } },
+  { id: 'r11', name: 'Austrian Grand Prix', date: '8/6/2025', prestige: 3, difficulty: 3, track: 'Red Bull Ring', country: 'Austria', prizeMoney: { first: 2.2, second: 1.5, third: 1.1, points: 0.2 } },
+  { id: 'r12', name: 'British Grand Prix', date: '8/20/2025', prestige: 4, difficulty: 3, track: 'Silverstone Circuit', country: 'United Kingdom', prizeMoney: { first: 2.8, second: 2.1, third: 1.7, points: 0.3 } },
+  { id: 'r13', name: 'Hungarian Grand Prix', date: '9/3/2025', prestige: 3, difficulty: 4, track: 'Hungaroring', country: 'Hungary', prizeMoney: { first: 2.2, second: 1.5, third: 1.1, points: 0.2 } },
+  { id: 'r14', name: 'Belgian Grand Prix', date: '9/17/2025', prestige: 4, difficulty: 4, track: 'Circuit de Spa-Francorchamps', country: 'Belgium', prizeMoney: { first: 2.6, second: 1.9, third: 1.5, points: 0.25 } },
+  { id: 'r15', name: 'Dutch Grand Prix', date: '10/1/2025', prestige: 3, difficulty: 3, track: 'Circuit Zandvoort', country: 'Netherlands', prizeMoney: { first: 2.3, second: 1.6, third: 1.2, points: 0.2 } },
+  { id: 'r16', name: 'Italian Grand Prix', date: '10/15/2025', prestige: 4, difficulty: 2, track: 'Autodromo Nazionale Monza', country: 'Italy', prizeMoney: { first: 2.7, second: 2.0, third: 1.6, points: 0.25 } },
+  { id: 'r17', name: 'Azerbaijan Grand Prix', date: '10/29/2025', prestige: 3, difficulty: 4, track: 'Baku City Circuit', country: 'Azerbaijan', prizeMoney: { first: 2.4, second: 1.7, third: 1.3, points: 0.2 } },
+  { id: 'r18', name: 'Singapore Grand Prix', date: '11/12/2025', prestige: 4, difficulty: 5, track: 'Marina Bay Street Circuit', country: 'Singapore', prizeMoney: { first: 2.9, second: 2.2, third: 1.8, points: 0.3 } },
+  { id: 'r19', name: 'United States Grand Prix', date: '11/26/2025', prestige: 4, difficulty: 3, track: 'Circuit of the Americas', country: 'USA', prizeMoney: { first: 2.8, second: 2.1, third: 1.7, points: 0.3 } },
+  { id: 'r20', name: 'Mexico City Grand Prix', date: '12/10/2025', prestige: 3, difficulty: 4, track: 'Autódromo Hermanos Rodríguez', country: 'Mexico', prizeMoney: { first: 2.5, second: 1.8, third: 1.4, points: 0.25 } },
+  { id: 'r21', name: 'Brazilian Grand Prix', date: '12/24/2025', prestige: 4, difficulty: 3, track: 'Autódromo José Carlos Pace', country: 'Brazil', prizeMoney: { first: 2.6, second: 1.9, third: 1.5, points: 0.25 } },
+  { id: 'r22', name: 'Las Vegas Grand Prix', date: '1/7/2026', prestige: 4, difficulty: 4, track: 'Las Vegas Strip Circuit', country: 'USA', prizeMoney: { first: 3.2, second: 2.4, third: 2.0, points: 0.35 } },
+  { id: 'r23', name: 'Qatar Grand Prix', date: '1/21/2026', prestige: 3, difficulty: 3, track: 'Losail International Circuit', country: 'Qatar', prizeMoney: { first: 2.7, second: 2.0, third: 1.6, points: 0.25 } },
+  { id: 'r24', name: 'Abu Dhabi Grand Prix', date: '2/4/2026', prestige: 4, difficulty: 3, track: 'Yas Marina Circuit', country: 'UAE', prizeMoney: { first: 3.0, second: 2.3, third: 1.9, points: 0.3 } }
 ];
 
 // Storage key for localStorage
@@ -1220,7 +1242,7 @@ export function Formula1Ownership() {
   const simulateRace = (raceId: string) => {
     if (!team) return;
     
-    const race = upcomingRaces.find(r => r.id === raceId);
+    const race = seasonRaces.find(r => r.id === raceId);
     if (!race) return;
     
     // Check if the race simulation limit has been reached (max 3 per race)
@@ -1287,7 +1309,7 @@ export function Formula1Ownership() {
   const prepareOptimizeForRace = (raceId: string) => {
     if (!team) return;
     
-    const race = upcomingRaces.find(r => r.id === raceId);
+    const race = seasonRaces.find(r => r.id === raceId);
     if (!race) return;
     
     // Set race-specific optimization cost (based on track difficulty and prestige)
@@ -1304,7 +1326,7 @@ export function Formula1Ownership() {
   const optimizeForRace = () => {
     if (!team || !selectedRace) return;
     
-    const race = upcomingRaces.find(r => r.id === selectedRace);
+    const race = seasonRaces.find(r => r.id === selectedRace);
     if (!race) return;
     
     // Check if team can afford it
@@ -1456,7 +1478,7 @@ export function Formula1Ownership() {
   // Find the next upcoming race based on current game date
   useEffect(() => {
     // Find the next upcoming race
-    const sortedRaces = [...upcomingRaces].sort((a, b) => {
+    const sortedRaces = [...seasonRaces].sort((a, b) => {
       const dateA = new Date(a.date);
       const dateB = new Date(b.date);
       return dateA.getTime() - dateB.getTime();
@@ -1489,7 +1511,7 @@ export function Formula1Ownership() {
     const currentDateString = `${gameTime.getMonth() + 1}/${gameTime.getDate()}/${gameTime.getFullYear()}`;
     
     // Check if any races are scheduled for today
-    const todaysRace = upcomingRaces.find(race => race.date === currentDateString);
+    const todaysRace = seasonRaces.find(race => race.date === currentDateString);
     
     if (todaysRace) {
       // Check if this race has already been processed (exists in team.races)
