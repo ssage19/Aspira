@@ -626,6 +626,25 @@ export function SportsTeamOwnership() {
                 'Right Wing', 'Defenseman', 'Defenseman', 'Left Wing', 'Center', 
                 'Right Wing', 'Goaltender', 'Defenseman', 'Forward', 'Center', 
                 'Wing', 'Defenseman', 'Forward'];
+      case 'golf':
+        return ['Professional Golfer', 'Professional Golfer', 'Professional Golfer', 
+                'Professional Golfer', 'Professional Golfer', 'Professional Golfer',
+                'Professional Golfer', 'Professional Golfer', 'Amateur Golfer',
+                'Amateur Golfer', 'Coach', 'Coach', 'Junior Golfer'];
+      case 'tennis':
+        return ['Singles Player', 'Singles Player', 'Singles Player', 'Singles Player',
+                'Doubles Specialist', 'Doubles Specialist', 'Doubles Specialist', 'Doubles Specialist',
+                'Coach', 'Coach', 'Junior Player', 'Junior Player', 'Mixed Doubles Specialist'];
+      case 'rugby':
+        return ['Prop', 'Hooker', 'Prop', 'Lock', 'Lock', 'Flanker', 'Flanker', 'Number 8',
+                'Scrum-half', 'Fly-half', 'Wing', 'Inside Center', 'Outside Center',
+                'Wing', 'Fullback', 'Reserve Forward', 'Reserve Back', 'Reserve Forward',
+                'Reserve Back', 'Reserve Back'];
+      case 'volleyball':
+        return ['Outside Hitter', 'Outside Hitter', 'Middle Blocker', 'Middle Blocker',
+                'Setter', 'Opposite Hitter', 'Libero', 'Defensive Specialist',
+                'Serving Specialist', 'Outside Hitter', 'Middle Blocker', 'Setter',
+                'Libero', 'Defensive Specialist'];
       default:
         return ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'];
     }
@@ -965,8 +984,104 @@ export function SportsTeamOwnership() {
     });
   };
 
+  // Customization Modal Component
+  const CustomizeTeamModal = () => {
+    if (!showCustomizeModal || !selectedTeam) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-background rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold">Customize Your Team</h3>
+              <Button variant="ghost" size="icon" onClick={() => setShowCustomizeModal(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="teamName">Team Name</Label>
+                <Input 
+                  id="teamName" 
+                  value={customTeamName} 
+                  onChange={(e) => setCustomTeamName(e.target.value)}
+                  placeholder="Enter team name"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="cityName">City</Label>
+                <Input 
+                  id="cityName" 
+                  value={customCity} 
+                  onChange={(e) => setCustomCity(e.target.value)}
+                  placeholder="Enter city name"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="stateName">State/Province (Optional)</Label>
+                <Input 
+                  id="stateName" 
+                  value={customState} 
+                  onChange={(e) => setCustomState(e.target.value)}
+                  placeholder="Enter state/province"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="stadiumName">Stadium Name</Label>
+                <Input 
+                  id="stadiumName" 
+                  value={customStadiumName} 
+                  onChange={(e) => setCustomStadiumName(e.target.value)}
+                  placeholder="Enter stadium name"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div className="pt-4">
+                <h4 className="font-semibold mb-2">Team Details</h4>
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Sport:</span>
+                    <span>{selectedTeam.sport.charAt(0).toUpperCase() + selectedTeam.sport.slice(1)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>League:</span>
+                    <span>{selectedTeam.league}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Purchase Price:</span>
+                    <span>{formatCurrency(selectedTeam.price)}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="pt-4 flex gap-2">
+                <Button variant="outline" className="flex-1" onClick={() => setShowCustomizeModal(false)}>
+                  Cancel
+                </Button>
+                <Button className="flex-1" onClick={confirmCustomization}>
+                  Confirm Purchase
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
+      {/* Render the customization modal */}
+      <CustomizeTeamModal />
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold text-primary">Sports Team Ownership</h2>
