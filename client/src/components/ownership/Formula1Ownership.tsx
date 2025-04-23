@@ -55,7 +55,8 @@ import {
   User,
   HeartPulse,
   Star,
-  Sparkles
+  Sparkles,
+  Info
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
@@ -2843,13 +2844,41 @@ export function Formula1Ownership() {
                     <div className="flex items-start gap-2">
                       <AlertCircle className="h-4 w-4 text-primary mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium mb-1">Race Simulation Information</p>
+                        <p className="font-medium mb-1">Race Preparation Rules</p>
                         <ul className="text-muted-foreground list-disc pl-4 space-y-1">
                           <li>Each race can be simulated up to 3 times before the actual race date.</li>
                           <li>Simulations earn performance points which help improve your car.</li>
                           <li>Better finishes earn more performance points (1st: 12pts, 2nd: 9pts, etc.)</li>
-                          <li>Real race results are determined on race day based on your team's performance.</li>
+                          <li>Race preparation (optimization and simulation) is only available within 2 months before the race date.</li>
+                          <li>Past races cannot be simulated or prepared for.</li>
                         </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="mb-4 bg-gradient-to-r from-blue-900/20 to-blue-500/10 p-3 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-blue-500 mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium mb-1 text-blue-500">Race Card Status Guide</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span>Green: Completed races</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                            <span>Red: Missed races</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                            <span>Orange: Ineligible (too far in future)</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                            <span>Blue: Ready for preparation</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -2901,6 +2930,18 @@ export function Formula1Ownership() {
                                     Simulations: {team.raceSimulations[race.id] || 0}/3
                                   </div>
                                 )}
+                                {!team.completedRaces.includes(race.id) && (
+                                  <div className="flex items-center mt-1">
+                                    {isRaceEligible(race.id).eligible ? (
+                                      <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
+                                    ) : (
+                                      <AlertCircle className="h-3 w-3 mr-1 text-orange-500" />
+                                    )}
+                                    <span className={`text-xs ${isRaceEligible(race.id).eligible ? 'text-green-500' : 'text-orange-500'}`}>
+                                      {isRaceEligible(race.id).eligible ? 'Ready for preparation' : isRaceEligible(race.id).reason}
+                                    </span>
+                                  </div>
+                                )}
                               </CardDescription>
                             </div>
                             <Badge variant="outline" className="flex">
@@ -2940,6 +2981,8 @@ export function Formula1Ownership() {
                               <Button 
                                 className="flex-1"
                                 onClick={() => prepareOptimizeForRace(race.id)}
+                                disabled={!isRaceEligible(race.id).eligible}
+                                title={!isRaceEligible(race.id).eligible ? isRaceEligible(race.id).reason : 'Optimize car setup for this race'}
                               >
                                 <Settings className="h-4 w-4 mr-2" />
                                 Optimize Car Setup
@@ -2948,7 +2991,8 @@ export function Formula1Ownership() {
                               <Button
                                 className="flex-1 relative"
                                 onClick={() => simulateRace(race.id)}
-                                disabled={(team.raceSimulations[race.id] || 0) >= 3}
+                                disabled={(team.raceSimulations[race.id] || 0) >= 3 || !isRaceEligible(race.id).eligible}
+                                title={!isRaceEligible(race.id).eligible ? isRaceEligible(race.id).reason : 'Simulate this race'}
                               >
                                 <Flag className="h-4 w-4 mr-2" />
                                 {(team.raceSimulations[race.id] || 0) >= 3 ? (
