@@ -1985,6 +1985,39 @@ export function Formula1Ownership() {
                           </span>
                         </div>
                       </div>
+                      
+                      <div className="border-t border-muted/50 pt-4 mt-4">
+                        <h4 className="text-sm font-medium mb-2">Transfer Funds</h4>
+                        <div className="grid grid-cols-1 gap-3">
+                          <Input
+                            type="number"
+                            placeholder="Amount"
+                            min={0}
+                            value={fundAmount || ''}
+                            onChange={(e) => setFundAmount(Number(e.target.value))}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={addFundsToTeam}
+                              disabled={fundAmount <= 0 || fundAmount > wealth}
+                              className="bg-green-600 hover:bg-green-700 w-full"
+                            >
+                              <ArrowDown className="h-4 w-4 mr-1" />
+                              Add to Team
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              onClick={withdrawFundsFromTeam}
+                              disabled={fundAmount <= 0 || fundAmount > team.budget}
+                              className="bg-blue-600 hover:bg-blue-700 w-full"
+                            >
+                              <ArrowUp className="h-4 w-4 mr-1" />
+                              Withdraw
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -2075,40 +2108,6 @@ export function Formula1Ownership() {
                       <span className={calculateNetCashFlow() >= 0 ? 'text-green-500' : 'text-red-500'}>
                         {formatCurrency(calculateNetCashFlow())}
                       </span>
-                    </div>
-                    
-                    <div className="pt-2">
-                      <h4 className="text-sm font-medium mb-2">Transfer Funds</h4>
-                      <div className="flex items-center gap-2 mb-2">
-                        <Input
-                          type="number"
-                          placeholder="Amount"
-                          className="max-w-[200px]"
-                          min={0}
-                          value={fundAmount || ''}
-                          onChange={(e) => setFundAmount(Number(e.target.value))}
-                        />
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          onClick={addFundsToTeam}
-                          disabled={fundAmount <= 0 || fundAmount > wealth}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          <ArrowDown className="h-4 w-4 mr-2" />
-                          Add to Team
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          onClick={withdrawFundsFromTeam}
-                          disabled={fundAmount <= 0 || fundAmount > team.budget}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          <ArrowUp className="h-4 w-4 mr-2" />
-                          Withdraw to Personal
-                        </Button>
-                      </div>
                     </div>
                   </div>
                 </CardContent>
