@@ -48,6 +48,7 @@ import {
   BarChart4,
   Award,
   AlertCircle,
+  AlertTriangle,
   CheckCircle2,
   PlusCircle,
   Timer,
@@ -56,7 +57,9 @@ import {
   HeartPulse,
   Star,
   Sparkles,
-  Info
+  Info,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
@@ -1517,6 +1520,45 @@ export function Formula1Ownership() {
     });
   };
 
+  // Withdraw funds from team budget to personal wealth
+  const withdrawFundsFromTeam = () => {
+    if (!team || fundAmount <= 0) return;
+    
+    // Check if team can afford it
+    if (team.budget < fundAmount) {
+      toast.error(`Your team doesn't have enough budget for this withdrawal.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Calculate monthly expenses to ensure there's a buffer
+    const monthlyExpenses = calculateMonthlyExpenses();
+    const safeWithdrawalLimit = team.budget - (monthlyExpenses * 2); // Leave 2 months of expenses
+    
+    if (fundAmount > safeWithdrawalLimit) {
+      toast.warning(`This withdrawal would leave your team with less than 2 months of operating funds (${formatCurrency(monthlyExpenses * 2)}). Consider reducing the amount.`, {
+        icon: <AlertTriangle className="h-5 w-5 text-yellow-500" />
+      });
+      // Still allow the withdrawal if the user wants to take the risk
+    }
+    
+    // Transfer funds
+    addWealth(fundAmount);
+    
+    // Update team and save to localStorage
+    updateTeam({
+      ...team,
+      budget: team.budget - fundAmount
+    });
+    
+    setFundAmount(0);
+    
+    toast.success(`Withdrew ${formatCurrency(fundAmount)} from team budget to your personal funds.`, {
+      icon: <CheckCircle2 className="h-5 w-5 text-green-500" />
+    });
+  };
+
   // Add sponsor
   const addSponsor = (sponsorName: string, contribution: number) => {
     if (!team) return;
@@ -2036,24 +2078,35 @@ export function Formula1Ownership() {
                     </div>
                     
                     <div className="pt-2">
-                      <h4 className="text-sm font-medium mb-2">Add Personal Funds</h4>
-                      <div className="flex items-center gap-2">
+                      <h4 className="text-sm font-medium mb-2">Transfer Funds</h4>
+                      <div className="flex items-center gap-2 mb-2">
                         <Input
                           type="number"
                           placeholder="Amount"
                           className="max-w-[200px]"
                           min={0}
-                          max={wealth}
                           value={fundAmount || ''}
                           onChange={(e) => setFundAmount(Number(e.target.value))}
                         />
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Button 
                           size="sm" 
                           onClick={addFundsToTeam}
                           disabled={fundAmount <= 0 || fundAmount > wealth}
+                          className="bg-green-600 hover:bg-green-700"
                         >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Funds
+                          <ArrowDown className="h-4 w-4 mr-2" />
+                          Add to Team
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={withdrawFundsFromTeam}
+                          disabled={fundAmount <= 0 || fundAmount > team.budget}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <ArrowUp className="h-4 w-4 mr-2" />
+                          Withdraw to Personal
                         </Button>
                       </div>
                     </div>
