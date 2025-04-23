@@ -1348,8 +1348,8 @@ export function Formula1Ownership() {
           }
         ];
         
-        // Update team data
-        setTeam({
+        // Update team data and save to localStorage
+        updateTeam({
           ...team,
           races: updatedRaces,
           points: team.points + pointsEarned,
