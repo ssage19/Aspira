@@ -1292,6 +1292,11 @@ export function Formula1Ownership() {
     const race = seasonRaces.find(r => r.id === raceId);
     if (!race) return { eligible: false, reason: "Race not found" };
     
+    // Check if team has a primary driver
+    if (!team.drivers.primary) {
+      return { eligible: false, reason: "No primary driver hired" };
+    }
+    
     // Check if race is in the past (has been completed or missed)
     if (team.completedRaces.includes(raceId)) {
       return { 
@@ -1623,6 +1628,21 @@ export function Formula1Ownership() {
         const raceDate = new Date(todaysRace.date);
         
         if (raceDate >= purchaseDate) { // Only process races after team purchase
+          // Check if team has a primary driver
+          if (!team.drivers.primary) {
+            // Mark race as missed due to no primary driver
+            const updatedCompletedRaces = [...team.completedRaces, todaysRace.id];
+            updateTeam({
+              ...team,
+              completedRaces: updatedCompletedRaces
+            });
+            
+            toast.error(`Race missed! Your team needs a primary driver to compete in the ${todaysRace.name}.`, {
+              icon: <AlertCircle className="h-5 w-5 text-red-500" />
+            });
+            return;
+          }
+          
           // Run the race automatically
           // Calculate expected position
           const expectedPosition = calculateExpectedPosition(todaysRace);
