@@ -142,7 +142,7 @@ const teamOptions: TeamOption[] = [
   {
     name: "Nova Racing",
     description: "A new team with promising technology and ambitious goals. Limited resources but high potential.",
-    price: 100000000,
+    price: 50000000,
     operatingCost: 5000000,
     performance: 65,
     engine: 60,
@@ -153,7 +153,7 @@ const teamOptions: TeamOption[] = [
   {
     name: "Velocity GP",
     description: "Mid-tier team with consistent results and solid engineering. Good balance of cost and performance.",
-    price: 250000000,
+    price: 80000000,
     operatingCost: 15000000,
     performance: 75,
     engine: 75,
@@ -164,7 +164,7 @@ const teamOptions: TeamOption[] = [
   {
     name: "Apex Motorsport",
     description: "Elite racing team with championship history. Top-tier technology and staff, but expensive to maintain.",
-    price: 500000000,
+    price: 120000000,
     operatingCost: 30000000,
     performance: 85,
     engine: 85,

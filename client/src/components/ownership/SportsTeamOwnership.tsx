@@ -326,7 +326,7 @@ const teamOptions: TeamOption[] = [
     sport: 'volleyball',
     league: "Pro Volleyball League",
     description: "A dynamic volleyball team with young talent and a growing fan following.",
-    price: 120000000,
+    price: 50000000,
     stadiumName: "Beach Arena",
     stadiumCapacity: 15000,
     performance: {
