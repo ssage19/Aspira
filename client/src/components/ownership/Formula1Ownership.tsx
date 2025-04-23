@@ -649,24 +649,24 @@ const specializedEngineUpgrades: UpgradeOption[] = [
 const specializedChassisUpgrades: UpgradeOption[] = [
   {
     id: "special_chassis_1",
-    name: "Adaptive Suspension System",
+    name: "Carbon-Nanotube Monocoque",
     area: "chassis",
-    cost: 3500000,
-    improvement: 7,
+    cost: 5500000,
+    improvement: 9,
     category: "Specialized",
-    description: "Real-time adapting suspension that optimizes for track conditions",
-    timeToImplement: 16,
-    requiresPerformancePoints: 25
+    description: "Ultra-lightweight chassis using carbon nanotubes for unprecedented strength-to-weight ratio",
+    timeToImplement: 22,
+    requiresPerformancePoints: 35
   },
   {
     id: "special_chassis_2",
-    name: "Nanocarbon Composite Structure",
+    name: "Adaptive Suspension System",
     area: "chassis",
-    cost: 5500000,
+    cost: 6500000,
     improvement: 11,
     category: "Specialized",
-    description: "Revolutionary chassis material providing unprecedented strength-to-weight ratio",
-    timeToImplement: 24,
+    description: "Suspension that adapts in milliseconds to track conditions and g-forces",
+    timeToImplement: 28,
     requiresPerformancePoints: 50
   }
 ];
@@ -674,25 +674,25 @@ const specializedChassisUpgrades: UpgradeOption[] = [
 const specializedReliabilityUpgrades: UpgradeOption[] = [
   {
     id: "special_reliability_1",
-    name: "Predictive Component Monitoring",
+    name: "Predictive Component Analysis",
     area: "reliability",
-    cost: 3000000,
+    cost: 4000000,
     improvement: 8,
     category: "Specialized",
-    description: "AI-driven system that predicts failures before they happen",
-    timeToImplement: 14,
-    requiresPerformancePoints: 20
+    description: "AI-driven system that predicts component failures before they occur",
+    timeToImplement: 20,
+    requiresPerformancePoints: 25
   },
   {
     id: "special_reliability_2",
     name: "Self-Healing Materials",
     area: "reliability",
-    cost: 4000000,
-    improvement: 10,
+    cost: 7500000,
+    improvement: 13,
     category: "Specialized",
-    description: "Composite materials with micro-encapsulated repair agents for automatic damage repair",
-    timeToImplement: 22,
-    requiresPerformancePoints: 35
+    description: "Revolutionary composite materials that can repair minor damage during operation",
+    timeToImplement: 35,
+    requiresPerformancePoints: 55
   }
 ];
 
@@ -2069,36 +2069,11 @@ export function Formula1Ownership() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      {aerodynamicsUpgrades.map(upgrade => (
-                        <Card key={upgrade.id} className="border-red-500/30">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between">
-                              <CardTitle className="text-base">{upgrade.name}</CardTitle>
-                              <Badge className="bg-red-500/80">+{upgrade.improvement}</Badge>
-                            </div>
-                            <CardDescription className="text-xs">
-                              {upgrade.category} | {upgrade.timeToImplement} days to implement
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="py-2">
-                            <p className="text-sm mb-3">{upgrade.description}</p>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Cost:</span>
-                              <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="pt-2">
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => purchaseUpgrade(upgrade.id)}
-                              disabled={team.budget < upgrade.cost}
-                            >
-                              {team.budget < upgrade.cost ? 'Insufficient Budget' : 'Purchase Upgrade'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
+                      {/* Regular aerodynamics upgrades */}
+                      {aerodynamicsUpgrades.map(upgrade => renderUpgradeCard(upgrade, "red-500"))}
+                      
+                      {/* Specialized aerodynamics upgrades */}
+                      {specializedAerodynamicsUpgrades.map(upgrade => renderUpgradeCard(upgrade, "red-500"))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -2112,36 +2087,11 @@ export function Formula1Ownership() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      {engineUpgrades.map(upgrade => (
-                        <Card key={upgrade.id} className="border-yellow-500/30">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between">
-                              <CardTitle className="text-base">{upgrade.name}</CardTitle>
-                              <Badge className="bg-yellow-500/80">+{upgrade.improvement}</Badge>
-                            </div>
-                            <CardDescription className="text-xs">
-                              {upgrade.category} | {upgrade.timeToImplement} days to implement
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="py-2">
-                            <p className="text-sm mb-3">{upgrade.description}</p>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Cost:</span>
-                              <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="pt-2">
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => purchaseUpgrade(upgrade.id)}
-                              disabled={team.budget < upgrade.cost}
-                            >
-                              {team.budget < upgrade.cost ? 'Insufficient Budget' : 'Purchase Upgrade'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
+                      {/* Regular engine upgrades */}
+                      {engineUpgrades.map(upgrade => renderUpgradeCard(upgrade, "yellow-500"))}
+                      
+                      {/* Specialized engine upgrades */}
+                      {specializedEngineUpgrades.map(upgrade => renderUpgradeCard(upgrade, "yellow-500"))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -2155,36 +2105,11 @@ export function Formula1Ownership() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      {chassisUpgrades.map(upgrade => (
-                        <Card key={upgrade.id} className="border-purple-500/30">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between">
-                              <CardTitle className="text-base">{upgrade.name}</CardTitle>
-                              <Badge className="bg-purple-500/80">+{upgrade.improvement}</Badge>
-                            </div>
-                            <CardDescription className="text-xs">
-                              {upgrade.category} | {upgrade.timeToImplement} days to implement
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="py-2">
-                            <p className="text-sm mb-3">{upgrade.description}</p>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Cost:</span>
-                              <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="pt-2">
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => purchaseUpgrade(upgrade.id)}
-                              disabled={team.budget < upgrade.cost}
-                            >
-                              {team.budget < upgrade.cost ? 'Insufficient Budget' : 'Purchase Upgrade'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
+                      {/* Regular chassis upgrades */}
+                      {chassisUpgrades.map(upgrade => renderUpgradeCard(upgrade, "purple-500"))}
+                      
+                      {/* Specialized chassis upgrades */}
+                      {specializedChassisUpgrades.map(upgrade => renderUpgradeCard(upgrade, "purple-500"))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -2198,36 +2123,11 @@ export function Formula1Ownership() {
                   </AccordionTrigger>
                   <AccordionContent>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      {reliabilityUpgrades.map(upgrade => (
-                        <Card key={upgrade.id} className="border-green-500/30">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between">
-                              <CardTitle className="text-base">{upgrade.name}</CardTitle>
-                              <Badge className="bg-green-500/80">+{upgrade.improvement}</Badge>
-                            </div>
-                            <CardDescription className="text-xs">
-                              {upgrade.category} | {upgrade.timeToImplement} days to implement
-                            </CardDescription>
-                          </CardHeader>
-                          <CardContent className="py-2">
-                            <p className="text-sm mb-3">{upgrade.description}</p>
-                            <div className="flex justify-between text-sm">
-                              <span className="text-muted-foreground">Cost:</span>
-                              <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
-                            </div>
-                          </CardContent>
-                          <CardFooter className="pt-2">
-                            <Button 
-                              size="sm" 
-                              className="w-full"
-                              onClick={() => purchaseUpgrade(upgrade.id)}
-                              disabled={team.budget < upgrade.cost}
-                            >
-                              {team.budget < upgrade.cost ? 'Insufficient Budget' : 'Purchase Upgrade'}
-                            </Button>
-                          </CardFooter>
-                        </Card>
-                      ))}
+                      {/* Regular reliability upgrades */}
+                      {reliabilityUpgrades.map(upgrade => renderUpgradeCard(upgrade, "green-500"))}
+                      
+                      {/* Specialized reliability upgrades */}
+                      {specializedReliabilityUpgrades.map(upgrade => renderUpgradeCard(upgrade, "green-500"))}
                     </div>
                   </AccordionContent>
                 </AccordionItem>
