@@ -456,7 +456,7 @@ export default function ReliableDashboard() {
                     onClick={() => navigate('/business')}
                   >
                     <Briefcase className="h-5 w-5 mb-2 text-green-500" />
-                    <span className="text-sm">Business</span>
+                    <span className="text-sm">Owner</span>
                   </Button>
                   
                   <Button

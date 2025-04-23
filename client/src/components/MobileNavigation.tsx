@@ -37,7 +37,7 @@ export function MobileNavigation() {
     { icon: <ChartBar className="h-5 w-5" />, label: 'Invest', path: '/investments' },
     { icon: <Building className="h-5 w-5" />, label: 'Property', path: '/properties' },
     { icon: <ShoppingBag className="h-5 w-5" />, label: 'Lifestyle', path: '/lifestyle' },
-    { icon: <Store className="h-5 w-5" />, label: 'Business', path: '/business' },
+    { icon: <Store className="h-5 w-5" />, label: 'Owner', path: '/business' },
     { icon: <Dice1 className="h-5 w-5" />, label: 'Casino', path: '/casino' },
     { icon: <Target className="h-5 w-5" />, label: 'Challenges', path: '/challenges' },
     { icon: <Trophy className="h-5 w-5" />, label: 'Achieve', path: '/achievements' },

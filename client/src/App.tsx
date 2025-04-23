@@ -18,7 +18,7 @@ import AchievementsScreen from "./pages/AchievementsScreen";
 import JobScreen from "./pages/JobScreen";
 import ChallengesScreen from "./pages/ChallengesScreen";
 import PrestigeScreen from "./pages/PrestigeScreen";
-import BusinessScreen from "./pages/BusinessScreen";
+import OwnerScreen from "./pages/OwnerScreen";
 import { NetworkingScreen } from "./pages/NetworkingScreen";
 import CasinoScreen from "./pages/CasinoScreen";
 import TestPage from "./pages/TestPage";
@@ -314,7 +314,7 @@ function App() {
                 <Route path="/achievements" element={<AchievementsScreen />} />
                 <Route path="/challenges" element={<ChallengesScreen />} />
                 <Route path="/prestige" element={<PrestigeScreen />} />
-                <Route path="/business" element={<BusinessScreen />} />
+                <Route path="/business" element={<OwnerScreen />} />
                 <Route path="/networking" element={<NetworkingScreen />} />
                 <Route path="/casino" element={<CasinoScreen />} />
                 <Route path="/test" element={<TestPage />} />
