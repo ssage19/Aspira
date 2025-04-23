@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Button } from '../ui/button';
-import { DollarSign, RotateCcw, Play, User } from 'lucide-react';
+import { DollarSign, RotateCcw, Play, User, ChevronUp, ChevronDown, Trophy, Flame } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'sonner';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '../ui/card';
 
 // Simple poker game implementation (Five Card Draw)
 // This is a simplified version with just one round of betting and card replacement
@@ -349,162 +350,260 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
     return CARD_VALUES[card.value];
   };
   
-  // Render a card
-  const renderCard = (card: PlayingCard, index: number) => {
+  // Render a card with enhanced styling
+  const renderCard = useCallback((card: PlayingCard, index: number) => {
     const isSelected = selectedCards.includes(index);
+    const isRed = card.suit === 'hearts' || card.suit === 'diamonds';
+    const suitColor = isRed ? 'text-red-600' : 'text-gray-900';
+    const displayValue = getCardDisplayValue(card);
     
     return (
       <div 
         key={index} 
-        className={`relative w-16 h-24 bg-white rounded-md shadow-md flex flex-col items-center justify-between p-2 border-2 cursor-pointer transition-all
-          ${isSelected ? 'border-yellow-500 -translate-y-2' : 'border-gray-300'}
-          ${gamePhase === 'initial-deal' ? 'hover:border-yellow-500' : ''}`}
+        className={`relative w-[100px] h-[140px] bg-white rounded-lg shadow-xl m-2 transform transition-transform duration-200 overflow-hidden cursor-pointer
+          ${isSelected ? 'border-2 border-amber-500 -translate-y-4' : 'hover:rotate-1'}
+          ${gamePhase === 'initial-deal' ? 'hover:border-amber-400' : ''}`}
+        style={{ 
+          boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2)'
+        }}
         onClick={() => toggleCardSelection(index)}
       >
-        <div className={`text-lg font-bold ${getSuitColor(card.suit)}`}>
-          {getCardDisplayValue(card)}
-        </div>
-        <div className={`text-2xl ${getSuitColor(card.suit)}`}>
-          {SUIT_SYMBOLS[card.suit]}
+        {/* Card inner border for design */}
+        <div className="absolute inset-1.5 rounded-md border border-gray-200"></div>
+        
+        {/* Top left value and suit */}
+        <div className="absolute top-2 left-2">
+          <div className={`text-xl font-bold ${suitColor}`}>
+            {displayValue}
+          </div>
+          <div className={`text-xl leading-none ${suitColor}`}>
+            {SUIT_SYMBOLS[card.suit]}
+          </div>
         </div>
         
+        {/* Bottom right value and suit (inverted) */}
+        <div className="absolute bottom-2 right-2 rotate-180">
+          <div className={`text-xl font-bold ${suitColor}`}>
+            {displayValue}
+          </div>
+          <div className={`text-xl leading-none ${suitColor}`}>
+            {SUIT_SYMBOLS[card.suit]}
+          </div>
+        </div>
+        
+        {/* Center large suit */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className={`text-4xl ${suitColor}`}>
+            {SUIT_SYMBOLS[card.suit]}
+          </div>
+        </div>
+        
+        {/* Card value at the top center for face cards and aces */}
+        {(card.value === 14 || card.value > 10) && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className={`text-3xl font-bold ${suitColor}`}>
+              {displayValue}
+            </div>
+          </div>
+        )}
+        
+        {/* Selection indicator */}
         {isSelected && gamePhase === 'initial-deal' && (
-          <div className="absolute -top-2 -right-2 w-5 h-5 bg-yellow-500 text-white rounded-full flex items-center justify-center text-xs">
-            <RotateCcw className="h-3 w-3" />
+          <div className="absolute -top-2 -right-2 w-6 h-6 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-md z-10">
+            <RotateCcw className="h-4 w-4" />
           </div>
         )}
       </div>
     );
-  };
+  }, [selectedCards, gamePhase, getCardDisplayValue]);
   
   return (
     <div className="flex flex-col">
       <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold">Five Card Draw Poker</h2>
-        <p className="text-muted-foreground">Draw once to improve your hand. Jacks or better to win.</p>
+        <h2 className="text-3xl font-bold text-amber-100">Five Card Draw Poker</h2>
+        <p className="text-yellow-100/70 mt-1">Draw once to improve your hand. Jacks or better to win.</p>
       </div>
       
-      <div className="bg-green-800/30 p-6 rounded-lg mb-6">
-        {gamePhase === 'betting' ? (
-          <div className="flex flex-col items-center">
-            <h3 className="text-xl font-bold mb-4">Place Your Bet</h3>
-            
-            <div className="flex items-center mb-6">
-              <Button variant="outline" size="icon" onClick={() => adjustBetAmount(-100)}>
-                -$100
-              </Button>
-              <div className="mx-4 px-6 py-3 bg-black/20 rounded-md">
-                <div className="flex items-center text-xl font-bold">
-                  <DollarSign className="h-5 w-5 text-yellow-500" />
-                  <span>{betAmount}</span>
+      {/* Main game area */}
+      <Card className="bg-gradient-to-b from-green-900/70 to-green-800/50 border border-green-700/50 shadow-2xl mb-6">
+        <CardHeader className="pb-2">
+          <CardTitle className="flex items-center justify-center gap-2">
+            <Trophy className="h-5 w-5 text-amber-500" />
+            <span className="text-amber-100">Poker Table</span>
+          </CardTitle>
+        </CardHeader>
+        
+        <CardContent>
+          {gamePhase === 'betting' ? (
+            <div className="flex flex-col items-center py-4">
+              <div className="mb-6 text-center">
+                <h3 className="text-xl font-bold text-yellow-100 mb-2">Place Your Bet</h3>
+                <p className="text-sm text-yellow-100/70">Balance: {formatCurrency(playerBalance)}</p>
+              </div>
+              
+              <div className="flex items-center justify-center mb-8 gap-2">
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => adjustBetAmount(-100)}
+                  className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                >
+                  <ChevronDown className="h-5 w-5 text-amber-500 mr-1" />
+                  $100
+                </Button>
+                
+                <div className="mx-4 px-8 py-4 bg-gradient-to-b from-black/40 to-black/20 rounded-lg border border-amber-500/20 min-w-[150px] text-center">
+                  <div className="flex items-center justify-center text-2xl font-bold text-amber-100">
+                    <DollarSign className="h-6 w-6 text-amber-500" />
+                    <span>{betAmount}</span>
+                  </div>
                 </div>
+                
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  onClick={() => adjustBetAmount(100)}
+                  className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                >
+                  <ChevronUp className="h-5 w-5 text-amber-500 mr-1" />
+                  $100
+                </Button>
               </div>
-              <Button variant="outline" size="icon" onClick={() => adjustBetAmount(100)}>
-                +$100
+              
+              <Button 
+                size="lg" 
+                onClick={startGame}
+                disabled={betAmount > playerBalance}
+                className="bg-gradient-to-b from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white border-none 
+                           shadow-lg px-8 py-6 text-lg transition-all duration-200 disabled:opacity-50"
+              >
+                <Play className="h-5 w-5 mr-2" />
+                Deal Cards
               </Button>
             </div>
-            
-            <Button 
-              size="lg" 
-              onClick={startGame}
-              disabled={betAmount > playerBalance}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white"
-            >
-              Deal Cards
-            </Button>
-          </div>
-        ) : (
-          <>
-            {/* Dealer message */}
-            <div className="flex items-center bg-black/40 p-3 rounded-md mb-4">
-              <div className="bg-purple-700 w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                <User className="h-6 w-6 text-white" />
-              </div>
-              <div className="text-white">
-                <div className="text-xs opacity-80">Dealer:</div>
-                <div>{dealerMessage}</div>
-              </div>
-            </div>
-            
-            {/* Player's hand */}
-            <div className="flex flex-col items-center">
-              <div className="mb-4">
-                <h3 className="text-lg font-bold mb-2">Your Hand</h3>
-                <div className="flex justify-center flex-wrap gap-2">
-                  {playerHand.map((card, index) => renderCard(card, index))}
+          ) : (
+            <div className="space-y-6 py-2">
+              {/* Dealer message */}
+              <div className="flex items-center bg-black/40 p-4 rounded-lg border border-purple-500/20">
+                <div className="bg-gradient-to-b from-purple-700 to-purple-800 w-12 h-12 rounded-full flex items-center justify-center mr-4 shadow-lg">
+                  <User className="h-6 w-6 text-white" />
+                </div>
+                <div className="text-white">
+                  <div className="text-xs text-purple-300 mb-1">Dealer:</div>
+                  <div className="text-lg">{dealerMessage}</div>
                 </div>
               </div>
               
-              {/* Game controls */}
-              <div className="flex justify-center gap-4">
+              {/* Player's hand */}
+              <div className="flex flex-col items-center">
+                <div className="mb-6 w-full">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-bold text-amber-100 flex items-center">
+                      <Flame className="h-5 w-5 text-amber-500 mr-2" />
+                      Your Hand
+                    </h3>
+                    <div className="text-sm text-amber-200 bg-black/30 px-3 py-1 rounded-full">
+                      Bet: {formatCurrency(betAmount)}
+                    </div>
+                  </div>
+                  <div className="flex justify-center flex-wrap gap-2 bg-green-800/20 p-6 pb-8 border border-green-600/20 rounded-lg shadow-inner min-h-[200px]">
+                    {playerHand.map((card, index) => renderCard(card, index))}
+                  </div>
+                </div>
+                
+                {/* Game controls */}
+                <div className="flex justify-center gap-4 mt-2">
+                  {gamePhase === 'initial-deal' && (
+                    <Button 
+                      onClick={handleDraw} 
+                      className="bg-gradient-to-b from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600
+                                 px-8 py-6 text-lg text-white shadow-lg border-none"
+                      size="lg"
+                    >
+                      {selectedCards.length > 0 
+                        ? `Replace ${selectedCards.length} Card${selectedCards.length > 1 ? 's' : ''}` 
+                        : 'Stand Pat'}
+                    </Button>
+                  )}
+                  
+                  {gamePhase === 'showdown' && (
+                    <Button 
+                      onClick={resetGame} 
+                      className="bg-gradient-to-b from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600
+                                 px-8 py-6 text-lg text-white shadow-lg border-none"
+                      size="lg"
+                    >
+                      <RotateCcw className="h-5 w-5 mr-2" />
+                      Play Again
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Card selection help */}
                 {gamePhase === 'initial-deal' && (
-                  <Button 
-                    onClick={handleDraw} 
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Draw
-                  </Button>
-                )}
-                
-                {gamePhase === 'showdown' && (
-                  <Button 
-                    onClick={resetGame} 
-                    className="bg-yellow-600 hover:bg-yellow-700"
-                  >
-                    <RotateCcw className="h-4 w-4 mr-2" />
-                    Play Again
-                  </Button>
-                )}
-              </div>
-            </div>
-            
-            {/* Hand evaluation */}
-            {handEvaluation && (
-              <div className={`mt-4 p-3 rounded-md text-center ${
-                handEvaluation.multiplier > 0 ? 'bg-green-800/40' : 'bg-red-800/40'
-              }`}>
-                <div className="font-bold">
-                  {handEvaluation.name}
-                </div>
-                <div className="text-sm mb-1">
-                  {handEvaluation.multiplier > 0 
-                    ? `Pays ${handEvaluation.multiplier}x` 
-                    : 'No payout'}
-                </div>
-                
-                {/* Show total winnings */}
-                {gamePhase === 'showdown' && (
-                  <div className="mt-2 pt-2 border-t border-white/20">
-                    {totalWinnings > 0 ? (
-                      <div>
-                        <div className="text-sm text-green-300">Total Return:</div>
-                        <div className="text-xl font-bold text-yellow-400">{formatCurrency(totalWinnings)}</div>
-                      </div>
-                    ) : (
-                      <div className="text-red-300 font-bold">
-                        Loss: {formatCurrency(betAmount)}
-                      </div>
-                    )}
+                  <div className="text-center mt-4 text-sm text-amber-100/70">
+                    Select cards to replace or press "Stand Pat" to keep your current hand
                   </div>
                 )}
               </div>
-            )}
-          </>
-        )}
-      </div>
+              
+              {/* Hand evaluation */}
+              {handEvaluation && (
+                <div className={`p-4 rounded-lg shadow-lg border text-center ${
+                  handEvaluation.multiplier > 0 
+                    ? 'bg-gradient-to-b from-green-900/70 to-green-800/50 border-green-500/30' 
+                    : 'bg-gradient-to-b from-red-900/70 to-red-800/50 border-red-500/30'
+                }`}>
+                  <div className="font-bold text-xl text-amber-100 mb-1">
+                    {handEvaluation.name}
+                  </div>
+                  <div className="text-sm mb-3 text-amber-100/80">
+                    {handEvaluation.multiplier > 0 
+                      ? `Pays ${handEvaluation.multiplier}× your bet` 
+                      : 'No payout'}
+                  </div>
+                  
+                  {/* Show total winnings */}
+                  {gamePhase === 'showdown' && (
+                    <div className="mt-2 pt-3 border-t border-white/20">
+                      {totalWinnings > 0 ? (
+                        <div>
+                          <div className="text-sm text-green-300">Total Return:</div>
+                          <div className="text-2xl font-bold text-amber-300 mt-1">{formatCurrency(totalWinnings)}</div>
+                        </div>
+                      ) : (
+                        <div className="text-red-300 font-bold text-xl">
+                          Loss: {formatCurrency(betAmount)}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
       
       {/* Pay table */}
-      <div className="bg-black/20 p-4 rounded-lg">
-        <h3 className="text-lg font-bold mb-2">Payout Table</h3>
-        <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-          {HAND_RANKINGS.slice(0, -1).map((hand, index) => (
-            <div key={index} className="flex justify-between items-center text-sm">
-              <span>{hand.name}</span>
-              <span className="font-bold">{hand.multiplier}x</span>
-            </div>
-          ))}
-        </div>
-      </div>
+      <Card className="bg-gradient-to-b from-gray-900/60 to-black/40 border border-amber-500/20 shadow-lg">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-amber-100 text-lg flex items-center">
+            <DollarSign className="h-5 w-5 text-amber-500 mr-2" />
+            Payout Table
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-4">
+            {HAND_RANKINGS.slice(0, -1).map((hand, index) => (
+              <div key={index} className="flex justify-between items-center text-sm border-b border-amber-500/10 pb-1">
+                <span className="text-amber-100">{hand.name}</span>
+                <span className="font-bold text-amber-300">{hand.multiplier}×</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
