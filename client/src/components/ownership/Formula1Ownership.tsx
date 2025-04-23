@@ -2930,12 +2930,14 @@ export function Formula1Ownership() {
                             const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
                             const pointsEarned = race.position <= 10 ? pointsSystem[race.position - 1] : 0;
                             
-                            // Calculate prize money
-                            const prizeMoney = race.position <= 3 ? 
-                                              (4 - race.position) * 1000000 : // 1st: 3M, 2nd: 2M, 3rd: 1M
-                                              race.position <= 10 ? 
-                                                500000 : // 4th-10th: 500k
-                                                100000;  // 11th-20th: 100k
+                            // Get prize money, either from saved race data or calculate
+                            const prizeMoney = race.prize || (
+                              race.position <= 3 ? 
+                                (4 - race.position) * 1000000 : // 1st: 3M, 2nd: 2M, 3rd: 1M
+                                race.position <= 10 ? 
+                                  500000 : // 4th-10th: 500k
+                                  100000   // 11th-20th: 100k
+                            );
                             
                             return (
                               <tr key={index} className="border-b border-muted/20 hover:bg-muted/10">
