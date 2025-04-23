@@ -140,6 +140,7 @@ interface UpgradeOption {
   category: string;
   description: string;
   timeToImplement: number; // days
+  requiresPerformancePoints?: number; // Performance points needed to unlock
 }
 
 // Available team options to purchase
@@ -180,6 +181,7 @@ const teamOptions: TeamOption[] = [
 ];
 
 // Upgrade options categorized
+// Normal upgrade options categorized
 const aerodynamicsUpgrades: UpgradeOption[] = [
   {
     id: "aero_1",
@@ -592,12 +594,117 @@ const reliabilityUpgrades: UpgradeOption[] = [
   }
 ];
 
+// Specialized upgrades requiring performance points
+const specializedAerodynamicsUpgrades: UpgradeOption[] = [
+  {
+    id: "special_aero_1",
+    name: "Dynamic DRS System",
+    area: "aerodynamics",
+    cost: 4500000,
+    improvement: 8,
+    category: "Specialized",
+    description: "Advanced DRS system with variable settings for different track sections",
+    timeToImplement: 18,
+    requiresPerformancePoints: 30
+  },
+  {
+    id: "special_aero_2",
+    name: "Active Flow Control",
+    area: "aerodynamics",
+    cost: 5000000,
+    improvement: 9,
+    category: "Specialized",
+    description: "Microperforations in strategic locations for active boundary layer control",
+    timeToImplement: 20,
+    requiresPerformancePoints: 45
+  }
+];
+
+const specializedEngineUpgrades: UpgradeOption[] = [
+  {
+    id: "special_engine_1",
+    name: "Next-Gen Power Unit",
+    area: "engine",
+    cost: 6000000,
+    improvement: 10,
+    category: "Specialized",
+    description: "Revolutionary power unit combining electric and combustion efficiency",
+    timeToImplement: 25,
+    requiresPerformancePoints: 40
+  },
+  {
+    id: "special_engine_2",
+    name: "Quantum Combustion Analysis",
+    area: "engine",
+    cost: 7000000,
+    improvement: 12,
+    category: "Specialized",
+    description: "Microsecond combustion analysis allowing perfect fuel mixture in real-time",
+    timeToImplement: 30,
+    requiresPerformancePoints: 60
+  }
+];
+
+const specializedChassisUpgrades: UpgradeOption[] = [
+  {
+    id: "special_chassis_1",
+    name: "Adaptive Suspension System",
+    area: "chassis",
+    cost: 3500000,
+    improvement: 7,
+    category: "Specialized",
+    description: "Real-time adapting suspension that optimizes for track conditions",
+    timeToImplement: 16,
+    requiresPerformancePoints: 25
+  },
+  {
+    id: "special_chassis_2",
+    name: "Nanocarbon Composite Structure",
+    area: "chassis",
+    cost: 5500000,
+    improvement: 11,
+    category: "Specialized",
+    description: "Revolutionary chassis material providing unprecedented strength-to-weight ratio",
+    timeToImplement: 24,
+    requiresPerformancePoints: 50
+  }
+];
+
+const specializedReliabilityUpgrades: UpgradeOption[] = [
+  {
+    id: "special_reliability_1",
+    name: "Predictive Component Monitoring",
+    area: "reliability",
+    cost: 3000000,
+    improvement: 8,
+    category: "Specialized",
+    description: "AI-driven system that predicts failures before they happen",
+    timeToImplement: 14,
+    requiresPerformancePoints: 20
+  },
+  {
+    id: "special_reliability_2",
+    name: "Self-Healing Materials",
+    area: "reliability",
+    cost: 4000000,
+    improvement: 10,
+    category: "Specialized",
+    description: "Composite materials with micro-encapsulated repair agents for automatic damage repair",
+    timeToImplement: 22,
+    requiresPerformancePoints: 35
+  }
+];
+
 // Combined upgrade options for easy reference
 const upgradeOptions: UpgradeOption[] = [
   ...aerodynamicsUpgrades,
   ...engineUpgrades, 
   ...chassisUpgrades, 
-  ...reliabilityUpgrades
+  ...reliabilityUpgrades,
+  ...specializedAerodynamicsUpgrades,
+  ...specializedEngineUpgrades,
+  ...specializedChassisUpgrades,
+  ...specializedReliabilityUpgrades
 ];
 
 // Available F1 Drivers
