@@ -99,6 +99,7 @@ interface F1Team {
     chassis: number;
     reliability: number;
   };
+  purchasedUpgrades: string[]; // Array of upgrade IDs that have been purchased
   budget: number;
   standings: number;
   points: number;
@@ -1129,6 +1130,7 @@ export function Formula1Ownership() {
         chassis: 0,
         reliability: 0
       },
+      purchasedUpgrades: [], // Track which upgrades have been purchased
       budget: option.operatingCost, // Initial budget matches operating cost
       standings: 10, // Start in 10th position
       points: 0,
@@ -1199,6 +1201,14 @@ export function Formula1Ownership() {
     const upgrade = upgradeOptions.find(u => u.id === upgradeId);
     if (!upgrade) return;
     
+    // Check if this upgrade has already been purchased
+    if (team.purchasedUpgrades.includes(upgradeId)) {
+      toast.error(`Your team has already purchased this upgrade.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
     // Check if team can afford it
     if (team.budget < upgrade.cost) {
       toast.error(`Your team doesn't have the budget for this upgrade.`, {
@@ -1229,7 +1239,9 @@ export function Formula1Ownership() {
       // If it's a specialized upgrade, reduce performance points
       performancePoints: upgrade.requiresPerformancePoints 
         ? team.performancePoints - upgrade.requiresPerformancePoints 
-        : team.performancePoints
+        : team.performancePoints,
+      // Add this upgrade to the list of purchased upgrades
+      purchasedUpgrades: [...team.purchasedUpgrades, upgradeId]
     });
     
     // Different message for specialized upgrades
