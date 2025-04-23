@@ -558,6 +558,43 @@ export default function BlackjackGame({ onWin, onLoss, playerBalance }: Blackjac
   }, [customBetInput, numberOfHands, playerBalance, initializeDeck, generateId, calculateHandValue]);
   
   // Handle dealer's turn
+  // Effect to check if active hand is a blackjack and advance to next hand automatically
+  useEffect(() => {
+    // Only run this during the playing state
+    if (gameState !== 'playing' || activeHandIndex >= playerHands.length) return;
+    
+    const activeHand = playerHands[activeHandIndex];
+    
+    // If the hand is blackjack or has a value of 21, automatically move to next hand
+    if (activeHand && (activeHand.status === 'blackjack' || calculateHandValue(activeHand.cards) === 21)) {
+      console.log(`Hand ${activeHand.id} is already 21 or blackjack - automatically moving to next hand`);
+      
+      // Mark hand status appropriately
+      const updatedHands = [...playerHands];
+      if (activeHand.status !== 'blackjack') {
+        updatedHands[activeHandIndex] = {
+          ...activeHand,
+          status: 'stood' // Mark as stood if it's not already blackjack
+        };
+        setPlayerHands(updatedHands);
+      }
+      
+      // Delay the transition slightly for better UX
+      setTimeout(() => {
+        // Check if this is the last hand
+        if (activeHandIndex === playerHands.length - 1) {
+          // All hands complete, move to dealer's turn
+          console.log("Last hand auto-complete, moving to dealer turn");
+          setGameState('dealerTurn');
+        } else {
+          // Move to next hand
+          console.log("Moving to next hand automatically");
+          setActiveHandIndex(activeHandIndex + 1);
+        }
+      }, 500);
+    }
+  }, [gameState, activeHandIndex, playerHands, calculateHandValue]);
+
   useEffect(() => {
     if (gameState !== 'dealerTurn' || dealerTurnInProgress.current) return;
     
