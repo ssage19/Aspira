@@ -190,7 +190,7 @@ const teamOptions: TeamOption[] = [
     sport: 'baseball',
     league: "American Baseball League",
     description: "A baseball franchise with passionate fans and a beautiful ballpark.",
-    price: 350000000,
+    price: 75000000,
     stadiumName: "Harbor Park",
     stadiumCapacity: 42000,
     performance: {
@@ -207,7 +207,7 @@ const teamOptions: TeamOption[] = [
     sport: 'hockey',
     league: "National Hockey Association",
     description: "A hockey team with a strong defensive style and loyal fanbase.",
-    price: 320000000,
+    price: 70000000,
     stadiumName: "Ice Center",
     stadiumCapacity: 19000,
     performance: {
@@ -224,7 +224,7 @@ const teamOptions: TeamOption[] = [
     sport: 'basketball',
     league: "Pro Basketball League",
     description: "A basketball team known for their fast-paced style and high-altitude advantage.",
-    price: 380000000,
+    price: 80000000,
     stadiumName: "Summit Center",
     stadiumCapacity: 19500,
     performance: {
@@ -241,7 +241,7 @@ const teamOptions: TeamOption[] = [
     sport: 'football',
     league: "National Football Conference",
     description: "A football team with national recognition and a storied history.",
-    price: 750000000,
+    price: 85000000,
     stadiumName: "Capital Field",
     stadiumCapacity: 82000,
     performance: {
@@ -258,7 +258,7 @@ const teamOptions: TeamOption[] = [
     sport: 'soccer',
     league: "Premier Soccer Association",
     description: "A soccer team with a growing fanbase in an expanding market.",
-    price: 230000000,
+    price: 65000000,
     stadiumName: "Desert Stadium",
     stadiumCapacity: 32000,
     performance: {
@@ -275,7 +275,7 @@ const teamOptions: TeamOption[] = [
     sport: 'golf',
     league: "Professional Golf Tour",
     description: "A prestigious golf club that hosts major tournaments and attracts top talent.",
-    price: 180000000,
+    price: 60000000,
     stadiumName: "Golden Fairways Club",
     stadiumCapacity: 25000,
     performance: {
@@ -292,7 +292,7 @@ const teamOptions: TeamOption[] = [
     sport: 'tennis',
     league: "Global Tennis Association",
     description: "A tennis club with state-of-the-art facilities and a roster of promising players.",
-    price: 150000000,
+    price: 55000000,
     stadiumName: "Bay Tennis Center",
     stadiumCapacity: 20000,
     performance: {
@@ -309,7 +309,7 @@ const teamOptions: TeamOption[] = [
     sport: 'rugby',
     league: "International Rugby Championship",
     description: "A powerful rugby team with a tradition of excellence and physical play.",
-    price: 220000000,
+    price: 75000000,
     stadiumName: "Thunder Stadium",
     stadiumCapacity: 40000,
     performance: {
