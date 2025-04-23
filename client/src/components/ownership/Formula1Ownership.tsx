@@ -776,10 +776,39 @@ const upcomingRaces = [
   { id: 'r24', name: 'Abu Dhabi Grand Prix', date: '2/4/2026', prestige: 4, difficulty: 3, track: 'Yas Marina Circuit', country: 'UAE' }
 ];
 
+// Storage key for localStorage
+const STORAGE_KEY = 'business-empire-formula1-team';
+
+// Helper function to save to localStorage
+const saveToStorage = (data: F1Team | null) => {
+  try {
+    if (data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  } catch (error) {
+    console.error('Error saving Formula 1 team to localStorage:', error);
+  }
+};
+
+// Helper function to load from localStorage
+const loadFromStorage = (): F1Team | null => {
+  try {
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if (savedData) {
+      return JSON.parse(savedData);
+    }
+  } catch (error) {
+    console.error('Error loading Formula 1 team from localStorage:', error);
+  }
+  return null;
+};
+
 export function Formula1Ownership() {
   const { wealth, addWealth } = useCharacter();
   const { gameTime, formattedDate } = useGameTime();
-  const [team, setTeam] = useState<F1Team | null>(null);
+  const [team, setTeam] = useState<F1Team | null>(loadFromStorage());
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
@@ -792,6 +821,12 @@ export function Formula1Ownership() {
   const [driverPosition, setDriverPosition] = useState<'primary' | 'secondary' | null>(null);
   const [nextRace, setNextRace] = useState<{id: string; name: string; date: string} | null>(null);
   const [daysUntilNextRace, setDaysUntilNextRace] = useState<number | null>(null);
+  
+  // Custom version of setTeam that also saves to localStorage
+  const updateTeam = (newTeam: F1Team | null) => {
+    setTeam(newTeam);
+    saveToStorage(newTeam);
+  };
 
   // Staff salary calculations
   const calculateStaffSalaries = (): Record<string, number> => {
@@ -897,8 +932,8 @@ export function Formula1Ownership() {
     // Update player wealth
     addWealth(-option.price);
     
-    // Set the team
-    setTeam(newTeam);
+    // Set the team and save to localStorage
+    updateTeam(newTeam);
     
     // Show success message
     setSuccessMessage(`You have successfully purchased ${newTeam.name} for ${formatCurrency(option.price)}!`);
@@ -930,8 +965,8 @@ export function Formula1Ownership() {
       return;
     }
     
-    // Update team
-    setTeam({
+    // Update team and save to localStorage
+    updateTeam({
       ...team,
       staff: {
         ...team.staff,
@@ -963,8 +998,8 @@ export function Formula1Ownership() {
       return;
     }
     
-    // Apply the upgrade
-    setTeam({
+    // Apply the upgrade and save to localStorage
+    updateTeam({
       ...team,
       budget: team.budget - upgrade.cost,
       [upgrade.area]: Math.min(100, team[upgrade.area as keyof F1Team] as number + upgrade.improvement),
@@ -1043,8 +1078,8 @@ export function Formula1Ownership() {
       [raceId]: simulationsForRace + 1
     };
     
-    // Update team data
-    setTeam({
+    // Update team data and save to localStorage
+    updateTeam({
       ...team,
       performancePoints: team.performancePoints + performancePointsEarned,
       raceSimulations: updatedRaceSimulations,
@@ -1118,8 +1153,8 @@ export function Formula1Ownership() {
       chassisImprovement = 2;
     }
     
-    // Apply the optimization
-    setTeam({
+    // Apply the optimization and save to localStorage
+    updateTeam({
       ...team,
       budget: team.budget - optimizeCost,
       aerodynamics: Math.min(100, team.aerodynamics + aeroImprovement),
@@ -1151,7 +1186,8 @@ export function Formula1Ownership() {
     // Transfer funds
     addWealth(-fundAmount);
     
-    setTeam({
+    // Update team and save to localStorage
+    updateTeam({
       ...team,
       budget: team.budget + fundAmount
     });
@@ -1167,7 +1203,7 @@ export function Formula1Ownership() {
   const addSponsor = (sponsorName: string, contribution: number) => {
     if (!team) return;
     
-    setTeam({
+    updateTeam({
       ...team,
       sponsors: [
         ...team.sponsors,
@@ -1207,8 +1243,8 @@ export function Formula1Ownership() {
       return;
     }
     
-    // Update team
-    setTeam({
+    // Update team and save to localStorage
+    updateTeam({
       ...team,
       drivers: {
         ...team.drivers,
