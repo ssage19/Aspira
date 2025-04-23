@@ -2860,9 +2860,11 @@ export function Formula1Ownership() {
                         key={race.id} 
                         className={`${
                           team.completedRaces.includes(race.id) 
-                            ? "border-green-500/30 bg-green-50/10" 
-                            : (new Date(race.date) < new Date(team.purchaseDate) && !team.races.some(r => r.track === race.name))
-                              ? "border-red-500/30 bg-red-50/10"
+                            ? team.races.some(r => r.track === race.name)
+                              ? "border-green-500/30 bg-green-50/10" 
+                              : "border-red-500/30 bg-red-50/10"
+                            : !isRaceEligible(race.id).eligible
+                              ? "border-orange-500/30 bg-orange-50/10"
                               : "border-primary/20"
                         }`}
                       >
