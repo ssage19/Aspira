@@ -1171,10 +1171,14 @@ export function SportsTeamOwnership() {
                     <CardFooter>
                       <Button 
                         className="w-full"
-                        onClick={() => purchaseTeam(option)}
+                        onClick={() => openCustomizeModal(option)}
                         disabled={wealth < option.price}
                       >
-                        {wealth < option.price ? 'Insufficient Funds' : `Purchase Team`}
+                        {wealth < option.price ? 'Insufficient Funds' : (
+                          <span className="flex items-center justify-center">
+                            <Edit className="h-4 w-4 mr-2" /> Customize & Purchase
+                          </span>
+                        )}
                       </Button>
                     </CardFooter>
                   </Card>
