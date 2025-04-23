@@ -938,7 +938,7 @@ export function Formula1Ownership() {
         <CardHeader className="pb-2">
           <div className="flex justify-between">
             <CardTitle className="text-base">
-              {isSpecialized && <Sparkles className="h-3 w-3 mr-1 inline text-purple-500" />}
+              {requiresPoints && <Sparkles className="h-3 w-3 mr-1 inline text-purple-500" />}
               {upgrade.name}
             </CardTitle>
             <Badge className={`bg-${colorClass}/80`}>+{upgrade.improvement}</Badge>
@@ -953,14 +953,14 @@ export function Formula1Ownership() {
             <span className="text-muted-foreground">Cost:</span>
             <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
           </div>
-          {isSpecialized && (
+          {requiresPoints && (
             <div className="flex justify-between text-sm mt-1">
               <span className="text-muted-foreground flex items-center">
                 <Trophy className="h-3 w-3 mr-1 text-orange-500" />
                 Performance Points:
               </span>
               <span className="font-semibold text-orange-500">
-                {upgrade.requiresPerformancePoints} points
+                {pointsRequired} points
               </span>
             </div>
           )}
@@ -968,7 +968,7 @@ export function Formula1Ownership() {
         <CardFooter className="pt-2">
           <Button 
             size="sm" 
-            className={`w-full ${isSpecialized ? 'bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600' : ''}`}
+            className={`w-full ${requiresPoints ? 'bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600' : ''}`}
             onClick={() => purchaseUpgrade(upgrade.id)}
             disabled={isDisabled}
           >
@@ -1208,8 +1208,8 @@ export function Formula1Ownership() {
   };
 
   // Calculate expected race position based on performance
-  const calculateExpectedPosition = (race: { difficulty: number }): number | string => {
-    if (!team) return '-';
+  const calculateExpectedPosition = (race: { difficulty: number }): number => {
+    if (!team) return 10; // Default to middle of the pack if no team
     
     // Formula = 10 - (performance / 10) + race difficulty adjustment
     const position = Math.max(1, Math.min(20, Math.floor(10 - (team.performance / 10) + (race.difficulty / 5))));
@@ -1235,8 +1235,8 @@ export function Formula1Ownership() {
     // Calculate expected position
     const expectedPosition = calculateExpectedPosition(race);
     
-    // Convert the expected position to a number if it's a string
-    const numericPosition = typeof expectedPosition === 'string' ? 10 : expectedPosition;
+    // No need to convert, function now returns a number directly
+    const numericPosition = expectedPosition;
     
     // Add some randomness (±3 positions)
     const randomFactor = Math.floor(Math.random() * 7) - 3;
@@ -1502,8 +1502,8 @@ export function Formula1Ownership() {
         // Calculate expected position
         const expectedPosition = calculateExpectedPosition(todaysRace);
         
-        // Convert the expected position to a number if it's a string
-        const numericPosition = typeof expectedPosition === 'string' ? 10 : expectedPosition;
+        // No need to convert, function now returns a number directly
+        const numericPosition = expectedPosition;
         
         // Add some randomness (±3 positions)
         const randomFactor = Math.floor(Math.random() * 7) - 3;
