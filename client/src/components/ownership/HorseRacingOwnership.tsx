@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -16,6 +16,15 @@ import {
 } from "../ui/tabs";
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "../ui/alert-dialog";
 import { 
   Heart, 
   Trophy, 
@@ -29,13 +38,18 @@ import {
   Dumbbell,
   ShieldCheck,
   Award,
-  Plus
+  Plus,
+  AlertCircle,
+  CheckCircle2,
+  Info
 } from 'lucide-react';
 import { 
   HoverCard,
   HoverCardContent,
   HoverCardTrigger,
 } from "../ui/hover-card";
+import { Separator } from '../ui/separator';
+import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import { useCharacter } from '../../lib/stores/useCharacter';
 
@@ -99,25 +113,49 @@ export function HorseRacingOwnership() {
   const { wealth, addWealth } = useCharacter();
   const [horses, setHorses] = useState<Horse[]>([]);
   const [activeTab, setActiveTab] = useState('stable');
-  const [purchaseDialogOpen, setPurchaseDialogOpen] = useState(false);
-  const [selectedBreed, setSelectedBreed] = useState<string | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [horseName, setHorseName] = useState('');
+  const [selectedRace, setSelectedRace] = useState<string | null>(null);
+  const [selectedHorseForRace, setSelectedHorseForRace] = useState<string | null>(null);
+  const [showRaceRegistrationDialog, setShowRaceRegistrationDialog] = useState(false);
+
+  // Define costs for horse care
+  const TRAINING_COST = 2000;
+  const FEEDING_COST = 500;
+  const HYDRATION_COST = 300;
+  const REST_COST = 1000;
+
+  // Check if player already owns a horse of a specific breed
+  const ownsBreed = (breed: string) => {
+    return horses.some(horse => horse.breed === breed);
+  };
 
   const purchaseHorse = (breed: string) => {
     // Find the selected breed
     const breedInfo = horseBreeds.find(b => b.name === breed);
     if (!breedInfo) return;
     
+    // Check if player already owns this breed
+    if (ownsBreed(breed)) {
+      toast.error(`You already own a ${breed}. You can only own one of each breed.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
     // Check if player can afford the horse
     if (wealth < breedInfo.price) {
-      alert("You don't have enough funds to purchase this horse.");
+      toast.error(`You don't have enough funds to purchase this horse.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
       return;
     }
     
     // Create the new horse
     const newHorse: Horse = {
       id: `horse_${Date.now()}`,
-      name: horseName || `${breed} ${horses.length + 1}`,
+      name: horseName || `${breed} ${Math.floor(Math.random() * 1000)}`,
       breed: breed,
       age: 3, // Start with a 3-year-old horse
       price: breedInfo.price,
@@ -139,17 +177,35 @@ export function HorseRacingOwnership() {
     // Add horse to stable
     setHorses([...horses, newHorse]);
     
-    // Close dialog and reset form
-    setPurchaseDialogOpen(false);
-    setSelectedBreed(null);
+    // Show success message
+    setSuccessMessage(`You have successfully purchased ${newHorse.name} for ${formatCurrency(breedInfo.price)}!`);
+    setShowSuccessDialog(true);
+    
+    // Reset form
     setHorseName('');
+    
+    // Toast notification
+    toast.success(`${newHorse.name} has been added to your stable!`, {
+      icon: <CheckCircle2 className="h-5 w-5 text-green-500" />
+    });
   };
 
   const trainHorse = (id: string) => {
+    // Check if player can afford training
+    if (wealth < TRAINING_COST) {
+      toast.error(`Training costs ${formatCurrency(TRAINING_COST)}. You don't have enough funds.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Charge player
+    addWealth(-TRAINING_COST);
+    
     setHorses(currentHorses => 
       currentHorses.map(horse => {
         if (horse.id === id) {
-          return {
+          const updatedHorse = {
             ...horse,
             training: Math.min(100, horse.training + 5),
             speed: Math.min(100, horse.speed + 1),
@@ -157,6 +213,12 @@ export function HorseRacingOwnership() {
             morale: Math.max(50, horse.morale - 5), // Training reduces morale slightly
             hydration: Math.max(50, horse.hydration - 5) // Training reduces hydration
           };
+          
+          toast.success(`${horse.name} completed training! Speed +1, Stamina +1`, {
+            icon: <Dumbbell className="h-5 w-5 text-amber-500" />
+          });
+          
+          return updatedHorse;
         }
         return horse;
       })
@@ -164,14 +226,31 @@ export function HorseRacingOwnership() {
   };
 
   const restHorse = (id: string) => {
+    // Check if player can afford rest
+    if (wealth < REST_COST) {
+      toast.error(`Rest and recovery costs ${formatCurrency(REST_COST)}. You don't have enough funds.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Charge player
+    addWealth(-REST_COST);
+    
     setHorses(currentHorses => 
       currentHorses.map(horse => {
         if (horse.id === id) {
-          return {
+          const updatedHorse = {
             ...horse,
             morale: Math.min(100, horse.morale + 10),
             health: Math.min(100, horse.health + 5)
           };
+          
+          toast.success(`${horse.name} is well-rested! Morale +10, Health +5`, {
+            icon: <Clock className="h-5 w-5 text-blue-500" />
+          });
+          
+          return updatedHorse;
         }
         return horse;
       })
@@ -179,15 +258,32 @@ export function HorseRacingOwnership() {
   };
   
   const feedHorse = (id: string) => {
+    // Check if player can afford feeding
+    if (wealth < FEEDING_COST) {
+      toast.error(`Feeding costs ${formatCurrency(FEEDING_COST)}. You don't have enough funds.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Charge player
+    addWealth(-FEEDING_COST);
+    
     setHorses(currentHorses => 
       currentHorses.map(horse => {
         if (horse.id === id) {
-          return {
+          const updatedHorse = {
             ...horse,
             nutrition: Math.min(100, horse.nutrition + 15),
             health: Math.min(100, horse.health + 2),
             morale: Math.min(100, horse.morale + 3)
           };
+          
+          toast.success(`${horse.name} has been fed! Nutrition +15, Health +2, Morale +3`, {
+            icon: <Drumstick className="h-5 w-5 text-orange-500" />
+          });
+          
+          return updatedHorse;
         }
         return horse;
       })
@@ -195,21 +291,38 @@ export function HorseRacingOwnership() {
   };
   
   const hydrateHorse = (id: string) => {
+    // Check if player can afford hydration
+    if (wealth < HYDRATION_COST) {
+      toast.error(`Hydration costs ${formatCurrency(HYDRATION_COST)}. You don't have enough funds.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Charge player
+    addWealth(-HYDRATION_COST);
+    
     setHorses(currentHorses => 
       currentHorses.map(horse => {
         if (horse.id === id) {
-          return {
+          const updatedHorse = {
             ...horse,
             hydration: Math.min(100, horse.hydration + 20)
           };
+          
+          toast.success(`${horse.name} has been hydrated! Hydration +20`, {
+            icon: <Droplets className="h-5 w-5 text-blue-500" />
+          });
+          
+          return updatedHorse;
         }
         return horse;
       })
     );
   };
 
-  // Register for a race
-  const registerForRace = (horseId: string, raceId: string) => {
+  // Prepare race registration
+  const prepareRaceRegistration = (horseId: string, raceId: string) => {
     const race = upcomingRaces.find(r => r.id === raceId);
     const horse = horses.find(h => h.id === horseId);
     
@@ -217,9 +330,34 @@ export function HorseRacingOwnership() {
     
     // Check if player can afford the entry fee
     if (wealth < race.entryFee) {
-      alert("You don't have enough funds for the entry fee.");
+      toast.error(`The entry fee for ${race.name} is ${formatCurrency(race.entryFee)}. You don't have enough funds.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
       return;
     }
+    
+    // Check if horse is already registered for a race
+    if (horse.nextRaceDate) {
+      toast.error(`${horse.name} is already registered for a race on ${horse.nextRaceDate}.`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
+    // Set selected race and horse for confirmation dialog
+    setSelectedRace(raceId);
+    setSelectedHorseForRace(horseId);
+    setShowRaceRegistrationDialog(true);
+  };
+
+  // Register for a race after confirmation
+  const registerForRace = () => {
+    if (!selectedRace || !selectedHorseForRace) return;
+    
+    const race = upcomingRaces.find(r => r.id === selectedRace);
+    const horse = horses.find(h => h.id === selectedHorseForRace);
+    
+    if (!race || !horse) return;
     
     // Charge entry fee
     addWealth(-race.entryFee);
@@ -227,7 +365,7 @@ export function HorseRacingOwnership() {
     // Update horse with next race information
     setHorses(currentHorses => 
       currentHorses.map(h => {
-        if (h.id === horseId) {
+        if (h.id === selectedHorseForRace) {
           return {
             ...h,
             nextRaceDate: race.date
@@ -236,7 +374,22 @@ export function HorseRacingOwnership() {
         return h;
       })
     );
+    
+    // Close dialog
+    setShowRaceRegistrationDialog(false);
+    
+    // Show success message
+    toast.success(`${horse.name} has been registered for ${race.name} on ${race.date}!`, {
+      icon: <Trophy className="h-5 w-5 text-yellow-500" />,
+      duration: 5000,
+    });
   };
+
+  useEffect(() => {
+    // Reset dialog flags when tab changes
+    setShowSuccessDialog(false);
+    setShowRaceRegistrationDialog(false);
+  }, [activeTab]);
 
   return (
     <div className="space-y-6">
@@ -354,62 +507,79 @@ export function HorseRacingOwnership() {
                       </div>
                     </div>
                     
-                    {/* Race information */}
-                    <div className="bg-muted/30 rounded-md p-4 mt-4 space-y-2">
-                      <h4 className="font-semibold flex items-center mb-2">
-                        <Trophy className="h-4 w-4 mr-1 text-amber-500" />
-                        Racing Record
-                      </h4>
-                      
-                      {horse.lastRaceDate ? (
-                        <div className="text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Last Race:</span>
-                            <span>{horse.lastRaceDate} (Position: {horse.lastRacePosition})</span>
-                          </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm mt-2 mb-4">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Purchase Price:</span>
+                        <span className="font-semibold">{formatCurrency(horse.price)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Earnings:</span>
+                        <span className="font-semibold">{formatCurrency(horse.earnings)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Last Race:</span>
+                        <span className="font-semibold">{horse.lastRaceDate || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Next Race:</span>
+                        <span className="font-semibold">{horse.nextRaceDate || 'Not Scheduled'}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="mt-4 pt-3 border-t border-primary/10 text-xs text-muted-foreground mb-2">
+                      <div className="flex flex-wrap gap-x-4 gap-y-1">
+                        <div className="flex items-center">
+                          <Dumbbell className="h-3 w-3 mr-1" /> Training: {formatCurrency(TRAINING_COST)}
                         </div>
-                      ) : (
-                        <div className="text-sm text-muted-foreground">No previous races</div>
-                      )}
-                      
-                      {horse.nextRaceDate ? (
-                        <div className="text-sm">
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Next Race:</span>
-                            <span className="font-medium">{horse.nextRaceDate}</span>
-                          </div>
+                        <div className="flex items-center">
+                          <Clock className="h-3 w-3 mr-1" /> Rest: {formatCurrency(REST_COST)}
                         </div>
-                      ) : (
-                        <div className="text-sm">
-                          <span className="text-muted-foreground">No upcoming races scheduled</span>
+                        <div className="flex items-center">
+                          <Drumstick className="h-3 w-3 mr-1" /> Feed: {formatCurrency(FEEDING_COST)}
                         </div>
-                      )}
-                      
-                      <div className="text-sm flex justify-between pt-1">
-                        <span className="text-muted-foreground">Career Earnings:</span>
-                        <span className="font-medium">{formatCurrency(horse.earnings)}</span>
+                        <div className="flex items-center">
+                          <Droplets className="h-3 w-3 mr-1" /> Hydrate: {formatCurrency(HYDRATION_COST)}
+                        </div>
                       </div>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex justify-between pt-4">
-                    <div className="grid grid-cols-2 gap-2 w-full">
-                      <Button size="sm" onClick={() => trainHorse(horse.id)}>
-                        <Dumbbell className="h-4 w-4 mr-1" />
-                        Train
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => restHorse(horse.id)}>
-                        <Clock className="h-4 w-4 mr-1" />
-                        Rest
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => feedHorse(horse.id)}>
-                        <Drumstick className="h-4 w-4 mr-1" />
-                        Feed
-                      </Button>
-                      <Button size="sm" variant="outline" onClick={() => hydrateHorse(horse.id)}>
-                        <Droplets className="h-4 w-4 mr-1" />
-                        Hydrate
-                      </Button>
-                    </div>
+                  <CardFooter className="flex gap-2 flex-wrap">
+                    <Button 
+                      onClick={() => trainHorse(horse.id)}
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
+                      disabled={wealth < TRAINING_COST}
+                    >
+                      <Dumbbell className="h-4 w-4 mr-2" /> Train
+                    </Button>
+                    <Button 
+                      onClick={() => restHorse(horse.id)}
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
+                      disabled={wealth < REST_COST}
+                    >
+                      <Clock className="h-4 w-4 mr-2" /> Rest
+                    </Button>
+                    <Button 
+                      onClick={() => feedHorse(horse.id)}
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
+                      disabled={wealth < FEEDING_COST}
+                    >
+                      <Drumstick className="h-4 w-4 mr-2" /> Feed
+                    </Button>
+                    <Button 
+                      onClick={() => hydrateHorse(horse.id)}
+                      variant="outline" 
+                      size="sm"
+                      className="flex-1 min-w-[120px]"
+                      disabled={wealth < HYDRATION_COST}
+                    >
+                      <Droplets className="h-4 w-4 mr-2" /> Hydrate
+                    </Button>
                   </CardFooter>
                 </Card>
               ))}
@@ -418,18 +588,28 @@ export function HorseRacingOwnership() {
         </TabsContent>
         
         <TabsContent value="purchase">
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold">Purchase a Racing Horse</h3>
+          <div className="mb-6">
+            <h3 className="text-2xl font-semibold mb-2">Horse Breeds</h3>
             <p className="text-muted-foreground">
-              Select from premium racing breeds. Each horse requires monthly maintenance and care.
+              Select a breed to purchase a new racing horse for your stable. You can own one horse of each breed.
             </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {horseBreeds.map((breed) => (
-                <Card key={breed.name} className="border-primary/30 overflow-hidden">
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {horseBreeds.map(breed => {
+              const alreadyOwned = ownsBreed(breed.name);
+              return (
+                <Card key={breed.name} className={`border-primary/30 ${alreadyOwned ? 'opacity-75' : ''}`}>
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-xl">{breed.name}</CardTitle>
-                    <CardDescription>{breed.description}</CardDescription>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle>{breed.name}</CardTitle>
+                        <CardDescription>{breed.description}</CardDescription>
+                      </div>
+                      {alreadyOwned && (
+                        <Badge className="bg-green-600">Owned</Badge>
+                      )}
+                    </div>
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-3 mb-4">
@@ -465,114 +645,270 @@ export function HorseRacingOwnership() {
                       </div>
                     </div>
                     
-                    <div className="text-sm space-y-1 bg-muted/30 p-3 rounded-md">
-                      <div className="flex justify-between">
+                    <div className="space-y-2 mt-4 pt-3 border-t border-primary/10">
+                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Purchase Price:</span>
-                        <span className="font-medium">{formatCurrency(breed.price)}</span>
+                        <span className="font-semibold">{formatCurrency(breed.price)}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Monthly Maintenance:</span>
-                        <span className="font-medium">{formatCurrency(Math.round(breed.price * 0.01))}</span>
+                        <span className="font-semibold">{formatCurrency(Math.round(breed.price * 0.01))}</span>
                       </div>
                     </div>
+                    
+                    {!alreadyOwned && (
+                      <div className="mt-4">
+                        <div className="flex items-center space-x-1 mb-2">
+                          <label htmlFor={`horse-name-${breed.name}`} className="text-sm">
+                            Name your horse (optional):
+                          </label>
+                        </div>
+                        <input 
+                          type="text"
+                          id={`horse-name-${breed.name}`}
+                          className="w-full p-2 text-sm rounded-md border border-primary/30 mb-2 bg-background"
+                          placeholder={`${breed.name} Runner`}
+                          onChange={(e) => setHorseName(e.target.value)}
+                        />
+                      </div>
+                    )}
                   </CardContent>
                   <CardFooter>
                     <Button 
-                      className="w-full" 
-                      onClick={() => {
-                        setSelectedBreed(breed.name);
-                        setHorseName('');
-                        purchaseHorse(breed.name);
-                      }}
-                      disabled={wealth < breed.price}
+                      onClick={() => purchaseHorse(breed.name)}
+                      className="w-full"
+                      disabled={wealth < breed.price || alreadyOwned}
                     >
-                      {wealth < breed.price ? 'Insufficient Funds' : `Purchase (${formatCurrency(breed.price)})`}
+                      {alreadyOwned ? 'Already Owned' : 
+                       wealth < breed.price ? 'Insufficient Funds' : 
+                       'Purchase'}
                     </Button>
                   </CardFooter>
                 </Card>
-              ))}
-            </div>
+              );
+            })}
           </div>
         </TabsContent>
         
         <TabsContent value="races">
-          <div className="space-y-6">
-            <h3 className="text-xl font-semibold">Upcoming Races</h3>
-            <p className="text-muted-foreground mb-6">
-              Register your horses for upcoming races to earn prestige and prize money.
-            </p>
-            
-            <div className="space-y-4">
-              {upcomingRaces.map(race => (
-                <Card key={race.id} className="border-primary/30">
-                  <CardHeader className="pb-2">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <CardTitle className="text-xl">{race.name}</CardTitle>
-                        <CardDescription className="flex items-center">
-                          <Calendar className="h-4 w-4 mr-1" />
-                          {race.date} · {race.distance}
-                        </CardDescription>
-                      </div>
-                      <div className="flex items-center">
-                        {Array(race.prestige).fill(0).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        ))}
-                        {Array(5 - race.prestige).fill(0).map((_, i) => (
-                          <Star key={i} className="h-4 w-4 text-yellow-500/30" />
-                        ))}
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                      <div className="bg-muted/30 p-3 rounded-md space-y-1">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Prize Pool:</span>
-                          <span className="font-medium">{formatCurrency(race.prize)}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Entry Fee:</span>
-                          <span className="font-medium">{formatCurrency(race.entryFee)}</span>
-                        </div>
-                      </div>
-                      
-                      <div className="flex flex-col justify-center">
-                        {horses.length > 0 ? (
-                          <select 
-                            className="w-full p-2 rounded-md border border-input bg-background"
-                            defaultValue=""
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                registerForRace(e.target.value, race.id);
-                              }
-                            }}
-                          >
-                            <option value="" disabled>Select a horse</option>
-                            {horses.map(horse => (
-                              <option 
-                                key={horse.id} 
-                                value={horse.id}
-                                disabled={!!horse.nextRaceDate}
-                              >
-                                {horse.name} {horse.nextRaceDate ? '(Already registered)' : ''}
-                              </option>
-                            ))}
-                          </select>
-                        ) : (
-                          <p className="text-center text-muted-foreground">
-                            Purchase a horse to register for races
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+          {horses.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full border-4 border-primary/30">
+                <Trophy className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-2xl font-semibold mb-2">No Horses in Your Stable</h3>
+              <p className="text-muted-foreground mb-6">
+                You need to purchase a horse before you can enter races.
+              </p>
+              <Button onClick={() => setActiveTab('purchase')}>
+                Purchase Your First Horse
+              </Button>
             </div>
-          </div>
+          ) : (
+            <div className="space-y-8">
+              <div>
+                <h3 className="text-2xl font-semibold mb-2">Upcoming Race Calendar</h3>
+                <p className="text-muted-foreground mb-6">
+                  Register your horses for upcoming races to earn prize money and build their reputation.
+                </p>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {upcomingRaces.map(race => (
+                    <Card key={race.id} className="border-primary/30">
+                      <CardHeader>
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <CardTitle className="text-xl">{race.name}</CardTitle>
+                            <CardDescription className="flex items-center">
+                              <Calendar className="h-4 w-4 mr-1" />
+                              {race.date} • {race.distance}
+                            </CardDescription>
+                          </div>
+                          <div className="flex items-center">
+                            {Array(race.prestige).fill(0).map((_, i) => (
+                              <Star key={i} className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            ))}
+                            {Array(5 - race.prestige).fill(0).map((_, i) => (
+                              <Star key={i} className="h-4 w-4 text-gray-300" />
+                            ))}
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3 text-sm mb-4">
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Prize Pool:</span>
+                            <span className="font-semibold">{formatCurrency(race.prize)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Entry Fee:</span>
+                            <span className="font-semibold">{formatCurrency(race.entryFee)}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Distance:</span>
+                            <span className="font-semibold">{race.distance}</span>
+                          </div>
+                        </div>
+                        
+                        <Separator className="my-4" />
+                        
+                        <div>
+                          <div className="text-sm font-medium mb-3 flex items-center">
+                            <Trophy className="h-4 w-4 mr-2 text-yellow-500" />
+                            Register Your Horses:
+                          </div>
+                          
+                          <div className="space-y-3">
+                            {horses.map(horse => {
+                              const isRegistered = horse.nextRaceDate === race.date;
+                              const isRegisteredForOther = horse.nextRaceDate && horse.nextRaceDate !== race.date;
+                              
+                              return (
+                                <div 
+                                  key={horse.id} 
+                                  className={`flex justify-between items-center py-3 px-4 rounded-md
+                                    ${isRegistered ? 'bg-green-500/10 border border-green-500/30' : 
+                                     isRegisteredForOther ? 'bg-amber-500/10 border border-amber-500/30' : 
+                                     'bg-muted/50'}`}
+                                >
+                                  <div>
+                                    <div className="font-medium">{horse.name}</div>
+                                    <div className="text-xs text-muted-foreground">
+                                      Speed: {horse.speed}% • Stamina: {horse.stamina}%
+                                    </div>
+                                  </div>
+                                  
+                                  {isRegistered ? (
+                                    <Badge className="bg-green-600">
+                                      <CheckCircle2 className="h-3 w-3 mr-1" />
+                                      Registered
+                                    </Badge>
+                                  ) : isRegisteredForOther ? (
+                                    <Badge variant="outline" className="border-amber-500 text-amber-500">
+                                      <Info className="h-3 w-3 mr-1" />
+                                      Racing on {horse.nextRaceDate}
+                                    </Badge>
+                                  ) : (
+                                    <Button 
+                                      size="sm" 
+                                      onClick={() => prepareRaceRegistration(horse.id, race.id)}
+                                      disabled={wealth < race.entryFee}
+                                    >
+                                      Register for {formatCurrency(race.entryFee)}
+                                    </Button>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+              
+              {horses.some(h => h.lastRacePosition !== undefined) && (
+                <div>
+                  <h3 className="text-2xl font-semibold mb-4">Past Results</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {horses.filter(h => h.lastRacePosition !== undefined).map(horse => (
+                      <Card key={horse.id + "_result"} className="border-primary/30">
+                        <CardContent className="pt-6">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <h4 className="text-lg font-semibold">{horse.name}</h4>
+                              <div className="text-sm text-muted-foreground">
+                                {horse.lastRaceDate}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-3xl font-bold">
+                                {horse.lastRacePosition === 1 ? '🥇' : 
+                                 horse.lastRacePosition === 2 ? '🥈' : 
+                                 horse.lastRacePosition === 3 ? '🥉' : 
+                                 `#${horse.lastRacePosition}`}
+                              </div>
+                              <div className="text-sm text-muted-foreground">
+                                {horse.lastRacePosition === 1 ? 'Winner' : 
+                                 horse.lastRacePosition === 2 ? 'Second Place' : 
+                                 horse.lastRacePosition === 3 ? 'Third Place' : 
+                                 'Finished'}
+                              </div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </TabsContent>
       </Tabs>
+      
+      {/* Purchase Success Dialog */}
+      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <CheckCircle2 className="h-5 w-5 text-green-500 mr-2" />
+              Purchase Successful!
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {successMessage}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Continue</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      {/* Race Registration Confirmation Dialog */}
+      <AlertDialog open={showRaceRegistrationDialog} onOpenChange={setShowRaceRegistrationDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center">
+              <Trophy className="h-5 w-5 text-yellow-500 mr-2" />
+              Confirm Race Registration
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {selectedRace && selectedHorseForRace && (
+                <>
+                  <p className="mb-2">
+                    You are about to register{' '}
+                    <span className="font-semibold">
+                      {horses.find(h => h.id === selectedHorseForRace)?.name}
+                    </span>{' '}
+                    for the{' '}
+                    <span className="font-semibold">
+                      {upcomingRaces.find(r => r.id === selectedRace)?.name}
+                    </span>.
+                  </p>
+                  <p className="mb-2">
+                    The entry fee is{' '}
+                    <span className="font-semibold">
+                      {formatCurrency(upcomingRaces.find(r => r.id === selectedRace)?.entryFee || 0)}
+                    </span>
+                    , which will be deducted from your funds.
+                  </p>
+                  <p>Do you want to proceed with the registration?</p>
+                </>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowRaceRegistrationDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={registerForRace}>
+              Confirm Registration
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
