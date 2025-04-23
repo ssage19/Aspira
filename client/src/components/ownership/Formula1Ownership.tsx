@@ -59,6 +59,7 @@ import {
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import { useCharacter } from '../../lib/stores/useCharacter';
+import { useGameTime } from '../../lib/hooks/useGameTime';
 
 interface F1Team {
   id: string;
@@ -749,14 +750,35 @@ const availableDrivers: F1Driver[] = [
 
 // Upcoming races
 const upcomingRaces = [
-  { id: 'r1', name: 'Monaco Grand Prix', date: '6/15/2025', prestige: 5, difficulty: 5, track: 'Monaco', country: 'Monaco' },
-  { id: 'r2', name: 'British Grand Prix', date: '6/29/2025', prestige: 4, difficulty: 3, track: 'Silverstone', country: 'United Kingdom' },
-  { id: 'r3', name: 'Italian Grand Prix', date: '7/13/2025', prestige: 4, difficulty: 2, track: 'Monza', country: 'Italy' },
-  { id: 'r4', name: 'Belgian Grand Prix', date: '7/27/2025', prestige: 3, difficulty: 4, track: 'Spa-Francorchamps', country: 'Belgium' }
+  { id: 'r1', name: 'Bahrain Grand Prix', date: '3/20/2025', prestige: 3, difficulty: 3, track: 'Bahrain International Circuit', country: 'Bahrain' },
+  { id: 'r2', name: 'Saudi Arabian Grand Prix', date: '4/3/2025', prestige: 3, difficulty: 4, track: 'Jeddah Corniche Circuit', country: 'Saudi Arabia' },
+  { id: 'r3', name: 'Australian Grand Prix', date: '4/17/2025', prestige: 4, difficulty: 3, track: 'Albert Park Circuit', country: 'Australia' },
+  { id: 'r4', name: 'Japanese Grand Prix', date: '4/30/2025', prestige: 4, difficulty: 5, track: 'Suzuka Circuit', country: 'Japan' },
+  { id: 'r5', name: 'Chinese Grand Prix', date: '5/14/2025', prestige: 3, difficulty: 3, track: 'Shanghai International Circuit', country: 'China' },
+  { id: 'r6', name: 'Miami Grand Prix', date: '5/28/2025', prestige: 4, difficulty: 3, track: 'Miami International Autodrome', country: 'USA' },
+  { id: 'r7', name: 'Emilia Romagna Grand Prix', date: '6/11/2025', prestige: 3, difficulty: 4, track: 'Autodromo Enzo e Dino Ferrari', country: 'Italy' },
+  { id: 'r8', name: 'Monaco Grand Prix', date: '6/25/2025', prestige: 5, difficulty: 5, track: 'Circuit de Monaco', country: 'Monaco' },
+  { id: 'r9', name: 'Canadian Grand Prix', date: '7/9/2025', prestige: 4, difficulty: 3, track: 'Circuit Gilles Villeneuve', country: 'Canada' },
+  { id: 'r10', name: 'Spanish Grand Prix', date: '7/23/2025', prestige: 3, difficulty: 2, track: 'Circuit de Barcelona-Catalunya', country: 'Spain' },
+  { id: 'r11', name: 'Austrian Grand Prix', date: '8/6/2025', prestige: 3, difficulty: 3, track: 'Red Bull Ring', country: 'Austria' },
+  { id: 'r12', name: 'British Grand Prix', date: '8/20/2025', prestige: 4, difficulty: 3, track: 'Silverstone Circuit', country: 'United Kingdom' },
+  { id: 'r13', name: 'Hungarian Grand Prix', date: '9/3/2025', prestige: 3, difficulty: 4, track: 'Hungaroring', country: 'Hungary' },
+  { id: 'r14', name: 'Belgian Grand Prix', date: '9/17/2025', prestige: 4, difficulty: 4, track: 'Circuit de Spa-Francorchamps', country: 'Belgium' },
+  { id: 'r15', name: 'Dutch Grand Prix', date: '10/1/2025', prestige: 3, difficulty: 3, track: 'Circuit Zandvoort', country: 'Netherlands' },
+  { id: 'r16', name: 'Italian Grand Prix', date: '10/15/2025', prestige: 4, difficulty: 2, track: 'Autodromo Nazionale Monza', country: 'Italy' },
+  { id: 'r17', name: 'Azerbaijan Grand Prix', date: '10/29/2025', prestige: 3, difficulty: 4, track: 'Baku City Circuit', country: 'Azerbaijan' },
+  { id: 'r18', name: 'Singapore Grand Prix', date: '11/12/2025', prestige: 4, difficulty: 5, track: 'Marina Bay Street Circuit', country: 'Singapore' },
+  { id: 'r19', name: 'United States Grand Prix', date: '11/26/2025', prestige: 4, difficulty: 3, track: 'Circuit of the Americas', country: 'USA' },
+  { id: 'r20', name: 'Mexico City Grand Prix', date: '12/10/2025', prestige: 3, difficulty: 4, track: 'Autódromo Hermanos Rodríguez', country: 'Mexico' },
+  { id: 'r21', name: 'Brazilian Grand Prix', date: '12/24/2025', prestige: 4, difficulty: 3, track: 'Autódromo José Carlos Pace', country: 'Brazil' },
+  { id: 'r22', name: 'Las Vegas Grand Prix', date: '1/7/2026', prestige: 4, difficulty: 4, track: 'Las Vegas Strip Circuit', country: 'USA' },
+  { id: 'r23', name: 'Qatar Grand Prix', date: '1/21/2026', prestige: 3, difficulty: 3, track: 'Losail International Circuit', country: 'Qatar' },
+  { id: 'r24', name: 'Abu Dhabi Grand Prix', date: '2/4/2026', prestige: 4, difficulty: 3, track: 'Yas Marina Circuit', country: 'UAE' }
 ];
 
 export function Formula1Ownership() {
   const { wealth, addWealth } = useCharacter();
+  const { gameTime, formattedDate } = useGameTime();
   const [team, setTeam] = useState<F1Team | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -768,6 +790,8 @@ export function Formula1Ownership() {
   const [showDriverDialog, setShowDriverDialog] = useState(false);
   const [selectedDriver, setSelectedDriver] = useState<F1Driver | null>(null);
   const [driverPosition, setDriverPosition] = useState<'primary' | 'secondary' | null>(null);
+  const [nextRace, setNextRace] = useState<{id: string; name: string; date: string} | null>(null);
+  const [daysUntilNextRace, setDaysUntilNextRace] = useState<number | null>(null);
 
   // Staff salary calculations
   const calculateStaffSalaries = (): Record<string, number> => {
@@ -865,7 +889,9 @@ export function Formula1Ownership() {
       },
       budget: option.operatingCost, // Initial budget matches operating cost
       standings: 10, // Start in 10th position
-      points: 0
+      points: 0,
+      performancePoints: 0, // Initial performance points
+      raceSimulations: {} // Track race simulations
     };
     
     // Update player wealth
@@ -971,6 +997,15 @@ export function Formula1Ownership() {
     const race = upcomingRaces.find(r => r.id === raceId);
     if (!race) return;
     
+    // Check if the race simulation limit has been reached (max 3 per race)
+    const simulationsForRace = team.raceSimulations[raceId] || 0;
+    if (simulationsForRace >= 3) {
+      toast.error(`You've reached the maximum number of simulations for this race (3)`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
+    
     // Calculate expected position
     const expectedPosition = calculateExpectedPosition(race);
     
@@ -994,34 +1029,30 @@ export function Formula1Ownership() {
     const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
     const pointsEarned = actualPosition <= 10 ? pointsSystem[actualPosition - 1] : 0;
     
-    // Update race history and points
-    const updatedRaces = [
-      ...team.races,
-      {
-        position: actualPosition,
-        track: race.name,
-        date: race.date
-      }
-    ];
+    // Calculate performance points earned based on position
+    // Better positions earn more performance points
+    const performancePointsEarned = actualPosition <= 3 ? 
+                                   15 - (actualPosition * 3) : // 1st: 12, 2nd: 9, 3rd: 6
+                                   actualPosition <= 10 ? 
+                                     5 : // 4th-10th: 5
+                                     2;  // 11th-20th: 2
     
-    // Prize money based on position
-    const prizeMoney = actualPosition <= 3 ? 
-                        (4 - actualPosition) * 1000000 : // 1st: 3M, 2nd: 2M, 3rd: 1M
-                        actualPosition <= 10 ? 
-                          500000 : // 4th-10th: 500k
-                          100000;  // 11th-20th: 100k
+    // Update race simulations count
+    const updatedRaceSimulations = {
+      ...team.raceSimulations,
+      [raceId]: simulationsForRace + 1
+    };
     
     // Update team data
     setTeam({
       ...team,
-      races: updatedRaces,
-      points: team.points + pointsEarned,
-      budget: team.budget + prizeMoney,
-      // Update standings based on total points (simplified)
-      standings: Math.max(1, Math.min(20, 10 - Math.floor(team.points / 10)))
+      performancePoints: team.performancePoints + performancePointsEarned,
+      raceSimulations: updatedRaceSimulations,
+      // Update performance slightly based on simulation learnings
+      performance: Math.min(100, team.performance + 0.2)
     });
     
-    toast.success(`Race completed! Position: ${actualPosition}, Points: ${pointsEarned}`, {
+    toast.success(`Race simulation completed! Position: ${actualPosition}, Performance points earned: ${performancePointsEarned}`, {
       icon: <Trophy className="h-5 w-5 text-yellow-500" />
     });
   };
@@ -1194,6 +1225,109 @@ export function Formula1Ownership() {
       icon: <CheckCircle2 className="h-5 w-5 text-green-500" />
     });
   };
+
+  // Find the next upcoming race based on current game date
+  useEffect(() => {
+    // Find the next upcoming race
+    const sortedRaces = [...upcomingRaces].sort((a, b) => {
+      const dateA = new Date(a.date);
+      const dateB = new Date(b.date);
+      return dateA.getTime() - dateB.getTime();
+    });
+    
+    const nextUpcomingRace = sortedRaces.find(race => {
+      const raceDate = new Date(race.date);
+      return raceDate > gameTime;
+    });
+    
+    if (nextUpcomingRace) {
+      setNextRace(nextUpcomingRace);
+      
+      // Calculate days until next race
+      const raceDate = new Date(nextUpcomingRace.date);
+      const dayDiff = Math.ceil((raceDate.getTime() - gameTime.getTime()) / (1000 * 3600 * 24));
+      setDaysUntilNextRace(dayDiff);
+    } else {
+      // No upcoming races found (possibly end of season)
+      setNextRace(null);
+      setDaysUntilNextRace(null);
+    }
+  }, [gameTime]);
+  
+  // Process race results when race day arrives
+  useEffect(() => {
+    if (!team) return;
+    
+    // Use current game time for comparison
+    const currentDateString = `${gameTime.getMonth() + 1}/${gameTime.getDate()}/${gameTime.getFullYear()}`;
+    
+    // Check if any races are scheduled for today
+    const todaysRace = upcomingRaces.find(race => race.date === currentDateString);
+    
+    if (todaysRace) {
+      // Check if this race has already been processed (exists in team.races)
+      const alreadyProcessed = team.races.some(race => 
+        race.track === todaysRace.name && race.date === todaysRace.date
+      );
+      
+      if (!alreadyProcessed) {
+        // Run the race automatically
+        // Calculate expected position
+        const expectedPosition = calculateExpectedPosition(todaysRace);
+        
+        // Convert the expected position to a number if it's a string
+        const numericPosition = typeof expectedPosition === 'string' ? 10 : expectedPosition;
+        
+        // Add some randomness (±3 positions)
+        const randomFactor = Math.floor(Math.random() * 7) - 3;
+        let actualPosition = Math.max(1, Math.min(20, numericPosition + randomFactor));
+        
+        // Reliability can cause DNF (Did Not Finish)
+        const reliabilityCheck = Math.random() * 100;
+        const didFinish = reliabilityCheck < team.reliability;
+        
+        if (!didFinish) {
+          actualPosition = 20; // DNF is considered last place
+        }
+        
+        // Calculate points earned
+        // F1 points system: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1
+        const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+        const pointsEarned = actualPosition <= 10 ? pointsSystem[actualPosition - 1] : 0;
+        
+        // Prize money based on position
+        const prizeMoney = actualPosition <= 3 ? 
+                              (4 - actualPosition) * 1000000 : // 1st: 3M, 2nd: 2M, 3rd: 1M
+                          actualPosition <= 10 ? 
+                              500000 : // 4th-10th: 500k
+                              100000;  // 11th-20th: 100k
+        
+        // Update race history and points
+        const updatedRaces = [
+          ...team.races,
+          {
+            position: actualPosition,
+            track: todaysRace.name,
+            date: todaysRace.date
+          }
+        ];
+        
+        // Update team data
+        setTeam({
+          ...team,
+          races: updatedRaces,
+          points: team.points + pointsEarned,
+          budget: team.budget + prizeMoney,
+          // Update standings based on total points (simplified)
+          standings: Math.max(1, Math.min(20, 10 - Math.floor(team.points / 10)))
+        });
+        
+        toast.success(`Race completed! ${todaysRace.name} - Position: ${actualPosition}, Points: ${pointsEarned}`, {
+          icon: <Trophy className="h-5 w-5 text-yellow-500" />
+        });
+      }
+    }
+  }, [gameTime, team, calculateExpectedPosition]);
 
   useEffect(() => {
     // Reset dialog states when tab changes
@@ -1407,11 +1541,35 @@ export function Formula1Ownership() {
               
               <Card className="border-primary/30">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Financial Summary</CardTitle>
-                  <CardDescription>Team budget and cash flow</CardDescription>
+                  <CardTitle className="text-lg">Team Status</CardTitle>
+                  <CardDescription>Budget and upcoming races</CardDescription>
                 </CardHeader>
                 <CardContent className="py-4">
                   <div className="space-y-4">
+                    {nextRace && daysUntilNextRace !== null && (
+                      <div className="bg-primary/10 p-3 rounded-md space-y-1 text-sm mb-4">
+                        <div className="flex items-center justify-between font-medium text-primary mb-1">
+                          <span className="flex items-center">
+                            <Flag className="h-4 w-4 mr-1" />
+                            Next Race
+                          </span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>{nextRace.name}</span>
+                          <span>{nextRace.date}</span>
+                        </div>
+                        <div className="flex justify-between mt-2 items-center">
+                          <span className="flex items-center">
+                            <Timer className="h-4 w-4 mr-1 text-muted-foreground" />
+                            <span className="text-muted-foreground">Countdown:</span>
+                          </span>
+                          <Badge variant="outline" className="bg-primary/5">
+                            {daysUntilNextRace} {daysUntilNextRace === 1 ? 'day' : 'days'}
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Team Budget:</span>
                       <span className="font-bold text-lg">{formatCurrency(team.budget)}</span>
