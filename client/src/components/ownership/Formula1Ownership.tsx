@@ -1252,12 +1252,68 @@ export function Formula1Ownership() {
     return position;
   };
   
+  // Function to check if a race is within 2 months of the current date
+  const isRaceWithinPreparationWindow = (raceDate: string): boolean => {
+    const raceDateObj = new Date(raceDate);
+    const currentDate = new Date(gameTime);
+    
+    // Calculate 2 months in milliseconds (approx 60 days)
+    const twoMonthsInMs = 60 * 24 * 60 * 60 * 1000;
+    
+    // Check if race is within 2 months from now
+    return raceDateObj.getTime() - currentDate.getTime() <= twoMonthsInMs;
+  };
+  
+  // Check if race is eligible for optimization or simulation
+  const isRaceEligible = (raceId: string): { eligible: boolean, reason: string } => {
+    if (!team) return { eligible: false, reason: "No team owned" };
+    
+    const race = seasonRaces.find(r => r.id === raceId);
+    if (!race) return { eligible: false, reason: "Race not found" };
+    
+    // Check if race is in the past (has been completed or missed)
+    if (team.completedRaces.includes(raceId)) {
+      return { 
+        eligible: false, 
+        reason: team.races.some(r => r.track === race.name) 
+          ? "Race already completed" 
+          : "Race was missed"
+      };
+    }
+    
+    // Check if race is too far in the future
+    const raceDate = new Date(race.date);
+    const currentDate = new Date(gameTime);
+    if (raceDate < currentDate) {
+      return { eligible: false, reason: "Race date has passed" };
+    }
+    
+    // Check if race is within preparation window (2 months)
+    if (!isRaceWithinPreparationWindow(race.date)) {
+      return { 
+        eligible: false, 
+        reason: `Race preparation begins ${Math.floor((raceDate.getTime() - currentDate.getTime()) / (24 * 60 * 60 * 1000) - 60)} days from now` 
+      };
+    }
+    
+    return { eligible: true, reason: "" };
+  };
+  
   // Function to simulate race results
   const simulateRace = (raceId: string) => {
     if (!team) return;
     
     const race = seasonRaces.find(r => r.id === raceId);
     if (!race) return;
+    
+    // Check race eligibility
+    const eligibility = isRaceEligible(raceId);
+    if (!eligibility.eligible) {
+      toast.error(`Cannot simulate race: ${eligibility.reason}`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
     
     // Check if the race simulation limit has been reached (max 3 per race)
     const simulationsForRace = team.raceSimulations[raceId] || 0;
@@ -1292,12 +1348,12 @@ export function Formula1Ownership() {
     const pointsEarned = actualPosition <= 10 ? pointsSystem[actualPosition - 1] : 0;
     
     // Calculate performance points earned based on position
-    // Better positions earn more performance points
+    // Better positions earn more performance points (reduced for simulation)
     const performancePointsEarned = actualPosition <= 3 ? 
-                                   15 - (actualPosition * 3) : // 1st: 12, 2nd: 9, 3rd: 6
+                                   Math.ceil((15 - (actualPosition * 3)) / 2) : // 1st: 6, 2nd: 4, 3rd: 3
                                    actualPosition <= 10 ? 
-                                     5 : // 4th-10th: 5
-                                     2;  // 11th-20th: 2
+                                     2 : // 4th-10th: 2
+                                     1;  // 11th-20th: 1
     
     // Update race simulations count
     const updatedRaceSimulations = {
@@ -1325,6 +1381,15 @@ export function Formula1Ownership() {
     
     const race = seasonRaces.find(r => r.id === raceId);
     if (!race) return;
+    
+    // Check race eligibility
+    const eligibility = isRaceEligible(raceId);
+    if (!eligibility.eligible) {
+      toast.error(`Cannot optimize for race: ${eligibility.reason}`, {
+        icon: <AlertCircle className="h-5 w-5 text-red-500" />
+      });
+      return;
+    }
     
     // Set race-specific optimization cost (based on track difficulty and prestige)
     const baseCost = 1000000;
