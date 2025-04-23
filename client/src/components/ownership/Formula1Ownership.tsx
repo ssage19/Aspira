@@ -98,6 +98,10 @@ interface F1Team {
   budget: number;
   standings: number;
   points: number;
+  performancePoints: number;
+  raceSimulations: {
+    [raceId: string]: number; // Tracks number of simulations per race
+  };
 }
 
 interface F1Driver {
