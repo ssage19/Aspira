@@ -75,6 +75,7 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
   const [playerHand, setPlayerHand] = useState<PlayingCard[]>([]);
   const [gamePhase, setGamePhase] = useState<'betting' | 'initial-deal' | 'draw' | 'showdown'>('betting');
   const [betAmount, setBetAmount] = useState(100);
+  const [customBetInput, setCustomBetInput] = useState('100');
   const [handEvaluation, setHandEvaluation] = useState<HandRankInfo | null>(null);
   const [selectedCards, setSelectedCards] = useState<number[]>([]);
   const [dealerMessage, setDealerMessage] = useState("Place your bet to begin");
@@ -119,115 +120,8 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
     return { dealt, remaining };
   };
   
-  // Start a new game
-  const startGame = () => {
-    if (betAmount <= 0) {
-      toast.error("Please enter a valid bet amount");
-      return;
-    }
-    
-    if (betAmount > playerBalance) {
-      toast.error("You don't have enough money for this bet");
-      return;
-    }
-    
-    // Initialize a new deck
-    const newDeck = initializeDeck();
-    
-    // Deal 5 cards to the player
-    const { dealt: playerCards, remaining } = dealCards(5, newDeck);
-    
-    setDeck(remaining);
-    setPlayerHand(playerCards);
-    setSelectedCards([]);
-    setGamePhase('initial-deal');
-    setHandEvaluation(null);
-    
-    // Evaluate initial hand
-    const initialEvaluation = evaluateHand(playerCards);
-    setHandEvaluation(initialEvaluation);
-    
-    // Set dealer message
-    setDealerMessage("Select cards to discard or press 'Draw' to continue");
-  };
-  
-  // Toggle card selection for replacement
-  const toggleCardSelection = (index: number) => {
-    if (gamePhase !== 'initial-deal') return;
-    
-    setSelectedCards(prev => {
-      if (prev.includes(index)) {
-        return prev.filter(i => i !== index);
-      } else {
-        return [...prev, index];
-      }
-    });
-  };
-  
-  // Handle the draw phase (replace selected cards)
-  const handleDraw = () => {
-    if (gamePhase !== 'initial-deal') return;
-    
-    // If no cards selected, proceed to showdown
-    if (selectedCards.length === 0) {
-      setGamePhase('showdown');
-      handleShowdown();
-      return;
-    }
-    
-    // Replace selected cards
-    const newHand = [...playerHand];
-    
-    // Deal new cards
-    const { dealt: replacementCards, remaining } = dealCards(selectedCards.length, deck);
-    
-    // Replace selected cards with new ones
-    selectedCards.forEach((cardIndex, i) => {
-      if (replacementCards[i]) {
-        newHand[cardIndex] = replacementCards[i];
-      }
-    });
-    
-    setDeck(remaining);
-    setPlayerHand(newHand);
-    setSelectedCards([]);
-    setGamePhase('showdown');
-    
-    // Evaluate final hand
-    handleShowdown(newHand);
-  };
-  
-  // Handle the showdown phase
-  const handleShowdown = (hand = playerHand) => {
-    const evaluation = evaluateHand(hand);
-    setHandEvaluation(evaluation);
-    
-    // Determine win/loss
-    setTimeout(() => {
-      if (evaluation.multiplier > 0) {
-        // Calculate the correct payout
-        // For example: on a $100 bet with a pair (1x multiplier), player should get $200 back (original bet + winnings)
-        const totalReturn = betAmount * evaluation.multiplier + betAmount;
-        const netProfit = totalReturn - betAmount;  // This is just the profit portion
-        
-        // Store the total return for display
-        setTotalWinnings(totalReturn);
-        
-        // Send only the profit/winnings to the onWin handler
-        onWin(netProfit);
-        setDealerMessage(`You win with ${evaluation.name}!`);
-        
-      } else {
-        // Player loses
-        setTotalWinnings(0);
-        onLoss(betAmount);
-        setDealerMessage(`You lose with ${evaluation.name}. Try again!`);
-      }
-    }, 500);
-  };
-  
   // Evaluate a poker hand
-  const evaluateHand = (hand: PlayingCard[]): HandRankInfo => {
+  const evaluateHand = useCallback((hand: PlayingCard[]): HandRankInfo => {
     // Sort hand by value
     const sortedHand = [...hand].sort((a, b) => a.value - b.value);
     
@@ -317,7 +211,135 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
     
     // High card
     return HAND_RANKINGS.find(h => h.rank === 'high-card')!;
+  }, []);
+
+  // Handle custom bet input
+  const handleCustomBetInput = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Only allow numbers
+    if (/^\d*$/.test(value)) {
+      setCustomBetInput(value);
+      // Update bet amount if valid
+      const numValue = parseInt(value, 10);
+      if (!isNaN(numValue) && numValue >= 25 && numValue <= playerBalance) {
+        setBetAmount(numValue);
+      }
+    }
+  }, [playerBalance]);
+
+  // Start a new game
+  const startGame = useCallback(() => {
+    // Validate inputs
+    const betValue = parseInt(customBetInput, 10);
+    if (isNaN(betValue) || betValue < 25) {
+      toast.error("Please enter a valid bet amount (minimum $25)");
+      return;
+    }
+    
+    if (betValue > playerBalance) {
+      toast.error("You don't have enough balance for this bet");
+      return;
+    }
+    
+    // Set the bet amount
+    setBetAmount(betValue);
+    
+    // Initialize a new deck
+    const newDeck = initializeDeck();
+    
+    // Deal 5 cards to the player
+    const { dealt: playerCards, remaining } = dealCards(5, newDeck);
+    
+    setDeck(remaining);
+    setPlayerHand(playerCards);
+    setSelectedCards([]);
+    setGamePhase('initial-deal');
+    setHandEvaluation(null);
+    
+    // Evaluate initial hand
+    const initialEvaluation = evaluateHand(playerCards);
+    setHandEvaluation(initialEvaluation);
+    
+    // Set dealer message
+    setDealerMessage("Select cards to discard or press 'Draw' to continue");
+  }, [customBetInput, playerBalance, initializeDeck, dealCards, evaluateHand]);
+  
+  // Toggle card selection for replacement
+  const toggleCardSelection = (index: number) => {
+    if (gamePhase !== 'initial-deal') return;
+    
+    setSelectedCards(prev => {
+      if (prev.includes(index)) {
+        return prev.filter(i => i !== index);
+      } else {
+        return [...prev, index];
+      }
+    });
   };
+  
+  // Handle the draw phase (replace selected cards)
+  const handleDraw = () => {
+    if (gamePhase !== 'initial-deal') return;
+    
+    // If no cards selected, proceed to showdown
+    if (selectedCards.length === 0) {
+      setGamePhase('showdown');
+      handleShowdown();
+      return;
+    }
+    
+    // Replace selected cards
+    const newHand = [...playerHand];
+    
+    // Deal new cards
+    const { dealt: replacementCards, remaining } = dealCards(selectedCards.length, deck);
+    
+    // Replace selected cards with new ones
+    selectedCards.forEach((cardIndex, i) => {
+      if (replacementCards[i]) {
+        newHand[cardIndex] = replacementCards[i];
+      }
+    });
+    
+    setDeck(remaining);
+    setPlayerHand(newHand);
+    setSelectedCards([]);
+    setGamePhase('showdown');
+    
+    // Evaluate final hand
+    handleShowdown(newHand);
+  };
+  
+  // Handle the showdown phase
+  const handleShowdown = (hand = playerHand) => {
+    const evaluation = evaluateHand(hand);
+    setHandEvaluation(evaluation);
+    
+    // Determine win/loss
+    setTimeout(() => {
+      if (evaluation.multiplier > 0) {
+        // Calculate the correct payout
+        // For example: on a $100 bet with a pair (1x multiplier), player should get $200 back (original bet + winnings)
+        const totalReturn = betAmount * evaluation.multiplier + betAmount;
+        const netProfit = totalReturn - betAmount;  // This is just the profit portion
+        
+        // Store the total return for display
+        setTotalWinnings(totalReturn);
+        
+        // Send only the profit/winnings to the onWin handler
+        onWin(netProfit);
+        setDealerMessage(`You win with ${evaluation.name}!`);
+        
+      } else {
+        // Player loses
+        setTotalWinnings(0);
+        onLoss(betAmount);
+        setDealerMessage(`You lose with ${evaluation.name}. Try again!`);
+      }
+    }, 500);
+  };
+  
+
   
   // Reset the game
   const resetGame = () => {
@@ -441,33 +463,80 @@ export default function PokerGame({ onWin, onLoss, playerBalance }: PokerGamePro
                 <p className="text-sm text-yellow-100/70">Balance: {formatCurrency(playerBalance)}</p>
               </div>
               
-              <div className="flex items-center justify-center mb-8 gap-2">
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={() => adjustBetAmount(-100)}
-                  className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
-                >
-                  <ChevronDown className="h-5 w-5 text-amber-500 mr-1" />
-                  $100
-                </Button>
+              <div className="flex flex-col items-center justify-center mb-8 gap-4">
+                {/* Preset bet buttons */}
+                <div className="flex items-center justify-center gap-2">
+                  <Button 
+                    variant="outline"
+                    onClick={() => { 
+                      const value = "100";
+                      setCustomBetInput(value); 
+                      setBetAmount(100);
+                    }}
+                    className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                  >
+                    $100
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    onClick={() => { 
+                      const value = "250";
+                      setCustomBetInput(value);
+                      setBetAmount(250);
+                    }}
+                    className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                  >
+                    $250
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    onClick={() => { 
+                      const value = "500";
+                      setCustomBetInput(value);
+                      setBetAmount(500);
+                    }}
+                    className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                  >
+                    $500
+                  </Button>
+                  
+                  <Button 
+                    variant="outline"
+                    onClick={() => { 
+                      const value = "1000";
+                      setCustomBetInput(value);
+                      setBetAmount(1000);
+                    }}
+                    className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
+                  >
+                    $1,000
+                  </Button>
+                </div>
                 
-                <div className="mx-4 px-8 py-4 bg-gradient-to-b from-black/40 to-black/20 rounded-lg border border-amber-500/20 min-w-[150px] text-center">
-                  <div className="flex items-center justify-center text-2xl font-bold text-amber-100">
-                    <DollarSign className="h-6 w-6 text-amber-500" />
-                    <span>{betAmount}</span>
+                {/* Custom bet input */}
+                <div className="flex items-center justify-center gap-2">
+                  <label className="text-amber-100 text-sm">Custom Bet:</label>
+                  <div className="relative">
+                    <DollarSign className="h-5 w-5 text-amber-500 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                    <input
+                      type="text"
+                      value={customBetInput}
+                      onChange={handleCustomBetInput}
+                      className="w-[150px] pl-10 py-3 bg-black/20 rounded-lg border border-amber-500/30 text-lg 
+                                 font-bold text-amber-100 focus:outline-none focus:border-amber-500"
+                    />
                   </div>
                 </div>
                 
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  onClick={() => adjustBetAmount(100)}
-                  className="bg-black/30 text-white border-amber-500/30 hover:bg-black/40 hover:border-amber-500/50"
-                >
-                  <ChevronUp className="h-5 w-5 text-amber-500 mr-1" />
-                  $100
-                </Button>
+                {/* Display current bet */}
+                <div className="mt-2 text-center">
+                  <div className="text-sm text-amber-100/70">Current Bet:</div>
+                  <div className="text-2xl font-bold text-amber-100">
+                    {formatCurrency(betAmount)}
+                  </div>
+                </div>
               </div>
               
               <Button 
