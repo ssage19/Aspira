@@ -16,6 +16,8 @@ import {
 } from "../ui/tabs";
 import { Progress } from '../ui/progress';
 import { Badge } from '../ui/badge';
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
 import { 
   Trophy, 
   Users, 
@@ -29,7 +31,10 @@ import {
   Activity,
   Heart,
   Zap,
-  LayoutGrid
+  LayoutGrid,
+  Edit,
+  MapPin,
+  X
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { useCharacter } from '../../lib/stores/useCharacter';
@@ -52,10 +57,12 @@ interface Player {
   };
 }
 
+type SportType = 'basketball' | 'football' | 'soccer' | 'baseball' | 'hockey' | 'golf' | 'tennis' | 'rugby' | 'volleyball';
+
 interface SportsTeam {
   id: string;
   name: string;
-  sport: 'basketball' | 'football' | 'soccer' | 'baseball' | 'hockey';
+  sport: SportType;
   league: string;
   city: string;
   purchasePrice: number;
@@ -109,7 +116,7 @@ interface SportsTeam {
 interface TeamOption {
   name: string;
   city: string;
-  sport: 'basketball' | 'football' | 'soccer' | 'baseball' | 'hockey';
+  sport: SportType;
   league: string;
   description: string;
   price: number;
@@ -176,6 +183,159 @@ const teamOptions: TeamOption[] = [
       morale: 80
     },
     operatingCost: 3000000
+  },
+  {
+    name: "Harbor Mariners",
+    city: "Seattle",
+    sport: 'baseball',
+    league: "American Baseball League",
+    description: "A baseball franchise with passionate fans and a beautiful ballpark.",
+    price: 350000000,
+    stadiumName: "Harbor Park",
+    stadiumCapacity: 42000,
+    performance: {
+      offense: 78,
+      defense: 72,
+      teamwork: 75,
+      morale: 82
+    },
+    operatingCost: 4500000
+  },
+  {
+    name: "Frost Blades",
+    city: "Minneapolis",
+    sport: 'hockey',
+    league: "National Hockey Association",
+    description: "A hockey team with a strong defensive style and loyal fanbase.",
+    price: 320000000,
+    stadiumName: "Ice Center",
+    stadiumCapacity: 19000,
+    performance: {
+      offense: 72,
+      defense: 85,
+      teamwork: 78,
+      morale: 75
+    },
+    operatingCost: 4000000
+  },
+  {
+    name: "Summit Climbers",
+    city: "Salt Lake City",
+    sport: 'basketball',
+    league: "Pro Basketball League",
+    description: "A basketball team known for their fast-paced style and high-altitude advantage.",
+    price: 380000000,
+    stadiumName: "Summit Center",
+    stadiumCapacity: 19500,
+    performance: {
+      offense: 82,
+      defense: 68,
+      teamwork: 75,
+      morale: 80
+    },
+    operatingCost: 4800000
+  },
+  {
+    name: "Capital Commanders",
+    city: "Washington D.C.",
+    sport: 'football',
+    league: "National Football Conference",
+    description: "A football team with national recognition and a storied history.",
+    price: 750000000,
+    stadiumName: "Capital Field",
+    stadiumCapacity: 82000,
+    performance: {
+      offense: 75,
+      defense: 80,
+      teamwork: 70,
+      morale: 75
+    },
+    operatingCost: 8500000
+  },
+  {
+    name: "Desert Scorpions",
+    city: "Phoenix",
+    sport: 'soccer',
+    league: "Premier Soccer Association",
+    description: "A soccer team with a growing fanbase in an expanding market.",
+    price: 230000000,
+    stadiumName: "Desert Stadium",
+    stadiumCapacity: 32000,
+    performance: {
+      offense: 75,
+      defense: 68,
+      teamwork: 72,
+      morale: 78
+    },
+    operatingCost: 2800000
+  },
+  {
+    name: "Golden Links",
+    city: "Scottsdale",
+    sport: 'golf',
+    league: "Professional Golf Tour",
+    description: "A prestigious golf club that hosts major tournaments and attracts top talent.",
+    price: 180000000,
+    stadiumName: "Golden Fairways Club",
+    stadiumCapacity: 25000,
+    performance: {
+      offense: 70,
+      defense: 75,
+      teamwork: 65,
+      morale: 85
+    },
+    operatingCost: 2200000
+  },
+  {
+    name: "Bay Racquets",
+    city: "San Francisco",
+    sport: 'tennis',
+    league: "Global Tennis Association",
+    description: "A tennis club with state-of-the-art facilities and a roster of promising players.",
+    price: 150000000,
+    stadiumName: "Bay Tennis Center",
+    stadiumCapacity: 20000,
+    performance: {
+      offense: 76,
+      defense: 72,
+      teamwork: 68,
+      morale: 82
+    },
+    operatingCost: 1800000
+  },
+  {
+    name: "Thunder Scrum",
+    city: "Auckland",
+    sport: 'rugby',
+    league: "International Rugby Championship",
+    description: "A powerful rugby team with a tradition of excellence and physical play.",
+    price: 220000000,
+    stadiumName: "Thunder Stadium",
+    stadiumCapacity: 40000,
+    performance: {
+      offense: 82,
+      defense: 88,
+      teamwork: 85,
+      morale: 80
+    },
+    operatingCost: 2600000
+  },
+  {
+    name: "Beach Spikers",
+    city: "Los Angeles",
+    sport: 'volleyball',
+    league: "Pro Volleyball League",
+    description: "A dynamic volleyball team with young talent and a growing fan following.",
+    price: 120000000,
+    stadiumName: "Beach Arena",
+    stadiumCapacity: 15000,
+    performance: {
+      offense: 78,
+      defense: 70,
+      teamwork: 85,
+      morale: 90
+    },
+    operatingCost: 1500000
   }
 ];
 
@@ -296,14 +456,71 @@ export function SportsTeamOwnership() {
   const { wealth, addWealth } = useCharacter();
   const [team, setTeam] = useState<SportsTeam | null>(null);
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [selectedTeam, setSelectedTeam] = useState<TeamOption | null>(null);
+  const [showCustomizeModal, setShowCustomizeModal] = useState(false);
+  const [customTeamName, setCustomTeamName] = useState('');
+  const [customCity, setCustomCity] = useState('');
+  const [customState, setCustomState] = useState('');
+  const [customStadiumName, setCustomStadiumName] = useState('');
 
-  const purchaseTeam = (option: TeamOption) => {
-    // Check if player can afford the team
+  // Opens the team customization modal
+  const openCustomizeModal = (option: TeamOption) => {
+    // Check if player can afford the team first
     if (wealth < option.price) {
       alert("You don't have enough funds to purchase this team.");
       return;
     }
     
+    // Set initial values
+    setSelectedTeam(option);
+    setCustomTeamName(option.name);
+    setCustomCity(option.city);
+    setCustomState(''); // Default empty, user will fill
+    setCustomStadiumName(option.stadiumName);
+    setShowCustomizeModal(true);
+  };
+
+  // Handles team customization confirmation
+  const confirmCustomization = () => {
+    if (!selectedTeam) return;
+    
+    // Validate inputs
+    if (!customTeamName.trim()) {
+      alert("Please enter a team name.");
+      return;
+    }
+    
+    if (!customCity.trim()) {
+      alert("Please enter a city name.");
+      return;
+    }
+    
+    if (!customStadiumName.trim()) {
+      alert("Please enter a stadium name.");
+      return;
+    }
+    
+    // Format location with or without state
+    const formattedLocation = customState.trim() 
+      ? `${customCity}, ${customState}`
+      : customCity;
+    
+    // Create customized team option
+    const customizedOption = {
+      ...selectedTeam,
+      name: customTeamName,
+      city: formattedLocation,
+      stadiumName: customStadiumName
+    };
+    
+    // Proceed with purchase
+    purchaseTeam(customizedOption);
+    
+    // Close modal
+    setShowCustomizeModal(false);
+  };
+
+  const purchaseTeam = (option: TeamOption) => {
     // Create sample roster with random players
     const roster: Player[] = [];
     
