@@ -142,7 +142,7 @@ const teamOptions: TeamOption[] = [
   {
     name: "Nova Racing",
     description: "A new team with promising technology and ambitious goals. Limited resources but high potential.",
-    price: 50000000,
+    price: 950000,
     operatingCost: 5000000,
     performance: 65,
     engine: 60,

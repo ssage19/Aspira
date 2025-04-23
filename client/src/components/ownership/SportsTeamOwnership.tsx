@@ -292,7 +292,7 @@ const teamOptions: TeamOption[] = [
     sport: 'tennis',
     league: "Global Tennis Association",
     description: "A tennis club with state-of-the-art facilities and a roster of promising players.",
-    price: 55000000,
+    price: 850000,
     stadiumName: "Bay Tennis Center",
     stadiumCapacity: 20000,
     performance: {
@@ -326,7 +326,7 @@ const teamOptions: TeamOption[] = [
     sport: 'volleyball',
     league: "Pro Volleyball League",
     description: "A dynamic volleyball team with young talent and a growing fan following.",
-    price: 50000000,
+    price: 950000,
     stadiumName: "Beach Arena",
     stadiumCapacity: 15000,
     performance: {
