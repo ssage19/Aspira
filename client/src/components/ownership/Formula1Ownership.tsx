@@ -1082,6 +1082,18 @@ export function Formula1Ownership() {
       return;
     }
     
+    // Format current date as MM/DD/YYYY for purchase date
+    const currentDate = new Date();
+    const purchaseDateStr = `${currentDate.getMonth() + 1}/${currentDate.getDate()}/${currentDate.getFullYear()}`;
+    
+    // Identify races that have already passed based on current date
+    const missedRaces = seasonRaces
+      .filter(race => {
+        const raceDate = new Date(race.date);
+        return raceDate < currentDate;
+      })
+      .map(race => race.id);
+      
     // Create new team
     const newTeam: F1Team = {
       id: `team_${Date.now()}`,
@@ -1120,7 +1132,9 @@ export function Formula1Ownership() {
       standings: 10, // Start in 10th position
       points: 0,
       performancePoints: 0, // Initial performance points
-      raceSimulations: {} // Track race simulations
+      raceSimulations: {}, // Track race simulations
+      completedRaces: missedRaces, // Mark races before purchase date as "missed"
+      purchaseDate: purchaseDateStr // Store when the team was purchased
     };
     
     // Update player wealth
@@ -1514,66 +1528,106 @@ export function Formula1Ownership() {
     const todaysRace = seasonRaces.find(race => race.date === currentDateString);
     
     if (todaysRace) {
-      // Check if this race has already been processed (exists in team.races)
-      const alreadyProcessed = team.races.some(race => 
-        race.track === todaysRace.name && race.date === todaysRace.date
-      );
+      // Check if this race has already been processed
+      const alreadyProcessed = team.completedRaces.includes(todaysRace.id);
       
       if (!alreadyProcessed) {
-        // Run the race automatically
-        // Calculate expected position
-        const expectedPosition = calculateExpectedPosition(todaysRace);
+        // Don't process races that happened before team purchase
+        const purchaseDate = new Date(team.purchaseDate);
+        const raceDate = new Date(todaysRace.date);
         
-        // No need to convert, function now returns a number directly
-        const numericPosition = expectedPosition;
-        
-        // Add some randomness (±3 positions)
-        const randomFactor = Math.floor(Math.random() * 7) - 3;
-        let actualPosition = Math.max(1, Math.min(20, numericPosition + randomFactor));
-        
-        // Reliability can cause DNF (Did Not Finish)
-        const reliabilityCheck = Math.random() * 100;
-        const didFinish = reliabilityCheck < team.reliability;
-        
-        if (!didFinish) {
-          actualPosition = 20; // DNF is considered last place
-        }
-        
-        // Calculate points earned
-        // F1 points system: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1
-        const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
-        const pointsEarned = actualPosition <= 10 ? pointsSystem[actualPosition - 1] : 0;
-        
-        // Prize money based on position
-        const prizeMoney = actualPosition <= 3 ? 
+        if (raceDate >= purchaseDate) { // Only process races after team purchase
+          // Run the race automatically
+          // Calculate expected position
+          const expectedPosition = calculateExpectedPosition(todaysRace);
+          
+          // No need to convert, function now returns a number directly
+          const numericPosition = expectedPosition;
+          
+          // Add some randomness (±3 positions)
+          const randomFactor = Math.floor(Math.random() * 7) - 3;
+          let actualPosition = Math.max(1, Math.min(20, numericPosition + randomFactor));
+          
+          // Reliability can cause DNF (Did Not Finish)
+          const reliabilityCheck = Math.random() * 100;
+          const didFinish = reliabilityCheck < team.reliability;
+          
+          if (!didFinish) {
+            actualPosition = 20; // DNF is considered last place
+          }
+          
+          // Calculate points earned
+          // F1 points system: 1st=25, 2nd=18, 3rd=15, 4th=12, 5th=10, 6th=8, 7th=6, 8th=4, 9th=2, 10th=1
+          const pointsSystem = [25, 18, 15, 12, 10, 8, 6, 4, 2, 1];
+          const pointsEarned = actualPosition <= 10 ? pointsSystem[actualPosition - 1] : 0;
+          
+          // Get the specific prize money from race data if available
+          let prizeMoney = 0;
+          if (todaysRace.prizeMoney) {
+            if (actualPosition === 1) {
+              prizeMoney = todaysRace.prizeMoney.first * 1000000;
+            } else if (actualPosition === 2) {
+              prizeMoney = todaysRace.prizeMoney.second * 1000000;
+            } else if (actualPosition === 3) {
+              prizeMoney = todaysRace.prizeMoney.third * 1000000;
+            } else if (actualPosition <= 10) {
+              prizeMoney = todaysRace.prizeMoney.points * 1000000;
+            } else {
+              prizeMoney = 50000; // Minor amount for finishing race
+            }
+          } else {
+            // Fallback if prize money not defined
+            prizeMoney = actualPosition <= 3 ? 
                               (4 - actualPosition) * 1000000 : // 1st: 3M, 2nd: 2M, 3rd: 1M
                           actualPosition <= 10 ? 
                               500000 : // 4th-10th: 500k
                               100000;  // 11th-20th: 100k
-        
-        // Update race history and points
-        const updatedRaces = [
-          ...team.races,
-          {
-            position: actualPosition,
-            track: todaysRace.name,
-            date: todaysRace.date
           }
-        ];
-        
-        // Update team data and save to localStorage
-        updateTeam({
-          ...team,
-          races: updatedRaces,
-          points: team.points + pointsEarned,
-          budget: team.budget + prizeMoney,
-          // Update standings based on total points (simplified)
-          standings: Math.max(1, Math.min(20, 10 - Math.floor(team.points / 10)))
-        });
-        
-        toast.success(`Race completed! ${todaysRace.name} - Position: ${actualPosition}, Points: ${pointsEarned}`, {
-          icon: <Trophy className="h-5 w-5 text-yellow-500" />
-        });
+          
+          // Calculate performance points earned based on position
+          const performancePointsEarned = actualPosition <= 3 ? 
+                                        15 - (actualPosition * 3) : // 1st: 12, 2nd: 9, 3rd: 6
+                                        actualPosition <= 10 ? 
+                                          5 : // 4th-10th: 5
+                                          2;  // 11th-20th: 2
+          
+          // Update race history and points
+          const updatedRaces = [
+            ...team.races,
+            {
+              position: actualPosition,
+              track: todaysRace.name,
+              date: todaysRace.date,
+              prize: prizeMoney
+            }
+          ];
+          
+          // Update completed races array
+          const updatedCompletedRaces = [...team.completedRaces, todaysRace.id];
+          
+          // Update team data and save to localStorage
+          updateTeam({
+            ...team,
+            races: updatedRaces,
+            completedRaces: updatedCompletedRaces,
+            points: team.points + pointsEarned,
+            performancePoints: team.performancePoints + performancePointsEarned,
+            budget: team.budget + prizeMoney,
+            // Update standings based on total points (simplified)
+            standings: Math.max(1, Math.min(20, 10 - Math.floor(team.points / 10)))
+          });
+          
+          toast.success(`Race completed! ${todaysRace.name} - Position: ${actualPosition}, Points: ${pointsEarned}, Prize: ${formatCurrency(prizeMoney)}`, {
+            icon: <Trophy className="h-5 w-5 text-yellow-500" />
+          });
+        } else {
+          // Race was before purchase date, mark as missed but don't process it
+          const updatedCompletedRaces = [...team.completedRaces, todaysRace.id];
+          updateTeam({
+            ...team,
+            completedRaces: updatedCompletedRaces
+          });
+        }
       }
     }
   }, [gameTime, team, calculateExpectedPosition]);
@@ -2736,12 +2790,39 @@ export function Formula1Ownership() {
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {upcomingRaces.map((race) => (
-                      <Card key={race.id} className="border-primary/20">
+                    {seasonRaces.map((race) => (
+                      <Card 
+                        key={race.id} 
+                        className={`${
+                          team.completedRaces.includes(race.id) 
+                            ? "border-green-500/30 bg-green-50/10" 
+                            : (new Date(race.date) < new Date(team.purchaseDate) && !team.races.some(r => r.track === race.name))
+                              ? "border-red-500/30 bg-red-50/10"
+                              : "border-primary/20"
+                        }`}
+                      >
                         <CardHeader className="pb-2">
                           <div className="flex justify-between items-start">
-                            <div>
-                              <CardTitle className="text-lg">{race.name}</CardTitle>
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between">
+                                <CardTitle className="text-lg">{race.name}</CardTitle>
+                                <div className="flex gap-1 ml-2">
+                                  {team.completedRaces.includes(race.id) && team.races.some(r => r.track === race.name) && (
+                                    <Badge className="bg-green-500">Completed</Badge>
+                                  )}
+                                  {team.completedRaces.includes(race.id) && !team.races.some(r => r.track === race.name) && (
+                                    <Badge className="bg-red-500/80">Missed</Badge>
+                                  )}
+                                  {!team.completedRaces.includes(race.id) && new Date(race.date) > gameTime && (
+                                    <Badge className="bg-blue-500/80">Upcoming</Badge>
+                                  )}
+                                  {race.prizeMoney && (
+                                    <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/30">
+                                      Prize: ${race.prizeMoney.first}M
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
                               <CardDescription>
                                 <div className="flex items-center">
                                   <Calendar className="h-4 w-4 mr-1" />
@@ -2916,7 +2997,7 @@ export function Formula1Ownership() {
                 <>
                   <p className="mb-2">
                     You are about to optimize your car setup for the {
-                      upcomingRaces.find(r => r.id === selectedRace)?.name
+                      seasonRaces.find(r => r.id === selectedRace)?.name
                     }.
                   </p>
                   <p className="mb-2">
@@ -2924,7 +3005,7 @@ export function Formula1Ownership() {
                   </p>
                   <p>
                     The setup will be optimized specifically for the {
-                      upcomingRaces.find(r => r.id === selectedRace)?.track
+                      seasonRaces.find(r => r.id === selectedRace)?.track
                     } circuit characteristics.
                   </p>
                 </>
@@ -2951,7 +3032,7 @@ export function Formula1Ownership() {
               Hire Driver
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {selectedDriver && driverPosition && (
+              {selectedDriver && driverPosition && team && (
                 <>
                   <p className="mb-2">
                     You are about to hire {selectedDriver.name} as your {driverPosition} driver.
