@@ -243,7 +243,7 @@ export function Formula1Ownership() {
     };
     
     // Update player wealth
-    updateWealth(-option.price);
+    addWealth(-option.price);
     
     // Set the team
     setTeam(newTeam);
@@ -327,9 +327,12 @@ export function Formula1Ownership() {
     // Calculate expected position
     const expectedPosition = calculateExpectedPosition(race);
     
+    // Convert the expected position to a number if it's a string
+    const numericPosition = typeof expectedPosition === 'string' ? 10 : expectedPosition;
+    
     // Add some randomness (±3 positions)
     const randomFactor = Math.floor(Math.random() * 7) - 3;
-    let actualPosition = Math.max(1, Math.min(20, expectedPosition + randomFactor));
+    let actualPosition = Math.max(1, Math.min(20, numericPosition + randomFactor));
     
     // Reliability can cause DNF (Did Not Finish)
     const reliabilityCheck = Math.random() * 100;
