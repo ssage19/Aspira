@@ -53,7 +53,8 @@ import {
   Timer,
   ArrowRight,
   User,
-  HeartPulse
+  HeartPulse,
+  Star
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
@@ -951,7 +952,7 @@ export function Formula1Ownership() {
   };
 
   // Calculate expected race position based on performance
-  const calculateExpectedPosition = (race: { difficulty: number }) => {
+  const calculateExpectedPosition = (race: { difficulty: number }): number | string => {
     if (!team) return '-';
     
     // Formula = 10 - (performance / 10) + race difficulty adjustment

@@ -37,7 +37,7 @@ import { ScrollToTop } from "./components/ScrollToTop";
 
 import { AppBackground } from "./components/AppBackground";
 import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
-import { MarketPriceUpdater } from "./components/MarketPriceUpdater";
+import { MarketPriceUpdaterWrapper } from "./components/MarketPriceUpdaterWrapper";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
 import TimeResetHack from "./TimeResetHack";
@@ -329,7 +329,7 @@ function App() {
               
               {/* Global systems */}
               <GlobalAutoMaintenance />
-              <MarketPriceUpdater />
+              <MarketPriceUpdaterWrapper />
               <ChallengeTracker />
               <ChallengeNotificationManager />
               <NetworkTracker />

@@ -3,8 +3,10 @@ import {
   isMobileDevice, 
   isLowPerformanceDevice, 
   PerformanceSettings, 
-  savePerformanceSettings 
+  savePerformanceSettings,
+  getRecommendedUpdateInterval
 } from '../lib/utils/deviceUtils';
+import { toast } from 'sonner';
 
 /**
  * Performance Optimizer Component
@@ -15,17 +17,25 @@ export const PerformanceOptimizer: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({
     isMobile: false,
-    isLowPerformance: false
+    isLowPerformance: false,
+    recommendedInterval: 1000 // default 1 second
   });
+  const [useOptimized, setUseOptimized] = useState(false);
 
   useEffect(() => {
     // Check device capabilities
     const isMobile = isMobileDevice();
     const isLowPerformance = isLowPerformanceDevice();
+    const recommendedInterval = getRecommendedUpdateInterval();
+
+    // Load preference from localStorage
+    const savedPreference = localStorage.getItem('useOptimizedMarketUpdater');
+    setUseOptimized(savedPreference === 'true');
 
     setDeviceInfo({
       isMobile,
-      isLowPerformance
+      isLowPerformance,
+      recommendedInterval
     });
 
     // Apply automatic optimizations based on device
@@ -52,6 +62,24 @@ export const PerformanceOptimizer: React.FC = () => {
   const updateSetting = (key: keyof typeof PerformanceSettings, value: boolean | number) => {
     (PerformanceSettings as any)[key] = value;
     savePerformanceSettings();
+    
+    // Show confirmation toast
+    toast.success('Performance setting updated');
+  };
+  
+  // Toggle between standard and optimized updater
+  const toggleOptimizedUpdater = (enabled: boolean) => {
+    setUseOptimized(enabled);
+    localStorage.setItem('useOptimizedMarketUpdater', String(enabled));
+    
+    // Show message that changes will take effect after refresh
+    toast.info('Optimization setting will take effect after page refresh', {
+      duration: 5000,
+      action: {
+        label: 'Refresh Now',
+        onClick: () => window.location.reload()
+      }
+    });
   };
 
   // Only render if settings should be shown
@@ -83,7 +111,7 @@ export const PerformanceOptimizer: React.FC = () => {
       </button>
 
       {showSettings && (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4 mt-2 w-64">
+        <div className="bg-background border border-border rounded-lg shadow-lg p-4 mt-2 w-72">
           <h3 className="font-medium mb-2">Performance Settings</h3>
           
           <div className="mb-4">
@@ -91,10 +119,31 @@ export const PerformanceOptimizer: React.FC = () => {
             <ul className="text-xs space-y-1">
               <li>• Device Type: {deviceInfo.isMobile ? 'Mobile' : 'Desktop'}</li>
               <li>• Performance: {deviceInfo.isLowPerformance ? 'Limited' : 'Standard'}</li>
+              <li>• Recommended Update: {deviceInfo.recommendedInterval}ms</li>
             </ul>
           </div>
           
-          <div className="space-y-2">
+          <div className="space-y-3 py-2 border-y mb-3">
+            <div className="flex items-center justify-between">
+              <label className="text-sm font-medium" htmlFor="use-optimized">
+                Use Optimized Market Updater
+              </label>
+              <input
+                id="use-optimized"
+                type="checkbox"
+                checked={useOptimized}
+                onChange={e => toggleOptimizedUpdater(e.target.checked)}
+                className="h-4 w-4"
+              />
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {useOptimized 
+                ? 'Using mobile-optimized updater with reduced CPU usage'
+                : 'Using standard updater with 1-second updates'}
+            </p>
+          </div>
+          
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-sm" htmlFor="batch-updates">Batch Updates</label>
               <input

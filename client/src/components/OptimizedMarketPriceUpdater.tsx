@@ -1,15 +1,21 @@
 import React, { useCallback, useEffect, useRef } from 'react';
 import { useTime } from '../lib/stores/useTime';
-import { useCharacter } from '../lib/stores/useCharacter';
+import { useCharacter, Asset } from '../lib/stores/useCharacter';
+import { useEconomy } from '../lib/stores/useEconomy';
 import { toast } from 'sonner';
-import { assetTracker } from '../lib/stores/useAssets';
-import { cryptoCurrencies } from '../data/crypto';
-import { expandedStockMarket } from '../data/stocks';
+import useAssetTracker from '../lib/stores/useAssetTracker';
+import { VolatilityLevel, cryptoCurrencies } from '../lib/data/investments';
+import { expandedStockMarket } from '../lib/data/sp500Stocks';
+
+// Import performance utilities
 import {
   getRecommendedUpdateInterval,
   getVisibleAssets,
   PerformanceSettings
 } from '../lib/utils/deviceUtils';
+
+// Create a reference to assetTracker that we'll use throughout the component
+const assetTracker = useAssetTracker.getState();
 
 /**
  * Performance-optimized version of the MarketPriceUpdater
@@ -33,12 +39,13 @@ export const OptimizedMarketPriceUpdater: React.FC = () => {
   const wasMarketOpenRef = useRef<boolean>(false);
   
   // Get the asset info from character state
-  const { assets, updateAssets } = useCharacter();
+  const { assets } = useCharacter();
+  
+  // Get economy data
+  const { marketTrend, stockMarketHealth } = useEconomy();
   
   // Cache current state values to avoid redundant calculations
   const currentDay = useTime().currentDay;
-  const marketTrend = useTime().marketTrend;
-  const stockMarketHealth = useTime().stockMarketHealth;
   
   // Utility functions for market status
   const isWeekday = useCallback(() => {
@@ -119,10 +126,10 @@ export const OptimizedMarketPriceUpdater: React.FC = () => {
                         marketTrend === 'bear' ? 0.998 : 1.000;
     
     // Market health adds another layer
-    const healthFactor = stockMarketHealth === 'excellent' ? 1.001 :
-                        stockMarketHealth === 'good' ? 1.0005 :
-                        stockMarketHealth === 'poor' ? 0.9995 :
-                        stockMarketHealth === 'crisis' ? 0.999 : 1.000;
+    const healthFactor = String(stockMarketHealth) === 'excellent' ? 1.001 :
+                        String(stockMarketHealth) === 'good' ? 1.0005 :
+                        String(stockMarketHealth) === 'poor' ? 0.9995 :
+                        String(stockMarketHealth) === 'crisis' ? 0.999 : 1.000;
     
     return trendFactor * healthFactor;
   }, [marketTrend, stockMarketHealth]);
