@@ -2556,11 +2556,36 @@ export function Formula1Ownership() {
           <TabsContent value="races">
             <div className="space-y-6">
               <Card className="border-primary/30">
-                <CardHeader>
-                  <CardTitle className="text-lg">Upcoming Grand Prix</CardTitle>
-                  <CardDescription>The next races on the Formula 1 calendar</CardDescription>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-lg">Upcoming Grand Prix</CardTitle>
+                      <CardDescription>The next races on the Formula 1 calendar</CardDescription>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-sm text-muted-foreground">Performance Points:</div>
+                      <Badge variant="outline" className="bg-primary/5 ml-2">
+                        {team.performancePoints} pts
+                      </Badge>
+                    </div>
+                  </div>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-4">
+                  <div className="mb-4 bg-muted/20 p-3 rounded-md">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-4 w-4 text-primary mt-0.5" />
+                      <div className="text-sm">
+                        <p className="font-medium mb-1">Race Simulation Information</p>
+                        <ul className="text-muted-foreground list-disc pl-4 space-y-1">
+                          <li>Each race can be simulated up to 3 times before the actual race date.</li>
+                          <li>Simulations earn performance points which help improve your car.</li>
+                          <li>Better finishes earn more performance points (1st: 12pts, 2nd: 9pts, etc.)</li>
+                          <li>Real race results are determined on race day based on your team's performance.</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {upcomingRaces.map((race) => (
                       <Card key={race.id} className="border-primary/20">
@@ -2568,9 +2593,17 @@ export function Formula1Ownership() {
                           <div className="flex justify-between items-start">
                             <div>
                               <CardTitle className="text-lg">{race.name}</CardTitle>
-                              <CardDescription className="flex items-center">
-                                <Calendar className="h-4 w-4 mr-1" />
-                                {race.date} • {race.country}
+                              <CardDescription>
+                                <div className="flex items-center">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  {race.date} • {race.country}
+                                </div>
+                                {(team.raceSimulations[race.id] || 0) > 0 && (
+                                  <div className="flex items-center text-primary mt-1">
+                                    <Gauge className="h-3 w-3 mr-1" />
+                                    Simulations: {team.raceSimulations[race.id] || 0}/3
+                                  </div>
+                                )}
                               </CardDescription>
                             </div>
                             <Badge variant="outline" className="flex">
@@ -2616,11 +2649,23 @@ export function Formula1Ownership() {
                               </Button>
                               
                               <Button
-                                className="flex-1"
+                                className="flex-1 relative"
                                 onClick={() => simulateRace(race.id)}
+                                disabled={(team.raceSimulations[race.id] || 0) >= 3}
                               >
                                 <Flag className="h-4 w-4 mr-2" />
-                                Simulate Race
+                                {(team.raceSimulations[race.id] || 0) >= 3 ? (
+                                  'Simulations Used'
+                                ) : (
+                                  <>
+                                    Simulate Race
+                                    {(team.raceSimulations[race.id] || 0) > 0 && (
+                                      <Badge className="absolute -top-2 -right-2 px-1.5 py-0.5 text-[10px]">
+                                        {3 - (team.raceSimulations[race.id] || 0)}
+                                      </Badge>
+                                    )}
+                                  </>
+                                )}
                               </Button>
                             </div>
                           </div>
