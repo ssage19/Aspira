@@ -1527,9 +1527,9 @@ export function Formula1Ownership() {
   const hireDriver = () => {
     if (!team || !selectedDriver || !driverPosition) return;
     
-    // Check if team can afford it
-    if (team.budget < selectedDriver.salary) {
-      toast.error(`Your team doesn't have the budget to hire this driver.`, {
+    // Check if team can afford the first month's salary
+    if (team.budget < selectedDriver.salary / 12) {
+      toast.error(`Your team doesn't have enough budget for the first month's salary payment.`, {
         icon: <AlertCircle className="h-5 w-5 text-red-500" />
       });
       setShowDriverDialog(false);
