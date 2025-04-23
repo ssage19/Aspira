@@ -6,6 +6,9 @@ import { AppBackground } from '../components/AppBackground';
 import { BusinessManagement } from '../components/BusinessManagement';
 import { ChevronLeft } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
+import { HorseRacingOwnership } from '../components/ownership/HorseRacingOwnership';
+import { Formula1Ownership } from '../components/ownership/Formula1Ownership';
+import { SportsTeamOwnership } from '../components/ownership/SportsTeamOwnership';
 
 export default function OwnerScreen() {
   const navigate = useNavigate();
@@ -46,33 +49,15 @@ export default function OwnerScreen() {
             </TabsContent>
             
             <TabsContent value="racing">
-              <div className="mt-4 p-8 text-center border border-dashed border-primary/30 rounded-lg bg-primary/5">
-                <h3 className="text-xl font-bold mb-2">Horse Racing Coming Soon</h3>
-                <p className="text-muted-foreground mb-4">
-                  Own racing horses, tend to them, and prepare for famous races.
-                </p>
-                <Button disabled variant="outline">Purchase Your First Horse</Button>
-              </div>
+              <HorseRacingOwnership />
             </TabsContent>
             
             <TabsContent value="formula1">
-              <div className="mt-4 p-8 text-center border border-dashed border-primary/30 rounded-lg bg-primary/5">
-                <h3 className="text-xl font-bold mb-2">Formula 1 Team Coming Soon</h3>
-                <p className="text-muted-foreground mb-4">
-                  Invest in a Formula 1 racing team and make strategic choices to enhance success.
-                </p>
-                <Button disabled variant="outline">Acquire Formula 1 Team</Button>
-              </div>
+              <Formula1Ownership />
             </TabsContent>
             
             <TabsContent value="sports">
-              <div className="mt-4 p-8 text-center border border-dashed border-primary/30 rounded-lg bg-primary/5">
-                <h3 className="text-xl font-bold mb-2">Sports Team Coming Soon</h3>
-                <p className="text-muted-foreground mb-4">
-                  Purchase and manage sports teams, investing to improve performance and value.
-                </p>
-                <Button disabled variant="outline">Buy Sports Team</Button>
-              </div>
+              <SportsTeamOwnership />
             </TabsContent>
           </Tabs>
         </div>
