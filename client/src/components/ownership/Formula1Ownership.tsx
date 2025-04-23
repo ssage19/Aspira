@@ -1105,6 +1105,14 @@ export function Formula1Ownership() {
       return;
     }
     
+    // Check if enough performance points for specialized upgrades
+    if (upgrade.requiresPerformancePoints && team.performancePoints < upgrade.requiresPerformancePoints) {
+      toast.error(`This specialized upgrade requires ${upgrade.requiresPerformancePoints} performance points. Your team currently has ${team.performancePoints}.`, {
+        icon: <Trophy className="h-5 w-5 text-orange-500" />
+      });
+      return;
+    }
+    
     // Apply the upgrade and save to localStorage
     updateTeam({
       ...team,
@@ -1115,12 +1123,23 @@ export function Formula1Ownership() {
         [upgrade.area]: (team.upgrades[upgrade.area as keyof typeof team.upgrades] as number) + upgrade.improvement
       },
       // Also increase overall performance
-      performance: Math.min(100, team.performance + (upgrade.improvement * 0.3))
+      performance: Math.min(100, team.performance + (upgrade.improvement * 0.3)),
+      // If it's a specialized upgrade, reduce performance points
+      performancePoints: upgrade.requiresPerformancePoints 
+        ? team.performancePoints - upgrade.requiresPerformancePoints 
+        : team.performancePoints
     });
     
-    toast.success(`Purchased ${upgrade.name} upgrade!`, {
-      icon: <CheckCircle2 className="h-5 w-5 text-green-500" />
-    });
+    // Different message for specialized upgrades
+    if (upgrade.requiresPerformancePoints) {
+      toast.success(`Installed specialized ${upgrade.name} upgrade using ${upgrade.requiresPerformancePoints} performance points!`, {
+        icon: <Sparkles className="h-5 w-5 text-purple-500" />
+      });
+    } else {
+      toast.success(`Purchased ${upgrade.name} upgrade!`, {
+        icon: <CheckCircle2 className="h-5 w-5 text-green-500" />
+      });
+    }
   };
 
   // Calculate expected race position based on performance
