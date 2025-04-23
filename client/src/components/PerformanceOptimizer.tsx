@@ -1,12 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
-  isMobileDevice, 
-  isLowPerformanceDevice, 
   PerformanceSettings, 
-  savePerformanceSettings,
-  getRecommendedUpdateInterval
+  getDeviceType, 
+  isLowPerformanceDevice,
+  applyLowPerformanceMode,
+  applyHighPerformanceMode,
+  resetPerformanceSettings,
+  updatePerformanceSetting,
+  togglePerformanceSetting
 } from '../lib/utils/deviceUtils';
-import { toast } from 'sonner';
 
 /**
  * Performance Optimizer Component
@@ -16,180 +18,282 @@ import { toast } from 'sonner';
 export const PerformanceOptimizer: React.FC = () => {
   const [showSettings, setShowSettings] = useState(false);
   const [deviceInfo, setDeviceInfo] = useState({
-    isMobile: false,
-    isLowPerformance: false,
-    recommendedInterval: 1000 // default 1 second
+    type: 'unknown',
+    needsOptimization: false
   });
-  const [useOptimized, setUseOptimized] = useState(false);
-
+  
+  // Initialize optimization detection on component mount
   useEffect(() => {
-    // Check device capabilities
-    const isMobile = isMobileDevice();
-    const isLowPerformance = isLowPerformanceDevice();
-    const recommendedInterval = getRecommendedUpdateInterval();
-
-    // Load preference from localStorage
-    const savedPreference = localStorage.getItem('useOptimizedMarketUpdater');
-    setUseOptimized(savedPreference === 'true');
-
+    // Detect device type and optimization needs
+    const deviceType = getDeviceType();
+    const needsOptimization = isLowPerformanceDevice();
+    
     setDeviceInfo({
-      isMobile,
-      isLowPerformance,
-      recommendedInterval
+      type: deviceType,
+      needsOptimization
     });
-
-    // Apply automatic optimizations based on device
-    if (isMobile) {
-      console.log('PerformanceOptimizer: Mobile device detected, applying performance optimizations');
-      
-      // For very low performance devices, apply more aggressive optimizations
-      if (isLowPerformance) {
-        console.log('PerformanceOptimizer: Low performance device detected, applying additional optimizations');
-        PerformanceSettings.maxAssetsPerBatch = 10; // Reduce the batch size
-      }
-      
-      // Save settings
-      savePerformanceSettings();
+    
+    // Auto-apply low performance mode for mobile devices
+    if (needsOptimization) {
+      console.log('PerformanceOptimizer: Automatically applying low performance mode for mobile device');
+      applyLowPerformanceMode();
     }
+    
+    // Store device type in localStorage for other components
+    localStorage.setItem('device_type', deviceType);
+    localStorage.setItem('needs_optimization', String(needsOptimization));
   }, []);
-
-  // Toggle settings panel
+  
+  // Toggle settings visibility
   const toggleSettings = () => {
     setShowSettings(prev => !prev);
   };
-
-  // Update a performance setting
-  const updateSetting = (key: keyof typeof PerformanceSettings, value: boolean | number) => {
-    (PerformanceSettings as any)[key] = value;
-    savePerformanceSettings();
-    
-    // Show confirmation toast
-    toast.success('Performance setting updated');
+  
+  // Apply a preset configuration
+  const applyPreset = (preset: 'low' | 'medium' | 'high') => {
+    switch (preset) {
+      case 'low':
+        applyLowPerformanceMode();
+        break;
+      case 'medium':
+        resetPerformanceSettings();
+        break;
+      case 'high':
+        applyHighPerformanceMode();
+        break;
+    }
   };
   
-  // Toggle between standard and optimized updater
-  const toggleOptimizedUpdater = (enabled: boolean) => {
-    setUseOptimized(enabled);
-    localStorage.setItem('useOptimizedMarketUpdater', String(enabled));
-    
-    // Show message that changes will take effect after refresh
-    toast.info('Optimization setting will take effect after page refresh', {
-      duration: 5000,
-      action: {
-        label: 'Refresh Now',
-        onClick: () => window.location.reload()
-      }
-    });
+  // Helper to toggle a boolean setting
+  const handleToggle = (setting: 'prioritizeVisibleAssets' | 'throttleBackgroundAssets' | 'batchUpdates' | 'useProgressiveLoading') => {
+    togglePerformanceSetting(setting);
+    // Force re-render
+    setShowSettings(prev => !prev);
+    setShowSettings(prev => !prev);
   };
-
-  // Only render if settings should be shown
-  if (!PerformanceSettings.showPerformanceSettings) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <button
+  
+  // Helper to update a number setting
+  const handleNumberChange = (setting: 'maxAssetsPerBatch' | 'baseUpdateInterval', value: number) => {
+    updatePerformanceSetting(setting, value);
+    // Force re-render
+    setShowSettings(prev => !prev);
+    setShowSettings(prev => !prev);
+  };
+  
+  // The component is hidden unless the settings UI is activated
+  if (!showSettings) {
+    return (
+      <button 
         onClick={toggleSettings}
-        className="bg-primary text-white rounded-full p-2 shadow-lg"
+        className="fixed bottom-16 right-2 z-50 bg-gray-800 text-white p-2 rounded-full shadow-lg text-xs"
         aria-label="Performance Settings"
       >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="20" 
-          height="20" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round"
-        >
-          <circle cx="12" cy="12" r="3"></circle>
-          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+          <path fillRule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clipRule="evenodd" />
         </svg>
       </button>
-
-      {showSettings && (
-        <div className="bg-background border border-border rounded-lg shadow-lg p-4 mt-2 w-72">
-          <h3 className="font-medium mb-2">Performance Settings</h3>
-          
-          <div className="mb-4">
-            <p className="text-sm text-muted-foreground mb-1">Device Info:</p>
-            <ul className="text-xs space-y-1">
-              <li>• Device Type: {deviceInfo.isMobile ? 'Mobile' : 'Desktop'}</li>
-              <li>• Performance: {deviceInfo.isLowPerformance ? 'Limited' : 'Standard'}</li>
-              <li>• Recommended Update: {deviceInfo.recommendedInterval}ms</li>
-            </ul>
-          </div>
-          
-          <div className="space-y-3 py-2 border-y mb-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm font-medium" htmlFor="use-optimized">
-                Use Optimized Market Updater
-              </label>
-              <input
-                id="use-optimized"
-                type="checkbox"
-                checked={useOptimized}
-                onChange={e => toggleOptimizedUpdater(e.target.checked)}
-                className="h-4 w-4"
-              />
+    );
+  }
+  
+  return (
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-4 max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Performance Settings</h2>
+          <button 
+            onClick={toggleSettings}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        
+        <div className="mb-4 p-3 bg-blue-100 dark:bg-blue-900 rounded-lg">
+          <p className="text-sm text-blue-800 dark:text-blue-200">
+            <strong>Device detected:</strong> {deviceInfo.type.charAt(0).toUpperCase() + deviceInfo.type.slice(1)}
+            {deviceInfo.needsOptimization && (
+              <span className="block mt-1">
+                ⚠️ Performance optimizations are recommended for this device.
+              </span>
+            )}
+          </p>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium text-gray-900 dark:text-white mb-2">Quick Presets</h3>
+            <div className="flex space-x-2">
+              <button 
+                onClick={() => applyPreset('low')}
+                className="px-3 py-1 bg-green-600 text-white rounded text-sm"
+              >
+                Power Saving
+              </button>
+              <button 
+                onClick={() => applyPreset('medium')}
+                className="px-3 py-1 bg-yellow-600 text-white rounded text-sm"
+              >
+                Balanced
+              </button>
+              <button 
+                onClick={() => applyPreset('high')}
+                className="px-3 py-1 bg-red-600 text-white rounded text-sm"
+              >
+                Performance
+              </button>
             </div>
-            <p className="text-xs text-muted-foreground">
-              {useOptimized 
-                ? 'Using mobile-optimized updater with reduced CPU usage'
-                : 'Using standard updater with 1-second updates'}
-            </p>
           </div>
           
           <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <label className="text-sm" htmlFor="batch-updates">Batch Updates</label>
-              <input
-                id="batch-updates"
-                type="checkbox"
-                checked={PerformanceSettings.batchUpdates}
-                onChange={e => updateSetting('batchUpdates', e.target.checked)}
-                className="h-4 w-4"
-              />
-            </div>
+            <h3 className="font-medium text-gray-900 dark:text-white">Detailed Settings</h3>
             
-            <div className="flex items-center justify-between">
-              <label className="text-sm" htmlFor="throttle-bg">Throttle Background</label>
-              <input
-                id="throttle-bg"
-                type="checkbox"
-                checked={PerformanceSettings.throttleBackgroundAssets}
-                onChange={e => updateSetting('throttleBackgroundAssets', e.target.checked)}
-                className="h-4 w-4"
-              />
-            </div>
-            
-            <div>
-              <label className="text-sm block mb-1" htmlFor="batch-size">
-                Max Assets Per Batch: {PerformanceSettings.maxAssetsPerBatch}
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Batch Processing Size
               </label>
-              <input
-                id="batch-size"
-                type="range"
-                min="5"
-                max="50"
-                step="5"
-                value={PerformanceSettings.maxAssetsPerBatch}
-                onChange={e => updateSetting('maxAssetsPerBatch', parseInt(e.target.value, 10))}
-                className="w-full"
-              />
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => handleNumberChange('maxAssetsPerBatch', Math.max(5, PerformanceSettings.maxAssetsPerBatch - 5))}
+                  className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                >
+                  -
+                </button>
+                <span className="text-sm w-8 text-center">{PerformanceSettings.maxAssetsPerBatch}</span>
+                <button 
+                  onClick={() => handleNumberChange('maxAssetsPerBatch', PerformanceSettings.maxAssetsPerBatch + 5)}
+                  className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                >
+                  +
+                </button>
+              </div>
             </div>
-          </div>
-          
-          <div className="mt-4 text-xs text-muted-foreground">
-            Optimizing for performance may reduce animation smoothness but improve battery life and responsiveness.
+            
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Update Interval (ms)
+              </label>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => handleNumberChange('baseUpdateInterval', Math.max(500, PerformanceSettings.baseUpdateInterval - 500))}
+                  className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                >
+                  -
+                </button>
+                <span className="text-sm w-14 text-center">{PerformanceSettings.baseUpdateInterval}</span>
+                <button 
+                  onClick={() => handleNumberChange('baseUpdateInterval', PerformanceSettings.baseUpdateInterval + 500)}
+                  className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Prioritize Visible Assets
+              </label>
+              <div className="relative inline-block w-10 align-middle select-none">
+                <input 
+                  type="checkbox" 
+                  className="sr-only"
+                  checked={PerformanceSettings.prioritizeVisibleAssets}
+                  onChange={() => handleToggle('prioritizeVisibleAssets')}
+                />
+                <div 
+                  className={`block h-6 rounded-full w-10 cursor-pointer ${PerformanceSettings.prioritizeVisibleAssets ? 'bg-green-400' : 'bg-gray-400'}`}
+                  onClick={() => handleToggle('prioritizeVisibleAssets')}
+                >
+                  <div 
+                    className={`absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform ${PerformanceSettings.prioritizeVisibleAssets ? 'transform translate-x-4' : ''}`}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Throttle Background Updates
+              </label>
+              <div className="relative inline-block w-10 align-middle select-none">
+                <input 
+                  type="checkbox" 
+                  className="sr-only"
+                  checked={PerformanceSettings.throttleBackgroundAssets}
+                  onChange={() => handleToggle('throttleBackgroundAssets')}
+                />
+                <div 
+                  className={`block h-6 rounded-full w-10 cursor-pointer ${PerformanceSettings.throttleBackgroundAssets ? 'bg-green-400' : 'bg-gray-400'}`}
+                  onClick={() => handleToggle('throttleBackgroundAssets')}
+                >
+                  <div 
+                    className={`absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform ${PerformanceSettings.throttleBackgroundAssets ? 'transform translate-x-4' : ''}`}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Batch UI Updates
+              </label>
+              <div className="relative inline-block w-10 align-middle select-none">
+                <input 
+                  type="checkbox" 
+                  className="sr-only"
+                  checked={PerformanceSettings.batchUpdates}
+                  onChange={() => handleToggle('batchUpdates')}
+                />
+                <div 
+                  className={`block h-6 rounded-full w-10 cursor-pointer ${PerformanceSettings.batchUpdates ? 'bg-green-400' : 'bg-gray-400'}`}
+                  onClick={() => handleToggle('batchUpdates')}
+                >
+                  <div 
+                    className={`absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform ${PerformanceSettings.batchUpdates ? 'transform translate-x-4' : ''}`}
+                  ></div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center">
+              <label className="text-sm text-gray-700 dark:text-gray-300">
+                Progressive Loading
+              </label>
+              <div className="relative inline-block w-10 align-middle select-none">
+                <input 
+                  type="checkbox" 
+                  className="sr-only"
+                  checked={PerformanceSettings.useProgressiveLoading}
+                  onChange={() => handleToggle('useProgressiveLoading')}
+                />
+                <div 
+                  className={`block h-6 rounded-full w-10 cursor-pointer ${PerformanceSettings.useProgressiveLoading ? 'bg-green-400' : 'bg-gray-400'}`}
+                  onClick={() => handleToggle('useProgressiveLoading')}
+                >
+                  <div 
+                    className={`absolute left-1 top-1 bg-white rounded-full h-4 w-4 transition-transform ${PerformanceSettings.useProgressiveLoading ? 'transform translate-x-4' : ''}`}
+                  ></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      )}
+        
+        <div className="mt-6 flex justify-between">
+          <button 
+            onClick={toggleSettings}
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded"
+          >
+            Close
+          </button>
+          <div className="text-xs text-gray-500 dark:text-gray-400 text-right">
+            <div>Changes apply immediately</div>
+            <div>Settings are preserved across sessions</div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
-
-export default PerformanceOptimizer;

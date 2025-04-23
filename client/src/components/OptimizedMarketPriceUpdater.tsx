@@ -125,11 +125,12 @@ export const OptimizedMarketPriceUpdater: React.FC = () => {
     const trendFactor = marketTrend === 'bull' ? 1.002 : 
                         marketTrend === 'bear' ? 0.998 : 1.000;
     
-    // Market health adds another layer
-    const healthFactor = String(stockMarketHealth) === 'excellent' ? 1.001 :
-                        String(stockMarketHealth) === 'good' ? 1.0005 :
-                        String(stockMarketHealth) === 'poor' ? 0.9995 :
-                        String(stockMarketHealth) === 'crisis' ? 0.999 : 1.000;
+    // Market health adds another layer - convert to string for safety
+    const healthStr = String(stockMarketHealth);
+    const healthFactor = healthStr === 'excellent' ? 1.001 :
+                        healthStr === 'good' ? 1.0005 :
+                        healthStr === 'poor' ? 0.9995 :
+                        healthStr === 'crisis' ? 0.999 : 1.000;
     
     return trendFactor * healthFactor;
   }, [marketTrend, stockMarketHealth]);

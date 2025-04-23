@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { isMobileDevice, isLowPerformanceDevice } from '../lib/utils/deviceUtils';
-import { MarketPriceUpdater } from './MarketPriceUpdater'; 
+import { isLowPerformanceDevice } from '../lib/utils/deviceUtils';
 import { OptimizedMarketPriceUpdater } from './OptimizedMarketPriceUpdater';
+import { MarketPriceUpdater } from './MarketPriceUpdater';
 import { PerformanceOptimizer } from './PerformanceOptimizer';
 
 /**
@@ -9,47 +9,44 @@ import { PerformanceOptimizer } from './PerformanceOptimizer';
  * market price updater based on device capabilities and user preferences
  */
 export const MarketPriceUpdaterWrapper: React.FC = () => {
-  // State to track if we should use the optimized version
-  const [useOptimized, setUseOptimized] = useState(false);
+  const [useOptimized, setUseOptimized] = useState<boolean | null>(null);
   
-  // On initial render, detect if we should use optimized version
+  // Determine whether to use the optimized version
   useEffect(() => {
-    // Check if the device is mobile or low performance
-    const isMobile = isMobileDevice();
-    const isLowPerformance = isLowPerformanceDevice();
+    // Check if device is likely a mobile or low-performance device
+    const shouldUseOptimized = isLowPerformanceDevice();
     
-    // Use optimized version for mobile and low-performance devices
-    const shouldUseOptimized = isMobile || isLowPerformance;
+    // Check user preference from localStorage
+    const userPreference = localStorage.getItem('use_optimized_market_updater');
     
-    // Check if user has a preference saved in localStorage
-    const savedPreference = localStorage.getItem('useOptimizedMarketUpdater');
-    if (savedPreference !== null) {
-      // User preference overrides automatic detection
-      setUseOptimized(savedPreference === 'true');
+    if (userPreference === 'true') {
+      setUseOptimized(true);
+    } else if (userPreference === 'false') {
+      setUseOptimized(false);
     } else {
-      // Otherwise use automatic detection
+      // No explicit preference set, use device detection
       setUseOptimized(shouldUseOptimized);
       
-      // Save the automatic detection result as the default preference
-      localStorage.setItem('useOptimizedMarketUpdater', String(shouldUseOptimized));
+      // Save the auto-detection result
+      localStorage.setItem('use_optimized_market_updater', String(shouldUseOptimized));
     }
-    
-    // Log the decision
-    console.log(
-      `MarketPriceUpdaterWrapper: Using ${shouldUseOptimized ? 'optimized' : 'standard'} market updater. ` +
-      `Device is ${isMobile ? 'mobile' : 'desktop'} with ${isLowPerformance ? 'low' : 'standard'} performance.`
-    );
   }, []);
+  
+  // Wait until we've determined which version to use
+  if (useOptimized === null) {
+    return null;
+  }
   
   return (
     <>
-      {/* Render either the standard or optimized updater */}
-      {useOptimized ? <OptimizedMarketPriceUpdater /> : <MarketPriceUpdater />}
-      
-      {/* Always render the performance optimizer for settings UI */}
-      <PerformanceOptimizer />
+      {useOptimized ? (
+        <>
+          <OptimizedMarketPriceUpdater />
+          <PerformanceOptimizer />
+        </>
+      ) : (
+        <MarketPriceUpdater />
+      )}
     </>
   );
 };
-
-export default MarketPriceUpdaterWrapper;
