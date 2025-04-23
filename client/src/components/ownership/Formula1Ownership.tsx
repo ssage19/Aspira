@@ -946,26 +946,34 @@ export function Formula1Ownership() {
     const pointsRequired = upgrade.requiresPerformancePoints || 0;
     const hasEnoughPoints = team.performancePoints >= pointsRequired;
     const hasEnoughBudget = team.budget >= upgrade.cost;
-    const isDisabled = !hasEnoughBudget || (requiresPoints && !hasEnoughPoints);
+    const isPurchased = team.purchasedUpgrades.includes(upgrade.id);
+    const isDisabled = isPurchased || !hasEnoughBudget || (requiresPoints && !hasEnoughPoints);
     
     let buttonText = 'Purchase Upgrade';
-    if (!hasEnoughBudget) {
+    let cardClass = `border-${colorClass}/30`;
+    
+    if (isPurchased) {
+      buttonText = 'Already Installed';
+      cardClass = 'border-green-500/30 bg-green-900/20';
+    } else if (!hasEnoughBudget) {
       buttonText = 'Insufficient Budget';
     } else if (requiresPoints && !hasEnoughPoints) {
       buttonText = `Need ${pointsRequired} Performance Points`;
     } else if (requiresPoints) {
       buttonText = 'Install Specialized Upgrade';
+      cardClass = 'border-purple-500/30 bg-gradient-to-br from-purple-900/20 to-purple-500/10';
     }
     
     return (
-      <Card key={upgrade.id} className={`border-${colorClass}/30`}>
+      <Card key={upgrade.id} className={cardClass}>
         <CardHeader className="pb-2">
           <div className="flex justify-between">
             <CardTitle className="text-base">
-              {requiresPoints && <Sparkles className="h-3 w-3 mr-1 inline text-purple-500" />}
+              {requiresPoints && !isPurchased && <Sparkles className="h-3 w-3 mr-1 inline text-purple-500" />}
+              {isPurchased && <CheckCircle2 className="h-3 w-3 mr-1 inline text-green-500" />}
               {upgrade.name}
             </CardTitle>
-            <Badge className={`bg-${colorClass}/80`}>+{upgrade.improvement}</Badge>
+            <Badge className={isPurchased ? 'bg-green-500/80' : `bg-${colorClass}/80`}>+{upgrade.improvement}</Badge>
           </div>
           <CardDescription className="text-xs">
             {upgrade.category} | {upgrade.timeToImplement} days to implement
@@ -992,7 +1000,7 @@ export function Formula1Ownership() {
         <CardFooter className="pt-2">
           <Button 
             size="sm" 
-            className={`w-full ${requiresPoints ? 'bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600' : ''}`}
+            className={`w-full ${requiresPoints && !isPurchased ? 'bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600' : ''}`}
             onClick={() => purchaseUpgrade(upgrade.id)}
             disabled={isDisabled}
           >
