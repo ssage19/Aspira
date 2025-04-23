@@ -54,7 +54,8 @@ import {
   ArrowRight,
   User,
   HeartPulse,
-  Star
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
@@ -913,6 +914,70 @@ const loadFromStorage = (): F1Team | null => {
 };
 
 export function Formula1Ownership() {
+  // Helper function to render upgrade cards
+  const renderUpgradeCard = (upgrade: UpgradeOption, colorClass: string) => {
+    if (!team) return null;
+    
+    const requiresPoints = typeof upgrade.requiresPerformancePoints === 'number' && upgrade.requiresPerformancePoints > 0;
+    const pointsRequired = upgrade.requiresPerformancePoints || 0;
+    const hasEnoughPoints = team.performancePoints >= pointsRequired;
+    const hasEnoughBudget = team.budget >= upgrade.cost;
+    const isDisabled = !hasEnoughBudget || (requiresPoints && !hasEnoughPoints);
+    
+    let buttonText = 'Purchase Upgrade';
+    if (!hasEnoughBudget) {
+      buttonText = 'Insufficient Budget';
+    } else if (requiresPoints && !hasEnoughPoints) {
+      buttonText = `Need ${pointsRequired} Performance Points`;
+    } else if (requiresPoints) {
+      buttonText = 'Install Specialized Upgrade';
+    }
+    
+    return (
+      <Card key={upgrade.id} className={`border-${colorClass}/30`}>
+        <CardHeader className="pb-2">
+          <div className="flex justify-between">
+            <CardTitle className="text-base">
+              {isSpecialized && <Sparkles className="h-3 w-3 mr-1 inline text-purple-500" />}
+              {upgrade.name}
+            </CardTitle>
+            <Badge className={`bg-${colorClass}/80`}>+{upgrade.improvement}</Badge>
+          </div>
+          <CardDescription className="text-xs">
+            {upgrade.category} | {upgrade.timeToImplement} days to implement
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="py-2">
+          <p className="text-sm mb-3">{upgrade.description}</p>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Cost:</span>
+            <span className="font-semibold">{formatCurrency(upgrade.cost)}</span>
+          </div>
+          {isSpecialized && (
+            <div className="flex justify-between text-sm mt-1">
+              <span className="text-muted-foreground flex items-center">
+                <Trophy className="h-3 w-3 mr-1 text-orange-500" />
+                Performance Points:
+              </span>
+              <span className="font-semibold text-orange-500">
+                {upgrade.requiresPerformancePoints} points
+              </span>
+            </div>
+          )}
+        </CardContent>
+        <CardFooter className="pt-2">
+          <Button 
+            size="sm" 
+            className={`w-full ${isSpecialized ? 'bg-gradient-to-r from-orange-500 to-purple-500 hover:from-orange-600 hover:to-purple-600' : ''}`}
+            onClick={() => purchaseUpgrade(upgrade.id)}
+            disabled={isDisabled}
+          >
+            {buttonText}
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  };
   const { wealth, addWealth } = useCharacter();
   const { gameTime, formattedDate } = useGameTime();
   const [team, setTeam] = useState<F1Team | null>(loadFromStorage());
