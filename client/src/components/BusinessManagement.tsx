@@ -22,7 +22,8 @@ import {
   BadgePercent,
   Award,
   Gauge,
-  UserCog
+  UserCog,
+  Lightbulb
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
@@ -1369,11 +1370,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <div className="grid grid-cols-2 gap-4 mt-2">
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Start Date</div>
-                            <div>{formatDate(campaign.startDate)}</div>
+                            <div>{formatDate(new Date(campaign.startDate))}</div>
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">End Date</div>
-                            <div>{formatDate(campaign.endDate)}</div>
+                            <div>{formatDate(new Date(campaign.endDate))}</div>
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Cost</div>
@@ -1439,11 +1440,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <div className="grid grid-cols-2 gap-4 mt-2">
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Ran From</div>
-                            <div>{formatDate(campaign.startDate)}</div>
+                            <div>{formatDate(new Date(campaign.startDate))}</div>
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">To</div>
-                            <div>{formatDate(campaign.endDate)}</div>
+                            <div>{formatDate(new Date(campaign.endDate))}</div>
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Total Cost</div>
@@ -1552,7 +1553,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Implementation Date</div>
-                            <div>{formatDate(investment.implementationDate)}</div>
+                            <div>{formatDate(new Date(investment.implementationDate))}</div>
                           </div>
                           <div className="text-sm space-y-1">
                             <div className="text-muted-foreground">Cost</div>

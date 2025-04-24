@@ -687,6 +687,12 @@ interface BusinessState {
   renameBusiness: (businessId: string, newName: string) => boolean;
   sellBusiness: (businessId: string) => number;
   resetBusinesses: () => void;
+  
+  // New marketing and investments actions
+  updateMarketingBudget: (businessId: string, amount: number) => boolean;
+  createMarketingCampaign: (businessId: string, campaignType: string, duration: number, budget: number) => boolean;
+  cancelMarketingCampaign: (businessId: string, campaignId: string) => boolean;
+  createInternalInvestment: (businessId: string, category: string, amount: number) => boolean;
 }
 
 export const useBusiness = create<BusinessState>()(
@@ -1199,6 +1205,279 @@ export const useBusiness = create<BusinessState>()(
       // Reset all businesses (for game reset)
       resetBusinesses: () => {
         set({ businesses: [], selectedBusinessId: null });
+      },
+      
+      // Update marketing budget for a business
+      updateMarketingBudget: (businessId: string, amount: number) => {
+        const business = get().businesses.find(b => b.id === businessId);
+        
+        if (!business) {
+          toast.error("Business not found.");
+          return false;
+        }
+        
+        if (amount < 0) {
+          toast.error("Marketing budget cannot be negative.");
+          return false;
+        }
+        
+        // Calculate monthly cost to ensure business can afford it
+        const monthlyCost = amount;
+        const dailyCost = monthlyCost / 30;
+        const monthlyRevenue = business.revenue * 30;
+        
+        if (monthlyCost > monthlyRevenue * 0.5) {
+          toast.error("Marketing budget cannot exceed 50% of monthly revenue.");
+          return false;
+        }
+        
+        // Update business with new marketing budget
+        const updatedBusinesses = get().businesses.map(b => 
+          b.id === businessId 
+            ? { ...b, marketingBudget: amount } 
+            : b
+        );
+        
+        set({ businesses: updatedBusinesses });
+        toast.success(`Updated marketing budget to ${formatCurrency(amount)}/month.`);
+        return true;
+      },
+      
+      // Create a new marketing campaign
+      createMarketingCampaign: (businessId: string, campaignType: string, duration: number, budget: number) => {
+        const business = get().businesses.find(b => b.id === businessId);
+        
+        if (!business) {
+          toast.error("Business not found.");
+          return false;
+        }
+        
+        // Campaign cost is the monthly budget multiplied by duration in months
+        const durationInMonths = duration / 30;
+        const totalCost = budget * durationInMonths;
+        
+        // Check if business can afford this campaign
+        if (business.cash < totalCost) {
+          toast.error(`Your business needs ${formatCurrency(totalCost)} for this campaign.`);
+          return false;
+        }
+        
+        // Configure campaign effects based on type
+        const campaignEffects = {
+          social_media: {
+            name: "Social Media Campaign",
+            description: "Targeted ads and content on popular social platforms.",
+            revenueMultiplier: 1.05,
+            reputationBoost: 2,
+            customerSatisfactionBoost: 1,
+            customerAcquisition: 5
+          },
+          local_advertising: {
+            name: "Local Advertising",
+            description: "Traditional advertising in local media and venues.",
+            revenueMultiplier: 1.08,
+            reputationBoost: 3,
+            customerSatisfactionBoost: 0,
+            customerAcquisition: 8
+          },
+          premium_branding: {
+            name: "Premium Branding Campaign",
+            description: "High-quality branding to establish premium status.",
+            revenueMultiplier: 1.12,
+            reputationBoost: 5,
+            customerSatisfactionBoost: 2,
+            customerAcquisition: 3
+          },
+          customer_loyalty: {
+            name: "Customer Loyalty Program",
+            description: "Programs to reward and retain existing customers.",
+            revenueMultiplier: 1.04,
+            reputationBoost: 1,
+            customerSatisfactionBoost: 5,
+            customerAcquisition: 2
+          },
+          influencer: {
+            name: "Influencer Partnership",
+            description: "Partner with popular influencers to promote your business.",
+            revenueMultiplier: 1.10,
+            reputationBoost: 4,
+            customerSatisfactionBoost: 2,
+            customerAcquisition: 10
+          }
+        };
+        
+        const campaign = campaignEffects[campaignType as keyof typeof campaignEffects];
+        if (!campaign) {
+          toast.error("Invalid campaign type.");
+          return false;
+        }
+        
+        // Create the marketing campaign
+        const now = Date.now();
+        const newCampaign: MarketingCampaign = {
+          id: generateId(),
+          name: campaign.name,
+          description: campaign.description,
+          cost: budget,
+          duration: duration,
+          startDate: now,
+          endDate: now + (duration * 24 * 60 * 60 * 1000), // Convert days to milliseconds
+          active: true,
+          effect: {
+            customerAcquisition: campaign.customerAcquisition * (budget / 1000), // Scale with budget
+            reputationBoost: campaign.reputationBoost * (budget / 2000), // Scale with budget
+            customerSatisfactionBoost: campaign.customerSatisfactionBoost * (budget / 3000), // Scale with budget
+            revenueMultiplier: 1 + ((campaign.revenueMultiplier - 1) * (budget / 2000)) // Scale with budget
+          }
+        };
+        
+        // Update business with new campaign and deduct the cost
+        const updatedBusinesses = get().businesses.map(b => 
+          b.id === businessId 
+            ? { 
+                ...b, 
+                marketingCampaigns: [...b.marketingCampaigns, newCampaign],
+                cash: b.cash - totalCost
+              } 
+            : b
+        );
+        
+        set({ businesses: updatedBusinesses });
+        toast.success(`Launched ${campaign.name} for ${formatCurrency(totalCost)}.`);
+        return true;
+      },
+      
+      // Cancel an active marketing campaign
+      cancelMarketingCampaign: (businessId: string, campaignId: string) => {
+        const business = get().businesses.find(b => b.id === businessId);
+        
+        if (!business) {
+          toast.error("Business not found.");
+          return false;
+        }
+        
+        const campaign = business.marketingCampaigns.find(c => c.id === campaignId);
+        
+        if (!campaign) {
+          toast.error("Campaign not found.");
+          return false;
+        }
+        
+        if (!campaign.active) {
+          toast.error("Campaign is already inactive.");
+          return false;
+        }
+        
+        // Update the business with the campaign marked as inactive
+        const updatedBusinesses = get().businesses.map(b => 
+          b.id === businessId 
+            ? { 
+                ...b, 
+                marketingCampaigns: b.marketingCampaigns.map(c => 
+                  c.id === campaignId ? { ...c, active: false } : c
+                )
+              } 
+            : b
+        );
+        
+        set({ businesses: updatedBusinesses });
+        toast.success(`Cancelled ${campaign.name}.`);
+        return true;
+      },
+      
+      // Create a new internal investment
+      createInternalInvestment: (businessId: string, category: string, amount: number) => {
+        const business = get().businesses.find(b => b.id === businessId);
+        
+        if (!business) {
+          toast.error("Business not found.");
+          return false;
+        }
+        
+        // Check if business can afford this investment
+        if (business.cash < amount) {
+          toast.error(`Your business needs ${formatCurrency(amount)} for this investment.`);
+          return false;
+        }
+        
+        // Configure investment effects based on category
+        const investmentEffects = {
+          training: {
+            name: "Employee Training Program",
+            description: "Comprehensive training to improve employee skills and productivity.",
+            employeeProductivity: 0.08,
+            customerSatisfaction: 2,
+            qualityBoost: 2
+          },
+          research: {
+            name: "Research & Development",
+            description: "Investment in R&D to improve products or services.",
+            qualityBoost: 5,
+            reputationBoost: 3
+          },
+          equipment: {
+            name: "Equipment Upgrade",
+            description: "New or upgraded equipment to improve operations.",
+            qualityBoost: 3,
+            expenseReduction: 0.05,
+            employeeProductivity: 0.05
+          },
+          facilities: {
+            name: "Facility Improvements",
+            description: "Upgrades to business premises and customer-facing areas.",
+            customerSatisfaction: 4,
+            reputationBoost: 2,
+            qualityBoost: 1
+          },
+          operations: {
+            name: "Operations Optimization",
+            description: "Streamlining operations to reduce costs and improve efficiency.",
+            expenseReduction: 0.08,
+            employeeProductivity: 0.04
+          }
+        };
+        
+        const investment = investmentEffects[category as keyof typeof investmentEffects];
+        if (!investment) {
+          toast.error("Invalid investment category.");
+          return false;
+        }
+        
+        // Scale effects based on the amount invested
+        const effectMultiplier = amount / 5000; // Base scaling factor
+        
+        // Create the internal investment
+        const newInvestment: InternalInvestment = {
+          id: generateId(),
+          name: investment.name,
+          description: investment.description,
+          category: category as 'training' | 'research' | 'equipment' | 'facilities' | 'operations',
+          cost: amount,
+          implementationDate: Date.now(),
+          active: true,
+          effect: {
+            qualityBoost: investment.qualityBoost ? investment.qualityBoost * effectMultiplier : undefined,
+            employeeProductivity: investment.employeeProductivity ? investment.employeeProductivity * effectMultiplier : undefined,
+            customerSatisfaction: investment.customerSatisfaction ? investment.customerSatisfaction * effectMultiplier : undefined,
+            expenseReduction: investment.expenseReduction ? investment.expenseReduction * effectMultiplier : undefined,
+            reputationBoost: investment.reputationBoost ? investment.reputationBoost * effectMultiplier : undefined
+          }
+        };
+        
+        // Update business with new investment and deduct the cost
+        const updatedBusinesses = get().businesses.map(b => 
+          b.id === businessId 
+            ? { 
+                ...b, 
+                internalInvestments: [...b.internalInvestments, newInvestment],
+                cash: b.cash - amount
+              } 
+            : b
+        );
+        
+        set({ businesses: updatedBusinesses });
+        toast.success(`Implemented ${investment.name} for ${formatCurrency(amount)}.`);
+        return true;
       }
     }),
     {
