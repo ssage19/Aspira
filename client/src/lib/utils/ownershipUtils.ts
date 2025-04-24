@@ -41,6 +41,16 @@ interface SportsTeam {
   players: any[]; // Simplified for now
 }
 
+// Simplified Business type for ownership breakdown
+interface Business {
+  id: string;
+  name: string;
+  type: string;
+  currentValue: number;
+  cash: number;
+  revenue: number;
+}
+
 // Storage keys for ownership assets
 export const STORAGE_KEYS = {
   F1_TEAM: 'business-empire-formula1-team',
@@ -52,6 +62,10 @@ export const STORAGE_KEYS = {
 export const F1_TEAM_STORAGE_KEY = STORAGE_KEYS.F1_TEAM;
 export const HORSE_RACING_STORAGE_KEY = STORAGE_KEYS.HORSES;
 export const SPORTS_TEAM_STORAGE_KEY = STORAGE_KEYS.SPORTS_TEAM;
+
+// Business data is stored via zustand persist with a different naming pattern
+// We access it directly from localStorage
+export const BUSINESS_STORAGE_KEY = 'business-empire-businesses';
 
 /**
  * Get Formula 1 team data from localStorage
@@ -102,10 +116,41 @@ export function getSportsTeam(): SportsTeam | null {
 }
 
 /**
+ * Get business data from localStorage (stored by Zustand persist)
+ * 
+ * Business data is structured differently as it's stored as part
+ * of a Zustand state object that includes other properties.
+ */
+export function getBusinesses(): Business[] {
+  try {
+    const storedData = localStorage.getItem(BUSINESS_STORAGE_KEY);
+    if (!storedData) return [];
+    
+    // Parse the full store state (not just the businesses array)
+    const storeState = JSON.parse(storedData);
+    
+    // Access the businesses array from the state object
+    const businesses = storeState.state?.businesses || [];
+    
+    return Array.isArray(businesses) ? businesses : [];
+  } catch (error) {
+    console.error("Error retrieving business data:", error);
+    return [];
+  }
+}
+
+/**
  * Calculate total value of all horses
  */
 function calculateTotalHorseValue(horses: Horse[]): number {
   return horses.reduce((total, horse) => total + horse.value, 0);
+}
+
+/**
+ * Calculate total value of all businesses
+ */
+function calculateTotalBusinessValue(businesses: Business[]): number {
+  return businesses.reduce((total, business) => total + business.currentValue, 0);
 }
 
 /**
@@ -116,14 +161,16 @@ export function getOwnershipBreakdown() {
   const f1Team = getFormula1Team();
   const horses = getHorseRacingData();
   const sportsTeam = getSportsTeam();
+  const businesses = getBusinesses();
   
   // Calculate values for each asset type
   const f1Value = f1Team?.value || 0;
   const horsesValue = calculateTotalHorseValue(horses);
   const sportsTeamValue = sportsTeam?.value || 0;
+  const businessValue = calculateTotalBusinessValue(businesses);
   
   // Calculate total ownership value
-  const totalValue = f1Value + horsesValue + sportsTeamValue;
+  const totalValue = f1Value + horsesValue + sportsTeamValue + businessValue;
   
   return {
     f1Team: {
@@ -139,6 +186,11 @@ export function getOwnershipBreakdown() {
       name: sportsTeam?.name || '',
       value: sportsTeamValue,
       owned: !!sportsTeam
+    },
+    businesses: {
+      count: businesses.length,
+      value: businessValue,
+      names: businesses.map(b => b.name)
     },
     total: totalValue
   };

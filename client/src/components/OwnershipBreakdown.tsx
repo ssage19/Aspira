@@ -73,6 +73,7 @@ export function OwnershipBreakdown() {
           <p>You don't own any business or team assets yet.</p>
           <p className="mt-2">Explore ownership opportunities in:</p>
           <ul className="list-disc ml-5 mt-1">
+            <li>Businesses</li>
             <li>Formula 1 Racing Teams</li>
             <li>Horse Racing</li>
             <li>Professional Sports Teams</li>
@@ -151,6 +152,22 @@ export function OwnershipBreakdown() {
                 <td className="text-right text-sm">{formatCurrency(ownershipData.sportsTeam.value)}</td>
                 <td className="text-right text-sm w-16 font-medium">
                   {formatPercentage(ownershipData.sportsTeam.value / (totalValue || 1))}
+                </td>
+              </tr>
+            )}
+            
+            {/* Businesses */}
+            {ownershipData.businesses && ownershipData.businesses.count > 0 && (
+              <tr className="border-b border-border/50">
+                <td className="py-2">
+                  <div className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2"></div>
+                    <span className="text-sm font-medium">Businesses ({ownershipData.businesses.count})</span>
+                  </div>
+                </td>
+                <td className="text-right text-sm">{formatCurrency(ownershipData.businesses.value)}</td>
+                <td className="text-right text-sm w-16 font-medium">
+                  {formatPercentage(ownershipData.businesses.value / (totalValue || 1))}
                 </td>
               </tr>
             )}
