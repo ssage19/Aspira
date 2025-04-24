@@ -570,7 +570,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   const [isHireDialogOpen, setIsHireDialogOpen] = useState(false);
   
   // Marketing campaign states
-  const [marketingBudget, setMarketingBudget] = useState(business.marketingBudget.toString());
+  const [marketingBudget, setMarketingBudget] = useState((business.marketingBudget || 0).toString());
   const [campaignType, setCampaignType] = useState('');
   const [campaignDuration, setCampaignDuration] = useState('');
   const [campaignBudget, setCampaignBudget] = useState('');
@@ -613,7 +613,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   
   // Update marketing budget input when business data changes
   useEffect(() => {
-    setMarketingBudget(business.marketingBudget.toString());
+    setMarketingBudget((business.marketingBudget || 0).toString());
   }, [business.marketingBudget]);
   
   // Handle investment
@@ -1451,7 +1451,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
             <div className="bg-muted/30 p-4 rounded-md border border-primary/20">
               <div className="flex justify-between items-center mb-4">
                 <h3 className="font-medium">Marketing Budget</h3>
-                <span className="text-sm">{formatCurrency(business.marketingBudget)}/month</span>
+                <span className="text-sm">{formatCurrency(business.marketingBudget || 0)}/month</span>
               </div>
               
               <div className="flex items-center space-x-4">
@@ -1471,7 +1471,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                 </Button>
               </div>
               
-              {business.marketingBudget > 0 && (
+              {business.marketingBudget > 0 && business.revenue > 0 && (
                 <p className="text-sm text-muted-foreground mt-2">
                   Your marketing budget is {formatPercentage(business.marketingBudget / business.revenue)} of your daily revenue.
                 </p>
@@ -1481,7 +1481,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
             <div>
               <h3 className="font-medium mb-4">Active Campaigns</h3>
               
-              {business.marketingCampaigns && business.marketingCampaigns.length > 0 ? (
+              {business.marketingCampaigns && Array.isArray(business.marketingCampaigns) && business.marketingCampaigns.length > 0 ? (
                 <div className="space-y-4">
                   {business.marketingCampaigns.filter(campaign => campaign.active).map(campaign => (
                     <Card key={campaign.id} className="border-primary/30">
@@ -1550,7 +1550,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
               )}
             </div>
             
-            {business.marketingCampaigns && business.marketingCampaigns.some(c => !c.active) && (
+            {business.marketingCampaigns && Array.isArray(business.marketingCampaigns) && business.marketingCampaigns.some(c => !c.active) && (
               <div>
                 <h3 className="font-medium mb-4">Past Campaigns</h3>
                 <div className="space-y-4">
