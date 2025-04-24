@@ -5,9 +5,10 @@ import { RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { Banknote, BarChart3, Home, ShoppingBag } from 'lucide-react';
+import { Banknote, BarChart3, Home, ShoppingBag, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssetRefresh } from './AssetRefreshProvider';
+import { getOwnershipBreakdown, getTotalOwnershipValue } from '../lib/utils/ownershipUtils';
 
 // Types for grouped assets
 interface AssetItem {
@@ -103,12 +104,59 @@ export function SimplePortfolioBreakdown() {
       ]
     };
     
+    // Get ownership assets breakdown
+    const ownershipBreakdown = getOwnershipBreakdown();
+    const totalOwnershipValue = ownershipBreakdown.total;
+    
+    // Create ownership assets category
+    const ownershipAssets: AssetCategory = {
+      title: "Ownership",
+      icon: <Trophy size={16} />,
+      color: "bg-amber-600",
+      totalValue: totalOwnershipValue,
+      items: []
+    };
+    
+    // Add F1 team if owned
+    if (ownershipBreakdown.f1Team.owned) {
+      ownershipAssets.items.push({
+        label: `F1: ${ownershipBreakdown.f1Team.name}`,
+        value: ownershipBreakdown.f1Team.value,
+        color: 'bg-red-500'
+      });
+    }
+    
+    // Add horses if owned
+    if (ownershipBreakdown.horses.count > 0) {
+      ownershipAssets.items.push({
+        label: `Horses (${ownershipBreakdown.horses.count})`,
+        value: ownershipBreakdown.horses.value,
+        color: 'bg-yellow-600'
+      });
+    }
+    
+    // Add sports team if owned
+    if (ownershipBreakdown.sportsTeam.owned) {
+      ownershipAssets.items.push({
+        label: `Team: ${ownershipBreakdown.sportsTeam.name}`,
+        value: ownershipBreakdown.sportsTeam.value,
+        color: 'bg-blue-600'
+      });
+    }
+    
     // Combine all categories
     const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets];
+    
+    // Only add ownership category if there are ownership assets
+    if (totalOwnershipValue > 0) {
+      categories.push(ownershipAssets);
+    }
+    
     setAssetCategories(categories);
     
-    // Also update the display total
-    setDisplayTotal(totalNetWorth);
+    // Also update the display total with ownership value included
+    const newTotalWithOwnership = totalNetWorth + totalOwnershipValue;
+    setDisplayTotal(newTotalWithOwnership);
     
   }, [totalCash, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, 
       totalPropertyEquity, totalLifestyleValue, totalNetWorth]);
@@ -218,8 +266,12 @@ export function SimplePortfolioBreakdown() {
       // Get the latest values
       const assetTracker = useAssetTracker.getState();
       
-      // Force a UI update with the very latest values
-      setDisplayTotal(assetTracker.totalNetWorth);
+      // Get the latest ownership values
+      const ownershipValue = getTotalOwnershipValue();
+      
+      // Force a UI update with the very latest values (including ownership)
+      const totalWithOwnership = assetTracker.totalNetWorth + ownershipValue;
+      setDisplayTotal(totalWithOwnership);
       
       // Update our local categories with latest data
       updateAssetCategories();
@@ -227,11 +279,13 @@ export function SimplePortfolioBreakdown() {
       console.log("✅ PORTFOLIO REFRESH COMPLETE - LATEST VALUES:", {
         stocks: assetTracker.totalStocks,
         netWorth: assetTracker.totalNetWorth,
+        ownershipValue,
+        totalWithOwnership,
         cash: assetTracker.totalCash
       });
       
       // Show visual feedback
-      toast.success(`Portfolio refreshed: ${formatCurrency(assetTracker.totalNetWorth)}`, {
+      toast.success(`Portfolio refreshed: ${formatCurrency(totalWithOwnership)}`, {
         duration: 2000,
         position: "bottom-center"
       });
@@ -248,7 +302,9 @@ export function SimplePortfolioBreakdown() {
   
   // Calculate the actual total to use for percentage calculations
   // (with a fallback to 1 to avoid division by zero)
-  const calculatedTotal = totalNetWorth || 1;
+  // Add ownership values to the total for accurate percentages
+  const ownershipValue = getTotalOwnershipValue();
+  const calculatedTotal = (totalNetWorth + ownershipValue) || 1;
   
   return (
     <Card className="w-full shadow-sm">
