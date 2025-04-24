@@ -1,82 +1,89 @@
 /**
- * Ownership Assets Utilities
+ * Ownership Assets Utility Functions
  * 
- * A centralized module for handling ownership asset valuation and management
- * including Formula 1 teams, horse racing, and sports teams.
+ * This file contains utility functions for retrieving and processing all types of ownership assets:
+ * - Formula 1 Teams
+ * - Horse Racing 
+ * - Sports Teams
+ * - Businesses
  */
 
-// Define types for ownership assets
+import { useBusiness } from "../stores/useBusiness";
+
+// Storage keys for different ownership asset types
+export const FORMULA1_STORAGE_KEY = "business-empire-formula1-team";
+export const HORSE_RACING_STORAGE_KEY = "horse-racing-ownership";
+export const SPORTS_TEAM_STORAGE_KEY = "sports-team-ownership";
+
+// Interface for Formula 1 Team data
 interface Formula1Team {
   name: string;
   value: number;
+  purchasePrice: number;
+  purchaseDate: string;
+  performanceLevel: number;
+  marketingLevel: number;
+  teamMoraleLevel: number;
   owned: boolean;
-  performance: number;
-  staff: {
-    engineering: number;
-    pitCrew: number;
-    management: number;
-  };
-  drivers: any[]; // Simplified for now
 }
 
-interface Horse {
+// Interface for Horse Racing data
+interface RacingHorse {
   id: string;
   name: string;
-  value: number;
-  performance: number;
-  potential: number;
   age: number;
-  wins: number;
-  races: number;
+  breed: string;
+  value: number;
+  purchasePrice: number;
+  purchaseDate: string;
+  trainingLevel: number;
+  energyLevel: number;
+  potential: number;
+  raceHistory: {
+    date: string;
+    position: number;
+    eventName: string;
+    earnings: number;
+  }[];
 }
 
+// Interface for Sports Team data
 interface SportsTeam {
   name: string;
-  value: number;
-  owned: boolean;
   sport: string;
-  performance: number;
-  fanBase: number;
-  marketSize: string;
-  players: any[]; // Simplified for now
+  value: number;
+  purchasePrice: number;
+  purchaseDate: string;
+  playerQualityLevel: number;
+  facilityLevel: number;
+  marketingLevel: number;
+  owned: boolean;
 }
 
-// Simplified Business type for ownership breakdown
+// Interface for Business data
 interface Business {
   id: string;
   name: string;
   type: string;
+  initialValue: number;
   currentValue: number;
-  cash: number;
+  purchaseDate: string;
+  level: number;
   revenue: number;
+  expenses: number;
+  profitMargin: number;
+  employees: number;
+  customerSatisfaction: number;
 }
 
-// Storage keys for ownership assets
-export const STORAGE_KEYS = {
-  F1_TEAM: 'business-empire-formula1-team',
-  HORSES: 'business-empire-horse-racing',
-  SPORTS_TEAM: 'business-empire-sports-team'
-};
-
-// Export individual storage keys for compatibility with existing code
-export const F1_TEAM_STORAGE_KEY = STORAGE_KEYS.F1_TEAM;
-export const HORSE_RACING_STORAGE_KEY = STORAGE_KEYS.HORSES;
-export const SPORTS_TEAM_STORAGE_KEY = STORAGE_KEYS.SPORTS_TEAM;
-
-// Business data is stored via zustand persist with a different naming pattern
-// We access it directly from localStorage
-export const BUSINESS_STORAGE_KEY = 'business-empire-businesses';
-
 /**
- * Get Formula 1 team data from localStorage
+ * Get Formula 1 team ownership data
  */
 export function getFormula1Team(): Formula1Team | null {
   try {
-    const storedData = localStorage.getItem(STORAGE_KEYS.F1_TEAM);
-    if (!storedData) return null;
-    
-    const data = JSON.parse(storedData);
-    return data;
+    const teamData = localStorage.getItem(FORMULA1_STORAGE_KEY);
+    if (!teamData) return null;
+    return JSON.parse(teamData) as Formula1Team;
   } catch (error) {
     console.error("Error retrieving Formula 1 team data:", error);
     return null;
@@ -84,15 +91,13 @@ export function getFormula1Team(): Formula1Team | null {
 }
 
 /**
- * Get horse racing data from localStorage
+ * Get horse racing ownership data
  */
-export function getHorseRacingData(): Horse[] {
+export function getHorseRacingData(): RacingHorse[] {
   try {
-    const storedData = localStorage.getItem(STORAGE_KEYS.HORSES);
-    if (!storedData) return [];
-    
-    const data = JSON.parse(storedData);
-    return Array.isArray(data) ? data : [];
+    const horsesData = localStorage.getItem(HORSE_RACING_STORAGE_KEY);
+    if (!horsesData) return [];
+    return JSON.parse(horsesData) as RacingHorse[];
   } catch (error) {
     console.error("Error retrieving horse racing data:", error);
     return [];
@@ -100,15 +105,13 @@ export function getHorseRacingData(): Horse[] {
 }
 
 /**
- * Get sports team data from localStorage
+ * Get sports team ownership data
  */
 export function getSportsTeam(): SportsTeam | null {
   try {
-    const storedData = localStorage.getItem(STORAGE_KEYS.SPORTS_TEAM);
-    if (!storedData) return null;
-    
-    const data = JSON.parse(storedData);
-    return data;
+    const teamData = localStorage.getItem(SPORTS_TEAM_STORAGE_KEY);
+    if (!teamData) return null;
+    return JSON.parse(teamData) as SportsTeam;
   } catch (error) {
     console.error("Error retrieving sports team data:", error);
     return null;
@@ -116,23 +119,29 @@ export function getSportsTeam(): SportsTeam | null {
 }
 
 /**
- * Get business data from localStorage (stored by Zustand persist)
- * 
- * Business data is structured differently as it's stored as part
- * of a Zustand state object that includes other properties.
+ * Get business ownership data
  */
 export function getBusinesses(): Business[] {
   try {
-    const storedData = localStorage.getItem(BUSINESS_STORAGE_KEY);
-    if (!storedData) return [];
+    // Get businesses from the business store
+    const businessStore = useBusiness.getState();
+    if (!businessStore.businesses) return [];
     
-    // Parse the full store state (not just the businesses array)
-    const storeState = JSON.parse(storedData);
-    
-    // Access the businesses array from the state object
-    const businesses = storeState.state?.businesses || [];
-    
-    return Array.isArray(businesses) ? businesses : [];
+    // Convert to the common Business interface
+    return businessStore.businesses.map(business => ({
+      id: business.id,
+      name: business.name,
+      type: business.type,
+      initialValue: business.initialInvestment,
+      currentValue: business.currentValue,
+      purchaseDate: business.acquisitionDate,
+      level: business.level,
+      revenue: business.revenue,
+      expenses: business.expenses,
+      profitMargin: business.profitMargin,
+      employees: business.employees,
+      customerSatisfaction: business.customerSatisfaction
+    }));
   } catch (error) {
     console.error("Error retrieving business data:", error);
     return [];
@@ -140,97 +149,78 @@ export function getBusinesses(): Business[] {
 }
 
 /**
- * Calculate total value of all horses
+ * Get the total value of all ownership assets
  */
-function calculateTotalHorseValue(horses: Horse[]): number {
-  return horses.reduce((total, horse) => total + horse.value, 0);
+export function getTotalOwnershipValue(): number {
+  let total = 0;
+  
+  // Add Formula 1 team value
+  const f1Team = getFormula1Team();
+  if (f1Team && f1Team.owned) {
+    total += f1Team.value;
+  }
+  
+  // Add horse racing values
+  const horses = getHorseRacingData();
+  if (horses && horses.length > 0) {
+    total += horses.reduce((sum, horse) => sum + horse.value, 0);
+  }
+  
+  // Add sports team value
+  const sportsTeam = getSportsTeam();
+  if (sportsTeam && sportsTeam.owned) {
+    total += sportsTeam.value;
+  }
+  
+  // Add business values
+  const businesses = getBusinesses();
+  if (businesses && businesses.length > 0) {
+    total += businesses.reduce((sum, business) => sum + business.currentValue, 0);
+  }
+  
+  return total;
 }
 
 /**
- * Calculate total value of all businesses
- */
-function calculateTotalBusinessValue(businesses: Business[]): number {
-  return businesses.reduce((total, business) => total + business.currentValue, 0);
-}
-
-/**
- * Get a breakdown of all ownership assets
+ * Get a detailed breakdown of all ownership assets
  */
 export function getOwnershipBreakdown() {
-  // Get data for all ownership types
-  const f1Team = getFormula1Team();
-  const horses = getHorseRacingData();
-  const sportsTeam = getSportsTeam();
-  const businesses = getBusinesses();
+  // Initialize categories
+  const f1Value = getFormula1TeamValue();
+  const horsesValue = getHorseRacingValue();
+  const sportsTeamValue = getSportsTeamValue();
+  const businessValue = getBusinessValue();
   
-  // Calculate values for each asset type
-  const f1Value = f1Team?.value || 0;
-  const horsesValue = calculateTotalHorseValue(horses);
-  const sportsTeamValue = sportsTeam?.value || 0;
-  const businessValue = calculateTotalBusinessValue(businesses);
-  
-  // Calculate total ownership value
-  const totalValue = f1Value + horsesValue + sportsTeamValue + businessValue;
+  // Total value
+  const total = f1Value + horsesValue + sportsTeamValue + businessValue;
   
   return {
-    f1Team: {
-      name: f1Team?.name || '',
-      value: f1Value,
-      owned: !!f1Team
-    },
-    horses: {
-      count: horses.length,
-      value: horsesValue
-    },
-    sportsTeam: {
-      name: sportsTeam?.name || '',
-      value: sportsTeamValue,
-      owned: !!sportsTeam
-    },
-    businesses: {
-      count: businesses.length,
-      value: businessValue,
-      names: businesses.map(b => b.name)
-    },
-    total: totalValue
+    formula1: f1Value,
+    horseRacing: horsesValue,
+    sportsTeam: sportsTeamValue,
+    businesses: businessValue,
+    total
   };
 }
 
-/**
- * Get total value of all ownership assets
- */
-export function getTotalOwnershipValue(): number {
-  const breakdown = getOwnershipBreakdown();
-  return breakdown.total;
+// Helper functions for getting individual category values
+
+function getFormula1TeamValue(): number {
+  const team = getFormula1Team();
+  return team && team.owned ? team.value : 0;
 }
 
-/**
- * Calculate Formula 1 team valuation
- * This can be expanded later to include more complex valuation logic
- */
-export function calculateF1TeamValue(team: Formula1Team): number {
-  if (!team) return 0;
-  
-  // Base value is stored in the team object
-  return team.value;
+function getHorseRacingValue(): number {
+  const horses = getHorseRacingData();
+  return horses.reduce((total, horse) => total + horse.value, 0);
 }
 
-/**
- * Calculate horse valuation
- */
-export function calculateHorseValue(horse: Horse): number {
-  if (!horse) return 0;
-  
-  // Base value is stored in the horse object
-  return horse.value;
+function getSportsTeamValue(): number {
+  const team = getSportsTeam();
+  return team && team.owned ? team.value : 0;
 }
 
-/**
- * Calculate sports team valuation
- */
-export function calculateSportsTeamValue(team: SportsTeam): number {
-  if (!team) return 0;
-  
-  // Base value is stored in the team object
-  return team.value;
+function getBusinessValue(): number {
+  const businesses = getBusinesses();
+  return businesses.reduce((total, business) => total + business.currentValue, 0);
 }
