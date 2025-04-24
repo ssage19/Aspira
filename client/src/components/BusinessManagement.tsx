@@ -1351,7 +1351,10 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Campaign Type</label>
-                      <Select>
+                      <Select
+                        value={campaignType}
+                        onValueChange={setCampaignType}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a campaign type" />
                         </SelectTrigger>
@@ -1367,7 +1370,10 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                     
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Campaign Duration</label>
-                      <Select>
+                      <Select
+                        value={campaignDuration}
+                        onValueChange={setCampaignDuration}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select duration" />
                         </SelectTrigger>
@@ -1383,9 +1389,20 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Campaign Budget</label>
                       <div className="flex items-center">
-                        <Input type="number" placeholder="Budget amount" className="flex-1" />
+                        <Input 
+                          type="number" 
+                          placeholder="Budget amount" 
+                          className="flex-1" 
+                          value={campaignBudget}
+                          onChange={(e) => setCampaignBudget(e.target.value)}
+                        />
                         <span className="ml-2 text-sm text-muted-foreground">per month</span>
                       </div>
+                      {business.cash < parseFloat(campaignBudget || '0') && (
+                        <p className="text-xs text-red-500 mt-1">
+                          Insufficient funds. Available: {formatCurrency(business.cash)}
+                        </p>
+                      )}
                     </div>
                     
                     <div className="space-y-2 p-4 border rounded-md bg-muted/30">
@@ -1408,8 +1425,19 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   </div>
                   
                   <DialogFooter>
-                    <Button variant="outline">Cancel</Button>
-                    <Button>Launch Campaign</Button>
+                    <Button variant="outline" onClick={() => {
+                      setCampaignType('');
+                      setCampaignDuration('');
+                      setCampaignBudget('');
+                    }}>
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateMarketingCampaign}
+                      disabled={!campaignType || !campaignDuration || !campaignBudget || business.cash < parseFloat(campaignBudget || '0')}
+                    >
+                      Launch Campaign
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
@@ -1426,9 +1454,16 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   type="number" 
                   placeholder="Set monthly budget" 
                   className="flex-1" 
-                  defaultValue={business.marketingBudget || 0}
+                  value={marketingBudget}
+                  onChange={(e) => setMarketingBudget(e.target.value)}
                 />
-                <Button size="sm">Update Budget</Button>
+                <Button 
+                  size="sm"
+                  onClick={handleUpdateMarketingBudget}
+                  disabled={parseFloat(marketingBudget) < 0 || isNaN(parseFloat(marketingBudget))}
+                >
+                  Update Budget
+                </Button>
               </div>
               
               {business.marketingBudget > 0 && (
@@ -1488,7 +1523,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         </div>
                       </CardContent>
                       <CardFooter>
-                        <Button variant="outline" className="w-full">
+                        <Button 
+                          variant="outline" 
+                          className="w-full"
+                          onClick={() => handleCancelMarketingCampaign(campaign.id)}
+                        >
                           Cancel Campaign
                         </Button>
                       </CardFooter>
@@ -1568,7 +1607,10 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Investment Category</label>
-                      <Select>
+                      <Select
+                        value={investmentCategory}
+                        onValueChange={setInvestmentCategory}
+                      >
                         <SelectTrigger>
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
@@ -1585,9 +1627,20 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                     <div className="space-y-2">
                       <label className="text-sm font-medium">Investment Amount</label>
                       <div className="flex items-center">
-                        <Input type="number" placeholder="Amount" className="flex-1" />
+                        <Input 
+                          type="number" 
+                          placeholder="Amount" 
+                          className="flex-1"
+                          value={investmentAmount}
+                          onChange={(e) => setInvestmentAmount(e.target.value)}
+                        />
                       </div>
                       <p className="text-xs text-muted-foreground">Available cash: {formatCurrency(business.cash)}</p>
+                      {business.cash < parseFloat(investmentAmount || '0') && (
+                        <p className="text-xs text-red-500">
+                          Insufficient funds for this investment.
+                        </p>
+                      )}
                     </div>
                     
                     <div className="space-y-2 p-4 border rounded-md bg-muted/30">
