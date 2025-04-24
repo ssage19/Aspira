@@ -3303,8 +3303,15 @@ export const useCharacter = create<CharacterState>()(
                 currency: 'USD'
               });
               
-              // Log paycheck info but don't toast (reducing notifications)
-              console.log(`Paycheck received: ${formattedAmount}`);
+              // Log paycheck info with a toast notification
+              console.log(`Bi-weekly paycheck received: ${formattedAmount}`);
+              
+              // Show a toast notification for paychecks - players want to see when they get paid
+              toast.success(`Bi-weekly Paycheck: ${formattedAmount}`, {
+                position: 'top-right',
+                duration: 5000,
+                icon: '💰'
+              });
             }
           }
           

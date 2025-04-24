@@ -207,8 +207,9 @@ export const useTime = create<TimeState>()(
         const newGameDate = new Date(newYear, newMonth - 1, newDay);
         
         // Increment the day counter for tracking weekly/biweekly updates
-        // With new time scale, 14 days (2 weeks) will pass every 5 minutes of real time
-        const newDayCounter = (state.dayCounter + 1) % 14;
+        // Simply increment the day counter (without modulo) for proper bi-weekly paycheck tracking
+        const newDayCounter = state.dayCounter + 1;
+        console.log(`Day counter incremented to: ${newDayCounter} (${newDayCounter % 14 === 0 ? 'PAYDAY!' : 'not payday'})`);
         
         // Track for attribute decay system
         const prevGameDay = state.currentDay;
