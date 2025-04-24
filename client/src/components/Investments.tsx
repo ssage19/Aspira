@@ -50,7 +50,7 @@ export function Investments() {
   const playHit = () => audio.playSound && audio.playSound('hit');
   
   const [selectedStock, setSelectedStock] = useState<Stock>(expandedStockMarket[0]);
-  const [investmentAmount, setInvestmentAmount] = useState(1000);
+  const [investmentAmount, setInvestmentAmount] = useState(100);
   const [stockPrices, setStockPrices] = useState<Record<string, number>>({});
   const [shareQuantity, setShareQuantity] = useState<number>(0);
   const [buyMode, setBuyMode] = useState<'amount' | 'shares'>('amount');
@@ -1622,45 +1622,117 @@ export function Investments() {
               </div>
               
               <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium mb-1" htmlFor="stock-amount">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-sm font-medium" htmlFor="stock-amount">
                     Amount to Buy/Sell:
                   </label>
-                  <div className="flex rounded-md">
-                    <input 
-                      type="number" 
-                      id="stock-amount"
-                      value={shareQuantity} 
-                      onChange={(e) => setShareQuantity(parseFloat(e.target.value) || 0)}
-                      className="flex-1 p-2 border border-input bg-background rounded-l-md text-sm text-foreground"
-                      min="0.0001"
-                      step="0.0001"
-                    />
-                    <div className="px-3 py-2 border border-l-0 border-input bg-muted rounded-r-md">
-                      shares
-                    </div>
+                  <div className="flex border rounded-md overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => setBuyMode('amount')}
+                      className={`px-3 py-1 text-xs ${
+                        buyMode === 'amount' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      $ Amount
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setBuyMode('shares')}
+                      className={`px-3 py-1 text-xs ${
+                        buyMode === 'shares' 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                      }`}
+                    >
+                      Shares
+                    </button>
                   </div>
-                  <p className="mt-1 text-xs text-right">
-                    Cost: {formatCurrency(shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice))}
-                  </p>
                 </div>
+                
+                {buyMode === 'amount' ? (
+                  <div>
+                    <div className="flex rounded-md">
+                      <div className="px-3 py-2 border border-r-0 border-input bg-muted rounded-l-md">
+                        $
+                      </div>
+                      <input 
+                        type="number" 
+                        id="investment-amount"
+                        value={investmentAmount} 
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value);
+                          setInvestmentAmount(isNaN(value) ? 0 : value);
+                        }}
+                        className="flex-1 p-2 border border-input bg-background rounded-r-md text-sm text-foreground"
+                        min="1"
+                        step="1"
+                      />
+                    </div>
+                    <p className="mt-1 text-xs text-right">
+                      Shares: {shareQuantity.toFixed(4)} @ ${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}/share
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <div className="flex rounded-md">
+                      <input 
+                        type="number" 
+                        id="stock-amount"
+                        value={shareQuantity} 
+                        onChange={(e) => setShareQuantity(parseFloat(e.target.value) || 0)}
+                        className="flex-1 p-2 border border-input bg-background rounded-l-md text-sm text-foreground"
+                        min="0.0001"
+                        step="0.0001"
+                      />
+                      <div className="px-3 py-2 border border-l-0 border-input bg-muted rounded-r-md">
+                        shares
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-right">
+                      Cost: {formatCurrency(shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice))}
+                    </p>
+                  </div>
+                )}
                 
                 <div className="grid grid-cols-2 gap-2">
                   <Button 
                     onClick={() => {
-                      // Direct buy using handleBuy logic but simplified for direct purchase
-                      if (shareQuantity <= 0) {
-                        toast.error("Please enter a valid number of shares");
-                        return;
-                      }
-                      
+                      // Handle both amount and shares modes
                       const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
-                      const totalCost = shareQuantity * stockPrice;
+                      let sharesToBuy = shareQuantity;
+                      let totalCost = 0;
                       
-                      if (totalCost > wealth) {
-                        toast.error("Not enough funds");
-                        playHit();
-                        return;
+                      if (buyMode === 'amount') {
+                        if (investmentAmount <= 0) {
+                          toast.error("Please enter a valid investment amount");
+                          return;
+                        }
+                        
+                        if (investmentAmount > wealth) {
+                          toast.error("Not enough funds");
+                          playHit();
+                          return;
+                        }
+                        
+                        // Calculate shares from amount
+                        sharesToBuy = calculateSharesFromAmount(investmentAmount);
+                        totalCost = investmentAmount;
+                      } else {
+                        if (shareQuantity <= 0) {
+                          toast.error("Please enter a valid number of shares");
+                          return;
+                        }
+                        
+                        totalCost = shareQuantity * stockPrice;
+                        
+                        if (totalCost > wealth) {
+                          toast.error("Not enough funds");
+                          playHit();
+                          return;
+                        }
                       }
                       
                       // Buy stock in character store
@@ -1668,86 +1740,123 @@ export function Investments() {
                         id: selectedStock.id,
                         name: selectedStock.name,
                         type: 'stock',
-                        quantity: shareQuantity,
+                        quantity: sharesToBuy,
                         purchasePrice: stockPrice,
                         currentPrice: stockPrice,
                         purchaseDate: `${currentDay}`
                       });
                       
-                      // Note: We don't need to call subtractWealth as addAsset already does this
-                      
                       // Also update the AssetTracker store
                       assetTracker.addStock({
                         id: selectedStock.id,
                         name: selectedStock.name,
-                        shares: shareQuantity,
+                        shares: sharesToBuy,
                         purchasePrice: stockPrice,
                         currentPrice: stockPrice
                       });
                       
-                      toast.success(`Successfully purchased ${shareQuantity.toFixed(2)} shares of ${selectedStock.name}`);
+                      toast.success(`Successfully purchased ${sharesToBuy.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(totalCost)}`);
                       playSuccess();
                       
                       // Reset input after purchase
-                      setShareQuantity(0);
+                      if (buyMode === 'amount') {
+                        setInvestmentAmount(0);
+                      } else {
+                        setShareQuantity(0);
+                      }
                       
                       // Trigger global price update
                       console.log("Investments: Triggering global price update after purchase");
                       (window as any).globalUpdateAllPrices();
                     }}
                     className="bg-accessible-green hover:bg-accessible-green/90"
-                    disabled={shareQuantity <= 0 || shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice) > wealth}
+                    disabled={
+                      buyMode === 'amount' 
+                        ? (investmentAmount <= 0 || investmentAmount > wealth)
+                        : (shareQuantity <= 0 || shareQuantity * (stockPrices[selectedStock.id] || selectedStock.basePrice) > wealth)
+                    }
                   >
-                    Buy Shares
+                    Buy {buyMode === 'amount' ? 'Stock' : 'Shares'}
                   </Button>
                   <Button 
                     onClick={() => {
-                      // Direct sell using handleSell logic but simplified for direct selling
-                      if (shareQuantity <= 0) {
-                        toast.error("Please enter a valid number of shares");
-                        return;
-                      }
-                      
-                      const ownedAmount = getOwnedStockQuantity(selectedStock.id);
-                      if (shareQuantity > ownedAmount) {
-                        toast.error(`You only own ${ownedAmount.toFixed(2)} shares`);
-                        return;
-                      }
-                      
+                      // Handle both amount and shares modes for selling
                       const stockPrice = stockPrices[selectedStock.id] || selectedStock.basePrice;
-                      const totalValue = shareQuantity * stockPrice;
-                      
-                      // Get current owned quantity
                       const ownedQuantity = getOwnedStockQuantity(selectedStock.id);
+                      let sharesToSell = shareQuantity;
+                      let totalValue = 0;
                       
-                      // Sell stock in character store - need to pass id and quantity
-                      sellAsset(selectedStock.id, shareQuantity);
+                      if (ownedQuantity <= 0) {
+                        toast.error("You don't own any shares of this stock");
+                        return;
+                      }
+                      
+                      if (buyMode === 'amount') {
+                        if (investmentAmount <= 0) {
+                          toast.error("Please enter a valid amount to sell");
+                          return;
+                        }
+                        
+                        // Calculate how many shares this amount represents
+                        sharesToSell = calculateSharesFromAmount(investmentAmount);
+                        
+                        // Check if user has enough shares
+                        if (sharesToSell > ownedQuantity) {
+                          toast.error(`You only own ${ownedQuantity.toFixed(2)} shares (worth ${formatCurrency(ownedQuantity * stockPrice)})`);
+                          return;
+                        }
+                        
+                        totalValue = investmentAmount;
+                      } else {
+                        if (shareQuantity <= 0) {
+                          toast.error("Please enter a valid number of shares");
+                          return;
+                        }
+                        
+                        if (shareQuantity > ownedQuantity) {
+                          toast.error(`You only own ${ownedQuantity.toFixed(2)} shares`);
+                          return;
+                        }
+                        
+                        totalValue = shareQuantity * stockPrice;
+                        sharesToSell = shareQuantity;
+                      }
+                      
+                      // Sell stock in character store
+                      sellAsset(selectedStock.id, sharesToSell);
                       
                       // If selling all shares, remove from tracker
-                      if (shareQuantity >= ownedQuantity) {
+                      if (sharesToSell >= ownedQuantity) {
                         assetTracker.removeStock(selectedStock.id);
                       } else {
                         // Update AssetTracker with the new number of shares
-                        const remainingShares = ownedQuantity - shareQuantity;
+                        const remainingShares = ownedQuantity - sharesToSell;
                         assetTracker.updateStock(selectedStock.id, remainingShares, stockPrice);
                       }
                       
-                      // Note: We don't need to call addWealth as sellAsset already adds to wealth
-                      
-                      toast.success(`Successfully sold ${shareQuantity.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(totalValue)}`);
+                      toast.success(`Successfully sold ${sharesToSell.toFixed(2)} shares of ${selectedStock.name} for ${formatCurrency(totalValue)}`);
                       playSuccess();
                       
                       // Reset input after sale
-                      setShareQuantity(0);
+                      if (buyMode === 'amount') {
+                        setInvestmentAmount(0);
+                      } else {
+                        setShareQuantity(0);
+                      }
                       
                       // Trigger global price update
                       console.log("Investments: Triggering global price update after sale");
                       (window as any).globalUpdateAllPrices();
                     }}
                     className="bg-accessible-red hover:bg-accessible-red/90"
-                    disabled={getOwnedStockQuantity(selectedStock.id) <= 0 || shareQuantity > getOwnedStockQuantity(selectedStock.id)}
+                    disabled={
+                      getOwnedStockQuantity(selectedStock.id) <= 0 || 
+                      (buyMode === 'amount' 
+                        ? calculateSharesFromAmount(investmentAmount) > getOwnedStockQuantity(selectedStock.id)
+                        : shareQuantity > getOwnedStockQuantity(selectedStock.id))
+                    }
                   >
-                    Sell Shares
+                    Sell {buyMode === 'amount' ? 'Stock' : 'Shares'}
                   </Button>
                 </div>
               </div>
