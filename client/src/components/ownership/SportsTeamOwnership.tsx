@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Card,
   CardContent,
@@ -38,6 +38,7 @@ import {
 } from 'lucide-react';
 import { formatCurrency } from '../../lib/utils';
 import { useCharacter } from '../../lib/stores/useCharacter';
+import { SPORTS_TEAM_STORAGE_KEY } from '../../lib/utils/ownershipUtils';
 
 // Types
 interface Player {
@@ -462,6 +463,42 @@ export function SportsTeamOwnership() {
   const [customCity, setCustomCity] = useState('');
   const [customState, setCustomState] = useState('');
   const [customStadiumName, setCustomStadiumName] = useState('');
+  
+  // Save team to localStorage
+  const saveTeam = (teamToSave: SportsTeam | null) => {
+    try {
+      if (teamToSave) {
+        localStorage.setItem(SPORTS_TEAM_STORAGE_KEY, JSON.stringify(teamToSave));
+        console.log('Sports team saved to localStorage');
+      } else {
+        // If null is passed, remove the team from localStorage
+        localStorage.removeItem(SPORTS_TEAM_STORAGE_KEY);
+        console.log('Sports team removed from localStorage');
+      }
+    } catch (error) {
+      console.error('Error saving sports team to localStorage:', error);
+    }
+  };
+  
+  // Load team from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedTeam = localStorage.getItem(SPORTS_TEAM_STORAGE_KEY);
+      if (savedTeam) {
+        setTeam(JSON.parse(savedTeam));
+        console.log('Sports team loaded from localStorage');
+      }
+    } catch (error) {
+      console.error('Error loading sports team from localStorage:', error);
+    }
+  }, []);
+  
+  // Save team to localStorage whenever it changes
+  useEffect(() => {
+    if (team) {
+      saveTeam(team);
+    }
+  }, [team]);
 
   // Opens the team customization modal
   const openCustomizeModal = (option: TeamOption) => {
@@ -880,6 +917,12 @@ export function SportsTeamOwnership() {
     // We'll derive difficulty from the opponent's name (1-5 scale)
     const opponentName = game.opponent.toLowerCase();
     let difficulty = 3; // default medium difficulty
+    
+    // Create a game object with the required properties for calculateExpectedOutcome
+    const gameForCalc = {
+      difficulty: difficulty,
+      home: game.home
+    };
     
     if (opponentName.includes('stars') || opponentName.includes('titans') || opponentName.includes('kings')) {
       difficulty = 5; // toughest opponents
