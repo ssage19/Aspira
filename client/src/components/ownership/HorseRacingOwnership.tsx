@@ -52,6 +52,7 @@ import { Separator } from '../ui/separator';
 import { toast } from 'sonner';
 import { formatCurrency } from '../../lib/utils';
 import { useCharacter } from '../../lib/stores/useCharacter';
+import { HORSE_RACING_STORAGE_KEY } from '../../lib/utils/ownershipUtils';
 
 interface Horse {
   id: string;
@@ -384,6 +385,36 @@ export function HorseRacingOwnership() {
       duration: 5000,
     });
   };
+
+  // Save horses to localStorage whenever they change
+  const saveHorses = (horsesToSave: Horse[]) => {
+    try {
+      localStorage.setItem(HORSE_RACING_STORAGE_KEY, JSON.stringify(horsesToSave));
+      console.log('Horses saved to localStorage:', horsesToSave);
+    } catch (error) {
+      console.error('Error saving horses to localStorage:', error);
+    }
+  };
+
+  // Load horses from localStorage on component mount
+  useEffect(() => {
+    try {
+      const savedHorses = localStorage.getItem(HORSE_RACING_STORAGE_KEY);
+      if (savedHorses) {
+        setHorses(JSON.parse(savedHorses));
+        console.log('Horses loaded from localStorage');
+      }
+    } catch (error) {
+      console.error('Error loading horses from localStorage:', error);
+    }
+  }, []);
+  
+  // Save horses to localStorage whenever they change
+  useEffect(() => {
+    if (horses.length > 0) {
+      saveHorses(horses);
+    }
+  }, [horses]);
 
   useEffect(() => {
     // Reset dialog flags when tab changes

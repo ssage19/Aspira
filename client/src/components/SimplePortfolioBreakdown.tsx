@@ -358,7 +358,7 @@ export function SimplePortfolioBreakdown() {
                         </td>
                         <td className="text-right text-xs">{formatCurrency(asset.value)}</td>
                         <td className="text-right text-xs w-16 font-medium">
-                          {formatPercentage(asset.value / calculatedTotal)}
+                          {formatPercentage(asset.value / (calculatedTotal || 1))}
                         </td>
                       </tr>
                     ))}
