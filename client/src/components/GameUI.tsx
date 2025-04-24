@@ -69,18 +69,12 @@ export function GameUI() {
   // Get responsive info to optimize UI for mobile
   const { isMobile } = useResponsive();
   
-  // Update passive income every 5 seconds
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      // Passive income is 0.01% of net worth per tick
-      const passiveIncome = netWorth * 0.0001;
-      if (passiveIncome > 0) {
-        addWealth(passiveIncome);
-      }
-    }, 5000);
-    
-    return () => clearInterval(intervalId);
-  }, [netWorth, addWealth]);
+  // Passive income is now only generated through bi-weekly paychecks and monthly property income
+  // No automatic interest on total wealth - we removed this feature as requested
+  // This helps make the bi-weekly paychecks more impactful and meaningful
+  
+  // Later we can implement proper interest-bearing accounts that the player chooses to invest in
+  // For now, we've removed the automatic passive income that was incrementing cash every 5 seconds
   
   // Update investment values based on market fluctuations
   const updateInvestments = () => {
