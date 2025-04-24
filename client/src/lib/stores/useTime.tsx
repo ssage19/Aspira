@@ -26,6 +26,10 @@ interface TimeState {
   pausedTimestamp: number; // Timestamp when time was paused
   accumulatedProgress: number; // Progress accumulated before pause (ms) - this helps in resuming time properly
   
+  // Time passage tracking between sessions
+  lastRealTimestamp: number; // Real timestamp of the last session
+  wasPaused: boolean; // Whether the game was paused in the last session
+  
   // Daily counter for tracking weekly/monthly updates
   dayCounter: number; // Tracks the number of days passed for weekly/biweekly updates
   
@@ -48,6 +52,8 @@ interface TimeState {
   updateLastTickTime: (time: number) => void; // Update last tick timestamp
   setPausedTimestamp: (time: number) => void; // Update paused timestamp
   setAccumulatedProgress: (progress: number) => void; // Update accumulated progress
+  updateLastRealTimestamp: (time: number) => void; // Update last real-world timestamp
+  processOfflineTime: () => void; // Process time that passed while the application was closed
 }
 
 const STORAGE_KEY = 'luxury_lifestyle_time';
@@ -164,6 +170,10 @@ export const useTime = create<TimeState>()(
       lastTickTime: savedTime?.lastTickTime || Date.now(),
       pausedTimestamp: savedTime?.pausedTimestamp || 0,
       accumulatedProgress: savedTime?.accumulatedProgress || 0,
+      
+      // Time passage tracking between sessions
+      lastRealTimestamp: savedTime?.lastRealTimestamp || Date.now(),
+      wasPaused: savedTime?.wasPaused !== undefined ? savedTime.wasPaused : false,
       
       // Day counter for weekly/biweekly updates
       dayCounter: savedTime?.dayCounter || 0,
