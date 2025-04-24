@@ -42,6 +42,53 @@ export interface BusinessUpgrade {
   purchasedDate?: number; // timestamp
 }
 
+// Marketing campaign interface
+export interface MarketingCampaign {
+  id: string;
+  name: string;
+  description: string;
+  cost: number; // cost per month
+  duration: number; // in days
+  startDate: number; // timestamp
+  endDate: number; // timestamp
+  active: boolean;
+  effect: {
+    customerAcquisition: number; // new customers per day
+    reputationBoost: number; // reputation points
+    customerSatisfactionBoost: number; // satisfaction points
+    revenueMultiplier: number; // revenue multiplier
+  };
+}
+
+// Internal investment interface
+export interface InternalInvestment {
+  id: string;
+  name: string;
+  description: string;
+  category: 'training' | 'research' | 'equipment' | 'facilities' | 'operations';
+  cost: number;
+  implementationDate: number; // timestamp
+  active: boolean;
+  effect: {
+    qualityBoost?: number;
+    employeeProductivity?: number;
+    customerSatisfaction?: number;
+    expenseReduction?: number;
+    reputationBoost?: number;
+  };
+}
+
+// Revenue breakdown interface
+export interface RevenueBreakdown {
+  baseRevenue: number; // basic revenue from business operation
+  marketingRevenue: number; // additional revenue from marketing
+  qualityPremium: number; // premium from high quality
+  reputationRevenue: number; // revenue from reputation
+  loyaltyRevenue: number; // revenue from customer loyalty/satisfaction
+  seasonalRevenue: number; // seasonal effects on revenue
+  specialEventsRevenue: number; // revenue from special events or promotions
+}
+
 export interface Business {
   id: string;
   name: string;
@@ -65,6 +112,13 @@ export interface Business {
   reputation: number;
   autoManage: boolean;
   lastProcessed: number; // timestamp
+  
+  // New fields for enhanced business features
+  marketingBudget: number; // Monthly marketing budget
+  marketingCampaigns: MarketingCampaign[]; // Active marketing campaigns
+  internalInvestments: InternalInvestment[]; // Internal business investments
+  isOpen: boolean; // Whether the business is open and operating
+  revenueBreakdown: RevenueBreakdown; // Detailed revenue sources
 }
 
 // Starting business templates
