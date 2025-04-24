@@ -762,6 +762,12 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
           <TabsTrigger value="upgrades" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
             Upgrades
           </TabsTrigger>
+          <TabsTrigger value="marketing" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Marketing
+          </TabsTrigger>
+          <TabsTrigger value="investments" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+            Investments
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="mt-6">
@@ -1232,6 +1238,390 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   <span>Capacity increases allow your business to serve more customers and grow faster.</span>
                 </li>
               </ul>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="marketing" className="mt-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <BarChart className="h-5 w-5" />
+                Marketing Campaigns
+              </h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Campaign
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Launch Marketing Campaign</DialogTitle>
+                    <DialogDescription>
+                      Marketing campaigns help increase customer acquisition, revenue, and business reputation.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Campaign Type</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a campaign type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="social_media">Social Media Campaign</SelectItem>
+                          <SelectItem value="local_advertising">Local Advertising</SelectItem>
+                          <SelectItem value="premium_branding">Premium Branding</SelectItem>
+                          <SelectItem value="customer_loyalty">Customer Loyalty Program</SelectItem>
+                          <SelectItem value="influencer">Influencer Partnership</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Campaign Duration</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select duration" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="7">1 Week</SelectItem>
+                          <SelectItem value="14">2 Weeks</SelectItem>
+                          <SelectItem value="30">1 Month</SelectItem>
+                          <SelectItem value="90">3 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Campaign Budget</label>
+                      <div className="flex items-center">
+                        <Input type="number" placeholder="Budget amount" className="flex-1" />
+                        <span className="ml-2 text-sm text-muted-foreground">per month</span>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 p-4 border rounded-md bg-muted/30">
+                      <h4 className="font-medium">Expected Benefits</h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex justify-between">
+                          <span>Revenue Boost:</span>
+                          <span>+5-15%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Reputation Gain:</span>
+                          <span>+2-8 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Customer Satisfaction:</span>
+                          <span>+1-5 points</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline">Cancel</Button>
+                    <Button>Launch Campaign</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            <div className="bg-muted/30 p-4 rounded-md border border-primary/20">
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="font-medium">Marketing Budget</h3>
+                <span className="text-sm">{formatCurrency(business.marketingBudget)}/month</span>
+              </div>
+              
+              <div className="flex items-center space-x-4">
+                <Input 
+                  type="number" 
+                  placeholder="Set monthly budget" 
+                  className="flex-1" 
+                  defaultValue={business.marketingBudget || 0}
+                />
+                <Button size="sm">Update Budget</Button>
+              </div>
+              
+              {business.marketingBudget > 0 && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  Your marketing budget is {formatPercentage(business.marketingBudget / business.revenue)} of your daily revenue.
+                </p>
+              )}
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-4">Active Campaigns</h3>
+              
+              {business.marketingCampaigns && business.marketingCampaigns.length > 0 ? (
+                <div className="space-y-4">
+                  {business.marketingCampaigns.filter(campaign => campaign.active).map(campaign => (
+                    <Card key={campaign.id} className="border-primary/30">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{campaign.name}</CardTitle>
+                        <CardDescription>{campaign.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Start Date</div>
+                            <div>{formatDate(campaign.startDate)}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">End Date</div>
+                            <div>{formatDate(campaign.endDate)}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Cost</div>
+                            <div>{formatCurrency(campaign.cost)}/month</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Status</div>
+                            <Badge className="bg-green-600">Active</Badge>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 text-sm">
+                          <div className="font-medium mb-2">Campaign Effects:</div>
+                          <div className="space-y-1">
+                            <div className="flex items-center">
+                              <ArrowUpRight className="h-4 w-4 mr-2 text-green-500" />
+                              Revenue Multiplier: {formatPercentage(campaign.effect.revenueMultiplier)}
+                            </div>
+                            <div className="flex items-center">
+                              <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                              Reputation Boost: +{campaign.effect.reputationBoost} points
+                            </div>
+                            <div className="flex items-center">
+                              <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                              Customer Satisfaction: +{campaign.effect.customerSatisfactionBoost} points
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                      <CardFooter>
+                        <Button variant="outline" className="w-full">
+                          Cancel Campaign
+                        </Button>
+                      </CardFooter>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-8 bg-muted/20 border border-dashed rounded-md">
+                  <BarChart className="mx-auto h-8 w-8 text-primary/60" />
+                  <h3 className="mt-4 text-lg font-medium">No Active Campaigns</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Launch a marketing campaign to boost your business revenue and reputation.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            {business.marketingCampaigns && business.marketingCampaigns.some(c => !c.active) && (
+              <div>
+                <h3 className="font-medium mb-4">Past Campaigns</h3>
+                <div className="space-y-4">
+                  {business.marketingCampaigns.filter(campaign => !campaign.active).map(campaign => (
+                    <Card key={campaign.id} className="border-primary/30 bg-muted/30">
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between">
+                          <CardTitle className="text-lg">{campaign.name}</CardTitle>
+                          <Badge variant="outline">Completed</Badge>
+                        </div>
+                        <CardDescription>{campaign.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Ran From</div>
+                            <div>{formatDate(campaign.startDate)}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">To</div>
+                            <div>{formatDate(campaign.endDate)}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Total Cost</div>
+                            <div>{formatCurrency(campaign.cost * (campaign.duration / 30))}</div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="investments" className="mt-6">
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Internal Investments
+              </h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button size="sm">
+                    <Plus className="mr-2 h-4 w-4" />
+                    New Investment
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Create Internal Investment</DialogTitle>
+                    <DialogDescription>
+                      Invest in your business to improve quality, productivity, and operations.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Investment Category</label>
+                      <Select>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="training">Employee Training</SelectItem>
+                          <SelectItem value="research">Research & Development</SelectItem>
+                          <SelectItem value="equipment">Equipment Upgrade</SelectItem>
+                          <SelectItem value="facilities">Facility Improvement</SelectItem>
+                          <SelectItem value="operations">Operations Optimization</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Investment Amount</label>
+                      <div className="flex items-center">
+                        <Input type="number" placeholder="Amount" className="flex-1" />
+                      </div>
+                      <p className="text-xs text-muted-foreground">Available cash: {formatCurrency(business.cash)}</p>
+                    </div>
+                    
+                    <div className="space-y-2 p-4 border rounded-md bg-muted/30">
+                      <h4 className="font-medium">Expected Benefits</h4>
+                      <div className="text-sm text-muted-foreground space-y-1">
+                        <div className="flex justify-between">
+                          <span>Quality Improvement:</span>
+                          <span>+2-5 points</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Employee Productivity:</span>
+                          <span>+5-10%</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Expense Reduction:</span>
+                          <span>Up to 5%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline">Cancel</Button>
+                    <Button>Implement Investment</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            
+            <div>
+              <h3 className="font-medium mb-4">Active Investments</h3>
+              
+              {business.internalInvestments && business.internalInvestments.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {business.internalInvestments.filter(investment => investment.active).map(investment => (
+                    <Card key={investment.id} className="border-primary/30">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{investment.name}</CardTitle>
+                        <CardDescription>{investment.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="pt-0">
+                        <div className="grid grid-cols-2 gap-4 mt-2">
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Category</div>
+                            <div className="capitalize">{investment.category.replace('_', ' ')}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Implementation Date</div>
+                            <div>{formatDate(investment.implementationDate)}</div>
+                          </div>
+                          <div className="text-sm space-y-1">
+                            <div className="text-muted-foreground">Cost</div>
+                            <div>{formatCurrency(investment.cost)}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 text-sm">
+                          <div className="font-medium mb-2">Investment Effects:</div>
+                          <div className="space-y-1">
+                            {investment.effect.qualityBoost && (
+                              <div className="flex items-center">
+                                <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                                Quality Boost: +{investment.effect.qualityBoost} points
+                              </div>
+                            )}
+                            {investment.effect.employeeProductivity && (
+                              <div className="flex items-center">
+                                <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                                Employee Productivity: +{formatPercentage(investment.effect.employeeProductivity)}
+                              </div>
+                            )}
+                            {investment.effect.customerSatisfaction && (
+                              <div className="flex items-center">
+                                <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                                Customer Satisfaction: +{investment.effect.customerSatisfaction} points
+                              </div>
+                            )}
+                            {investment.effect.expenseReduction && (
+                              <div className="flex items-center">
+                                <ArrowDownRight className="h-4 w-4 mr-2 text-green-500" />
+                                Expense Reduction: {formatPercentage(investment.effect.expenseReduction)}
+                              </div>
+                            )}
+                            {investment.effect.reputationBoost && (
+                              <div className="flex items-center">
+                                <TrendingUp className="h-4 w-4 mr-2 text-green-500" />
+                                Reputation Boost: +{investment.effect.reputationBoost} points
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center p-8 bg-muted/20 border border-dashed rounded-md">
+                  <Building2 className="mx-auto h-8 w-8 text-primary/60" />
+                  <h3 className="mt-4 text-lg font-medium">No Active Investments</h3>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    Invest in your business to improve operations and increase profitability.
+                  </p>
+                </div>
+              )}
+            </div>
+            
+            <div className="p-4 bg-muted/30 rounded-md border border-primary/20">
+              <h3 className="font-medium mb-3 flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" />
+                Investment Tips
+              </h3>
+              <div className="space-y-2 text-sm">
+                <p>• <span className="font-medium">Training investments</span> improve employee productivity and morale.</p>
+                <p>• <span className="font-medium">Equipment upgrades</span> boost quality and reduce operating expenses.</p>
+                <p>• <span className="font-medium">Facility improvements</span> enhance customer satisfaction and business reputation.</p>
+                <p>• <span className="font-medium">Research & Development</span> can lead to innovative products or services.</p>
+                <p>• Aim to invest at least 5-10% of your profits back into the business for sustainable growth.</p>
+              </div>
             </div>
           </div>
         </TabsContent>
