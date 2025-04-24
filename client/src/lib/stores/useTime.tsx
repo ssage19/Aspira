@@ -360,10 +360,16 @@ export const useTime = create<TimeState>()(
             multiplier = 1.0;
         }
         
+        // Set wasPaused flag for offline time processing
+        // If we're setting speed to 'paused', we want wasPaused to be true
+        const wasPaused = speed === 'paused';
+        
         const newState = {
           ...state,
           timeSpeed: speed,
-          timeMultiplier: multiplier
+          timeMultiplier: multiplier,
+          wasPaused,
+          lastRealTimestamp: Date.now() // Update timestamp for offline processing
         };
         
         // Save to local storage
@@ -529,6 +535,57 @@ export const useTime = create<TimeState>()(
               currentMonth = 1;
               currentYear++;
             }
+          }
+          
+          try {
+            // Process daily income from properties and other passive sources
+            // Import dynamically to avoid circular dependencies
+            const useCharacter = require('./useCharacter').useCharacter;
+            if (useCharacter && useCharacter.getState && useCharacter.getState().processDailyUpdate) {
+              useCharacter.getState().processDailyUpdate();
+              console.log(`Processed passive income for offline day ${i+1}/${fullDaysToProcess}`);
+            }
+            
+            // Check for weekly updates (every 7 days)
+            if (dayCounter % 7 === 0) {
+              try {
+                // Import economy store dynamically to avoid circular dependencies
+                const useEconomy = require('./useEconomy').default;
+                if (useEconomy && useEconomy.getState && useEconomy.getState().processWeeklyUpdate) {
+                  useEconomy.getState().processWeeklyUpdate();
+                  console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
+                }
+              } catch (weeklyError) {
+                console.error('Error processing offline weekly update:', weeklyError);
+              }
+            }
+            
+            // Check for end of month for monthly updates
+            // We construct the date object for the current day and then check if the next day would be in a new month
+            const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+            const nextDate = new Date(currentYear, currentMonth - 1, currentDay + 1);
+            const isEndOfMonth = nextDate.getMonth() !== currentDate.getMonth();
+            
+            if (isEndOfMonth) {
+              try {
+                // Process monthly economy update
+                const useEconomy = require('./useEconomy').default;
+                if (useEconomy && useEconomy.getState && useEconomy.getState().processMonthlyUpdate) {
+                  useEconomy.getState().processMonthlyUpdate();
+                  console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
+                }
+                
+                // Process monthly character expenses (housing, subscriptions, etc.)
+                if (useCharacter.getState().monthlyUpdate) {
+                  useCharacter.getState().monthlyUpdate();
+                  console.log(`Processed monthly character expenses during offline time for: ${currentMonth}/${currentYear}`);
+                }
+              } catch (monthlyError) {
+                console.error('Error processing offline monthly update:', monthlyError);
+              }
+            }
+          } catch (e) {
+            console.error('Error processing offline character updates:', e);
           }
         }
         

@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import { useAudio } from "./lib/stores/useAudio";
 import { useGame } from "./lib/stores/useGame";
 import { useEconomy } from "./lib/stores/useEconomy";
+import { useTime } from "./lib/stores/useTime";
 import { ThemeProvider } from "./lib/ThemeProvider";
 import Dashboard from "./pages/Dashboard";
 import SimpleDashboard from "./pages/SimpleDashboard";
@@ -256,6 +257,23 @@ function App() {
       start();
     }
   }, [phase, start]);
+  
+  // Process offline time when app loads
+  useEffect(() => {
+    // Only process offline time on non-character creation pages when game is playing
+    const isOnCreatePage = window.location.pathname === '/create';
+    
+    if (phase === "playing" && !isOnCreatePage) {
+      console.log("Processing offline time since last session...");
+      
+      try {
+        // Process offline time that passed since the last time the app was open
+        useTime.getState().processOfflineTime();
+      } catch (error) {
+        console.error("Error processing offline time:", error);
+      }
+    }
+  }, [phase]);
   
   // Set up timer to check for random events
   useEffect(() => {
