@@ -140,6 +140,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 50,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   retail: {
     type: 'retail',
@@ -158,6 +172,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 50,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   tech: {
     type: 'tech',
@@ -176,6 +204,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 45,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   consulting: {
     type: 'consulting',
@@ -194,6 +236,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 60,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   manufacturing: {
     type: 'manufacturing',
@@ -212,6 +268,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 55,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   real_estate: {
     type: 'real_estate',
@@ -230,6 +300,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 65,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   },
   creative: {
     type: 'creative',
@@ -248,6 +332,20 @@ export const businessTemplates: Record<BusinessType, Omit<Business, 'id' | 'name
     level: 1,
     reputation: 70,
     autoManage: false,
+    // New fields
+    marketingBudget: 0,
+    marketingCampaigns: [],
+    internalInvestments: [],
+    isOpen: false, // Start closed until minimum employees are hired
+    revenueBreakdown: {
+      baseRevenue: 0,
+      marketingRevenue: 0,
+      qualityPremium: 0,
+      reputationRevenue: 0,
+      loyaltyRevenue: 0,
+      seasonalRevenue: 0,
+      specialEventsRevenue: 0
+    }
   }
 };
 
@@ -622,7 +720,21 @@ export const useBusiness = create<BusinessState>()(
           upgrades: availableUpgrades[type].map(upgrade => ({
             ...upgrade,
             purchased: false
-          }))
+          })),
+          // Make sure these fields are properly initialized
+          marketingBudget: 0,
+          marketingCampaigns: [],
+          internalInvestments: [],
+          isOpen: false, // Start closed until minimum employees are hired
+          revenueBreakdown: {
+            baseRevenue: 0,
+            marketingRevenue: 0,
+            qualityPremium: 0,
+            reputationRevenue: 0,
+            loyaltyRevenue: 0,
+            seasonalRevenue: 0,
+            specialEventsRevenue: 0
+          }
         };
         
         // Deduct the cost from player's wealth
@@ -670,13 +782,85 @@ export const useBusiness = create<BusinessState>()(
             return business;
           }
           
-          // Calculate daily operations
-          const baseRevenue = calculateDailyRevenue(business);
+          // First check if the business is open - needs minimum employees
+          const minimumEmployeesRequired = business.type === 'restaurant' ? 2 : 
+                                         business.type === 'manufacturing' ? 3 : 1;
+          const isOpen = business.employees.length >= minimumEmployeesRequired;
+          
+          // Process marketing campaigns
+          const activeMarketingCampaigns = business.marketingCampaigns.filter(campaign => {
+            // Check if campaign is still active
+            return campaign.active && Date.now() < campaign.endDate;
+          });
+          
+          // Process internal investments
+          const activeInvestments = business.internalInvestments.filter(investment => {
+            // Internal investments are permanent once implemented
+            return investment.active;
+          });
+          
+          // Calculate marketing and investment effects
+          const marketingEffect = {
+            revenueMultiplier: 1.0,
+            reputationBoost: 0,
+            customerSatisfactionBoost: 0
+          };
+          
+          activeMarketingCampaigns.forEach(campaign => {
+            marketingEffect.revenueMultiplier *= campaign.effect.revenueMultiplier;
+            marketingEffect.reputationBoost += campaign.effect.reputationBoost;
+            marketingEffect.customerSatisfactionBoost += campaign.effect.customerSatisfactionBoost;
+          });
+          
+          const investmentEffect = {
+            qualityBoost: 0,
+            employeeProductivity: 0,
+            customerSatisfaction: 0,
+            expenseReduction: 0,
+            reputationBoost: 0
+          };
+          
+          activeInvestments.forEach(investment => {
+            if (investment.effect.qualityBoost) investmentEffect.qualityBoost += investment.effect.qualityBoost;
+            if (investment.effect.employeeProductivity) investmentEffect.employeeProductivity += investment.effect.employeeProductivity;
+            if (investment.effect.customerSatisfaction) investmentEffect.customerSatisfaction += investment.effect.customerSatisfaction;
+            if (investment.effect.expenseReduction) investmentEffect.expenseReduction += investment.effect.expenseReduction;
+            if (investment.effect.reputationBoost) investmentEffect.reputationBoost += investment.effect.reputationBoost;
+          });
+          
+          // Calculate daily operations - only if business is open
+          const baseRevenue = isOpen ? calculateDailyRevenue(business) : 0;
           const baseExpenses = calculateDailyExpenses(business);
           
+          // Break down revenue sources
+          const revenueBreakdown = {
+            baseRevenue: baseRevenue,
+            marketingRevenue: baseRevenue * (marketingEffect.revenueMultiplier - 1),
+            qualityPremium: baseRevenue * (business.quality / 100) * 0.2,
+            reputationRevenue: baseRevenue * (business.reputation / 100) * 0.15,
+            loyaltyRevenue: baseRevenue * (business.customerSatisfaction / 100) * 0.1,
+            seasonalRevenue: 0, // TODO: Implement seasonal effects
+            specialEventsRevenue: 0 // TODO: Implement special events
+          };
+          
+          // Total revenue after all effects
+          const totalRevenueBeforeEconomy = 
+            revenueBreakdown.baseRevenue + 
+            revenueBreakdown.marketingRevenue + 
+            revenueBreakdown.qualityPremium + 
+            revenueBreakdown.reputationRevenue + 
+            revenueBreakdown.loyaltyRevenue +
+            revenueBreakdown.seasonalRevenue +
+            revenueBreakdown.specialEventsRevenue;
+          
+          // Apply investment effect to expenses
+          const expensesAfterInvestments = investmentEffect.expenseReduction > 0 
+            ? baseExpenses * (1 - investmentEffect.expenseReduction) 
+            : baseExpenses;
+            
           // Apply economic modifiers
-          const actualRevenue = baseRevenue * modifier.revenue;
-          const actualExpenses = baseExpenses * modifier.expenses;
+          const actualRevenue = totalRevenueBeforeEconomy * modifier.revenue;
+          const actualExpenses = expensesAfterInvestments * modifier.expenses;
           
           // Calculate profit
           const profit = actualRevenue - actualExpenses;
@@ -711,17 +895,29 @@ export const useBusiness = create<BusinessState>()(
           // Update business cash
           const newCash = business.cash + profit;
           
+          // Check if any marketing campaigns have expired and should be deactivated
+          const updatedMarketingCampaigns = business.marketingCampaigns.map(campaign => {
+            if (campaign.active && now > campaign.endDate) {
+              return { ...campaign, active: false };
+            }
+            return campaign;
+          });
+          
           return {
             ...business,
             cash: newCash,
             revenue: actualRevenue,
             expenses: actualExpenses,
             profitMargin: actualRevenue > 0 ? profit / actualRevenue : business.profitMargin,
-            customerSatisfaction: newCustomerSatisfaction,
+            customerSatisfaction: newCustomerSatisfaction + marketingEffect.customerSatisfactionBoost + investmentEffect.customerSatisfaction,
             currentCapacity: newCurrentCapacity,
-            reputation: newReputation,
+            reputation: newReputation + marketingEffect.reputationBoost + investmentEffect.reputationBoost,
             currentValue: newValue,
-            lastProcessed: now
+            lastProcessed: now,
+            isOpen: isOpen,
+            marketingCampaigns: updatedMarketingCampaigns,
+            revenueBreakdown: revenueBreakdown,
+            quality: Math.min(100, business.quality + investmentEffect.qualityBoost)
           };
         });
         
