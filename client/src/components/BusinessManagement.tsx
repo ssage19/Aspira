@@ -611,6 +611,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
     return () => clearInterval(interval);
   }, [processBusinesses]);
   
+  // Update marketing budget input when business data changes
+  useEffect(() => {
+    setMarketingBudget(business.marketingBudget.toString());
+  }, [business.marketingBudget]);
+  
   // Handle investment
   const handleInvest = () => {
     const amount = parseFloat(investAmount);
@@ -1663,8 +1668,21 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                   </div>
                   
                   <DialogFooter>
-                    <Button variant="outline">Cancel</Button>
-                    <Button>Implement Investment</Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setInvestmentCategory('');
+                        setInvestmentAmount('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateInternalInvestment}
+                      disabled={!investmentCategory || !investmentAmount || business.cash < parseFloat(investmentAmount || '0')}
+                    >
+                      Implement Investment
+                    </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
