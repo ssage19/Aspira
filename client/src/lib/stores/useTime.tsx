@@ -314,7 +314,9 @@ export const useTime = create<TimeState>()(
           lastTickTime: Date.now(),
           pausedTimestamp: 0,
           accumulatedProgress: 0,
-          dayCounter: 0
+          dayCounter: 0,
+          lastRealTimestamp: Date.now(),
+          wasPaused: false
         };
         
         // Aggressively clear localStorage entry first to ensure all previous data is gone
@@ -372,10 +374,14 @@ export const useTime = create<TimeState>()(
       
       // Auto-advance control
       setAutoAdvance: (enabled: boolean) => set((state) => {
+        const currentTime = Date.now();
+        
         const newState = {
           ...state,
           autoAdvanceEnabled: enabled,
-          lastTickTime: Date.now() // Reset the tick time when toggling
+          lastTickTime: currentTime, // Reset the tick time when toggling
+          wasPaused: !enabled, // Track pause state for offline time processing
+          lastRealTimestamp: currentTime // Update the timestamp for offline processing
         };
         
         // Save to local storage
@@ -428,6 +434,125 @@ export const useTime = create<TimeState>()(
         const newState = {
           ...state,
           accumulatedProgress: progress
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Update the last real-world timestamp
+      updateLastRealTimestamp: (time: number) => set((state) => {
+        const newState = {
+          ...state,
+          lastRealTimestamp: time
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Set the paused state for offline time processing
+      setWasPaused: (isPaused: boolean) => set((state) => {
+        const newState = {
+          ...state,
+          wasPaused: isPaused
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Process time that passed while the application was closed
+      processOfflineTime: () => set((state) => {
+        const currentTime = Date.now();
+        const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
+        
+        // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
+        if (wasPaused || lastRealTimestamp === 0) {
+          // Update the timestamp without processing time
+          return {
+            ...state,
+            lastRealTimestamp: currentTime
+          };
+        }
+        
+        // Calculate how much real time has passed since the last session
+        const realMsPassed = currentTime - lastRealTimestamp;
+        
+        // If less than 5 seconds passed, don't bother processing
+        if (realMsPassed < 5000) {
+          return {
+            ...state,
+            lastRealTimestamp: currentTime
+          };
+        }
+        
+        console.log(`Processing offline time: ${realMsPassed}ms real time passed since last session`);
+        
+        // 1 real-world second = 1 in-game hour = 1/24 of a day
+        // Apply time multiplier (default setting) for offline progression
+        const adjustedMs = realMsPassed * (timeMultiplier || 1.0);
+        const hoursElapsed = adjustedMs / 1000;
+        const daysElapsed = hoursElapsed / 24;
+        
+        console.log(`Converting to ${daysElapsed.toFixed(2)} in-game days elapsed during offline time`);
+        
+        // Process full days
+        const fullDaysToProcess = Math.floor(daysElapsed);
+        let currentDay = state.currentDay;
+        let currentMonth = state.currentMonth;
+        let currentYear = state.currentYear;
+        let dayCounter = state.dayCounter;
+        let daysPassed = state.daysPassed;
+        
+        // Process each day one by one to ensure proper month/year transitions
+        for (let i = 0; i < fullDaysToProcess; i++) {
+          // Advance the date
+          currentDay++;
+          dayCounter = (dayCounter + 1) % 14;
+          daysPassed++;
+          
+          // Check if we need to advance the month
+          const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+          if (currentDay > daysInMonth) {
+            currentDay = 1;
+            currentMonth++;
+            
+            // Check if we need to advance the year
+            if (currentMonth > 12) {
+              currentMonth = 1;
+              currentYear++;
+            }
+          }
+        }
+        
+        // Calculate the fractional part of the day for progress percentage
+        const fractionalDay = daysElapsed - fullDaysToProcess;
+        const newProgress = fractionalDay * 100;
+        
+        // Create the new game date
+        const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+        
+        // The new state with updated time values
+        const newState = {
+          ...state,
+          currentDay,
+          currentMonth,
+          currentYear,
+          currentGameDate: newGameDate,
+          gameTime: newGameDate,
+          previousGameDay: state.currentDay,
+          dayCounter,
+          daysPassed,
+          timeProgress: newProgress,
+          lastRealTimestamp: currentTime,
+          lastTickTime: currentTime // Reset the tick time for smooth continuation
         };
         
         // Save to local storage

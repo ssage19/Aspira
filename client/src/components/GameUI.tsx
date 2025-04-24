@@ -6,6 +6,7 @@ import { useAudio } from '../lib/stores/useAudio';
 import useEconomy from '../lib/stores/useEconomy';
 import { useAssetTracker } from '../lib/stores/useAssetTracker';
 import { useResponsive } from '../lib/hooks/useResponsive';
+import { setLocalStorage } from '../lib/utils';
 
 // Helper function to determine if a date is the last day of the month
 function isEndOfMonth(day: number, month: number, year: number): boolean {
@@ -186,6 +187,8 @@ export function GameUI() {
       const progressInMs = (timeProgress / 100) * DAY_DURATION_MS;
       useTime.getState().setAccumulatedProgress(progressInMs);
       useTime.getState().setPausedTimestamp(currentTime);
+      
+      // Setting autoAdvance to false will also update wasPaused and lastRealTimestamp
       setAutoAdvance(false);
     } else {
       // We're resuming the game
@@ -200,6 +203,8 @@ export function GameUI() {
       }
       
       updateLastTickTime(currentTime);
+      
+      // Setting autoAdvance to true will also update wasPaused and lastRealTimestamp
       setAutoAdvance(true);
     }
   };
