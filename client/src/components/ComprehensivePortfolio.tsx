@@ -139,7 +139,7 @@ export function ComprehensivePortfolio() {
       const horseNames = horses.map(horse => horse.name).join(', ');
       ownershipAssets.items.push({
         label: `Racing Horses (${horses.length})`,
-        value: horses.reduce((total, horse) => total + horse.value, 0),
+        value: horses.reduce((total, horse) => total + horse.price, 0),
         color: 'bg-yellow-600',
         details: horseNames
       });

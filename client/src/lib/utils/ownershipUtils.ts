@@ -214,7 +214,7 @@ function getFormula1TeamValue(): number {
 
 function getHorseRacingValue(): number {
   const horses = getHorseRacingData();
-  return horses.reduce((total, horse) => total + horse.value, 0);
+  return horses.reduce((total, horse) => total + horse.price, 0);
 }
 
 function getSportsTeamValue(): number {
