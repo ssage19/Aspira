@@ -3121,9 +3121,19 @@ export const useCharacter = create<CharacterState>()(
         console.log("PRICE SYNC: Price synchronization from asset tracker to character complete");
       },
       
-      processDailyUpdate: () => {
-        // Get current day and date from useTime
-        const { dayCounter, currentGameDate, currentDay, currentMonth } = useTime.getState();
+      processDailyUpdate: (forcedDayCounter = null) => {
+        // Get current day and date from useTime, or use forced values for offline processing
+        const timeState = useTime.getState();
+        const { currentGameDate, currentDay, currentMonth } = timeState;
+        // Use forced day counter if provided (for offline processing), otherwise get from time state
+        const dayCounter = forcedDayCounter !== null ? forcedDayCounter : timeState.dayCounter;
+        
+        // Log with more detail about which day counter we're using
+        if (forcedDayCounter !== null) {
+          console.log(`Processing daily update with FORCED day counter: ${dayCounter} (offline processing)`);
+        } else {
+          console.log(`Processing daily update with day counter: ${dayCounter} (live)`);
+        }
         
         set((state) => {
           // Update days since promotion if employed

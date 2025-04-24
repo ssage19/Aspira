@@ -521,7 +521,7 @@ export const useTime = create<TimeState>()(
         for (let i = 0; i < fullDaysToProcess; i++) {
           // Advance the date
           currentDay++;
-          dayCounter = (dayCounter + 1) % 14;
+          dayCounter++;  // Increment the day counter without modulo (for bi-weekly paycheck tracking)
           daysPassed++;
           
           // Check if we need to advance the month
@@ -539,21 +539,36 @@ export const useTime = create<TimeState>()(
           
           try {
             // Process daily income from properties and other passive sources
-            // Import dynamically to avoid circular dependencies
-            const useCharacter = require('./useCharacter').useCharacter;
-            if (useCharacter && useCharacter.getState && useCharacter.getState().processDailyUpdate) {
-              useCharacter.getState().processDailyUpdate();
-              console.log(`Processed passive income for offline day ${i+1}/${fullDaysToProcess}`);
+            // Import dynamically to avoid circular dependencies - use default export
+            const useCharacter = (require('./useCharacter').default);
+            if (useCharacter && useCharacter.getState) {
+              // Add a workaround to make the useCharacter store know which day we're processing
+              // This is needed because it will try to read from useTime otherwise, causing circular reference
+              const characterState = useCharacter.getState();
+              if (typeof characterState.processDailyUpdate === 'function') {
+                // Set current day in state context
+                useCharacter.setState({
+                  currentDay,
+                  currentMonth,
+                  currentYear
+                });
+                // Pass the current dayCounter so paycheck calculations work correctly
+                characterState.processDailyUpdate(dayCounter);
+                console.log(`Processed update for offline day ${i+1}/${fullDaysToProcess} (day counter: ${dayCounter})`);
+              }
             }
             
             // Check for weekly updates (every 7 days)
             if (dayCounter % 7 === 0) {
               try {
                 // Import economy store dynamically to avoid circular dependencies
-                const useEconomy = require('./useEconomy').default;
-                if (useEconomy && useEconomy.getState && useEconomy.getState().processWeeklyUpdate) {
-                  useEconomy.getState().processWeeklyUpdate();
-                  console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
+                const useEconomy = (require('./useEconomy').default);
+                if (useEconomy && useEconomy.getState) {
+                  const economyState = useEconomy.getState();
+                  if (typeof economyState.processWeeklyUpdate === 'function') {
+                    economyState.processWeeklyUpdate();
+                    console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
+                  }
                 }
               } catch (weeklyError) {
                 console.error('Error processing offline weekly update:', weeklyError);
@@ -569,15 +584,19 @@ export const useTime = create<TimeState>()(
             if (isEndOfMonth) {
               try {
                 // Process monthly economy update
-                const useEconomy = require('./useEconomy').default;
-                if (useEconomy && useEconomy.getState && useEconomy.getState().processMonthlyUpdate) {
-                  useEconomy.getState().processMonthlyUpdate();
-                  console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
+                const useEconomy = (require('./useEconomy').default);
+                if (useEconomy && useEconomy.getState) {
+                  const economyState = useEconomy.getState();
+                  if (typeof economyState.processMonthlyUpdate === 'function') {
+                    economyState.processMonthlyUpdate();
+                    console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
+                  }
                 }
                 
                 // Process monthly character expenses (housing, subscriptions, etc.)
-                if (useCharacter.getState().monthlyUpdate) {
-                  useCharacter.getState().monthlyUpdate();
+                const characterState = useCharacter.getState();
+                if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                  characterState.monthlyUpdate();
                   console.log(`Processed monthly character expenses during offline time for: ${currentMonth}/${currentYear}`);
                 }
               } catch (monthlyError) {
