@@ -144,6 +144,15 @@ export function SimplePortfolioBreakdown() {
       });
     }
     
+    // Add businesses if owned
+    if (ownershipBreakdown.businesses && ownershipBreakdown.businesses.count > 0) {
+      ownershipAssets.items.push({
+        label: `Businesses (${ownershipBreakdown.businesses.count})`,
+        value: ownershipBreakdown.businesses.value,
+        color: 'bg-emerald-500'
+      });
+    }
+    
     // Combine all categories
     const categories = [cashAssets, investmentAssets, propertyAssets, lifestyleAssets];
     

@@ -587,7 +587,19 @@ export const formatInteger = (num: number): string => {
  * @returns Formatted percentage string (e.g., "12.3%")
  */
 export const formatPercentage = (value: number, fixed: number = 1): string => {
-  return (value * 100).toFixed(fixed) + '%';
+  // Handle NaN, Infinity, and undefined
+  if (isNaN(value) || !isFinite(value) || value === undefined) {
+    return '0.0%';
+  }
+  
+  // Ensure value is between 0 and 1 for percentage calculation
+  // If value is already above 1, assume it's already in percentage form
+  const multiplier = value > 1 ? 1 : 100;
+  
+  // Clamp extremely large values to prevent UI issues
+  const clampedValue = Math.min(value, 1000000 / multiplier);
+  
+  return (clampedValue * multiplier).toFixed(fixed) + '%';
 };
 
 // Export local storage helpers
