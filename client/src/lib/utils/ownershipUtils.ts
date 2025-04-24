@@ -31,20 +31,22 @@ interface Formula1Team {
 interface RacingHorse {
   id: string;
   name: string;
-  age: number;
   breed: string;
-  value: number;
-  purchasePrice: number;
-  purchaseDate: string;
-  trainingLevel: number;
-  energyLevel: number;
-  potential: number;
-  raceHistory: {
-    date: string;
-    position: number;
-    eventName: string;
-    earnings: number;
-  }[];
+  age: number;
+  price: number; // This is used as the value
+  maintenance: number;
+  speed: number;
+  stamina: number;
+  health: number;
+  morale: number;
+  training: number;
+  nutrition: number;
+  hydration: number;
+  lastRaceDate?: string;
+  lastRacePosition?: number;
+  nextRaceDate?: string;
+  earnings: number;
+  image: string;
 }
 
 // Interface for Sports Team data
@@ -163,7 +165,7 @@ export function getTotalOwnershipValue(): number {
   // Add horse racing values
   const horses = getHorseRacingData();
   if (horses && horses.length > 0) {
-    total += horses.reduce((sum, horse) => sum + horse.value, 0);
+    total += horses.reduce((sum, horse) => sum + horse.price, 0);
   }
   
   // Add sports team value
