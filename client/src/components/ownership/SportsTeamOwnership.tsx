@@ -865,6 +865,21 @@ export function SportsTeamOwnership() {
     setTeam(updatedTeam);
   };
 
+  // Helper function to determine difficulty from opponent name
+  const getDifficultyForOpponent = (opponentName: string): number => {
+    const name = opponentName.toLowerCase();
+    if (name.includes('stars') || name.includes('titans') || name.includes('kings')) {
+      return 5; // toughest opponents
+    } else if (name.includes('eagles') || name.includes('wolves')) {
+      return 4; // hard opponents
+    } else if (name.includes('knights') || name.includes('sharks')) {
+      return 2; // easier opponents
+    } else if (name.includes('bears') || name.includes('waves')) {
+      return 1; // easiest opponents
+    }
+    return 3; // default medium difficulty
+  };
+
   // Calculate expected game outcome based on performance
   const calculateExpectedOutcome = (game: { difficulty: number; home: boolean }) => {
     if (!team) return { result: '-', winChance: 0 };
@@ -913,27 +928,10 @@ export function SportsTeamOwnership() {
     
     const game = team.schedule[gameIndex];
     
-    // Add difficulty level to the game object based on opponent name
-    // We'll derive difficulty from the opponent's name (1-5 scale)
-    const opponentName = game.opponent.toLowerCase();
-    let difficulty = 3; // default medium difficulty
+    // Get the difficulty level for this opponent
+    const difficulty = getDifficultyForOpponent(game.opponent);
     
     // Create a game object with the required properties for calculateExpectedOutcome
-    const gameForCalc = {
-      difficulty: difficulty,
-      home: game.home
-    };
-    
-    if (opponentName.includes('stars') || opponentName.includes('titans') || opponentName.includes('kings')) {
-      difficulty = 5; // toughest opponents
-    } else if (opponentName.includes('eagles') || opponentName.includes('wolves')) {
-      difficulty = 4; // hard opponents
-    } else if (opponentName.includes('knights') || opponentName.includes('sharks')) {
-      difficulty = 2; // easier opponents
-    } else if (opponentName.includes('bears') || opponentName.includes('waves')) {
-      difficulty = 1; // easiest opponents
-    }
-    
     const gameWithDifficulty = { ...game, difficulty };
     const { winChance } = calculateExpectedOutcome(gameWithDifficulty);
     
@@ -1805,7 +1803,12 @@ export function SportsTeamOwnership() {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {team.schedule.filter(game => !game.result).map((game, index) => {
-                      const expectedOutcome = calculateExpectedOutcome(game);
+                      // Create a game object with difficulty for calculation
+                      const gameWithDifficulty = { 
+                        difficulty: getDifficultyForOpponent(game.opponent),
+                        home: game.home 
+                      };
+                      const expectedOutcome = calculateExpectedOutcome(gameWithDifficulty);
                       
                       return (
                         <Card key={index} className="border-primary/30">
@@ -1835,66 +1838,11 @@ export function SportsTeamOwnership() {
                               <div className="text-sm">
                                 <div>Expected outcome:</div>
                                 <div className={`font-medium ${
-                                  calculateExpectedOutcome({
-                                    difficulty: game.opponent.toLowerCase().includes('stars') ? 5 :
-                                             game.opponent.toLowerCase().includes('titans') ? 5 :
-                                             game.opponent.toLowerCase().includes('kings') ? 5 :
-                                             game.opponent.toLowerCase().includes('eagles') ? 4 :
-                                             game.opponent.toLowerCase().includes('wolves') ? 4 :
-                                             game.opponent.toLowerCase().includes('knights') ? 2 :
-                                             game.opponent.toLowerCase().includes('sharks') ? 2 :
-                                             game.opponent.toLowerCase().includes('bears') ? 1 :
-                                             game.opponent.toLowerCase().includes('waves') ? 1 : 3,
-                                    home: game.home
-                                  }).winChance > 70 ? 'text-green-500' : 
-                                  calculateExpectedOutcome({
-                                    difficulty: game.opponent.toLowerCase().includes('stars') ? 5 :
-                                             game.opponent.toLowerCase().includes('titans') ? 5 :
-                                             game.opponent.toLowerCase().includes('kings') ? 5 :
-                                             game.opponent.toLowerCase().includes('eagles') ? 4 :
-                                             game.opponent.toLowerCase().includes('wolves') ? 4 :
-                                             game.opponent.toLowerCase().includes('knights') ? 2 :
-                                             game.opponent.toLowerCase().includes('sharks') ? 2 :
-                                             game.opponent.toLowerCase().includes('bears') ? 1 :
-                                             game.opponent.toLowerCase().includes('waves') ? 1 : 3,
-                                    home: game.home
-                                  }).winChance > 50 ? 'text-blue-500' : 
-                                  calculateExpectedOutcome({
-                                    difficulty: game.opponent.toLowerCase().includes('stars') ? 5 :
-                                             game.opponent.toLowerCase().includes('titans') ? 5 :
-                                             game.opponent.toLowerCase().includes('kings') ? 5 :
-                                             game.opponent.toLowerCase().includes('eagles') ? 4 :
-                                             game.opponent.toLowerCase().includes('wolves') ? 4 :
-                                             game.opponent.toLowerCase().includes('knights') ? 2 :
-                                             game.opponent.toLowerCase().includes('sharks') ? 2 :
-                                             game.opponent.toLowerCase().includes('bears') ? 1 :
-                                             game.opponent.toLowerCase().includes('waves') ? 1 : 3,
-                                    home: game.home
-                                  }).winChance > 30 ? 'text-amber-500' : 'text-red-500'
+                                  expectedOutcome.winChance > 70 ? 'text-green-500' : 
+                                  expectedOutcome.winChance > 50 ? 'text-blue-500' : 
+                                  expectedOutcome.winChance > 30 ? 'text-amber-500' : 'text-red-500'
                                 }`}>
-                                  {calculateExpectedOutcome({
-                                    difficulty: game.opponent.toLowerCase().includes('stars') ? 5 :
-                                             game.opponent.toLowerCase().includes('titans') ? 5 :
-                                             game.opponent.toLowerCase().includes('kings') ? 5 :
-                                             game.opponent.toLowerCase().includes('eagles') ? 4 :
-                                             game.opponent.toLowerCase().includes('wolves') ? 4 :
-                                             game.opponent.toLowerCase().includes('knights') ? 2 :
-                                             game.opponent.toLowerCase().includes('sharks') ? 2 :
-                                             game.opponent.toLowerCase().includes('bears') ? 1 :
-                                             game.opponent.toLowerCase().includes('waves') ? 1 : 3,
-                                    home: game.home
-                                  }).result} ({Math.round(calculateExpectedOutcome({
-                                    difficulty: game.opponent.toLowerCase().includes('stars') ? 5 :
-                                             game.opponent.toLowerCase().includes('titans') ? 5 :
-                                             game.opponent.toLowerCase().includes('kings') ? 5 :
-                                             game.opponent.toLowerCase().includes('eagles') ? 4 :
-                                             game.opponent.toLowerCase().includes('wolves') ? 4 :
-                                             game.opponent.toLowerCase().includes('knights') ? 2 :
-                                             game.opponent.toLowerCase().includes('sharks') ? 2 :
-                                             game.opponent.toLowerCase().includes('bears') ? 1 :
-                                             game.opponent.toLowerCase().includes('waves') ? 1 : 3,
-                                    home: game.home
-                                  }).winChance)}% win chance)
+                                  {expectedOutcome.result} ({Math.round(expectedOutcome.winChance)}% win chance)
                                 </div>
                               </div>
                               <Button 
