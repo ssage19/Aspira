@@ -14,6 +14,7 @@ import { useResponsive } from '../lib/hooks/useResponsive';
 // Import UI components
 import { GameUI } from '../components/GameUI';
 import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
+import { OwnershipBreakdown } from '../components/OwnershipBreakdown';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
 import { UpcomingEventsWidget } from '../components/UpcomingEventsWidget';
@@ -360,6 +361,16 @@ export default function ReliableDashboard() {
                   
                   {/* Use our completely rewritten component for better reliability */}
                   <SimplePortfolioBreakdown key={`portfolio-${refreshTrigger}`} />
+                </Card>
+                
+                {/* Ownership Assets Breakdown */}
+                <Card className="mb-8 futuristic-card border-primary/30 shadow-lg relative overflow-hidden">
+                  {/* Glow effects */}
+                  <div className="absolute -top-4 right-1/3 h-16 w-16 bg-amber-500/30 blur-2xl rounded-full"></div>
+                  <div className="absolute bottom-4 left-1/3 h-16 w-16 bg-red-500/30 blur-2xl rounded-full"></div>
+                  
+                  {/* Dedicated component for ownership assets */}
+                  <OwnershipBreakdown key={`ownership-${refreshTrigger}`} />
                 </Card>
 
                 {/* Financial Widgets */}
