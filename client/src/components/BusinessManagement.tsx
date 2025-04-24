@@ -569,6 +569,16 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   const [withdrawAmount, setWithdrawAmount] = useState('');
   const [isHireDialogOpen, setIsHireDialogOpen] = useState(false);
   
+  // Marketing campaign states
+  const [marketingBudget, setMarketingBudget] = useState(business.marketingBudget.toString());
+  const [campaignType, setCampaignType] = useState('');
+  const [campaignDuration, setCampaignDuration] = useState('');
+  const [campaignBudget, setCampaignBudget] = useState('');
+  
+  // Internal investment states
+  const [investmentCategory, setInvestmentCategory] = useState('');
+  const [investmentAmount, setInvestmentAmount] = useState('');
+  
   const { 
     withdrawFunds,
     investFunds,
@@ -576,7 +586,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
     purchaseUpgrade,
     toggleAutoManage,
     processBusinesses,
-    sellBusiness
+    sellBusiness,
+    updateMarketingBudget,
+    createMarketingCampaign,
+    cancelMarketingCampaign,
+    createInternalInvestment
   } = useBusiness();
   
   const { economyState } = useEconomy();
@@ -641,6 +655,75 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   const handleSellBusiness = () => {
     sellBusiness(business.id);
     setIsSellDialogOpen(false);
+  };
+  
+  // Marketing functions
+  const handleUpdateMarketingBudget = () => {
+    const budget = parseFloat(marketingBudget);
+    if (isNaN(budget) || budget < 0) {
+      toast.error('Please enter a valid marketing budget.');
+      return;
+    }
+    
+    const success = updateMarketingBudget(business.id, budget);
+    if (success) {
+      toast.success('Marketing budget updated successfully.');
+    }
+  };
+  
+  const handleCreateMarketingCampaign = () => {
+    if (!campaignType) {
+      toast.error('Please select a campaign type.');
+      return;
+    }
+    
+    const duration = parseInt(campaignDuration);
+    if (isNaN(duration) || duration <= 0) {
+      toast.error('Please enter a valid campaign duration.');
+      return;
+    }
+    
+    const budget = parseFloat(campaignBudget);
+    if (isNaN(budget) || budget <= 0) {
+      toast.error('Please enter a valid campaign budget.');
+      return;
+    }
+    
+    const success = createMarketingCampaign(business.id, campaignType, duration, budget);
+    if (success) {
+      setCampaignType('');
+      setCampaignDuration('');
+      setCampaignBudget('');
+      toast.success('Marketing campaign created successfully.');
+    }
+  };
+  
+  const handleCancelMarketingCampaign = (campaignId: string) => {
+    const success = cancelMarketingCampaign(business.id, campaignId);
+    if (success) {
+      toast.success('Marketing campaign cancelled.');
+    }
+  };
+  
+  // Internal investment functions
+  const handleCreateInternalInvestment = () => {
+    if (!investmentCategory) {
+      toast.error('Please select an investment category.');
+      return;
+    }
+    
+    const amount = parseFloat(investmentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      toast.error('Please enter a valid investment amount.');
+      return;
+    }
+    
+    const success = createInternalInvestment(business.id, investmentCategory, amount);
+    if (success) {
+      setInvestmentCategory('');
+      setInvestmentAmount('');
+      toast.success('Internal investment created successfully.');
+    }
   };
   
   // Business health calculation
