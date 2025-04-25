@@ -1,34 +1,58 @@
 import { formatCurrency } from '../utils';
 import { toast } from 'sonner';
 
-// Import dynamically to avoid circular dependencies
-let _useCharacter: any;
-let _useMonthlyFinances: any;
+// We'll use direct access to store.getState rather than importing
+// This avoids circular dependencies completely
+function getCharacterState() {
+  try {
+    // Access localStorage directly
+    const savedState = localStorage.getItem('business-empire-character');
+    if (!savedState) {
+      console.error('No character state found in localStorage');
+      return null;
+    }
+    
+    return JSON.parse(savedState);
+  } catch (error) {
+    console.error('Error getting character state:', error);
+    return null;
+  }
+}
 
-// Helper function to get store instances only when needed
-function getStores() {
-  if (!_useCharacter) {
-    try {
-      const { useCharacter } = require('../stores/useCharacter');
-      _useCharacter = useCharacter;
-    } catch (error) {
-      console.error('Failed to load useCharacter store:', error);
-    }
+function getMonthlyFinances() {
+  // Calculate finances directly without importing the hook
+  // This is a simplified version that provides the core functionality we need
+  try {
+    const characterState = getCharacterState();
+    if (!characterState) return { propertyIncome: 0, businessIncome: 0, investmentIncome: 0 };
+    
+    // Extract income from owned properties
+    const propertyIncome = (characterState.properties || [])
+      .reduce((total: number, property: any) => total + (property.income || 0), 0);
+    
+    // Extract income from owned businesses
+    const businessIncome = (characterState.businesses || [])
+      .reduce((total: number, business: any) => total + (business.income || 0), 0);
+    
+    // Extract income from investments
+    const investmentIncome = (characterState.investments || [])
+      .reduce((total: number, investment: any) => {
+        // For stocks, calculate dividend income
+        if (investment.type === 'stock' && investment.dividendYield) {
+          return total + (investment.purchasePrice * investment.quantity * investment.dividendYield / 100);
+        }
+        // For bonds, calculate interest income
+        else if (investment.type === 'bond' && investment.interestRate) {
+          return total + (investment.purchasePrice * investment.interestRate / 100);
+        }
+        return total;
+      }, 0);
+    
+    return { propertyIncome, businessIncome, investmentIncome };
+  } catch (error) {
+    console.error('Error calculating monthly finances:', error);
+    return { propertyIncome: 0, businessIncome: 0, investmentIncome: 0 };
   }
-  
-  if (!_useMonthlyFinances) {
-    try {
-      const { useMonthlyFinances } = require('../hooks/useMonthlyFinances');
-      _useMonthlyFinances = useMonthlyFinances;
-    } catch (error) {
-      console.error('Failed to load useMonthlyFinances hook:', error);
-    }
-  }
-  
-  return {
-    useCharacter: _useCharacter,
-    useMonthlyFinances: _useMonthlyFinances
-  };
 }
 
 /**
@@ -67,11 +91,11 @@ export function calculateOfflineIncome(
   startDate: Date, 
   endDate: Date
 ): OfflineIncomeReport {
-  // Get stores using our helper function to avoid circular dependencies
-  const { useCharacter, useMonthlyFinances } = getStores();
+  // Get character state directly (no circular dependencies)
+  const characterState = getCharacterState();
   
-  if (!useCharacter || !useMonthlyFinances) {
-    console.error('Cannot calculate offline income - stores not available');
+  if (!characterState) {
+    console.error('Cannot calculate offline income - character state not available');
     return {
       totalIncome: 0,
       sources: [],
@@ -81,15 +105,12 @@ export function calculateOfflineIncome(
     };
   }
   
-  // Get the character state for calculations
-  const characterState = useCharacter.getState();
-  
-  // Get finance calculations for monthly income values
+  // Get finance calculations directly from our helper
   const { 
     propertyIncome, 
     businessIncome, 
     investmentIncome 
-  } = useMonthlyFinances();
+  } = getMonthlyFinances();
   
   // The sources array will track all income sources
   const sources: OfflineIncomeSource[] = [];
@@ -301,54 +322,63 @@ export function applyOfflineIncome(report: OfflineIncomeReport): void {
     return; // No income to apply
   }
   
-  // Get character state using our helper function
-  const { useCharacter } = getStores();
-  if (!useCharacter) {
-    console.error('Cannot apply offline income - character store not available');
-    return;
-  }
-  const characterState = useCharacter.getState();
-  
-  // Add the accumulated income to the player's wealth
-  characterState.addWealth(report.totalIncome);
-  
-  // Create a detailed message for the toast notification
-  let message = `While you were away (${report.daysPassed} days), you earned ${formatCurrency(report.totalIncome)}:`;
-  
-  // Add details for significant income sources
-  const significantSources = report.sources
-    .filter(source => source.accumulatedAmount >= 1000) // Only show sources with significant amounts
-    .sort((a, b) => b.accumulatedAmount - a.accumulatedAmount); // Sort by amount (largest first)
-  
-  if (significantSources.length > 0) {
-    message += significantSources
-      .slice(0, 3) // Limit to top 3 sources to avoid overwhelming
-      .map(source => `\n- ${source.name}: ${formatCurrency(source.accumulatedAmount)}`)
-      .join('');
-      
-    // If there are more sources, add a summary line
-    if (report.sources.length > 3) {
-      message += `\n- Other sources: ${formatCurrency(
-        report.totalIncome - significantSources.slice(0, 3).reduce((sum, s) => sum + s.accumulatedAmount, 0)
-      )}`;
+  try {
+    // Direct approach - modify localStorage to add the wealth
+    const characterStateStr = localStorage.getItem('business-empire-character');
+    if (!characterStateStr) {
+      console.error('Cannot apply offline income - character state not found in localStorage');
+      return;
     }
+    
+    const characterState = JSON.parse(characterStateStr);
+    
+    // Add income to the player's cash/wealth
+    characterState.cash = (characterState.cash || 0) + report.totalIncome;
+    
+    // Save back to localStorage
+    localStorage.setItem('business-empire-character', JSON.stringify(characterState));
+    console.log(`Applied ${report.totalIncome} income to character cash: ${characterState.cash}`);
+    
+    // Create a detailed message for the toast notification
+    let message = `While you were away (${report.daysPassed} days), you earned ${formatCurrency(report.totalIncome)}:`;
+    
+    // Add details for significant income sources
+    const significantSources = report.sources
+      .filter(source => source.accumulatedAmount >= 1000) // Only show sources with significant amounts
+      .sort((a, b) => b.accumulatedAmount - a.accumulatedAmount); // Sort by amount (largest first)
+    
+    if (significantSources.length > 0) {
+      message += significantSources
+        .slice(0, 3) // Limit to top 3 sources to avoid overwhelming
+        .map(source => `\n- ${source.name}: ${formatCurrency(source.accumulatedAmount)}`)
+        .join('');
+        
+      // If there are more sources, add a summary line
+      if (report.sources.length > 3) {
+        message += `\n- Other sources: ${formatCurrency(
+          report.totalIncome - significantSources.slice(0, 3).reduce((sum: number, s: any) => sum + s.accumulatedAmount, 0)
+        )}`;
+      }
+    }
+    
+    // Show a toast with the income summary
+    toast.success(message, {
+      duration: 8000, // Longer duration for important offline report
+      position: 'top-center'
+    });
+    
+    // Log detailed breakdown to console for debugging
+    console.log('=== OFFLINE INCOME REPORT ===');
+    console.log(`Days passed: ${report.daysPassed}`);
+    console.log(`Total income: ${formatCurrency(report.totalIncome)}`);
+    console.log('Income sources:');
+    report.sources.forEach(source => {
+      console.log(`- ${source.name} (${source.type}): ${formatCurrency(source.accumulatedAmount)}`);
+    });
+    console.log('============================');
+  } catch (error) {
+    console.error('Error applying offline income:', error);
   }
-  
-  // Show a toast with the income summary
-  toast.success(message, {
-    duration: 8000, // Longer duration for important offline report
-    position: 'top-center'
-  });
-  
-  // Log detailed breakdown to console for debugging
-  console.log('=== OFFLINE INCOME REPORT ===');
-  console.log(`Days passed: ${report.daysPassed}`);
-  console.log(`Total income: ${formatCurrency(report.totalIncome)}`);
-  console.log('Income sources:');
-  report.sources.forEach(source => {
-    console.log(`- ${source.name} (${source.type}): ${formatCurrency(source.accumulatedAmount)}`);
-  });
-  console.log('============================');
 }
 
 /**
