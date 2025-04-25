@@ -3396,14 +3396,27 @@ export const useCharacter = create<CharacterState>()(
             daysSincePromotion += 1;
             
             // Check if we've reached a 30-day milestone with the job
-            // The daysSincePromotion counter tracks job tenure
+            // The daysSincePromotion counter tracks job tenure in days
             if (daysSincePromotion > 0 && daysSincePromotion % 30 === 0) {
               console.log(`30-day job milestone reached! Days since promotion: ${daysSincePromotion}`);
               
               // Update the monthsInPosition counter on the job
               // This is the value shown in the Career tab UI
-              state.job.monthsInPosition = Math.floor(daysSincePromotion / 30);
-              console.log(`Updated job months in position to: ${state.job.monthsInPosition}`);
+              // When we reach 30 days, we increment months and reset days to 1
+              const newMonthCount = state.job.monthsInPosition + 1;
+              state.job.monthsInPosition = newMonthCount;
+              
+              // Reset days to 1 (not 0) to maintain consistent counting
+              daysSincePromotion = 1;
+              
+              console.log(`Updated job months in position to: ${state.job.monthsInPosition} and reset days to 1`);
+              
+              // Check if we've reached a 12-month milestone
+              if (newMonthCount > 0 && newMonthCount % 12 === 0) {
+                console.log(`12-month (1 year) job milestone reached! Converting to years.`);
+                // We will handle the display in the UI with Math.floor(months/12) for years
+                // No need to reset months to 0 since we use modulo for display
+              }
               
               // Apply skill gains directly to the character's skills
               if (state.job.skillGains) {
