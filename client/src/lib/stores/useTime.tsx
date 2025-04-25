@@ -477,165 +477,251 @@ export const useTime = create<TimeState>()(
       
       // Process time that passed while the application was closed
       processOfflineTime: () => set((state) => {
-        const currentTime = Date.now();
-        const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
-        
-        // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
-        if (wasPaused || lastRealTimestamp === 0) {
-          // Update the timestamp without processing time
-          return {
-            ...state,
-            lastRealTimestamp: currentTime
-          };
-        }
-        
-        // Calculate how much real time has passed since the last session
-        const realMsPassed = currentTime - lastRealTimestamp;
-        
-        // If less than 5 seconds passed, don't bother processing
-        if (realMsPassed < 5000) {
-          return {
-            ...state,
-            lastRealTimestamp: currentTime
-          };
-        }
-        
-        console.log(`Processing offline time: ${realMsPassed}ms real time passed since last session`);
-        
-        // 1 real-world second = 1 in-game hour = 1/24 of a day
-        // Apply time multiplier (default setting) for offline progression
-        const adjustedMs = realMsPassed * (timeMultiplier || 1.0);
-        const hoursElapsed = adjustedMs / 1000;
-        const daysElapsed = hoursElapsed / 24;
-        
-        console.log(`Converting to ${daysElapsed.toFixed(2)} in-game days elapsed during offline time`);
-        
-        // Process full days
-        const fullDaysToProcess = Math.floor(daysElapsed);
-        let currentDay = state.currentDay;
-        let currentMonth = state.currentMonth;
-        let currentYear = state.currentYear;
-        let dayCounter = state.dayCounter;
-        let daysPassed = state.daysPassed;
-        
-        // Process each day one by one to ensure proper month/year transitions
-        for (let i = 0; i < fullDaysToProcess; i++) {
-          // Advance the date
-          currentDay++;
-          dayCounter++;  // Increment the day counter without modulo (for bi-weekly paycheck tracking)
-          daysPassed++;
+        try {
+          console.log("Beginning offline time processing...");
+          const currentTime = Date.now();
+          const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
           
-          // Check if we need to advance the month
-          const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
-          if (currentDay > daysInMonth) {
-            currentDay = 1;
-            currentMonth++;
-            
-            // Check if we need to advance the year
-            if (currentMonth > 12) {
-              currentMonth = 1;
-              currentYear++;
-            }
+          // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
+          if (wasPaused || lastRealTimestamp === 0) {
+            console.log(`Skipping offline processing: ${wasPaused ? 'Game was paused' : 'First load detected'}`);
+            // Update the timestamp without processing time
+            return {
+              ...state,
+              lastRealTimestamp: currentTime
+            };
           }
           
-          try {
-            // Process daily income from properties and other passive sources
-            // Import dynamically to avoid circular dependencies - use default export
-            const useCharacter = (require('./useCharacter').default);
-            if (useCharacter && useCharacter.getState) {
-              // Add a workaround to make the useCharacter store know which day we're processing
-              // This is needed because it will try to read from useTime otherwise, causing circular reference
-              const characterState = useCharacter.getState();
+          // Calculate how much real time has passed since the last session
+          const realMsPassed = currentTime - lastRealTimestamp;
+          
+          // If less than 5 seconds passed, don't bother processing
+          if (realMsPassed < 5000) {
+            console.log(`Skipping offline processing: Only ${realMsPassed}ms passed (less than threshold)`);
+            return {
+              ...state,
+              lastRealTimestamp: currentTime
+            };
+          }
+          
+          console.log(`Processing offline time: ${realMsPassed}ms real time passed since last session`);
+          console.log(`Current state - Day: ${state.currentDay}, Month: ${state.currentMonth}, Year: ${state.currentYear}`);
+          console.log(`Time multiplier: ${timeMultiplier || 1.0}`);
+          
+          // 1 real-world second = 1 in-game hour = 1/24 of a day
+          // Apply time multiplier (default setting) for offline progression
+          const adjustedMs = realMsPassed * (timeMultiplier || 1.0);
+          const hoursElapsed = adjustedMs / 1000;
+          const daysElapsed = hoursElapsed / 24;
+          
+          console.log(`Converting to ${daysElapsed.toFixed(2)} in-game days elapsed during offline time`);
+          
+          // Process full days
+          const fullDaysToProcess = Math.floor(daysElapsed);
+          console.log(`Full days to process: ${fullDaysToProcess}`);
+          
+          let currentDay = state.currentDay;
+          let currentMonth = state.currentMonth;
+          let currentYear = state.currentYear;
+          let dayCounter = state.dayCounter;
+          let daysPassed = state.daysPassed;
+          
+          // Process each day one by one to ensure proper month/year transitions
+          for (let i = 0; i < fullDaysToProcess; i++) {
+            // Advance the date
+            currentDay++;
+            dayCounter++;  // Increment the day counter without modulo (for bi-weekly paycheck tracking)
+            daysPassed++;
+            
+            // Check if we need to advance the month
+            const daysInMonth = new Date(currentYear, currentMonth, 0).getDate();
+            if (currentDay > daysInMonth) {
+              currentDay = 1;
+              currentMonth++;
+              
+              // Check if we need to advance the year
+              if (currentMonth > 12) {
+                currentMonth = 1;
+                currentYear++;
+              }
+            }
+            
+            console.log(`Processing day ${i+1}/${fullDaysToProcess}: ${currentMonth}/${currentDay}/${currentYear} (counter: ${dayCounter})`);
+            
+            try {
+              // Process daily income from properties and other passive sources
+              console.log(`Step 1: Attempting to load useCharacter store...`);
+              
+              // Import dynamically to avoid circular dependencies - use default export
+              let useCharacter;
+              try {
+                useCharacter = (require('./useCharacter').default);
+                console.log(`Successfully loaded useCharacter store: ${!!useCharacter}`);
+              } catch (characterImportError) {
+                console.error('Failed to import useCharacter store:', characterImportError);
+                continue; // Skip to next day if we can't load the character store
+              }
+              
+              if (!useCharacter) {
+                console.error('useCharacter store is undefined after import');
+                continue;
+              }
+              
+              if (typeof useCharacter.getState !== 'function') {
+                console.error('useCharacter.getState is not a function:', useCharacter);
+                continue;
+              }
+              
+              console.log(`Step 2: Attempting to get character state...`);
+              let characterState;
+              try {
+                characterState = useCharacter.getState();
+                console.log(`Successfully got character state: ${!!characterState}`);
+              } catch (getStateError) {
+                console.error('Error getting character state:', getStateError);
+                continue;
+              }
+              
+              if (!characterState) {
+                console.error('Character state is undefined');
+                continue;
+              }
+              
+              console.log(`Step 3: Checking if character state has processDailyUpdate function...`);
               if (typeof characterState.processDailyUpdate === 'function') {
-                // Set current day in state context
-                useCharacter.setState({
-                  currentDay,
-                  currentMonth,
-                  currentYear
-                });
-                // Pass the current dayCounter so paycheck calculations work correctly
-                characterState.processDailyUpdate(dayCounter);
-                console.log(`Processed update for offline day ${i+1}/${fullDaysToProcess} (day counter: ${dayCounter})`);
-              }
-            }
-            
-            // Check for weekly updates (every 7 days)
-            if (dayCounter % 7 === 0) {
-              try {
-                // Import economy store dynamically to avoid circular dependencies
-                const useEconomy = (require('./useEconomy').default);
-                if (useEconomy && useEconomy.getState) {
-                  const economyState = useEconomy.getState();
-                  if (typeof economyState.processWeeklyUpdate === 'function') {
-                    economyState.processWeeklyUpdate();
-                    console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
-                  }
-                }
-              } catch (weeklyError) {
-                console.error('Error processing offline weekly update:', weeklyError);
-              }
-            }
-            
-            // Check for end of month for monthly updates
-            // We construct the date object for the current day and then check if the next day would be in a new month
-            const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
-            const nextDate = new Date(currentYear, currentMonth - 1, currentDay + 1);
-            const isEndOfMonth = nextDate.getMonth() !== currentDate.getMonth();
-            
-            if (isEndOfMonth) {
-              try {
-                // Process monthly economy update
-                const useEconomy = (require('./useEconomy').default);
-                if (useEconomy && useEconomy.getState) {
-                  const economyState = useEconomy.getState();
-                  if (typeof economyState.processMonthlyUpdate === 'function') {
-                    economyState.processMonthlyUpdate();
-                    console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
-                  }
+                console.log(`Step 4: Setting current day in character state context...`);
+                try {
+                  // Set current day in state context
+                  useCharacter.setState({
+                    currentDay,
+                    currentMonth,
+                    currentYear
+                  });
+                  console.log(`Successfully updated character state with current date`);
+                } catch (setStateError) {
+                  console.error('Error setting character state with current date:', setStateError);
+                  continue;
                 }
                 
-                // Process monthly character expenses (housing, subscriptions, etc.)
-                const characterState = useCharacter.getState();
-                if (characterState && typeof characterState.monthlyUpdate === 'function') {
-                  characterState.monthlyUpdate();
-                  console.log(`Processed monthly character expenses during offline time for: ${currentMonth}/${currentYear}`);
+                console.log(`Step 5: Calling processDailyUpdate function...`);
+                try {
+                  // Pass the current dayCounter so paycheck calculations work correctly
+                  characterState.processDailyUpdate(dayCounter);
+                  console.log(`Successfully processed update for offline day ${i+1}/${fullDaysToProcess} (day counter: ${dayCounter})`);
+                } catch (processDailyError) {
+                  console.error(`Error in processDailyUpdate call for day ${i+1}/${fullDaysToProcess}:`, processDailyError);
+                  continue;
                 }
-              } catch (monthlyError) {
-                console.error('Error processing offline monthly update:', monthlyError);
+              } else {
+                console.error('processDailyUpdate is not a function on character state:', characterState);
+              }
+              
+              // Check for weekly updates (every 7 days)
+              if (dayCounter % 7 === 0) {
+                console.log(`Weekly update check for day counter: ${dayCounter}`);
+                try {
+                  // Import economy store dynamically to avoid circular dependencies
+                  const useEconomy = (require('./useEconomy').default);
+                  if (useEconomy && useEconomy.getState) {
+                    const economyState = useEconomy.getState();
+                    if (typeof economyState.processWeeklyUpdate === 'function') {
+                      economyState.processWeeklyUpdate();
+                      console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
+                    } else {
+                      console.warn('processWeeklyUpdate is not a function on economy state');
+                    }
+                  } else {
+                    console.warn('useEconomy store or getState method is not available');
+                  }
+                } catch (weeklyError) {
+                  console.error('Error processing offline weekly update:', weeklyError);
+                }
+              }
+              
+              // Check for end of month for monthly updates
+              // We construct the date object for the current day and then check if the next day would be in a new month
+              const currentDate = new Date(currentYear, currentMonth - 1, currentDay);
+              const nextDate = new Date(currentYear, currentMonth - 1, currentDay + 1);
+              const isEndOfMonth = nextDate.getMonth() !== currentDate.getMonth();
+              
+              if (isEndOfMonth) {
+                console.log(`End of month detected: ${currentMonth}/${currentYear}`);
+                try {
+                  // Process monthly economy update
+                  console.log(`Attempting monthly economy update...`);
+                  const useEconomy = (require('./useEconomy').default);
+                  if (useEconomy && useEconomy.getState) {
+                    const economyState = useEconomy.getState();
+                    if (typeof economyState.processMonthlyUpdate === 'function') {
+                      economyState.processMonthlyUpdate();
+                      console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
+                    } else {
+                      console.warn('processMonthlyUpdate is not a function on economy state');
+                    }
+                  } else {
+                    console.warn('useEconomy store or getState method is not available for monthly update');
+                  }
+                  
+                  // Process monthly character expenses (housing, subscriptions, etc.)
+                  console.log(`Attempting monthly character expenses update...`);
+                  if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                    characterState.monthlyUpdate();
+                    console.log(`Processed monthly character expenses during offline time for: ${currentMonth}/${currentYear}`);
+                  } else {
+                    console.warn('monthlyUpdate is not a function on character state or character state is unavailable');
+                  }
+                } catch (monthlyError) {
+                  console.error('Error processing offline monthly update:', monthlyError);
+                }
+              }
+            } catch (dayProcessingError) {
+              console.error(`Error processing offline character updates for day ${i+1}/${fullDaysToProcess}:`, dayProcessingError);
+              if (dayProcessingError instanceof Error) {
+                console.error('Error stack:', dayProcessingError.stack);
               }
             }
-          } catch (e) {
-            console.error('Error processing offline character updates:', e);
           }
+          
+          // Calculate the fractional part of the day for progress percentage
+          const fractionalDay = daysElapsed - fullDaysToProcess;
+          const newProgress = fractionalDay * 100;
+          
+          // Create the new game date
+          const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+          
+          // The new state with updated time values
+          const newState = {
+            ...state,
+            currentDay,
+            currentMonth,
+            currentYear,
+            currentGameDate: newGameDate,
+            gameTime: newGameDate,
+            previousGameDay: state.currentDay,
+            dayCounter,
+            daysPassed,
+            timeProgress: newProgress,
+            lastRealTimestamp: currentTime,
+            lastTickTime: currentTime // Reset the tick time for smooth continuation
+          };
+          
+          // Save to local storage
+          setLocalStorage(STORAGE_KEY, newState);
+          
+          console.log("Offline time processing completed successfully");
+          return newState;
+        } catch (error) {
+          console.error("Fatal error in processOfflineTime:", error);
+          if (error instanceof Error) {
+            console.error("Error stack:", error.stack);
+          }
+          
+          // On fatal error, just update the timestamp and return current state
+          return {
+            ...state,
+            lastRealTimestamp: Date.now()
+          };
         }
-        
-        // Calculate the fractional part of the day for progress percentage
-        const fractionalDay = daysElapsed - fullDaysToProcess;
-        const newProgress = fractionalDay * 100;
-        
-        // Create the new game date
-        const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
-        
-        // The new state with updated time values
-        const newState = {
-          ...state,
-          currentDay,
-          currentMonth,
-          currentYear,
-          currentGameDate: newGameDate,
-          gameTime: newGameDate,
-          previousGameDay: state.currentDay,
-          dayCounter,
-          daysPassed,
-          timeProgress: newProgress,
-          lastRealTimestamp: currentTime,
-          lastTickTime: currentTime // Reset the tick time for smooth continuation
-        };
-        
-        // Save to local storage
-        setLocalStorage(STORAGE_KEY, newState);
-        
-        return newState;
       })
     };
   })
