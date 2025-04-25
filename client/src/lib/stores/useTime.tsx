@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
 import { processOfflineIncome } from "../utils/offlineIncomeTracker";
+import { registerStore } from "../utils/storeRegistry";
 
 export type GameTimeSpeed = 'paused' | 'normal' | 'fast' | 'superfast';
 
@@ -106,7 +107,8 @@ const getCurrentDeviceDate = (forceRefresh: boolean = false) => {
   };
 };
 
-export const useTime = create<TimeState>()(
+// Create the store with subscription middleware
+const timeStore = create<TimeState>()(
   subscribeWithSelector((set) => {
     // Try to load saved time
     const savedTime = loadSavedTime();
@@ -775,3 +777,13 @@ export const useTime = create<TimeState>()(
     };
   })
 );
+
+// Register the time store in the global registry for cross-module access
+// This enables other modules to access the time store without circular dependencies
+registerStore('time', timeStore);
+
+// Log when the time store is registered successfully
+console.log('✅ Time Store: Registered in global store registry');
+
+// Export the time store for use in components
+export const useTime = timeStore;

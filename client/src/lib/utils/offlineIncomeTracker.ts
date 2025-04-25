@@ -1,20 +1,28 @@
 import { formatCurrency } from '../utils';
 import { toast } from 'sonner';
+import { getStore } from './storeRegistry';
 
-// We'll use direct access to store.getState rather than importing
-// This avoids circular dependencies completely
+// Use the store registry approach instead of direct localStorage access
 function getCharacterState() {
   try {
-    // Access localStorage directly
+    // First try to get the character store from the registry
+    const characterStore = getStore('character');
+    if (characterStore) {
+      console.log('✅ OfflineIncomeTracker: Got character state from store registry');
+      return characterStore.getState();
+    }
+    
+    // Fallback to localStorage if the store is not available
+    console.warn('⚠️ OfflineIncomeTracker: Character store not found in registry, falling back to localStorage');
     const savedState = localStorage.getItem('business-empire-character');
     if (!savedState) {
-      console.error('No character state found in localStorage');
+      console.error('❌ OfflineIncomeTracker: No character state found in localStorage');
       return null;
     }
     
     return JSON.parse(savedState);
   } catch (error) {
-    console.error('Error getting character state:', error);
+    console.error('❌ OfflineIncomeTracker: Error getting character state:', error);
     return null;
   }
 }
@@ -319,25 +327,43 @@ export function calculateOfflineIncome(
  */
 export function applyOfflineIncome(report: OfflineIncomeReport): void {
   if (report.totalIncome <= 0) {
+    console.log('No offline income to apply - amount is zero or negative');
     return; // No income to apply
   }
   
   try {
-    // Direct approach - modify localStorage to add the wealth
-    const characterStateStr = localStorage.getItem('business-empire-character');
-    if (!characterStateStr) {
-      console.error('Cannot apply offline income - character state not found in localStorage');
-      return;
+    // First try to get the character store from the registry
+    const characterStore = getStore('character');
+    
+    if (characterStore) {
+      // Use the store to update cash value
+      const currentState = characterStore.getState();
+      const newCash = (currentState.cash || 0) + report.totalIncome;
+      
+      // Update cash through the store action
+      characterStore.getState().updateCash(newCash);
+      
+      console.log(`✅ OfflineIncomeTracker: Applied ${report.totalIncome} income via store registry. New cash: ${newCash}`);
+    } else {
+      // Fallback to direct localStorage approach
+      console.warn('⚠️ OfflineIncomeTracker: Character store not available, using localStorage fallback');
+      
+      // Direct approach - modify localStorage to add the wealth
+      const characterStateStr = localStorage.getItem('business-empire-character');
+      if (!characterStateStr) {
+        console.error('❌ OfflineIncomeTracker: Cannot apply offline income - character state not found in localStorage');
+        return;
+      }
+      
+      const characterState = JSON.parse(characterStateStr);
+      
+      // Add income to the player's cash/wealth
+      characterState.cash = (characterState.cash || 0) + report.totalIncome;
+      
+      // Save back to localStorage
+      localStorage.setItem('business-empire-character', JSON.stringify(characterState));
+      console.log(`Applied ${report.totalIncome} income to character cash: ${characterState.cash}`);
     }
-    
-    const characterState = JSON.parse(characterStateStr);
-    
-    // Add income to the player's cash/wealth
-    characterState.cash = (characterState.cash || 0) + report.totalIncome;
-    
-    // Save back to localStorage
-    localStorage.setItem('business-empire-character', JSON.stringify(characterState));
-    console.log(`Applied ${report.totalIncome} income to character cash: ${characterState.cash}`);
     
     // Create a detailed message for the toast notification
     let message = `While you were away (${report.daysPassed} days), you earned ${formatCurrency(report.totalIncome)}:`;
