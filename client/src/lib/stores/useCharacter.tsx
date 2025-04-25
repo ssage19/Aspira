@@ -3384,11 +3384,19 @@ export const useCharacter = create<CharacterState>()(
           state.currentDay = currentDay;
           
           // If the character has a job, check if we need to improve job-related skills
-          if (state.job && state.job.monthsInPosition !== undefined) {
+          if (state.job && state.job.monthsInPosition !== undefined) {            
+            // Increment days since promotion counter first
+            daysSincePromotion += 1;
+            
             // Check if we've reached a 30-day milestone with the job
             // The daysSincePromotion counter tracks job tenure
             if (daysSincePromotion > 0 && daysSincePromotion % 30 === 0) {
               console.log(`30-day job milestone reached! Days since promotion: ${daysSincePromotion}`);
+              
+              // Update the monthsInPosition counter on the job
+              // This is the value shown in the Career tab UI
+              state.job.monthsInPosition = Math.floor(daysSincePromotion / 30);
+              console.log(`Updated job months in position to: ${state.job.monthsInPosition}`);
               
               // Apply skill gains directly to the character's skills
               if (state.job.skillGains) {
@@ -3521,9 +3529,6 @@ export const useCharacter = create<CharacterState>()(
           }
           
           if (state.job) {
-            // Increment days since promotion
-            daysSincePromotion += 1;
-            
             // Check if it's payday (every 14 days - bi-weekly paycheck)
             if (dayCounter % 14 === 0) {
               // Calculate bi-weekly income based on annual salary
@@ -3727,7 +3732,12 @@ export const useCharacter = create<CharacterState>()(
             thirst,
             energy,
             comfort,
-            health
+            health,
+            // Update job monthsInPosition to be in sync with daysSincePromotion
+            job: state.job ? {
+              ...state.job,
+              monthsInPosition: Math.floor(daysSincePromotion / 30)
+            } : null
           };
         });
         
@@ -3905,18 +3915,28 @@ export const useCharacter = create<CharacterState>()(
           // Apply monthly health adjustments (smaller than daily adjustments to avoid large swings)
           const updatedHealth = Math.max(0, Math.min(100, state.health + happinessEffect + socialEffect + environmentEffect));
           
-          // Update job experience if employed
+          // We'll no longer update monthsInPosition directly in the monthly update
+          // Instead, we'll ensure it stays in sync with daysSincePromotion
+          
+          // Get the current state for correct daysSincePromotion value
+          const daysSincePromotion = state.daysSincePromotion;
           let updatedJob = state.job;
           
           if (updatedJob) {
-            // Increment months in current position
-            updatedJob = {
-              ...updatedJob,
-              monthsInPosition: (updatedJob.monthsInPosition || 0) + 1
-            };
+            // Calculate months based on days (30 days = 1 month)
+            const calculatedMonths = Math.floor(daysSincePromotion / 30);
             
-            // Log that we're incrementing the months in position
-            console.log(`Monthly update: ${updatedJob.title} - Months in position updated to ${updatedJob.monthsInPosition}`);
+            // Only update if there's a discrepancy
+            if (updatedJob.monthsInPosition !== calculatedMonths) {
+              // Sync monthsInPosition with daysSincePromotion for consistency
+              updatedJob = {
+                ...updatedJob,
+                monthsInPosition: calculatedMonths
+              };
+              
+              // Log the synchronization
+              console.log(`Monthly sync: ${updatedJob.title} - Months in position synchronized to ${calculatedMonths} based on ${daysSincePromotion} days since promotion`);
+            }
             
             // Note: All job-related skill improvements are now handled directly 
             // in the daily update function based on job tenure (every 30 days)

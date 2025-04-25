@@ -91,6 +91,9 @@ export function initPersistentStateManager() {
   
   console.log('Initializing persistent state manager...');
   
+  // Load stores at initialization time to ensure they're available
+  loadStores();
+  
   // Set up automatic periodic saving
   autoSaveInterval = setInterval(() => {
     saveAllGameState();
@@ -182,9 +185,9 @@ export function saveAllGameState() {
  */
 export function saveShutdownState() {
   try {
-    // Validate stores before proceeding
-    if (!validateStores()) {
-      console.error('Failed to validate stores - cannot save shutdown state');
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot save shutdown state');
       return;
     }
     
@@ -239,9 +242,9 @@ export function processOfflineTimeIfNeeded() {
       return;
     }
     
-    // Validate stores before proceeding
-    if (!validateStores()) {
-      console.error('Failed to validate stores - cannot process offline time');
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot process offline time');
       return;
     }
     
