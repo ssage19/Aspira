@@ -479,6 +479,28 @@ export const useTime = create<TimeState>()(
       processOfflineTime: () => set((state) => {
         try {
           console.log("Beginning offline time processing...");
+          
+          // CRITICAL FIX: Clear any navigation flags that could cause redirection to create page
+          // When resuming the game from offline, these flags should be cleared to prevent unwanted redirects
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            // Check for session flags that could cause redirection
+            if (sessionStorage.getItem('smooth_navigation') === 'true') {
+              console.log("⚠️ Removing smooth_navigation flag to prevent character reset");
+              sessionStorage.removeItem('smooth_navigation');
+            }
+            
+            // Also check for these flags that could affect character persistence
+            if (sessionStorage.getItem('force_current_date') === 'true') {
+              console.log("⚠️ Removing force_current_date flag during offline processing");
+              sessionStorage.removeItem('force_current_date');
+            }
+            
+            if (sessionStorage.getItem('block_time_loads') === 'true') {
+              console.log("⚠️ Removing block_time_loads flag during offline processing");
+              sessionStorage.removeItem('block_time_loads');
+            }
+          }
+          
           const currentTime = Date.now();
           const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
           

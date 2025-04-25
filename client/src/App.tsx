@@ -83,9 +83,22 @@ function App() {
         // as it has better access to this functionality
       }
       
-      // If we're not already on the character creation page, go there
+      // Check if there's an existing character before redirecting to character creation
+      const hasCharacter = localStorage.getItem('business-empire-character');
+      
+      // Don't redirect to character creation if the user already has a character
+      if (hasCharacter) {
+        console.log('Character exists, avoiding redirection to character creation');
+        // Just clear the navigation flags and continue with normal flow
+        sessionStorage.removeItem('smooth_navigation');
+        sessionStorage.removeItem('force_current_date');
+        sessionStorage.removeItem('block_time_loads');
+        return;
+      }
+      
+      // Only redirect to character creation if no character exists
       if (window.location.pathname !== '/create') {
-        console.log('Redirecting to character creation via smooth navigation');
+        console.log('No existing character, redirecting to character creation via smooth navigation');
         const timestamp = Date.now(); // Add cache-busting parameter
         window.location.href = `/create?t=${timestamp}`;
         return;
