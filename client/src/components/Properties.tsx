@@ -453,6 +453,16 @@ export function Properties() {
               <CardContent className="space-y-2 pb-2">
                 <p className="text-sm">{selectedProperty.description}</p>
                 
+                {selectedProperty.id === 'single_family' && (
+                  <div className="mb-3">
+                    <img 
+                      src="/images/properties/single_family_home.jpg" 
+                      alt="Single Family Home" 
+                      className="rounded-md w-full h-auto object-cover"
+                    />
+                  </div>
+                )}
+                
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div>
                     <p className="text-gray-500">Purchase Price</p>
