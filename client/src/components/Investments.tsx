@@ -21,6 +21,21 @@ import {
   Menu,
   ChevronDown
 } from 'lucide-react';
+// Import stock icons from react-icons
+import { 
+  FiMonitor, FiCpu, FiServer, FiDatabase, FiHardDrive, // Tech
+  FiDollarSign, FiCreditCard, FiBriefcase, // Finance
+  FiSun, FiWind, FiZap, FiDroplet, FiFeather, // Energy
+  FiShoppingCart, FiShoppingBag, FiGift, FiTruck, FiPackage, // Consumer
+  FiHome, FiTool, FiLayers, FiBox, FiArchive, // Industrial
+  FiGlobe, FiWifi, FiShare2, FiRadio, FiPhone, // Communication
+  FiCoffee, FiUtensils, FiShield, FiMusic, FiStar, // Consumer Cyclical
+  FiActivity, FiHeart, FiThermometer, FiEye, FiClipboard, // Healthcare
+  FiMapPin, FiCompass, FiNavigation, FiMap, FiFlag, // Real Estate
+  FiBarChart, FiArrowUpRight, // Other
+  FiPieChart // Utils
+} from 'react-icons/fi';
+
 import { StockChart } from './StockChart';
 import { NetWorthBreakdown } from './NetWorthBreakdown';
 import { formatCurrency, formatPercentage } from '../lib/utils';
