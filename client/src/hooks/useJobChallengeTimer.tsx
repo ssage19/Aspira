@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useTime } from '../lib/stores/useTime';
 
 /**
  * Custom hook that provides real-time challenge progress updates
  * This hook centralizes the logic for time-based challenge progress tracking
+ * Optimized with refs to reduce re-renders and prevent update loops
  */
 export function useJobChallengeTimer(
   startDate: Date | string | undefined,
@@ -14,78 +15,116 @@ export function useJobChallengeTimer(
   daysRemaining: number;
   monthsRemaining: number;
 } {
-  // Get the current game time from the store
-  const currentGameDate = useTime(state => state.currentGameDate);
-  const dayCounter = useTime(state => state.dayCounter);
-  const timeSpeed = useTime(state => state.timeSpeed);
+  // Use refs to track time state without causing re-renders
+  const currentGameDateRef = useRef<Date | null>(null);
   
-  // State to store calculated progress values
+  // Update ref with current game date without triggering re-renders
+  currentGameDateRef.current = useTime(state => state.currentGameDate);
+  
+  // Track when days change for updates, but don't depend directly on time state
+  const dayCounter = useTime(state => state.dayCounter);
+  
+  // State to store calculated progress values - only used for return values
   const [progress, setProgress] = useState(0);
   const [isFinished, setIsFinished] = useState(false);
   const [daysRemaining, setDaysRemaining] = useState(0);
   const [monthsRemaining, setMonthsRemaining] = useState(0);
   
-  // We'll no longer force an update every second since it causes excessive rerenders
-  // and can lead to maximum update depth exceeded errors
-  // Instead, we'll rely on the natural game time updates to trigger progress updates
+  // Track previous calculation to avoid unnecessary updates
+  const prevCalcRef = useRef({
+    daysPassed: 0,
+    progressValue: 0,
+    lastUpdateTime: 0
+  });
   
-  // Calculate progress whenever relevant data changes
-  useEffect(() => {
-    // Guard clauses for invalid input
-    if (!currentGameDate || !startDate) {
-      setProgress(0);
-      setIsFinished(false);
-      setDaysRemaining(completionTimeMonths * 30);
-      setMonthsRemaining(completionTimeMonths);
-      return;
-    }
+  // Validate start date once to avoid recalculation
+  const validStartDate = useMemo(() => {
+    if (!startDate) return null;
     
     try {
-      // Ensure we have a valid Date object for the start date
-      const validStartDate = startDate instanceof Date 
-        ? startDate 
-        : new Date(startDate);
-      
-      // Calculate days and months passed
-      const msDiff = currentGameDate.getTime() - validStartDate.getTime();
-      const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-      const monthsPassed = Math.floor(daysPassed / 30);
-      
-      // Calculate remaining time
-      const daysRemaining = Math.max(0, (completionTimeMonths * 30) - daysPassed);
-      const monthsRemaining = Math.max(0, completionTimeMonths - monthsPassed);
-      
-      // Calculate progress percentage (0-100) based on days instead of months
-      // This provides a more granular progress that updates daily
-      const totalDaysRequired = completionTimeMonths * 30;
-      const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
-      
-      // Debug the calculation
-      console.log(`Challenge timer calculation:`, {
-        start: validStartDate.toISOString(),
-        current: currentGameDate.toISOString(),
-        daysPassed,
-        totalDaysRequired,
-        daysRemaining,
-        progressValue: progressValue.toFixed(1) + '%'
-      });
-      
-      // Update state with the new values
-      setProgress(progressValue);
-      setIsFinished(progressValue >= 100);
-      setDaysRemaining(daysRemaining);
-      setMonthsRemaining(monthsRemaining);
+      return startDate instanceof Date ? startDate : new Date(startDate);
     } catch (error) {
-      console.error('Error in challenge timer calculation:', error);
-      // Set default values in case of error
-      setProgress(0);
-      setIsFinished(false);
-      setDaysRemaining(completionTimeMonths * 30);
-      setMonthsRemaining(completionTimeMonths);
+      console.error('Invalid start date:', error);
+      return null;
     }
-  // Removing timeSpeed from dependencies to prevent excessive re-renders
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentGameDate, startDate, completionTimeMonths, dayCounter]);
+  }, [startDate]);
+  
+  // Calculate progress on a controlled schedule
+  useEffect(() => {
+    const calculateProgress = () => {
+      // Guard clauses for invalid input
+      if (!currentGameDateRef.current || !validStartDate) {
+        setProgress(0);
+        setIsFinished(false);
+        setDaysRemaining(completionTimeMonths * 30);
+        setMonthsRemaining(completionTimeMonths);
+        return;
+      }
+      
+      try {
+        const now = Date.now();
+        // Don't calculate more often than every 3 seconds
+        if (now - prevCalcRef.current.lastUpdateTime < 3000) return;
+        
+        // Calculate days and months passed
+        const msDiff = currentGameDateRef.current.getTime() - validStartDate.getTime();
+        const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+        
+        // Only update if days have changed
+        if (daysPassed === prevCalcRef.current.daysPassed) return;
+        
+        // Track this update
+        prevCalcRef.current.lastUpdateTime = now;
+        prevCalcRef.current.daysPassed = daysPassed;
+        
+        const monthsPassed = Math.floor(daysPassed / 30);
+        
+        // Calculate remaining time
+        const daysRemaining = Math.max(0, (completionTimeMonths * 30) - daysPassed);
+        const monthsRemaining = Math.max(0, completionTimeMonths - monthsPassed);
+        
+        // Calculate progress percentage based on days
+        const totalDaysRequired = completionTimeMonths * 30;
+        const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
+        
+        // Only update if progress has changed meaningfully (0.5% or more)
+        if (Math.abs(progressValue - prevCalcRef.current.progressValue) >= 0.5) {
+          prevCalcRef.current.progressValue = progressValue;
+          
+          // Less frequent logging to prevent console spam
+          if (daysPassed % 10 === 0) {
+            console.log(`Challenge timer update:`, {
+              daysPassed,
+              daysRemaining,
+              progressValue: progressValue.toFixed(1) + '%'
+            });
+          }
+          
+          // Update state values for the return object
+          setProgress(progressValue);
+          setIsFinished(progressValue >= 100);
+          setDaysRemaining(daysRemaining);
+          setMonthsRemaining(monthsRemaining);
+        }
+      } catch (error) {
+        console.error('Error in challenge timer calculation:', error);
+        // Set default values in case of error
+        setProgress(0);
+        setIsFinished(false);
+        setDaysRemaining(completionTimeMonths * 30);
+        setMonthsRemaining(completionTimeMonths);
+      }
+    };
+    
+    // Run initial calculation
+    calculateProgress();
+    
+    // Set up interval for periodic updates
+    const intervalId = setInterval(calculateProgress, 5000);
+    
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
+  }, [validStartDate, completionTimeMonths, dayCounter]);
   
   return { progress, isFinished, daysRemaining, monthsRemaining };
 }
