@@ -4,7 +4,7 @@ import { Button } from '../components/ui/button';
 import { SocialNetworking } from '../components/SocialNetworking';
 import { NetworkTracker } from '../components/NetworkTracker';
 import { ChevronLeft } from 'lucide-react';
-import { GameUI } from '../components/GameUI';
+import GameUI from '../components/GameUI';
 
 export function NetworkingScreen() {
   const navigate = useNavigate();

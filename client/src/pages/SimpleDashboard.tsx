@@ -18,7 +18,7 @@ import { formatCurrency, formatPercentage } from '../lib/utils';
 import refreshAllAssets from '../lib/services/assetRefresh';
 
 // Import UI components
-import { GameUI } from '../components/GameUI';
+import GameUI from '../components/GameUI';
 import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';

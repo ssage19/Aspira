@@ -12,7 +12,7 @@ import { useAssetRefresh } from '../components/AssetRefreshProvider';
 import { useResponsive } from '../lib/hooks/useResponsive';
 
 // Import UI components
-import { GameUI } from '../components/GameUI';
+import GameUI from '../components/GameUI';
 import { ComprehensivePortfolio } from '../components/ComprehensivePortfolio';
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';

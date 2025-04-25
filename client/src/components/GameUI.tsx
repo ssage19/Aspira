@@ -42,7 +42,7 @@ import { checkAllAchievements } from '../lib/services/achievementTracker';
 // New time scale: 1 day = 24 seconds (1 second = 1 hour in-game)
 const DAY_DURATION_MS = 24 * 1000; // exactly 24,000 ms per in-game day
 
-export function GameUI() {
+export default function GameUI() {
   const navigate = useNavigate();
   const { wealth, netWorth } = useCharacter();
   const { 
@@ -84,29 +84,6 @@ export function GameUI() {
   
   // Update investment values based on market fluctuations
   const updateInvestments = () => {
-    try {
-      const characterState = useCharacter.getState();
-      const assets = characterState?.assets || [];
-      
-      // Skip if no assets
-      if (assets.length === 0) return { 
-        gainers: 0, 
-        losers: 0, 
-        gains: 0, 
-        losses: 0, 
-        netChange: 0 
-      };
-    } catch (error) {
-      console.error("Error accessing character state in updateInvestments:", error);
-      return { 
-        gainers: 0, 
-        losers: 0, 
-        gains: 0, 
-        losses: 0, 
-        netChange: 0 
-      };
-    }
-    
     // We'll simulate market fluctuations by randomly adjusting values
     // In a real implementation, this would use more complex market simulation
     // For now, this gives the player the feeling of market movement
@@ -114,42 +91,62 @@ export function GameUI() {
     let totalLoss = 0;
     let gainersCount = 0;
     let losersCount = 0;
+    let netChange = 0;
     
-    assets.forEach(asset => {
-      // Different asset types have different volatility
-      let volatilityFactor = 1.0;
-      
-      switch(asset.type) {
-        case 'stock':
-          volatilityFactor = 0.02; // 2% daily movement potential
-          break;
-        case 'crypto':
-          volatilityFactor = 0.05; // 5% daily movement potential
-          break;
-        case 'bond':
-          volatilityFactor = 0.005; // 0.5% daily movement potential
-          break;
-        case 'other':
-          volatilityFactor = 0.03; // 3% daily movement potential
-          break;
-        default:
-          volatilityFactor = 0.01; // 1% default
+    try {
+      const characterState = useCharacter.getState();
+      if (!characterState || !characterState.assets || characterState.assets.length === 0) {
+        return { 
+          gainers: 0, 
+          losers: 0, 
+          gains: 0, 
+          losses: 0, 
+          netChange: 0 
+        };
       }
       
-      // Random movement, slightly skewed towards gains (optimistic market)
-      const randomFactor = (Math.random() * 2 - 0.9) * volatilityFactor;
-      const valueChange = asset.purchasePrice * randomFactor * asset.quantity;
+      const assets = characterState.assets;
       
-      if (valueChange > 0) {
-        totalGain += valueChange;
-        gainersCount++;
-      } else if (valueChange < 0) {
-        totalLoss += Math.abs(valueChange);
-        losersCount++;
+      // Process each asset to calculate market fluctuations
+      for (let i = 0; i < assets.length; i++) {
+        const asset = assets[i];
+        // Different asset types have different volatility
+        let volatilityFactor = 1.0;
+        
+        switch(asset.type) {
+          case 'stock':
+            volatilityFactor = 0.02; // 2% daily movement potential
+            break;
+          case 'crypto':
+            volatilityFactor = 0.05; // 5% daily movement potential
+            break;
+          case 'bond':
+            volatilityFactor = 0.005; // 0.5% daily movement potential
+            break;
+          case 'other':
+            volatilityFactor = 0.03; // 3% daily movement potential
+            break;
+          default:
+            volatilityFactor = 0.01; // 1% default
+        }
+        
+        // Random movement, slightly skewed towards gains (optimistic market)
+        const randomFactor = (Math.random() * 2 - 0.9) * volatilityFactor;
+        const valueChange = asset.purchasePrice * randomFactor * asset.quantity;
+        
+        if (valueChange > 0) {
+          totalGain += valueChange;
+          gainersCount++;
+        } else if (valueChange < 0) {
+          totalLoss += Math.abs(valueChange);
+          losersCount++;
+        }
       }
-    });
-    
-    const netChange = totalGain - totalLoss;
+      
+      netChange = totalGain - totalLoss;
+    } catch (error) {
+      console.error("Error calculating investment changes:", error);
+    }
     
     return {
       gainers: gainersCount,
@@ -176,16 +173,17 @@ export function GameUI() {
     // We're removing the financial notification completely per user request
     // The function still processes all finances but doesn't display notification
     
-    // For reference/debugging, we can still access:
-    const gains = investmentChanges.gains || 0;
-    const losses = investmentChanges.losses || 0;
+    // For reference/debugging, we can still access investment changes
+    const gainAmount = investmentChanges?.gains || 0;
+    const lossAmount = investmentChanges?.losses || 0;
+    const netChangeAmount = investmentChanges?.netChange || 0;
     
     // Return the summary for potential other uses
     return {
       income: 0, // No longer calculating this here
       expenses: 0, // No longer calculating this here
       net: 0, // No longer calculating this here
-      investmentChange: investmentChanges.netChange
+      investmentChange: netChangeAmount
     };
   };
 
@@ -721,5 +719,3 @@ export function GameUI() {
     </div>
   );
 }
-
-export default GameUI;
