@@ -1227,11 +1227,47 @@ export const useCharacter = create<CharacterState>()(
         console.log(`Purchase price: ${property.purchasePrice}, Current value: ${property.currentValue}`);
         console.log(`Down payment: ${downPayment}, Loan amount: ${property.loanAmount}`);
         
+        // CRITICAL: Add property to asset tracker immediately
+        try {
+          // Import asset tracker from the module
+          const assetTracker = useAssetTracker.getState();
+          
+          // Add the property to the asset tracker
+          console.log(`Adding property to asset tracker: ${property.name}`);
+          assetTracker.addProperty({
+            id: property.id,
+            name: property.name,
+            purchasePrice: property.purchasePrice || property.currentValue,
+            currentValue: property.currentValue || property.purchasePrice,
+            mortgage: property.loanAmount || 0,
+          });
+          
+          // Update cash in asset tracker to match character wealth
+          console.log(`Updating cash in asset tracker after property purchase`);
+          assetTracker.updateCash(get().wealth);
+          
+          // Force recalculation of totals
+          assetTracker.recalculateTotals();
+          
+          console.log(`Asset tracker updated successfully after property purchase`);
+        } catch (error) {
+          console.error("Error updating asset tracker after property purchase:", error);
+        }
+        
         // Calculate new net worth after purchase
         // Net worth = assets (property value) - liabilities (loan amount)
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
         saveState();
+        
+        // Finally sync all assets with tracker to ensure complete consistency
+        setTimeout(() => {
+          try {
+            get().syncAssetsWithAssetTracker(true);
+          } catch (error) {
+            console.error("Error during final asset sync after property purchase:", error);
+          }
+        }, 100);
         
         return true; // Indicate success
       },
@@ -1434,7 +1470,38 @@ export const useCharacter = create<CharacterState>()(
         // Calculate new net worth
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
+        
+        // CRITICAL: Update asset tracker after selling property
+        try {
+          // Import asset tracker from the module
+          const assetTracker = useAssetTracker.getState();
+          
+          // Remove the property from the asset tracker
+          console.log(`Removing property from asset tracker: ${propertyId}`);
+          assetTracker.removeProperty(propertyId);
+          
+          // Update cash in asset tracker to match character wealth
+          console.log(`Updating cash in asset tracker after property sale`);
+          assetTracker.updateCash(get().wealth);
+          
+          // Force recalculation of totals
+          assetTracker.recalculateTotals();
+          
+          console.log(`Asset tracker updated successfully after property sale`);
+        } catch (error) {
+          console.error("Error updating asset tracker after property sale:", error);
+        }
+        
         saveState();
+        
+        // Finally sync all assets with tracker to ensure complete consistency
+        setTimeout(() => {
+          try {
+            get().syncAssetsWithAssetTracker(true);
+          } catch (error) {
+            console.error("Error during final asset sync after property sale:", error);
+          }
+        }, 100);
         
         return saleValue;
       },
@@ -1448,13 +1515,34 @@ export const useCharacter = create<CharacterState>()(
           }
           
           const updatedProperties = [...state.properties];
+          const property = updatedProperties[propertyIndex];
           updatedProperties[propertyIndex] = {
-            ...updatedProperties[propertyIndex],
+            ...property,
             currentValue: newValue
           };
           
           return { properties: updatedProperties };
         });
+        
+        // CRITICAL: Update the property in the asset tracker
+        try {
+          const assetTracker = useAssetTracker.getState();
+          const property = get().properties.find(p => p.id === propertyId);
+          
+          if (property) {
+            console.log(`Updating property in asset tracker: ${propertyId} with new value ${newValue}`);
+            assetTracker.updateProperty(
+              propertyId, 
+              newValue, 
+              property.loanAmount || 0
+            );
+            
+            // Force recalculation of totals
+            assetTracker.recalculateTotals();
+          }
+        } catch (error) {
+          console.error("Error updating property in asset tracker:", error);
+        }
         
         // Calculate new net worth
         const character = get();
@@ -1494,6 +1582,28 @@ export const useCharacter = create<CharacterState>()(
           return { properties: updatedProperties };
         });
         
+        // CRITICAL: Update all properties in the asset tracker
+        try {
+          const assetTracker = useAssetTracker.getState();
+          const properties = get().properties;
+          
+          console.log(`Updating all properties in asset tracker with multiplier: ${multiplier}`);
+          
+          // Update each property in the asset tracker
+          for (const property of properties) {
+            assetTracker.updateProperty(
+              property.id, 
+              property.currentValue, 
+              property.loanAmount || 0
+            );
+          }
+          
+          // Force recalculation of totals
+          assetTracker.recalculateTotals();
+        } catch (error) {
+          console.error("Error updating properties in asset tracker:", error);
+        }
+        
         // Calculate new net worth
         const character = get();
         set({ netWorth: character.calculateNetWorth() });
@@ -1516,6 +1626,9 @@ export const useCharacter = create<CharacterState>()(
       },
       
       updatePropertyValuesByType: (type, multiplier, idFilter) => {
+        // Keep track of updated property IDs
+        const updatedPropertyIds: string[] = [];
+        
         set((state) => {
           const updatedProperties = state.properties.map(property => {
             // Check if this property matches our criteria
@@ -1523,6 +1636,7 @@ export const useCharacter = create<CharacterState>()(
               if (idFilter && idFilter.length > 0) {
                 // If we have an ID filter, only update matching properties
                 if (idFilter.includes(property.id)) {
+                  updatedPropertyIds.push(property.id);
                   return {
                     ...property,
                     currentValue: property.currentValue * multiplier
@@ -1530,6 +1644,7 @@ export const useCharacter = create<CharacterState>()(
                 }
               } else {
                 // No ID filter, update all properties of this type
+                updatedPropertyIds.push(property.id);
                 return {
                   ...property,
                   currentValue: property.currentValue * multiplier
@@ -1542,6 +1657,31 @@ export const useCharacter = create<CharacterState>()(
           
           return { properties: updatedProperties };
         });
+        
+        // CRITICAL: Update properties in the asset tracker
+        try {
+          const assetTracker = useAssetTracker.getState();
+          const properties = get().properties;
+          
+          console.log(`Updating properties in asset tracker for type ${type} with multiplier: ${multiplier}`);
+          console.log(`Properties to update: ${updatedPropertyIds.length} of total ${properties.length}`);
+          
+          // Only update the properties that were affected
+          for (const property of properties) {
+            if (updatedPropertyIds.includes(property.id)) {
+              assetTracker.updateProperty(
+                property.id, 
+                property.currentValue, 
+                property.loanAmount || 0
+              );
+            }
+          }
+          
+          // Force recalculation of totals
+          assetTracker.recalculateTotals();
+        } catch (error) {
+          console.error("Error updating properties in asset tracker:", error);
+        }
         
         // Calculate new net worth
         const character = get();
