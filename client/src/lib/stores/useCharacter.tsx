@@ -2314,7 +2314,7 @@ export const useCharacter = create<CharacterState>()(
         console.log(`Total net worth: ${breakdown.total}`);
         
         // Helper function to safely calculate percentage (handles division by zero)
-        const safePercentage = (value, total) => {
+        const safePercentage = (value: number, total: number): string => {
           if (!total || total === 0 || isNaN(total)) return "0.00";
           const percentage = (value / total) * 100;
           return isNaN(percentage) ? "0.00" : percentage.toFixed(2);

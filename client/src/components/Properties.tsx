@@ -447,11 +447,52 @@ export function Properties() {
                 <CardContent className="space-y-2 pb-2">
                   <p className="text-sm">{selectedProperty.description}</p>
                   
+                  {/* Display images for residential properties */}
                   {selectedProperty.id === 'single_family' && (
                     <div className="mb-3">
                       <img 
                         src="/images/properties/single_family_home.jpg" 
                         alt="Single Family Home" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'apartment_basic' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/city_apartment.jpg" 
+                        alt="City Apartment" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'apartment_luxury' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/luxury_city_apartment.jpg" 
+                        alt="Luxury City Apartment" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'townhouse' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/suburban_townhome.jpg" 
+                        alt="Suburban Townhouse" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'studio_apartment' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/urban_studio.jpg" 
+                        alt="Urban Studio" 
                         className="rounded-md w-full h-auto object-cover"
                       />
                     </div>
