@@ -41,89 +41,111 @@ interface LiveChallengeProgressProps {
 import { useJobChallengeTimer } from '../hooks/useJobChallengeTimer';
 
 function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgressProps) {
-  // Get the current game time to ensure we're using the latest time data
-  const currentGameDate = useTime(state => state.currentGameDate);
-  const timeSpeed = useTime(state => state.timeSpeed);
+  // Use a ref to track the current game date without causing re-renders
+  const currentGameDateRef = useRef<Date | null>(null);
   
-  // Calculate progress manually to debug the issue
+  // Update the ref with the latest date but don't cause component re-renders
+  currentGameDateRef.current = useTime(state => state.currentGameDate);
+  
+  // Local state for progress tracking
   const [debugProgress, setDebugProgress] = useState(0);
-  const [debugInfo, setDebugInfo] = useState<any>({});
+  const [daysRemainingState, setDaysRemainingState] = useState(challenge.completionTime * 30);
+  const [isFinishedState, setIsFinishedState] = useState(false);
   
-  // Update the debug information periodically
+  // Keep track of the previous calculation to avoid unnecessary updates
+  const lastCalcRef = useRef({
+    daysPassed: 0,
+    progressValue: 0,
+    lastUpdateTime: 0
+  });
+  
+  // Update progress calculation on a controlled interval rather than on every render
   useEffect(() => {
-    // Only calculate if we have valid inputs
-    if (!challenge.startDate || !currentGameDate) return;
+    const calculateProgress = () => {
+      // Skip calculation if we don't have valid inputs
+      if (!challenge.startDate || !currentGameDateRef.current) return;
+      
+      try {
+        const now = Date.now();
+        // Don't calculate more often than every 2 seconds
+        if (now - lastCalcRef.current.lastUpdateTime < 2000) return;
+        
+        // Update the timestamp
+        lastCalcRef.current.lastUpdateTime = now;
+        
+        // Ensure we have a valid Date object for the start date
+        const startDate = challenge.startDate instanceof Date 
+          ? challenge.startDate 
+          : new Date(challenge.startDate);
+        
+        // Calculate days passed
+        const msDiff = currentGameDateRef.current.getTime() - startDate.getTime();
+        const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+        
+        // Only continue if days passed has changed
+        if (daysPassed === lastCalcRef.current.daysPassed) return;
+        
+        // Calculate total days required for completion
+        const totalDaysRequired = challenge.completionTime * 30;
+        
+        // Calculate progress as a percentage (0-100)
+        const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
+        
+        // Only update state if there's a significant change (0.5% or more)
+        if (Math.abs(progressValue - lastCalcRef.current.progressValue) >= 0.5) {
+          // Update our tracking ref
+          lastCalcRef.current = {
+            ...lastCalcRef.current,
+            daysPassed,
+            progressValue
+          };
+          
+          // Update state (this will cause a re-render)
+          setDebugProgress(progressValue);
+          setDaysRemainingState(Math.max(0, totalDaysRequired - daysPassed));
+          setIsFinishedState(progressValue >= 100);
+          
+          // Less frequent logging to avoid console spam
+          if (daysPassed % 10 === 0) {
+            console.log(`Challenge Progress:`, {
+              title: challenge.title.substring(0, 20) + '...',
+              daysPassed,
+              daysRemaining: Math.max(0, totalDaysRequired - daysPassed),
+              progress: `${progressValue.toFixed(1)}%`
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error calculating challenge progress:', error);
+      }
+    };
     
-    try {
-      // Ensure we have a valid Date object for the start date
-      const startDate = challenge.startDate instanceof Date 
-        ? challenge.startDate 
-        : new Date(challenge.startDate);
-      
-      // Calculate days passed
-      const msDiff = currentGameDate.getTime() - startDate.getTime();
-      const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-      
-      // Calculate total days required for completion
-      const totalDaysRequired = challenge.completionTime * 30;
-      
-      // Calculate progress as a percentage (0-100)
-      const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
-      
-      // Store debug information - using functional state update to prevent infinite loops
-      setDebugInfo({
-        startDate: startDate.toISOString(),
-        currentDate: currentGameDate.toISOString(),
-        daysPassed,
-        totalDaysRequired,
-        progressValue: `${progressValue.toFixed(2)}%`
-      });
-      
-      // Update the progress value - using functional state update to prevent infinite loops
-      setDebugProgress(progressValue);
-      
-      // Log for debugging
-      console.log(`DEBUG - Challenge Progress:`, {
-        title: challenge.title,
-        startDate: startDate.toISOString(),
-        currentDate: currentGameDate.toISOString(),
-        daysPassed,
-        totalDaysRequired,
-        progressValue: `${progressValue.toFixed(2)}%`
-      });
-    } catch (error) {
-      console.error('Error calculating debug progress:', error);
-      setDebugProgress(0);
-      setDebugInfo({ error: String(error) });
-    }
+    // Run calculation once immediately
+    calculateProgress();
     
-    // IMPORTANT: Don't create intervals that modify state too frequently
-    // This was likely causing the max update depth exceeded error
-    // Changed from a continuous interval to a one-time calculation
-
-  // Remove timeSpeed from dependencies as it likely changes too frequently
-  // eslint-disable-next-line react-hooks/exhaustive-deps  
-  }, [challenge, currentGameDate]);
+    // Set up interval for periodic updates
+    const intervalId = setInterval(calculateProgress, 3000);
+    
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
+  }, [challenge.id, challenge.startDate, challenge.completionTime]);
   
-  // Use our specialized hook as well for comparison
-  const { progress, isFinished, daysRemaining, monthsRemaining } = useJobChallengeTimer(
-    challenge.startDate,
-    challenge.completionTime
-  );
+  // Don't use the hook for challenge progress anymore since it was contributing to infinite render loops
+  // Instead use our local calculation
   
-  // Display formatting - always show in days instead of months for more granular updates
+  // Removed hook references and using just our local state variables
   const progressText = `${Math.floor(debugProgress)}%`;
-  const timeLeftText = isFinished
+  const timeLeftText = isFinishedState
     ? 'Complete!' 
-    : daysRemaining > 0
-      ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`
+    : daysRemainingState > 0
+      ? `${daysRemainingState} day${daysRemainingState !== 1 ? 's' : ''} remaining`
       : 'Complete!';
   
   return (
     <>
       <Progress
         value={debugProgress}
-        className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
+        className={`${height} ${isFinishedState ? 'bg-green-100' : ''}`}
       />
       
       {/* Only show the days remaining without the percentage */}
@@ -136,10 +158,20 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
 
 export default function JobScreen() {
   const navigate = useNavigate();
-  const { job, skills, improveSkill, promoteJob, daysSincePromotion, skillPoints, earnedSkillPoints, allocateSkillPoint, spendEarnedSkillPoint } = useCharacter();
-  const { currentGameDate } = useTime();
+  // Use more selective destructuring and avoid taking methods that cause rerenders
+  const { job, skills, daysSincePromotion, skillPoints, earnedSkillPoints } = useCharacter();
+  // Methods that modify state should be extracted separately to avoid excessive rerenders
+  const improveSkill = useCharacter(state => state.improveSkill);
+  const promoteJob = useCharacter(state => state.promoteJob);
+  const allocateSkillPoint = useCharacter(state => state.allocateSkillPoint);
+  const spendEarnedSkillPoint = useCharacter(state => state.spendEarnedSkillPoint);
+  
+  // Extract just the current date to prevent rerenders when other time properties change
+  const currentGameDate = useTime(state => state.currentGameDate);
   const { unlockAchievement } = useGame();
   const audio = useAudio();
+  
+  // Using useRef for values that shouldn't trigger rerenders when they change
   const [profession, setProfession] = useState<Profession | undefined>(undefined);
   const [nextJob, setNextJob] = useState<CareerPath | undefined>(undefined);
   const [progress, setProgress] = useState<Record<string, number>>({});
