@@ -272,9 +272,9 @@ function App() {
     }
   }, [phase, start]);
   
-  // Process offline time when app loads
+  // Navigation and state management when app loads
   useEffect(() => {
-    // Only process offline time on non-character creation pages when game is playing
+    // Only process on non-character creation pages when game is playing
     const isOnCreatePage = window.location.pathname === '/create';
     
     // CRITICAL FIX: Check if we are on a page where we should redirect to dashboard
@@ -317,16 +317,8 @@ function App() {
       return;
     }
     
-    if (phase === "playing" && !isOnCreatePage) {
-      console.log("Processing offline time since last session...");
-      
-      try {
-        // Process offline time that passed since the last time the app was open
-        useTime.getState().processOfflineTime();
-      } catch (error) {
-        console.error("Error processing offline time:", error);
-      }
-    }
+    // Offline time processing is now handled by the persistent state manager
+    // which has dedicated state saving, shutdown tracking, and robust income calculation
   }, [phase]);
   
   // Set up timer to check for random events
