@@ -11,19 +11,54 @@
  * 4. Metadata about the last saved state for validation
  */
 
-// Import directly to avoid issues with 'require' in browser environment
-import { useCharacter } from '../stores/useCharacter';
-import { useTime } from '../stores/useTime';
-import { useAssetTracker } from '../stores/useAssetTracker';
-import { useEconomy } from '../stores/useEconomy';
+// We'll safely access store states through localStorage to avoid circular dependencies
+// Store getter functions - these will get initialized dynamically on demand
+let _characterStore: any = null;
+let _timeStore: any = null;
+let _assetTrackerStore: any = null;
+let _economyStore: any = null;
 
-// This function must be called before any operations
+// This function safely gets the store instances if possible
 function loadStores() {
   try {
-    // Validate that stores are properly imported and accessible
-    if (!useCharacter || !useTime || !useAssetTracker || !useEconomy) {
-      console.error('One or more stores could not be loaded');
-      return false;
+    // Don't try to import directly if we're not in the browser
+    if (typeof window === 'undefined') return false;
+    
+    // Try to load the store modules only if needed
+    if (!_characterStore) {
+      try {
+        const { useCharacter } = require('../stores/useCharacter');
+        _characterStore = useCharacter;
+      } catch (error) {
+        console.warn('Could not dynamically load character store, will use localStorage fallback', error);
+      }
+    }
+    
+    if (!_timeStore) {
+      try {
+        const { useTime } = require('../stores/useTime');
+        _timeStore = useTime;
+      } catch (error) {
+        console.warn('Could not dynamically load time store, will use localStorage fallback', error);
+      }
+    }
+    
+    if (!_assetTrackerStore) {
+      try {
+        const { useAssetTracker } = require('../stores/useAssetTracker');
+        _assetTrackerStore = useAssetTracker;
+      } catch (error) {
+        console.warn('Could not dynamically load asset tracker store, will use localStorage fallback', error);
+      }
+    }
+    
+    if (!_economyStore) {
+      try {
+        const { useEconomy } = require('../stores/useEconomy');
+        _economyStore = useEconomy;
+      } catch (error) {
+        console.warn('Could not dynamically load economy store, will use localStorage fallback', error);
+      }
     }
     
     return true;
@@ -37,12 +72,12 @@ function loadStores() {
 function validateStores() {
   try {
     // Basic validation of critical stores
-    if (!useCharacter || !useCharacter.getState) {
+    if (!_characterStore || !_characterStore.getState) {
       console.error('Character store is not properly initialized');
       return false;
     }
     
-    if (!useTime || !useTime.getState) {
+    if (!_timeStore || !_timeStore.getState) {
       console.error('Time store is not properly initialized');
       return false;
     }
@@ -148,14 +183,21 @@ export function saveAllGameState() {
       return;
     }
     
-    // 1. Get current states from all stores
-    const characterState = useCharacter.getState();
-    const timeState = useTime.getState();
-    const assetState = useAssetTracker.getState();
-    const economyState = useEconomy.getState();
-    
-    // 2. Save individual states (each store handles its own serialization)
-    characterState.saveState();
+    // 1. Get current states from all stores if possible
+    // If any store is not available, use fallback approach
+    if (_characterStore && _characterStore.getState) {
+      try {
+        const characterState = _characterStore.getState();
+        // 2. Save individual states (each store handles its own serialization)
+        if (characterState && characterState.saveState) {
+          characterState.saveState();
+        }
+      } catch (storeError) {
+        console.error('Error accessing character store:', storeError);
+      }
+    } else {
+      console.log('Character store not available, using direct localStorage access');
+    }
     
     // 3. Update metadata about this save
     const now = Date.now();
@@ -182,7 +224,18 @@ export function saveShutdownState() {
     }
     
     // 1. Get the time state
-    const timeState = useTime.getState();
+    if (!_timeStore || !_timeStore.getState) {
+      console.error('Time store not available, cannot save shutdown state properly');
+      // Still proceed with a basic shutdown state
+      const now = Date.now();
+      localStorage.setItem(SHUTDOWN_STATE_KEY, JSON.stringify({
+        timestamp: now,
+        isNormalShutdown: true
+      }));
+      return;
+    }
+    
+    const timeState = _timeStore.getState();
     
     // 2. Create a shutdown state object with metadata
     const shutdownState = {
@@ -254,54 +307,63 @@ export function processOfflineTimeIfNeeded() {
       try {
         const shutdownState = JSON.parse(shutdownStateStr);
         
-        // Update the time state with the shutdown metadata before processing offline time
-        const timeState = useTime.getState();
-        
-        // For a normal shutdown (not an explicit pause by the user),
-        // we should process offline time regardless
-        if (shutdownState.isNormalShutdown) {
-          // Override wasPaused to false to ensure offline time is processed
-          useTime.setState({ wasPaused: false });
-          console.log('Normal shutdown detected - ensuring offline time will be processed');
-        } else {
-          // Only respect the wasPaused flag if it wasn't a normal shutdown
-          useTime.setState({ wasPaused: shutdownState.wasPaused || false });
-          console.log(`Setting wasPaused to ${shutdownState.wasPaused || false} based on shutdown state`);
-        }
-        
-        // Update lastRealTimestamp to ensure proper time calculation
-        if (shutdownState.timestamp) {
-          useTime.setState({ lastRealTimestamp: shutdownState.timestamp });
-          console.log(`Updated lastRealTimestamp to ${new Date(shutdownState.timestamp).toLocaleString()}`);
-        }
-        
-        // Restore additional time tracking values if they exist in shutdown state
-        const timeUpdates: any = {};
-        
-        if (typeof shutdownState.dayCounter === 'number') {
-          timeUpdates.dayCounter = shutdownState.dayCounter;
-          console.log(`Restoring dayCounter: ${shutdownState.dayCounter}`);
-        }
-        
-        if (typeof shutdownState.daysPassed === 'number') {
-          timeUpdates.daysPassed = shutdownState.daysPassed;
-          console.log(`Restoring daysPassed: ${shutdownState.daysPassed}`);
-        }
-        
-        if (typeof shutdownState.timeProgress === 'number') {
-          timeUpdates.timeProgress = shutdownState.timeProgress;
-          console.log(`Restoring timeProgress: ${shutdownState.timeProgress.toFixed(2)}%`);
-        }
-        
-        if (typeof shutdownState.lastTickTime === 'number') {
-          timeUpdates.lastTickTime = shutdownState.lastTickTime;
-          console.log(`Restoring lastTickTime: ${new Date(shutdownState.lastTickTime).toLocaleString()}`);
-        }
-        
-        // Apply all time tracking updates if any exist
-        if (Object.keys(timeUpdates).length > 0) {
-          useTime.setState(timeUpdates);
-          console.log('Restored additional time tracking data from shutdown state');
+        // If time store is available, update it with shutdown data
+        if (_timeStore && _timeStore.getState) {
+          // For a normal shutdown (not an explicit pause by the user),
+          // we should process offline time regardless
+          if (shutdownState.isNormalShutdown) {
+            // Override wasPaused to false to ensure offline time is processed
+            _timeStore.setState({ wasPaused: false });
+            console.log('Normal shutdown detected - ensuring offline time will be processed');
+          } else {
+            // Only respect the wasPaused flag if it wasn't a normal shutdown
+            _timeStore.setState({ wasPaused: shutdownState.wasPaused || false });
+            console.log(`Setting wasPaused to ${shutdownState.wasPaused || false} based on shutdown state`);
+          }
+          
+          // Update lastRealTimestamp to ensure proper time calculation
+          if (shutdownState.timestamp) {
+            _timeStore.setState({ lastRealTimestamp: shutdownState.timestamp });
+            console.log(`Updated lastRealTimestamp to ${new Date(shutdownState.timestamp).toLocaleString()}`);
+          }
+          
+          // Restore additional time tracking values if they exist in shutdown state
+          const timeUpdates: any = {};
+          
+          if (typeof shutdownState.dayCounter === 'number') {
+            timeUpdates.dayCounter = shutdownState.dayCounter;
+            console.log(`Restoring dayCounter: ${shutdownState.dayCounter}`);
+          }
+          
+          if (typeof shutdownState.daysPassed === 'number') {
+            timeUpdates.daysPassed = shutdownState.daysPassed;
+            console.log(`Restoring daysPassed: ${shutdownState.daysPassed}`);
+          }
+          
+          if (typeof shutdownState.timeProgress === 'number') {
+            timeUpdates.timeProgress = shutdownState.timeProgress;
+            console.log(`Restoring timeProgress: ${shutdownState.timeProgress.toFixed(2)}%`);
+          }
+          
+          if (typeof shutdownState.lastTickTime === 'number') {
+            timeUpdates.lastTickTime = shutdownState.lastTickTime;
+            console.log(`Restoring lastTickTime: ${new Date(shutdownState.lastTickTime).toLocaleString()}`);
+          }
+          
+          // Apply all time tracking updates if any exist
+          if (Object.keys(timeUpdates).length > 0) {
+            _timeStore.setState(timeUpdates);
+            console.log('Restored additional time tracking data from shutdown state');
+          }
+          
+          // Process offline time if the time store is available
+          if (_timeStore.getState().processOfflineTime) {
+            // 3. Process offline time using the regular mechanism
+            console.log(`Processing ${(timeSinceLastSave / 1000).toFixed(1)} seconds of offline time`);
+            _timeStore.getState().processOfflineTime();
+          } else {
+            console.error('processOfflineTime function not available in time store');
+          }
         }
         
         // Clear the shutdown state since we've used it
@@ -310,12 +372,6 @@ export function processOfflineTimeIfNeeded() {
         console.error('Error parsing shutdown state:', parseError);
       }
     }
-    
-    // 3. Process offline time using the regular mechanism
-    // This will trigger timeStore.processOfflineTime() which will in turn
-    // process daily/weekly/monthly updates and calculate offline income
-    console.log(`Processing ${(timeSinceLastSave / 1000).toFixed(1)} seconds of offline time`);
-    useTime.getState().processOfflineTime();
     
     // 4. Save the updated state after processing
     saveAllGameState();
