@@ -62,7 +62,8 @@ export function GameUI() {
   } = useTime();
   const audioState = useAudio();
   const isMuted = audioState.isMuted;
-  const { totalCash, totalNetWorth } = useAssetTracker();
+  const totalCash = useAssetTracker(state => state.totalCash || 0);
+  const totalNetWorth = useAssetTracker(state => state.totalNetWorth || 0);
   const [showTooltip, setShowTooltip] = useState('');
   // Track which months we've already deducted expenses for to prevent double-charging
   const [lastExpenseMonth, setLastExpenseMonth] = useState<string | null>(null);
