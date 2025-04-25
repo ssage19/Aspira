@@ -1796,7 +1796,8 @@ export const useCharacter = create<CharacterState>()(
         const monthlyCost = item.maintenanceCost || 0;
         
         // Get current game date instead of actual time for consistent durations
-        const { currentGameDate } = useTime.getState();
+        const timeStore = getStore('time');
+        const { currentGameDate } = timeStore ? timeStore.getState() : { currentGameDate: new Date() };
         const purchaseDate = currentGameDate.toISOString();
         
         // Calculate end date for vacations and experiences if they have duration
@@ -3116,11 +3117,12 @@ export const useCharacter = create<CharacterState>()(
                 const purchasePrice = item.purchasePrice;
                 const purchaseDate = item.purchaseDate ? new Date(item.purchaseDate) : new Date();
                 
-                // Safe access to useTime
+                // Safe access to time store via registry
                 let currentDate = new Date();
                 try {
-                  if (useTime && useTime.getState) {
-                    currentDate = useTime.getState().currentGameDate || new Date();
+                  const timeStore = getStore('time');
+                  if (timeStore && timeStore.getState) {
+                    currentDate = timeStore.getState().currentGameDate || new Date();
                   }
                 } catch (timeError) {
                   console.warn("Failed to get game date, using current date:", timeError);
@@ -3362,8 +3364,13 @@ export const useCharacter = create<CharacterState>()(
       },
       
       processDailyUpdate: (forcedDayCounter = null) => {
-        // Get current day and date from useTime, or use forced values for offline processing
-        const timeState = useTime.getState();
+        // Get current day and date from time store via registry, or use forced values for offline processing
+        const timeStore = getStore('time');
+        const timeState = timeStore ? timeStore.getState() : { 
+          currentGameDate: new Date(), 
+          currentDay: new Date().getDate(),
+          currentMonth: new Date().getMonth() + 1 
+        };
         const { currentGameDate, currentDay, currentMonth } = timeState;
         // Use forced day counter if provided (for offline processing), otherwise get from time state
         const dayCounter = forcedDayCounter !== null ? forcedDayCounter : timeState.dayCounter;
