@@ -1238,14 +1238,32 @@ export const useCharacter = create<CharacterState>()(
           // Import asset tracker from the module
           const assetTracker = useAssetTracker.getState();
           
-          // Add the property to the asset tracker
+          // Add the property to the asset tracker with safeguards for NaN values
           console.log(`Adding property to asset tracker: ${property.name}`);
+          
+          // Default values if something is undefined
+          const sanitizedPurchasePrice = property.purchasePrice || property.currentValue || 0;
+          const sanitizedCurrentValue = property.currentValue || property.purchasePrice || 0;
+          const sanitizedLoanAmount = property.loanAmount || 0;
+          
+          // Safety check - ensure values are valid numbers
+          const purchasePrice = isNaN(sanitizedPurchasePrice) ? 0 : sanitizedPurchasePrice;
+          const currentValue = isNaN(sanitizedCurrentValue) ? 0 : sanitizedCurrentValue;
+          const mortgage = isNaN(sanitizedLoanAmount) ? 0 : sanitizedLoanAmount;
+          
+          // Log the values for debugging
+          console.log(`Property values being passed to asset tracker:
+            - purchasePrice: ${purchasePrice}
+            - currentValue: ${currentValue}
+            - mortgage: ${mortgage}
+          `);
+          
           assetTracker.addProperty({
             id: property.id,
             name: property.name,
-            purchasePrice: property.purchasePrice || property.currentValue,
-            currentValue: property.currentValue || property.purchasePrice,
-            mortgage: property.loanAmount || 0,
+            purchasePrice: purchasePrice,
+            currentValue: currentValue,
+            mortgage: mortgage,
           });
           
           // Update cash in asset tracker to match character wealth exactly
@@ -2237,23 +2255,50 @@ export const useCharacter = create<CharacterState>()(
         // Get fresh values from the asset tracker
         const assetTracker = useAssetTracker.getState();
         
-        // Get all totals directly from asset tracker (single source of truth)
+        // Get all totals directly from asset tracker with safety checks for NaN values
+        // This prevents NaN from propagating through calculations and breaking the UI
+        const cash = isNaN(assetTracker.totalCash) ? 0 : assetTracker.totalCash;
+        const stocks = isNaN(assetTracker.totalStocks) ? 0 : assetTracker.totalStocks;
+        const crypto = isNaN(assetTracker.totalCrypto) ? 0 : assetTracker.totalCrypto;
+        const bonds = isNaN(assetTracker.totalBonds) ? 0 : assetTracker.totalBonds;
+        const otherInvest = isNaN(assetTracker.totalOtherInvestments) ? 0 : assetTracker.totalOtherInvestments;
+        const propEquity = isNaN(assetTracker.totalPropertyEquity) ? 0 : assetTracker.totalPropertyEquity;
+        const propValue = isNaN(assetTracker.totalPropertyValue) ? 0 : assetTracker.totalPropertyValue;
+        const propDebt = isNaN(assetTracker.totalPropertyDebt) ? 0 : assetTracker.totalPropertyDebt;
+        const lifestyle = isNaN(assetTracker.totalLifestyleValue) ? 0 : assetTracker.totalLifestyleValue;
+        
+        // Manually calculate clean total to avoid NaN
+        const cleanTotal = cash + stocks + crypto + bonds + otherInvest + propEquity + lifestyle;
+        
+        // Check if asset tracker total is valid
+        const trackerTotal = isNaN(assetTracker.totalNetWorth) ? cleanTotal : assetTracker.totalNetWorth;
+        
+        // If we had to fix NaN values, log it
+        if (isNaN(assetTracker.totalNetWorth) || isNaN(assetTracker.totalCash) || 
+            isNaN(assetTracker.totalPropertyEquity) || isNaN(assetTracker.totalPropertyValue)) {
+          console.error("❌ DETECTED NaN VALUES in asset calculation - fixed automatically");
+          console.log(`Original tracker total: ${assetTracker.totalNetWorth}, fixed total: ${cleanTotal}`);
+          
+          // Force the asset tracker to recalculate with clean values
+          assetTracker.recalculateTotals();
+        }
+        
         const breakdown = {
-          cash: assetTracker.totalCash,
-          stocks: assetTracker.totalStocks,
-          crypto: assetTracker.totalCrypto,
-          bonds: assetTracker.totalBonds,
-          otherInvestments: assetTracker.totalOtherInvestments,
-          propertyEquity: assetTracker.totalPropertyEquity,
-          propertyValue: assetTracker.totalPropertyValue,
-          propertyDebt: assetTracker.totalPropertyDebt,
-          lifestyleItems: assetTracker.totalLifestyleValue,
-          total: assetTracker.totalNetWorth,
+          cash,
+          stocks,
+          crypto, 
+          bonds,
+          otherInvestments: otherInvest,
+          propertyEquity: propEquity,
+          propertyValue: propValue,
+          propertyDebt: propDebt,
+          lifestyleItems: lifestyle,
+          total: cleanTotal,
           version: Date.now() // Add version timestamp
         };
         
-        // Use the asset tracker's total net worth
-        let netWorth = assetTracker.totalNetWorth;
+        // Use our clean calculated total
+        let netWorth = cleanTotal;
         
         // Detailed logging for debugging
         console.log("Calculating net worth using asset tracker values:");
@@ -2268,15 +2313,22 @@ export const useCharacter = create<CharacterState>()(
         console.log(`Lifestyle items: ${breakdown.lifestyleItems}`);
         console.log(`Total net worth: ${breakdown.total}`);
         
-        // Log the breakdown for debugging
+        // Helper function to safely calculate percentage (handles division by zero)
+        const safePercentage = (value, total) => {
+          if (!total || total === 0 || isNaN(total)) return "0.00";
+          const percentage = (value / total) * 100;
+          return isNaN(percentage) ? "0.00" : percentage.toFixed(2);
+        };
+        
+        // Log the breakdown for debugging with safe percentages
         console.log('Net worth breakdown:');
-        console.log(`Cash: ${breakdown.cash} (${((breakdown.cash / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Stocks: ${breakdown.stocks} (${((breakdown.stocks / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Crypto: ${breakdown.crypto} (${((breakdown.crypto / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Bonds: ${breakdown.bonds} (${((breakdown.bonds / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Other investments: ${breakdown.otherInvestments} (${((breakdown.otherInvestments / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Property equity: ${breakdown.propertyEquity} (${((breakdown.propertyEquity / breakdown.total) * 100).toFixed(2)}%)`);
-        console.log(`Lifestyle Items: ${breakdown.lifestyleItems} (${((breakdown.lifestyleItems / breakdown.total) * 100).toFixed(2)}%)`);
+        console.log(`Cash: ${breakdown.cash} (${safePercentage(breakdown.cash, breakdown.total)}%)`);
+        console.log(`Stocks: ${breakdown.stocks} (${safePercentage(breakdown.stocks, breakdown.total)}%)`);
+        console.log(`Crypto: ${breakdown.crypto} (${safePercentage(breakdown.crypto, breakdown.total)}%)`);
+        console.log(`Bonds: ${breakdown.bonds} (${safePercentage(breakdown.bonds, breakdown.total)}%)`);
+        console.log(`Other investments: ${breakdown.otherInvestments} (${safePercentage(breakdown.otherInvestments, breakdown.total)}%)`);
+        console.log(`Property equity: ${breakdown.propertyEquity} (${safePercentage(breakdown.propertyEquity, breakdown.total)}%)`);
+        console.log(`Lifestyle Items: ${breakdown.lifestyleItems} (${safePercentage(breakdown.lifestyleItems, breakdown.total)}%)`);
         console.log(`Property value: ${breakdown.propertyValue}`);
         console.log(`Property debt: ${breakdown.propertyDebt}`);
         console.log(`Total net worth: ${breakdown.total}`);
