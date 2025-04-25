@@ -11,32 +11,22 @@
  * 4. Metadata about the last saved state for validation
  */
 
-// Store references - we need to get these at runtime to avoid circular dependencies
-let useCharacter: any;
-let useTime: any;
-let useAssetTracker: any;
-let useEconomy: any;
+// Import directly to avoid issues with 'require' in browser environment
+import { useCharacter } from '../stores/useCharacter';
+import { useTime } from '../stores/useTime';
+import { useAssetTracker } from '../stores/useAssetTracker';
+import { useEconomy } from '../stores/useEconomy';
 
 // This function must be called before any operations
 function loadStores() {
   try {
-    if (!useCharacter) {
-      useCharacter = require('../stores/useCharacter').useCharacter;
+    // Validate that stores are properly imported and accessible
+    if (!useCharacter || !useTime || !useAssetTracker || !useEconomy) {
+      console.error('One or more stores could not be loaded');
+      return false;
     }
     
-    if (!useTime) {
-      useTime = require('../stores/useTime').useTime;
-    }
-    
-    if (!useAssetTracker) {
-      useAssetTracker = require('../stores/useAssetTracker').useAssetTracker;
-    }
-    
-    if (!useEconomy) {
-      useEconomy = require('../stores/useEconomy').useEconomy;
-    }
-    
-    return !!useCharacter && !!useTime;
+    return true;
   } catch (error) {
     console.error('Failed to load stores:', error);
     return false;
