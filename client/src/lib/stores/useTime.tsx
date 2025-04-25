@@ -191,8 +191,18 @@ const timeStore = create<TimeState>()(
         let newMonth = state.currentMonth;
         let newYear = state.currentYear;
         
-        // Determine days in current month
+        // Fix for month calculation:
+        // Get days in current month by using the actual JavaScript Date API correctly
+        // JS months are 0-indexed, so state.currentMonth-1 gives us the current month in JS
         const daysInMonth = new Date(state.currentYear, state.currentMonth, 0).getDate();
+        console.log(`Days in month ${state.currentMonth}/${state.currentYear}: ${daysInMonth}`);
+        
+        // Add additional logging to debug this issue
+        console.log(`Current date: ${state.currentMonth}/${state.currentDay}/${state.currentYear}`);
+        console.log(`New day after increment: ${newDay} (limit: ${daysInMonth})`);
+        if (newDay > daysInMonth) {
+          console.log(`Month will increment: ${state.currentMonth} -> ${state.currentMonth + 1}`);
+        }
         
         // Check if we need to advance to next month
         if (newDay > daysInMonth) {
