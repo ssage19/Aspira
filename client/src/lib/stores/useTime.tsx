@@ -317,16 +317,8 @@ export const useTime = create<TimeState>()(
           accumulatedProgress: 0,
           dayCounter: 0,
           lastRealTimestamp: Date.now(),
-          wasPaused: false // Always ensure this is false after reset
+          wasPaused: false
         };
-        
-        // Setup a flag for time processing after reset to ensure paycheck processing
-        try {
-          sessionStorage.setItem('force_time_processing_after_reset', 'true');
-          console.log("Set force_time_processing_after_reset flag for proper paycheck processing");
-        } catch (err) {
-          console.error("Failed to set time processing flag:", err);
-        }
         
         // Aggressively clear localStorage entry first to ensure all previous data is gone
         try {
@@ -512,51 +504,18 @@ export const useTime = create<TimeState>()(
           const currentTime = Date.now();
           const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
           
-          // Check if this is during game startup after a reset
-          const isStartupAfterReset = sessionStorage.getItem('game_reset_completed') === 'true';
-          const forceTimeProcessing = sessionStorage.getItem('force_time_processing_after_reset') === 'true';
-          
           // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
-          // BUT always process if we just did a game reset to ensure paychecks work properly
-          if ((wasPaused || lastRealTimestamp === 0) && !isStartupAfterReset && !forceTimeProcessing) {
+          if (wasPaused || lastRealTimestamp === 0) {
             console.log(`Skipping offline processing: ${wasPaused ? 'Game was paused' : 'First load detected'}`);
             // Update the timestamp without processing time
             return {
               ...state,
-              lastRealTimestamp: currentTime,
-              // Force wasPaused to false to ensure future offline processing works
-              wasPaused: false
+              lastRealTimestamp: currentTime
             };
           }
           
           // Calculate how much real time has passed since the last session
-          let realMsPassed = currentTime - lastRealTimestamp;
-          
-          // If this is a startup after reset, we need to force some values to ensure proper processing
-          if (isStartupAfterReset || forceTimeProcessing) {
-            console.log("Processing offline time after game reset - forcing time advancement");
-            
-            // Clear the flags since we're handling them now
-            sessionStorage.removeItem('game_reset_completed');
-            sessionStorage.removeItem('force_time_processing_after_reset');
-            
-            // Force a realistic time delta to ensure at least a few days of progress
-            // This will ensure paychecks are processed
-            if (realMsPassed < 1209600000) { // If less than 14 days (2 weeks)
-              // Force at least 14 days to trigger bi-weekly paycheck
-              console.log("Forcing minimum time delta of 14 days for paycheck processing");
-              const forcedMsPassed = 1209600000; // 14 days in ms
-              const forcedRealTime = new Date(currentTime - forcedMsPassed);
-              
-              // Log the forced time calculation
-              console.log(`Forced time calculation: Current time ${new Date(currentTime).toLocaleString()}`);
-              console.log(`Forced previous time: ${forcedRealTime.toLocaleString()}`);
-              console.log(`This will ensure bi-weekly paycheck processing`);
-              
-              // Override realMsPassed with our forced value
-              realMsPassed = forcedMsPassed;
-            }
-          }
+          const realMsPassed = currentTime - lastRealTimestamp;
           
           // If less than 5 seconds passed, don't bother processing
           if (realMsPassed < 5000) {
