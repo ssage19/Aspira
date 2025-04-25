@@ -50,20 +50,36 @@ const isMarketOpen = () => {
 
 // Utility to log asset values for debugging
 const logAssetSnapshots = (label: string) => {
-  const character = useCharacter.getState();
-  const assetTracker = useAssetTracker.getState();
-  
-  // Convert to strings truncated to 1 decimal place to address floating-point precision issues
-  const characterWealthFixed = parseFloat(character.wealth.toFixed(1));
-  const trackerCashFixed = parseFloat(assetTracker.totalCash.toFixed(1));
-  
-  console.log(`📊 ASSET SNAPSHOT [${label}]:`, {
-    characterWealth: characterWealthFixed,
-    assetTrackerNetWorth: assetTracker.totalNetWorth,
-    assetTrackerCash: trackerCashFixed,
-    assetTrackerStocks: assetTracker.totalStocks,
-    assetsMatch: Math.abs(characterWealthFixed - trackerCashFixed) < 1.0
-  });
+  try {
+    const character = useCharacter.getState();
+    const assetTracker = useAssetTracker.getState();
+    
+    // Safety check before accessing properties
+    if (!character || character.wealth === undefined) {
+      console.warn(`⚠️ Cannot log asset snapshot [${label}]: Character data is incomplete`);
+      return;
+    }
+    
+    if (!assetTracker || assetTracker.totalCash === undefined) {
+      console.warn(`⚠️ Cannot log asset snapshot [${label}]: Asset tracker data is incomplete`);
+      return;
+    }
+    
+    // Convert to strings truncated to 1 decimal place to address floating-point precision issues
+    const characterWealthFixed = parseFloat(character.wealth.toFixed(1));
+    const trackerCashFixed = parseFloat(assetTracker.totalCash.toFixed(1));
+    
+    console.log(`📊 ASSET SNAPSHOT [${label}]:`, {
+      characterWealth: characterWealthFixed,
+      characterNetWorth: character.netWorth ? parseFloat(character.netWorth.toFixed(1)) : 'unavailable',
+      assetTrackerNetWorth: assetTracker.totalNetWorth ? parseFloat(assetTracker.totalNetWorth.toFixed(1)) : 'unavailable',
+      assetTrackerCash: trackerCashFixed,
+      assetTrackerStocks: assetTracker.totalStocks ?? 0,
+      assetsMatch: Math.abs(characterWealthFixed - trackerCashFixed) < 1.0
+    });
+  } catch (error) {
+    console.error(`❌ Error in logAssetSnapshots [${label}]:`, error);
+  }
 };
 
 // Global function that can be called from anywhere without React hooks
@@ -90,10 +106,12 @@ export const refreshAllAssets = () => {
     };
   }
   
+  // Set the flag first, release it in finally block
+  refreshInProgress = true;
+  console.log("=== BEGINNING COMPREHENSIVE ASSET REFRESH ===");
+  lastRefreshTime = now;
+  
   try {
-    refreshInProgress = true;
-    console.log("=== BEGINNING COMPREHENSIVE ASSET REFRESH ===");
-    lastRefreshTime = now;
     
     // Check if market is open for stock price updates
     const marketOpen = isMarketOpen();
@@ -116,72 +134,112 @@ export const refreshAllAssets = () => {
     console.log("STEP 2: Recalculating asset tracker totals");
     assetTrackerState.recalculateTotals();
     
-    // 3. Third step: Verify the values match and fix if needed
-    console.log("STEP 3: Verifying values match between stores");
+    // 3. Third step: Verify values and sync if needed
+    console.log("STEP 3: Verifying values between stores");
     
-    // Convert to strings truncated to 1 decimal place to address floating-point precision issues
-    const characterWealthFixed = parseFloat(characterState.wealth.toFixed(1));
-    const trackerCashFixed = parseFloat(assetTrackerState.totalCash.toFixed(1));
-    const characterNetWorthFixed = parseFloat(characterState.netWorth.toFixed(1));
-    const trackerNetWorthFixed = parseFloat(assetTrackerState.totalNetWorth.toFixed(1));
-    
-    // Use a wider tolerance threshold to prevent excessive syncs
-    // But we'll now explicitly force synchronization for exact matches
-    let mismatchDetected = false;
-    
-    // First check: Cash values
-    if (Math.abs(characterWealthFixed - trackerCashFixed) > 0.1) {
-      // There's a mismatch that's beyond rounding error
-      console.warn("⚠️ Cash values don't match, forcing synchronization");
-      console.log(`Cash mismatch details: Character wealth: ${characterWealthFixed}, Asset tracker cash: ${trackerCashFixed}`);
-      mismatchDetected = true;
-    } else {
-      console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
-    }
-    
-    // Second check: Net worth values
-    if (Math.abs(characterNetWorthFixed - trackerNetWorthFixed) > 0.1) {
-      // There's a mismatch that's beyond rounding error
-      console.warn("⚠️ Net worth values don't match");
-      console.log(`Net worth mismatch details: Character: ${characterNetWorthFixed}, Asset tracker: ${trackerNetWorthFixed}`);
-      mismatchDetected = true;
-    } else {
-      console.log(`✅ Net worth values match within tolerance (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed})`);
-    }
-    
-    // If we detected a mismatch, perform a two-way sync to ensure consistency
-    if (mismatchDetected) {
-      console.log("🔄 Performing two-way synchronization between stores");
+    try {
+      // Safety check - ensure we have necessary data
+      if (characterState?.wealth === undefined || characterState?.netWorth === undefined) {
+        console.warn("⚠️ Character state missing required data");
+        console.log("Character state:", characterState);
+        return {
+          success: false,
+          message: "Character state missing required data",
+          error: new Error("Character state is incomplete")
+        };
+      }
       
-      // 1. First, sync asset tracker cash to match character wealth
-      useAssetTracker.setState({ 
-        cash: characterState.wealth,
-        totalCash: characterState.wealth,
-        lastUpdated: Date.now()
-      });
+      if (assetTrackerState?.totalCash === undefined || assetTrackerState?.totalNetWorth === undefined) {
+        console.warn("⚠️ Asset tracker state missing required data");
+        console.log("Asset tracker state:", assetTrackerState);
+        return {
+          success: false,
+          message: "Asset tracker state missing required data",
+          error: new Error("Asset tracker state is incomplete")
+        };
+      }
       
-      // 2. Recalculate asset tracker totals
-      assetTrackerState.recalculateTotals();
+      // Convert to numbers with 1 decimal place to address floating-point precision issues
+      const characterWealthFixed = parseFloat(characterState.wealth.toFixed(1));
+      const trackerCashFixed = parseFloat(assetTrackerState.totalCash.toFixed(1));
+      const characterNetWorthFixed = parseFloat(characterState.netWorth.toFixed(1));
+      const trackerNetWorthFixed = parseFloat(assetTrackerState.totalNetWorth.toFixed(1));
       
-      // 3. Get the updated asset tracker state after recalculation
-      const updatedAssetTracker = useAssetTracker.getState();
+      // Use a wider tolerance threshold to prevent excessive syncs
+      let mismatchDetected = false;
       
-      // 4. Update character's net worth based on the asset tracker's total net worth
-      // This ensures properties, investments and other assets are properly reflected
-      characterState.setNetWorth(updatedAssetTracker.totalNetWorth);
+      // First check: Cash values
+      if (Math.abs(characterWealthFixed - trackerCashFixed) > 0.1) {
+        // There's a mismatch that's beyond rounding error
+        console.warn("⚠️ Cash values don't match, will synchronize");
+        console.log(`Cash mismatch details: Character wealth: ${characterWealthFixed}, Asset tracker cash: ${trackerCashFixed}`);
+        mismatchDetected = true;
+      } else {
+        console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
+      }
       
-      // Log the fixes
-      console.log(`✅ Fixed cash mismatch: Asset tracker cash now ${updatedAssetTracker.cash}`);
-      console.log(`✅ Fixed net worth mismatch: Character net worth now ${characterState.netWorth}`);
+      // Second check: Net worth values
+      if (Math.abs(characterNetWorthFixed - trackerNetWorthFixed) > 0.1) {
+        // There's a mismatch that's beyond rounding error
+        console.warn("⚠️ Net worth values don't match");
+        console.log(`Net worth mismatch details: Character: ${characterNetWorthFixed}, Asset tracker: ${trackerNetWorthFixed}`);
+        mismatchDetected = true;
+      } else {
+        console.log(`✅ Net worth values match within tolerance (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed})`);
+      }
       
-      // Double-check that the fix worked
-      const finalCharacterState = useCharacter.getState();
-      const finalTrackerState = useAssetTracker.getState();
-      
-      console.log(`Final verification: 
-        Character wealth: ${finalCharacterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}
-        Character net worth: ${finalCharacterState.netWorth}, Asset tracker net worth: ${finalTrackerState.totalNetWorth}
-      `);
+      // If we detected a mismatch, perform synchronization to ensure consistency
+      if (mismatchDetected) {
+        console.log("🔄 Performing synchronization between stores");
+        
+        try {
+          // 1. First, sync asset tracker cash to match character wealth
+          useAssetTracker.setState({ 
+            cash: characterState.wealth,
+            totalCash: characterState.wealth,
+            lastUpdated: Date.now()
+          });
+          
+          // 2. Recalculate asset tracker totals
+          assetTrackerState.recalculateTotals();
+          
+          // 3. Get the updated asset tracker state after recalculation
+          const updatedAssetTracker = useAssetTracker.getState();
+          
+          // 4. Update character's net worth based on the asset tracker's total net worth
+          try {
+            // Use the standard setState pattern to update net worth
+            useCharacter.setState({ 
+              netWorth: updatedAssetTracker.totalNetWorth
+            });
+            console.log(`Updated character net worth to: ${updatedAssetTracker.totalNetWorth}`);
+          } catch (netWorthError) {
+            console.error("❌ Error updating character net worth:", netWorthError);
+          }
+          
+          // Log the fixes
+          console.log(`✅ Fixed cash mismatch: Asset tracker cash now ${updatedAssetTracker.cash}`);
+          console.log(`✅ Fixed net worth mismatch: Character net worth now ${characterState.netWorth}`);
+          
+          // Double-check that the fix worked
+          const finalCharacterState = useCharacter.getState();
+          const finalTrackerState = useAssetTracker.getState();
+          
+          console.log(`Final verification: 
+            Character wealth: ${finalCharacterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}
+            Character net worth: ${finalCharacterState.netWorth}, Asset tracker net worth: ${finalTrackerState.totalNetWorth}
+          `);
+        } catch (innerError) {
+          console.error("❌ Error during synchronization:", innerError);
+        }
+      }
+    } catch (error) {
+      console.error("❌ Error during value verification:", error);
+      return {
+        success: false,
+        message: "Error during value verification",
+        error
+      };
     }
     
     // Take after snapshots for debugging
