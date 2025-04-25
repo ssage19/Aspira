@@ -598,6 +598,56 @@ export function Properties() {
                     </div>
                   )}
                   
+                  {selectedProperty.id === 'senior_condo' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/senior_living_condo.jpg" 
+                        alt="Senior Living Condo" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'lakeside_cabin' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/lakeside_cabin.jpg" 
+                        alt="Lakeside Cabin" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'bungalow' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/craftsman_bungalow.jpg" 
+                        alt="Craftsman Bungalow" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'split_level' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/split_level_home.jpg" 
+                        alt="Split-Level Home" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'waterfront_apt' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/waterfront_apartment.jpg" 
+                        alt="Waterfront Apartment" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-gray-500">Purchase Price</p>
