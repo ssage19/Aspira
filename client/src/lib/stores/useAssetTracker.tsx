@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { registerStore } from '../utils/storeRegistry';
 
 // Storage key for the asset tracker store
 export const ASSET_TRACKER_STORAGE_KEY = 'business-empire-asset-tracker';
@@ -1135,5 +1136,8 @@ export const useAssetTracker = create<AssetTrackerState>()(
     }
   )
 );
+
+// Register with the global store registry
+registerStore('assetTracker', useAssetTracker);
 
 export default useAssetTracker;

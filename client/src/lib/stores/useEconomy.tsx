@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { registerStore } from "../utils/storeRegistry";
 
 export type EconomyState = "boom" | "recession" | "stable";
 export type MarketTrend = "bull" | "bear" | "stable";
@@ -250,5 +251,8 @@ function saveState() {
   const state = useEconomy.getState();
   setLocalStorage(STORAGE_KEY, state);
 }
+
+// Register with the global store registry
+registerStore('economy', useEconomy);
 
 export default useEconomy;
