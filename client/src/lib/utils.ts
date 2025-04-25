@@ -528,10 +528,16 @@ export const performCompleteGameReset = () => {
   sessionStorage.setItem('block_time_loads', 'true');
   sessionStorage.setItem('smooth_navigation', 'true');
 
-  // 9. Add a cache-busting parameter to the URL to ensure we get a fresh page
+  // 9. Force removal of any character data before redirecting
+  localStorage.removeItem('business-empire-character');
+  console.log("CRITICAL: Explicitly removing character data from localStorage to force new character creation");
+  
+  // 10. Add a cache-busting parameter to the URL to ensure we get a fresh page
   // This is crucial for avoiding cached data during navigation
   const timestamp = Date.now();
-  window.location.href = `/create?reset=${timestamp}`;
+  
+  // 11. Force a direct redirect to character creation with a special parameter to bypass our checks
+  window.location.href = `/create?reset=${timestamp}&force=true`;
 };
 
 /**
