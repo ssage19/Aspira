@@ -244,9 +244,9 @@ export function Properties() {
   const calculateMonthlyPayment = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
     const downPayment = (downPaymentPercent / 100) * adjustedPrice;
-    const loanAmount = adjustedPrice - downPayment;
     
-    const result = calculateMortgage(loanAmount, interestRate, 30);
+    // Fixed the function call to match the expected parameters
+    const result = calculateMortgage(adjustedPrice, downPaymentPercent, interestRate, 30);
     return result;
   };
   
