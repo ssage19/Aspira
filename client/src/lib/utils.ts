@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { getStore } from "./utils/storeRegistry";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -391,114 +392,214 @@ export const performCompleteGameReset = () => {
     }
     
     // THIRD - Reset time store
-    const timeStore = require('./stores/useTime').useTime;
-    if (timeStore.getState().resetTime) {
-      timeStore.getState().resetTime();
-      console.log("Time store state reset");
-    } else {
-      console.error("Time store reset function not found!");
+    try {
+      console.log("STEP 3.3: Resetting time store via registry");
+      const timeStore = getStore('time');
+      
+      if (timeStore && timeStore.getState && typeof timeStore.getState().resetTime === 'function') {
+        timeStore.getState().resetTime();
+        console.log("Time store state reset successfully via registry");
+      } else {
+        console.error("Time store or resetTime function not found in registry!");
+        
+        // Fallback to direct import only if necessary
+        console.log("Attempting time store reset via direct import as fallback");
+        const directTimeStore = require('./stores/useTime').useTime;
+        
+        if (directTimeStore && typeof directTimeStore.getState().resetTime === 'function') {
+          directTimeStore.getState().resetTime();
+          console.log("Time store state reset via fallback direct import");
+        } else {
+          console.error("Time store reset function not found even in fallback!");
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting time store:", error);
     }
     
     // FOURTH - Reset character store
-    console.log("Resetting character store...");
-    const characterStore = require('./stores/useCharacter').useCharacter;
-    if (characterStore.getState().resetCharacter) {
-      // Step 1: Verify asset tracker storage is cleared (should be done already in earlier steps)
-      try {
-        const breakdownExists = localStorage.getItem('business-empire-networth-breakdown');
-        const trackerExists = localStorage.getItem('business-empire-asset-tracker');
+    try {
+      console.log("STEP 3.4: Resetting character store via registry");
+      const characterStore = getStore('character');
+      
+      if (characterStore && characterStore.getState) {
+        // Step 1: Verify asset tracker storage is cleared (should be done already in earlier steps)
+        try {
+          const breakdownExists = localStorage.getItem('business-empire-networth-breakdown');
+          const trackerExists = localStorage.getItem('business-empire-asset-tracker');
+          
+          if (breakdownExists || trackerExists) {
+            console.log("WARNING: Asset tracking localStorage entries still exist, removing again");
+            localStorage.removeItem('business-empire-networth-breakdown');
+            localStorage.removeItem('business-empire-asset-tracker');
+          }
+        } catch (storageError) {
+          console.error("Error checking asset tracker localStorage entries:", storageError);
+        }
         
-        if (breakdownExists || trackerExists) {
-          console.log("WARNING: Asset tracking localStorage entries still exist, removing again");
-          localStorage.removeItem('business-empire-networth-breakdown');
-          localStorage.removeItem('business-empire-asset-tracker');
-        }
-      } catch (storageError) {
-        console.error("Error checking asset tracker localStorage entries:", storageError);
-      }
-      
-      // Step 2: Clear in-memory breakdown in character store
-      try {
-        if (characterStore.getState()) {
-          if ((characterStore.getState() as any).netWorthBreakdown) {
-            console.log("Explicitly clearing cached netWorthBreakdown data in character store");
-            (characterStore.getState() as any).netWorthBreakdown = null;
-          }
-          
-          // Also clear any flags related to netWorthBreakdown calculations
-          if ((characterStore.getState() as any)._netWorthRecalculated) {
-            console.log("Clearing netWorthRecalculated flag");
-            (characterStore.getState() as any)._netWorthRecalculated = false;
-          }
-          
-          // Force a clean default breakdown to be set in character state
-          if (characterStore.getState().wealth !== undefined) {
-            const defaultBreakdown = {
-              cash: characterStore.getState().wealth || 0,
-              stocks: 0,
-              crypto: 0,
-              bonds: 0,
-              otherInvestments: 0,
-              propertyEquity: 0,
-              propertyValue: 0,
-              propertyDebt: 0,
-              lifestyleItems: 0,
-              total: characterStore.getState().wealth || 0
-            };
+        // Step 2: Clear in-memory breakdown in character store
+        try {
+          if (characterStore.getState()) {
+            if ((characterStore.getState() as any).netWorthBreakdown) {
+              console.log("Explicitly clearing cached netWorthBreakdown data in character store");
+              (characterStore.getState() as any).netWorthBreakdown = null;
+            }
             
-            console.log("Setting clean default breakdown in character store:", defaultBreakdown);
-            (characterStore.getState() as any).netWorthBreakdown = defaultBreakdown;
+            // Also clear any flags related to netWorthBreakdown calculations
+            if ((characterStore.getState() as any)._netWorthRecalculated) {
+              console.log("Clearing netWorthRecalculated flag");
+              (characterStore.getState() as any)._netWorthRecalculated = false;
+            }
+            
+            // Force a clean default breakdown to be set in character state
+            if (characterStore.getState().wealth !== undefined) {
+              const defaultBreakdown = {
+                cash: characterStore.getState().wealth || 0,
+                stocks: 0,
+                crypto: 0,
+                bonds: 0,
+                otherInvestments: 0,
+                propertyEquity: 0,
+                propertyValue: 0,
+                propertyDebt: 0,
+                lifestyleItems: 0,
+                total: characterStore.getState().wealth || 0
+              };
+              
+              console.log("Setting clean default breakdown in character store:", defaultBreakdown);
+              (characterStore.getState() as any).netWorthBreakdown = defaultBreakdown;
+            }
+          }
+        } catch (err) {
+          console.error("Error handling in-memory breakdown:", err);
+        }
+        
+        // Now perform the full character reset
+        if (typeof characterStore.getState().resetCharacter === 'function') {
+          characterStore.getState().resetCharacter();
+          console.log("Character store state reset successfully via registry");
+        } else {
+          console.error("Character store resetCharacter function not found in registry!");
+          
+          // Fallback to direct import only if necessary
+          const directCharacterStore = require('./stores/useCharacter').useCharacter;
+          if (directCharacterStore && typeof directCharacterStore.getState().resetCharacter === 'function') {
+            directCharacterStore.getState().resetCharacter();
+            console.log("Character store state reset via fallback direct import");
+          } else {
+            console.error("Character store resetCharacter function not found even in fallback!");
           }
         }
-      } catch (err) {
-        console.error("Error handling in-memory breakdown:", err);
+      } else {
+        console.error("Character store not found in registry!");
+        
+        // Fallback to direct import
+        const directCharacterStore = require('./stores/useCharacter').useCharacter;
+        if (directCharacterStore && typeof directCharacterStore.getState().resetCharacter === 'function') {
+          directCharacterStore.getState().resetCharacter();
+          console.log("Character store state reset via direct import");
+        } else {
+          console.error("Character store resetCharacter function not found in fallback!");
+        }
       }
-      
-      // Now perform the full character reset
-      characterStore.getState().resetCharacter();
-      console.log("Character store state reset");
-    } else {
-      console.error("Character store reset function not found!");
+    } catch (error) {
+      console.error("Error resetting character store:", error);
     }
     
     // Reset game store
-    console.log("Resetting game store...");
-    const gameStore = require('./stores/useGame').useGame;
-    if (gameStore.getState().reset) {
-      gameStore.getState().reset();
-      console.log("Game store state reset");
-    } else {
-      console.error("Game store reset function not found!");
+    try {
+      console.log("STEP 3.5: Resetting game store via registry");
+      const gameStore = getStore('game');
+      
+      if (gameStore && gameStore.getState && typeof gameStore.getState().reset === 'function') {
+        gameStore.getState().reset();
+        console.log("Game store state reset successfully via registry");
+      } else {
+        console.error("Game store or reset function not found in registry!");
+        
+        // Fallback to direct import only if necessary
+        const directGameStore = require('./stores/useGame').useGame;
+        if (directGameStore && typeof directGameStore.getState().reset === 'function') {
+          directGameStore.getState().reset();
+          console.log("Game store state reset via fallback direct import");
+        } else {
+          console.error("Game store reset function not found even in fallback!");
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting game store:", error);
     }
     
     // Reset economy store
-    console.log("Resetting economy store...");
-    const economyStore = require('./stores/useEconomy').useEconomy;
-    if (economyStore.getState().resetEconomy) {
-      economyStore.getState().resetEconomy();
-      console.log("Economy store state reset");
-    } else {
-      console.error("Economy store reset function not found!");
+    try {
+      console.log("STEP 3.6: Resetting economy store via registry");
+      const economyStore = getStore('economy');
+      
+      if (economyStore && economyStore.getState && typeof economyStore.getState().resetEconomy === 'function') {
+        economyStore.getState().resetEconomy();
+        console.log("Economy store state reset successfully via registry");
+      } else {
+        console.error("Economy store or resetEconomy function not found in registry!");
+        
+        // Fallback to direct import only if necessary
+        const directEconomyStore = require('./stores/useEconomy').useEconomy;
+        if (directEconomyStore && typeof directEconomyStore.getState().resetEconomy === 'function') {
+          directEconomyStore.getState().resetEconomy();
+          console.log("Economy store state reset via fallback direct import");
+        } else {
+          console.error("Economy store resetEconomy function not found even in fallback!");
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting economy store:", error);
     }
     
     // Reset events store
-    console.log("Resetting events store...");
-    const eventsStore = require('./stores/useRandomEvents').default;
-    if (eventsStore.getState().resetEvents) {
-      eventsStore.getState().resetEvents();
-      console.log("Events store state reset");
-    } else {
-      console.error("Events store reset function not found!");
+    try {
+      console.log("STEP 3.7: Resetting events store via registry");
+      const eventsStore = getStore('events');
+      
+      if (eventsStore && eventsStore.getState && typeof eventsStore.getState().resetEvents === 'function') {
+        eventsStore.getState().resetEvents();
+        console.log("Events store state reset successfully via registry");
+      } else {
+        console.error("Events store or resetEvents function not found in registry!");
+        
+        // Fallback to direct import only if necessary
+        const directEventsStore = require('./stores/useRandomEvents').default;
+        if (directEventsStore && typeof directEventsStore.getState().resetEvents === 'function') {
+          directEventsStore.getState().resetEvents();
+          console.log("Events store state reset via fallback direct import");
+        } else {
+          console.error("Events store resetEvents function not found even in fallback!");
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting events store:", error);
     }
     
     // Reset achievements store
-    console.log("Resetting achievements store...");
-    const achievementsStore = require('./stores/useAchievements').useAchievements;
-    if (achievementsStore.getState().resetAchievements) {
-      achievementsStore.getState().resetAchievements();
-      console.log("Achievements store state reset");
-    } else {
-      console.error("Achievements store reset function not found!");
+    try {
+      console.log("STEP 3.8: Resetting achievements store via registry");
+      const achievementsStore = getStore('achievements');
+      
+      if (achievementsStore && achievementsStore.getState && typeof achievementsStore.getState().resetAchievements === 'function') {
+        achievementsStore.getState().resetAchievements();
+        console.log("Achievements store state reset successfully via registry");
+      } else {
+        console.error("Achievements store or resetAchievements function not found in registry!");
+        
+        // Fallback to direct import only if necessary
+        const directAchievementsStore = require('./stores/useAchievements').useAchievements;
+        if (directAchievementsStore && typeof directAchievementsStore.getState().resetAchievements === 'function') {
+          directAchievementsStore.getState().resetAchievements();
+          console.log("Achievements store state reset via fallback direct import");
+        } else {
+          console.error("Achievements store resetAchievements function not found even in fallback!");
+        }
+      }
+    } catch (error) {
+      console.error("Error resetting achievements store:", error);
     }
     
     console.log("All stores have been reset");
