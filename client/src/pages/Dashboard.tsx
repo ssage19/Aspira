@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import useCharacter from '../lib/stores/useCharacter';
+import { getStore } from '../lib/utils/storeRegistry';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useAudio } from '../lib/stores/useAudio';
@@ -199,33 +199,65 @@ if (!(window as any).globalUpdateAllPrices) {
   console.log("Setting up global price update function");
   (window as any).globalUpdateAllPrices = () => {
     // First update character assets with latest prices
-    const characterState = useCharacter.getState();
+    const characterStore = getStore('character');
     const assetTrackerState = useAssetTracker.getState();
     
-    // Sync in both directions to ensure consistency
-    characterState.syncAssetsWithAssetTracker();
-    assetTrackerState.recalculateTotals();
-    
-    // Log for debugging
-    console.log('Global price update complete');
+    if (characterStore) {
+      // Sync in both directions to ensure consistency
+      characterStore.getState().syncAssetsWithAssetTracker();
+      assetTrackerState.recalculateTotals();
+      
+      // Log for debugging
+      console.log('Global price update complete');
+    } else {
+      console.error('Failed to update prices: Character store not found in registry');
+    }
   };
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
   
-  // Get character state directly from the store as a stable reference
+  // Get character state directly from the store registry
   // Using memoized selectors to avoid infinite loops
-  const character = useCharacter(
-    React.useCallback(state => ({
-      name: state.name, 
-      happiness: state.happiness,
-      prestige: state.prestige,
-      stress: state.stress,
-      energy: state.energy,
-      health: state.health
-    }), [])
-  );
+  const [character, setCharacter] = useState({
+    name: 'Player', 
+    happiness: 50,
+    prestige: 0,
+    stress: 0,
+    energy: 100,
+    health: 100
+  });
+  
+  // Get character data from store registry when available
+  useEffect(() => {
+    const characterStore = getStore('character');
+    if (characterStore) {
+      const state = characterStore.getState();
+      setCharacter({
+        name: state.name,
+        happiness: state.happiness,
+        prestige: state.prestige,
+        stress: state.stress,
+        energy: state.energy,
+        health: state.health
+      });
+      
+      // Subscribe to future changes
+      const unsubscribe = characterStore.subscribe((state) => {
+        setCharacter({
+          name: state.name,
+          happiness: state.happiness,
+          prestige: state.prestige,
+          stress: state.stress,
+          energy: state.energy,
+          health: state.health
+        });
+      });
+      
+      return unsubscribe;
+    }
+  }, []);
   
   // Destructure for convenience
   const { name, happiness, prestige, stress, energy, health } = character;
@@ -301,8 +333,13 @@ export default function Dashboard() {
       if ((window as any).globalUpdateAllPrices) {
         (window as any).globalUpdateAllPrices();
       } else {
-        useCharacter.getState().syncAssetsWithAssetTracker();
-        recalculateTotals();
+        const characterStore = getStore('character');
+        if (characterStore) {
+          characterStore.getState().syncAssetsWithAssetTracker();
+          recalculateTotals();
+        } else {
+          console.error('Failed to sync assets: Character store not found in registry');
+        }
       }
     };
     
