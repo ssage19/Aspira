@@ -1047,6 +1047,17 @@ export function Properties() {
                         </CardHeader>
                         <CardContent className="pb-2">
                           <div className="space-y-2 text-sm">
+                            {/* Property Image */}
+                            {property.id === 'single_family' && (
+                              <div className="mb-2">
+                                <img 
+                                  src="/images/properties/single_family_home.jpg" 
+                                  alt="Single Family Home" 
+                                  className="rounded-md w-full h-32 object-cover"
+                                />
+                              </div>
+                            )}
+                            
                             <div className="flex justify-between">
                               <span>Current Value:</span>
                               <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
