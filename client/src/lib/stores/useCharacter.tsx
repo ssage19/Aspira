@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage, formatCurrency } from "../utils";
 import { toast } from "sonner";
-import { useTime } from "./useTime";
+import { registerStore, getStore } from "../utils/storeRegistry";
 import useAssetTracker from "./useAssetTracker";
 import { startupInvestments } from "../data/investments";
 import { useChallenges } from "./useChallenges";
@@ -4217,5 +4217,12 @@ function saveState() {
   // Save to localStorage
   setLocalStorage(STORAGE_KEY, updatedState);
 }
+
+// Register the character store in the global registry for cross-module access
+// This enables other modules to access the store without circular dependencies
+registerStore('character', useCharacter);
+
+// Log when the character store is registered successfully
+console.log('✅ Character Store: Registered in global store registry');
 
 export default useCharacter;
