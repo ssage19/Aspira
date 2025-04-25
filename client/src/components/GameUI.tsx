@@ -12,6 +12,7 @@ function isEndOfMonth(day: number, month: number, year: number): boolean {
   // If the next day is in a different month, then this is the last day
   return nextDate.getMonth() + 1 !== month;
 }
+
 import { 
   DollarSign, 
   Clock, 
@@ -464,11 +465,14 @@ export default function GameUI() {
     
     // Process daily character update (including salary)
     try {
-      const characterState = useCharacter.getState();
-      if (characterState && typeof characterState.processDailyUpdate === 'function') {
-        characterState.processDailyUpdate();
-      } else {
-        console.warn("Character state or processDailyUpdate method not available in manual advancement");
+      const characterStore = getStore('character');
+      if (characterStore) {
+        const characterState = characterStore.getState();
+        if (characterState && typeof characterState.processDailyUpdate === 'function') {
+          characterState.processDailyUpdate();
+        } else {
+          console.warn("Character state or processDailyUpdate method not available in manual advancement");
+        }
       }
     } catch (error) {
       console.error("Error processing daily character update in manual advancement:", error);
@@ -476,62 +480,79 @@ export default function GameUI() {
     
     // Advance the day
     advanceTime();
-    if (audioState.playSuccess) {
-      audioState.playSuccess();
-    }
     
     // Get the updated dayCounter after advancing time
-    const { dayCounter } = useTime.getState();
+    const timeStore = getStore('time');
+    const economyStore = getStore('economy');
+    let dayCounter = 0;
+    let localCurrentDay = 1;
+    let localCurrentMonth = 1; 
+    let localCurrentYear = 2025;
     
-    // Check for weekly updates (every 7 days)
-    if (dayCounter % 7 === 0) {
-      useEconomy.getState().processWeeklyUpdate();
-      console.log("Weekly update processed on day counter:", dayCounter);
-    }
-    
-    // Get the current date and state
-    const { currentDay, currentMonth, currentYear } = useTime.getState();
-    const isLastDayOfMonth = isEndOfMonth(currentDay, currentMonth, currentYear);
-    
-    // Check for monthly updates on the last day of each month
-    if (isLastDayOfMonth) {
-      useEconomy.getState().processMonthlyUpdate();
-      console.log("Monthly update processed on day counter:", dayCounter);
+    if (timeStore) {
+      const timeState = timeStore.getState();
+      dayCounter = timeState.dayCounter || 0;
+      localCurrentDay = timeState.currentDay || 1;
+      localCurrentMonth = timeState.currentMonth || 1;
+      localCurrentYear = timeState.currentYear || 2025;
       
-      // Create a month ID string (e.g., "4-2025" for April 2025)
-      const monthId = `${currentMonth}-${currentYear}`;
+      // Check for weekly updates (every 7 days)
+      if (dayCounter % 7 === 0 && economyStore) {
+        const processWeeklyUpdate = economyStore.getState().processWeeklyUpdate;
+        if (typeof processWeeklyUpdate === 'function') {
+          processWeeklyUpdate();
+          console.log("Weekly update processed on day counter:", dayCounter);
+        }
+      }
       
-      // Get character state for calculations
-      const characterState = useCharacter.getState();
+      const isLastDayOfMonth = isEndOfMonth(localCurrentDay, localCurrentMonth, localCurrentYear);
       
-      // Calculate the summary values for the toast
-      const propertyIncome = characterState.properties.reduce((total, property) => 
-        total + property.income, 0);
-      const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
-        const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-        return total + monthlyCost;
-      }, 0);
-      const job = characterState.job;
-      const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-      
-      // Check if we've already processed expenses for this month
-      if (lastExpenseMonth !== monthId) {
-        // Call the character store's monthly update method to handle expense deduction
-        try {
-          if (characterState && typeof characterState.monthlyUpdate === 'function') {
-            characterState.monthlyUpdate();
-          } else {
-            console.warn("Character state or monthlyUpdate method not available in manual advancement");
-          }
-        } catch (error) {
-          console.error("Error in monthly update during manual advancement:", error);
+      // Check for monthly updates on the last day of each month
+      if (isLastDayOfMonth && economyStore) {
+        const processMonthlyUpdate = economyStore.getState().processMonthlyUpdate;
+        if (typeof processMonthlyUpdate === 'function') {
+          processMonthlyUpdate();
+          console.log("Monthly update processed on day counter:", dayCounter);
         }
         
-        // Update the last expense month to prevent double-charging
-        setLastExpenseMonth(monthId);
-        console.log(`Set last expense month to: ${monthId}`);
-      } else {
-        console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+        // Create a month ID string (e.g., "4-2025" for April 2025)
+        const monthId = `${localCurrentMonth}-${localCurrentYear}`;
+        
+        // Get character state for calculations
+        const characterStore = getStore('character');
+        if (characterStore) {
+          const characterState = characterStore.getState();
+          
+          // Calculate the summary values for the toast
+          const propertyIncome = characterState.properties.reduce((total: number, property: any) => 
+            total + property.income, 0);
+          const lifestyleExpenses = characterState.lifestyleItems.reduce((total: number, item: any) => {
+            const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+            return total + monthlyCost;
+          }, 0);
+          const job = characterState.job;
+          const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+          
+          // Check if we've already processed expenses for this month
+          if (lastExpenseMonth !== monthId) {
+            // Call the character store's monthly update method to handle expense deduction
+            try {
+              if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                characterState.monthlyUpdate();
+              } else {
+                console.warn("Character state or monthlyUpdate method not available in manual advancement");
+              }
+            } catch (error) {
+              console.error("Error in monthly update during manual advancement:", error);
+            }
+            
+            // Update the last expense month to prevent double-charging
+            setLastExpenseMonth(monthId);
+            console.log(`Set last expense month to: ${monthId}`);
+          } else {
+            console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+          }
+        }
       }
     }
     
