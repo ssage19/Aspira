@@ -881,7 +881,7 @@ export default function JobScreen() {
                           {Math.floor(job.monthsInPosition / 12) > 0 
                             ? `${Math.floor(job.monthsInPosition / 12)} ${Math.floor(job.monthsInPosition / 12) === 1 ? 'year' : 'years'}, ` 
                             : ''}
-                          {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}, {daysSincePromotion} {daysSincePromotion === 1 ? 'day' : 'days'}
+                          {job.monthsInPosition % 12} {job.monthsInPosition % 12 === 1 ? 'month' : 'months'}, {daysSincePromotion - 1 || 0} {(daysSincePromotion - 1 || 0) === 1 ? 'day' : 'days'}
                         </span>
                       </div>
                       
@@ -890,14 +890,14 @@ export default function JobScreen() {
                         <div className="flex justify-between items-center">
                           <span>Next skill points:</span>
                           <span className="font-medium">
-                            {30 - (daysSincePromotion % 30)} {(30 - (daysSincePromotion % 30)) === 1 ? 'day' : 'days'}
+                            {daysSincePromotion >= 30 ? 30 : 30 - daysSincePromotion} {(daysSincePromotion >= 30 ? 30 : 30 - daysSincePromotion) === 1 ? 'day' : 'days'}
                           </span>
                         </div>
                         <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-800 rounded-full mt-1 overflow-hidden">
                           <div 
                             className="h-full bg-green-500 rounded-full transition-all duration-300"
                             style={{ 
-                              width: `${((daysSincePromotion % 30) / 30) * 100}%`,
+                              width: `${daysSincePromotion >= 30 ? 100 : (daysSincePromotion / 30) * 100}%`,
                             }}
                           ></div>
                         </div>
