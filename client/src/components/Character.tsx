@@ -1,13 +1,43 @@
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useCharacter } from '../lib/stores/useCharacter';
+import { getStore } from '../lib/utils/storeRegistry';
 import { EnhancedCharacter } from './EnhancedCharacter';
 
 export function Character({ position = [0, 0, 0], scale = 1 }) {
   const characterRef = useRef<THREE.Group>(null);
-  const wealth = useCharacter(state => state.wealth);
-  const lifestyleItems = useCharacter(state => state.lifestyleItems);
+  const [characterData, setCharacterData] = useState({ 
+    wealth: 0,
+    lifestyleItems: []
+  });
+  
+  // Get character data from the store registry
+  useEffect(() => {
+    const characterStore = getStore('character');
+    if (characterStore) {
+      // Get initial state
+      const state = characterStore.getState();
+      setCharacterData({
+        wealth: state.wealth,
+        lifestyleItems: state.lifestyleItems || []
+      });
+      
+      // Subscribe to future changes
+      const unsubscribe = characterStore.subscribe(
+        (state) => {
+          setCharacterData({
+            wealth: state.wealth,
+            lifestyleItems: state.lifestyleItems || []
+          });
+        }
+      );
+      
+      // Clean up subscription on unmount
+      return unsubscribe;
+    }
+  }, []);
+  
+  const { wealth, lifestyleItems } = characterData;
   
   // Check if we have any lifestyle items that should trigger the enhanced character
   const useEnhancedCharacter = lifestyleItems && lifestyleItems.length > 0;
