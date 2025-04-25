@@ -24,6 +24,30 @@ export default function CharacterCreation() {
   const { phase, reset, start } = useGame();
   const { playSuccess } = useAudio();
   
+  // CRITICAL FIX: Check for existing character and redirect if found
+  useEffect(() => {
+    // Check if character exists in localStorage
+    const existingCharacter = localStorage.getItem('business-empire-character');
+    
+    if (existingCharacter) {
+      console.log("CharacterCreation: Existing character found, redirecting to dashboard");
+      
+      // Clear any navigation flags before redirecting
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.removeItem('smooth_navigation');
+        sessionStorage.removeItem('force_current_date');
+        sessionStorage.removeItem('block_time_loads');
+        sessionStorage.removeItem('game_reset_in_progress');
+      }
+      
+      // Redirect to dashboard with a small delay to ensure flags are cleared
+      setTimeout(() => {
+        navigate('/');
+      }, 100);
+      return;
+    }
+  }, [navigate]);
+
   // Force reset the game state if we're on the character creation page
   useEffect(() => {
     // Force the game phase to "ready" when on character creation page

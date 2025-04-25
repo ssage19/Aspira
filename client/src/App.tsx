@@ -276,6 +276,46 @@ function App() {
     // Only process offline time on non-character creation pages when game is playing
     const isOnCreatePage = window.location.pathname === '/create';
     
+    // CRITICAL FIX: Check if we are on a page where we should redirect to dashboard
+    // This helps prevent unwanted redirects to character creation screen
+    const shouldBeOnDashboard = () => {
+      // If we're on root page or character creation, no redirection needed
+      if (window.location.pathname === '/' || window.location.pathname === '/create') {
+        return false;
+      }
+      
+      // Check if character exists
+      const hasCharacter = localStorage.getItem('business-empire-character');
+      
+      // If we're not on dashboard but have a character, we should be on dashboard
+      return hasCharacter ? true : false;
+    };
+    
+    // CRITICAL FIX: Ensure any navigation flags are cleared
+    if (typeof window !== 'undefined' && window.sessionStorage) {
+      if (sessionStorage.getItem('smooth_navigation') === 'true') {
+        console.log("App: Clearing smooth_navigation flag for stable navigation");
+        sessionStorage.removeItem('smooth_navigation');
+      }
+      
+      if (sessionStorage.getItem('force_current_date') === 'true') {
+        console.log("App: Clearing force_current_date flag for stable time handling");
+        sessionStorage.removeItem('force_current_date');
+      }
+      
+      if (sessionStorage.getItem('block_time_loads') === 'true') {
+        console.log("App: Clearing block_time_loads flag for stable time handling");
+        sessionStorage.removeItem('block_time_loads');
+      }
+    }
+    
+    // CRITICAL FIX: Redirect to dashboard if needed
+    if (shouldBeOnDashboard()) {
+      console.log("App: User has character and should be on dashboard, redirecting...");
+      window.location.href = '/';
+      return;
+    }
+    
     if (phase === "playing" && !isOnCreatePage) {
       console.log("Processing offline time since last session...");
       

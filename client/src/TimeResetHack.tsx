@@ -5,9 +5,16 @@ import { useEffect } from 'react';
  * It bypasses all standard mechanisms and directly overwrites time data
  * 
  * IMPORTANT: Only runs ONCE per session to avoid reload loops
+ * 
+ * CRITICAL FIX: This component has been modified to check if an existing character
+ * is available before performing any time resets or redirections
  */
 const TimeResetHack: React.FC = () => {
   useEffect(() => {
+    // CRITICAL FIX: First check if there's a character in storage
+    // If there is, we should be careful about resetting time to avoid data loss
+    const hasCharacter = localStorage.getItem('business-empire-character');
+    
     // Special case: If we just performed a complete game reset, we need to ensure
     // the correct date is being used
     const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
@@ -25,7 +32,24 @@ const TimeResetHack: React.FC = () => {
         sessionStorage.removeItem('game_reset_in_progress');
       }
       
-      // Force the use of today's date
+      // CRITICAL FIX: Clear smooth_navigation flag as well to prevent unwanted redirects
+      if (sessionStorage.getItem('smooth_navigation') === 'true') {
+        console.log('⚠️ TimeResetHack: Clearing smooth_navigation flag');
+        sessionStorage.removeItem('smooth_navigation');
+      }
+      
+      // If we have a character, only update time if absolutely necessary
+      if (hasCharacter) {
+        console.log('⚠️ TimeResetHack: Character data exists, preserving character data');
+        
+        // Mark as processed to prevent further execution
+        sessionStorage.setItem('time_reset_already_run', 'true');
+        
+        // We're only clearing the flags but not forcing a time update since a character exists
+        return;  
+      }
+      
+      // Force the use of today's date (only for new characters)
       const now = new Date();
       const currentDay = now.getDate();
       const currentMonth = now.getMonth() + 1;
