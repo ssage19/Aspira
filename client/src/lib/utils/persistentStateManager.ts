@@ -11,17 +11,37 @@
  * 4. Metadata about the last saved state for validation
  */
 
-// IMPORTANT: Importing directly to avoid issues with circular dependencies
-import * as useCharacterModule from '../stores/useCharacter';
-import * as useTimeModule from '../stores/useTime';
-import * as useAssetTrackerModule from '../stores/useAssetTracker';
-import * as useEconomyModule from '../stores/useEconomy';
+// Store references - we need to get these at runtime to avoid circular dependencies
+let useCharacter: any;
+let useTime: any;
+let useAssetTracker: any;
+let useEconomy: any;
 
-// Store references
-const useCharacter = useCharacterModule.default || useCharacterModule;
-const useTime = useTimeModule.useTime;
-const useAssetTracker = useAssetTrackerModule.useAssetTracker;
-const useEconomy = useEconomyModule.useEconomy;
+// This function must be called before any operations
+function loadStores() {
+  try {
+    if (!useCharacter) {
+      useCharacter = require('../stores/useCharacter').useCharacter;
+    }
+    
+    if (!useTime) {
+      useTime = require('../stores/useTime').useTime;
+    }
+    
+    if (!useAssetTracker) {
+      useAssetTracker = require('../stores/useAssetTracker').useAssetTracker;
+    }
+    
+    if (!useEconomy) {
+      useEconomy = require('../stores/useEconomy').useEconomy;
+    }
+    
+    return !!useCharacter && !!useTime;
+  } catch (error) {
+    console.error('Failed to load stores:', error);
+    return false;
+  }
+}
 
 // Helper to validate stores are available
 function validateStores() {
@@ -129,9 +149,9 @@ export function stopPersistentStateManager() {
  */
 export function saveAllGameState() {
   try {
-    // Validate stores before proceeding
-    if (!validateStores()) {
-      console.error('Failed to validate stores - cannot save game state');
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot save game state');
       return;
     }
     
