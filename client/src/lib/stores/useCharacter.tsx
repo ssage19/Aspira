@@ -1227,8 +1227,14 @@ export const useCharacter = create<CharacterState>()(
         console.log(`Purchase price: ${property.purchasePrice}, Current value: ${property.currentValue}`);
         console.log(`Down payment: ${downPayment}, Loan amount: ${property.loanAmount}`);
         
-        // CRITICAL: Add property to asset tracker immediately
+        // CRITICAL: Add property to asset tracker immediately AND update net worth
+        // We're implementing a two-phase commit pattern to ensure data consistency
         try {
+          console.log("=== BEGINNING PROPERTY PURCHASE SYNC OPERATION ===");
+          
+          // PHASE 1: Update the asset tracker with the new property
+          console.log("PHASE 1: Updating asset tracker with new property");
+          
           // Import asset tracker from the module
           const assetTracker = useAssetTracker.getState();
           
@@ -1242,32 +1248,74 @@ export const useCharacter = create<CharacterState>()(
             mortgage: property.loanAmount || 0,
           });
           
-          // Update cash in asset tracker to match character wealth
-          console.log(`Updating cash in asset tracker after property purchase`);
+          // Update cash in asset tracker to match character wealth exactly
+          console.log(`Updating cash in asset tracker to ${get().wealth}`);
           assetTracker.updateCash(get().wealth);
           
           // Force recalculation of totals
           assetTracker.recalculateTotals();
           
-          console.log(`Asset tracker updated successfully after property purchase`);
+          console.log("Asset tracker updated successfully");
+          
+          // PHASE 2: Calculate net worth in character store and save state
+          console.log("PHASE 2: Updating character net worth and saving state");
+          
+          // Get fresh character state
+          const character = get();
+          
+          // Recalculate net worth 
+          const calculatedNetWorth = character.calculateNetWorth();
+          console.log(`Calculated net worth: ${calculatedNetWorth}`);
+          
+          // Get the asset tracker's opinion of net worth after updates
+          const trackerNetWorth = assetTracker.totalNetWorth;
+          console.log(`Asset tracker net worth: ${trackerNetWorth}`);
+          
+          // Explicitly set net worth in character store
+          set({ netWorth: calculatedNetWorth });
+          
+          // Save character state to localStorage
+          saveState();
+          console.log("Character state saved successfully");
+          
+          // VERIFICATION PHASE: Double-check all values match
+          console.log("VERIFICATION PHASE: Checking final values");
+          
+          // Get fresh states after all updates
+          const finalCharacter = get();
+          const finalTracker = useAssetTracker.getState();
+          
+          console.log(`Final character wealth: ${finalCharacter.wealth.toFixed(2)}`);
+          console.log(`Final tracker cash: ${finalTracker.cash.toFixed(2)}`);
+          console.log(`Final character net worth: ${finalCharacter.netWorth.toFixed(2)}`);
+          console.log(`Final tracker net worth: ${finalTracker.totalNetWorth.toFixed(2)}`);
+          
+          if (Math.abs(finalCharacter.wealth - finalTracker.cash) > 0.1) {
+            console.warn("⚠️ Cash values don't match after property purchase!");
+            // Force one final sync
+            finalTracker.updateCash(finalCharacter.wealth);
+            finalTracker.recalculateTotals();
+          }
+          
+          console.log("=== PROPERTY PURCHASE SYNC OPERATION COMPLETED ===");
+          
+          // Finally sync all assets with tracker to ensure complete consistency
+          // We do this after a short delay to allow the UI to update first
+          setTimeout(() => {
+            try {
+              console.log("Running final consistency check...");
+              get().syncAssetsWithAssetTracker(true);
+              // Run the global refresh function as well for good measure
+              if (typeof window !== 'undefined' && (window as any).globalUpdateAllPrices) {
+                (window as any).globalUpdateAllPrices();
+              }
+            } catch (error) {
+              console.error("Error during final asset sync after property purchase:", error);
+            }
+          }, 500);
         } catch (error) {
           console.error("Error updating asset tracker after property purchase:", error);
         }
-        
-        // Calculate new net worth after purchase
-        // Net worth = assets (property value) - liabilities (loan amount)
-        const character = get();
-        set({ netWorth: character.calculateNetWorth() });
-        saveState();
-        
-        // Finally sync all assets with tracker to ensure complete consistency
-        setTimeout(() => {
-          try {
-            get().syncAssetsWithAssetTracker(true);
-          } catch (error) {
-            console.error("Error during final asset sync after property purchase:", error);
-          }
-        }, 100);
         
         return true; // Indicate success
       },
