@@ -703,7 +703,15 @@ export const useBusiness = create<BusinessState>()(
       
       // Create a new business
       createBusiness: async (name: string, type: BusinessType) => {
-        const character = useCharacter.getState();
+        // Get character store from registry
+        const characterStore = getStore('character');
+        if (!characterStore) {
+          console.error('Character store not found in registry');
+          toast.error('Failed to create business: Cannot access character data');
+          return null;
+        }
+        
+        const character = characterStore.getState();
         const template = businessTemplates[type];
         
         // Check if the player has enough money
@@ -764,8 +772,22 @@ export const useBusiness = create<BusinessState>()(
       // Process business operations (revenue, expenses, growth)
       processBusinesses: (forceUpdate = false) => {
         const { businesses } = get();
-        const { economyState } = useEconomy.getState();
-        const { currentGameDate } = useTime.getState();
+        
+        // Get economy store from registry
+        const economyStore = getStore('economy');
+        if (!economyStore) {
+          console.error('Economy store not found in registry');
+          return; // Cannot process without economy state
+        }
+        const { economyState } = economyStore.getState();
+        
+        // Get time store from registry
+        const timeStore = getStore('time');
+        if (!timeStore) {
+          console.error('Time store not found in registry');
+          return; // Cannot process without time state
+        }
+        const { currentGameDate } = timeStore.getState();
         
         // Convert date to timestamp for comparison
         const now = currentGameDate ? new Date(currentGameDate).getTime() : Date.now();
@@ -946,8 +968,15 @@ export const useBusiness = create<BusinessState>()(
             : b
         );
         
-        // Update player's wealth
-        useCharacter.getState().addWealth(amount);
+        // Update player's wealth through character store from registry
+        const characterStore = getStore('character');
+        if (!characterStore) {
+          console.error('Character store not found in registry');
+          toast.error('Failed to withdraw funds: Cannot access character data');
+          return false;
+        }
+        
+        characterStore.getState().addWealth(amount);
         
         set({ businesses: updatedBusinesses });
         toast.success(`Withdrew ${formatCurrency(amount)} from ${business.name}.`);
@@ -957,7 +986,16 @@ export const useBusiness = create<BusinessState>()(
       // Invest personal funds into the business
       investFunds: (businessId: string, amount: number) => {
         const business = get().businesses.find(b => b.id === businessId);
-        const character = useCharacter.getState();
+        
+        // Get character store from registry
+        const characterStore = getStore('character');
+        if (!characterStore) {
+          console.error('Character store not found in registry');
+          toast.error('Failed to invest funds: Cannot access character data');
+          return false;
+        }
+        
+        const character = characterStore.getState();
         
         if (!business || character.wealth < amount || amount <= 0) {
           toast.error("Insufficient personal funds to invest.");
@@ -1189,8 +1227,15 @@ export const useBusiness = create<BusinessState>()(
         // Calculate sale value (90% of current value)
         const saleValue = business.currentValue * 0.9;
         
-        // Update player's wealth
-        useCharacter.getState().addWealth(saleValue);
+        // Update player's wealth through character store from registry
+        const characterStore = getStore('character');
+        if (!characterStore) {
+          console.error('Character store not found in registry');
+          toast.error('Failed to sell business: Cannot access character data');
+          return 0;
+        }
+        
+        characterStore.getState().addWealth(saleValue);
         
         // Remove the business
         set(state => ({
@@ -1533,5 +1578,8 @@ function calculateDailyExpenses(business: Business): number {
   // Total daily expenses
   return baseExpense + dailySalaries + maintenanceCost;
 }
+
+// Register store in the global registry
+registerStore('business', useBusiness);
 
 export default useBusiness;
