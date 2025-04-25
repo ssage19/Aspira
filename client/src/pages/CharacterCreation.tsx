@@ -29,10 +29,38 @@ export default function CharacterCreation() {
     // Check if we have the force=true parameter in URL which means we should stay here 
     // regardless of whether a character exists (used by reset game functionality)
     const searchParams = new URLSearchParams(window.location.search);
-    const isForceNavigated = searchParams.get('force') === 'true';
+    const isFromReset = searchParams.get('reset') !== null;
+    
+    // Even if force=true isn't present, treat as force navigation if reset is detected
+    let isForceNavigated = searchParams.get('force') === 'true' || isFromReset;
+    
+    // If this is from a reset, we need to ensure all character data is cleared
+    if (isFromReset) {
+      console.log("CharacterCreation: Reset parameter detected, ensuring character data is removed");
+      localStorage.removeItem('business-empire-character');
+      sessionStorage.removeItem('character_reset_completed');
+      sessionStorage.removeItem('character_reset_timestamp');
+      
+      // Also clear all navigation flags
+      sessionStorage.removeItem('smooth_navigation');
+      sessionStorage.removeItem('force_current_date');
+      sessionStorage.removeItem('block_time_loads');
+      sessionStorage.removeItem('game_reset_in_progress');
+      sessionStorage.removeItem('game_reset_completed');
+      sessionStorage.removeItem('redirect_after_reset');
+      
+      console.log("CharacterCreation: Reset parameter detected - forcing character creation");
+    }
     
     if (isForceNavigated) {
       console.log("CharacterCreation: Force=true parameter found, remaining on character creation regardless of existing character");
+      
+      // Double-check character data is gone
+      if (localStorage.getItem('business-empire-character')) {
+        console.log("CharacterCreation: Character data still exists despite force parameter, removing it");
+        localStorage.removeItem('business-empire-character');
+      }
+      
       // Clear any navigation flags to ensure clean state
       if (typeof window !== 'undefined' && window.sessionStorage) {
         sessionStorage.removeItem('smooth_navigation');

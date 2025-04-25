@@ -581,6 +581,10 @@ export default function Dashboard() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
+                                  // First, manually clear character data to ensure it's gone
+                                  localStorage.removeItem('business-empire-character');
+                                  console.log("CRITICAL: Manually removed character data from Dashboard reset button");
+                                  
                                   // Use our centralized reset function that ensures complete reset
                                   performCompleteGameReset();
                                   

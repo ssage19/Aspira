@@ -542,6 +542,10 @@ export default function ReliableDashboard() {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
+                                  // First, manually clear character data to ensure it's gone
+                                  localStorage.removeItem('business-empire-character');
+                                  console.log("CRITICAL: Manually removed character data from ReliableDashboard reset button");
+                                  
                                   // Call the game reset function from utils
                                   performCompleteGameReset();
                                   
