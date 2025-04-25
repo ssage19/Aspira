@@ -116,31 +116,43 @@ export function Properties() {
     // Calculate mortgage details
     const monthlyPayment = loanAmount > 0 ? mortgageDetails.monthlyPayment : 0;
     
-    // Create new property object
-    const newProperty: PropertyType = {
+    // Create new property object compatible with the Property interface in useCharacter
+    const newProperty = {
       id: selectedProperty.id,
       name: selectedProperty.name,
       type: activeTab as 'residential' | 'commercial' | 'industrial' | 'mansion',
       location: selectedProperty.location,
       description: selectedProperty.description,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
+      // Required fields for Property interface
       purchasePrice: adjustedPrice,
       currentValue: adjustedPrice,
-      squareFeet: selectedProperty.squareFeet,
+      downPayment: downPayment,
+      loanAmount: loanAmount,
+      loanTerm: 30, // Default to 30 years
+      interestRate: interestRate,
+      monthlyPayment: monthlyPayment,
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
       appreciationRate: selectedProperty.appreciationRate,
-      loanAmount,
-      interestRate: interestRate,
-      monthlyPayment,
+      squareFeet: selectedProperty.squareFeet,
+      // Optional fields that exist in PropertyType
       ...(activeTab === 'residential' && 'bedrooms' in selectedProperty) && {
         bedrooms: selectedProperty.bedrooms,
         bathrooms: selectedProperty.bathrooms
+      },
+      ...(activeTab === 'commercial' && 'roi' in selectedProperty) && {
+        roi: selectedProperty.roi
       }
     };
     
+    // For debugging
+    console.log("Creating new property:", newProperty);
+    
     // Process purchase
     addWealth(-downPayment);
+    
+    // Explicitly convert to Property interface type that useCharacter expects
     addProperty(newProperty);
     playSuccess();
     
