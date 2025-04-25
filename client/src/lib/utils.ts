@@ -186,6 +186,9 @@ export const performCompleteGameReset = () => {
   // to ensure they refresh their data (especially NetWorthBreakdown)
   sessionStorage.setItem('game_reset_completed', 'true');
   
+  // This flag is specifically for ensuring time processing works properly after reset
+  sessionStorage.setItem('force_time_processing_after_reset', 'true');
+  
   // Set up the redirect target
   const createPageUrl = '/create';
   if (window.location.pathname !== createPageUrl) {
@@ -253,6 +256,8 @@ export const performCompleteGameReset = () => {
       pausedTimestamp: 0,
       accumulatedProgress: 0,
       dayCounter: 0,
+      wasPaused: false, // Ensure this is false for proper offline time processing
+      lastRealTimestamp: Date.now(), // Set this to current time for proper time delta calculations
       // Add a flag to mark this as a manually reset time
       // This prevents future writes during redirect/reload cycles
       _manuallyReset: true,
