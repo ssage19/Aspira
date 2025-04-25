@@ -504,14 +504,27 @@ export const useTime = create<TimeState>()(
           const currentTime = Date.now();
           const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
           
+          // Check if this is during game startup after a reset
+          const isStartupAfterReset = sessionStorage.getItem('game_reset_completed') === 'true';
+          
           // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
-          if (wasPaused || lastRealTimestamp === 0) {
+          // BUT always process if we just did a game reset to ensure paychecks work properly
+          if ((wasPaused || lastRealTimestamp === 0) && !isStartupAfterReset) {
             console.log(`Skipping offline processing: ${wasPaused ? 'Game was paused' : 'First load detected'}`);
             // Update the timestamp without processing time
             return {
               ...state,
-              lastRealTimestamp: currentTime
+              lastRealTimestamp: currentTime,
+              // Force wasPaused to false to ensure future offline processing works
+              wasPaused: false
             };
+          }
+          
+          // If this is a startup after reset, we need to force some values to ensure proper processing
+          if (isStartupAfterReset) {
+            console.log("Processing offline time after game reset - forcing time advancement");
+            // Clear the flag since we're handling it now
+            sessionStorage.removeItem('game_reset_completed');
           }
           
           // Calculate how much real time has passed since the last session
