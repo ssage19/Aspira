@@ -25,18 +25,9 @@ export function useJobChallengeTimer(
   const [daysRemaining, setDaysRemaining] = useState(0);
   const [monthsRemaining, setMonthsRemaining] = useState(0);
   
-  // Force update on a timer to ensure UI stays in sync
-  const [, setUpdateTrigger] = useState(Date.now());
-  
-  // Set up a regular timer to refresh the progress calculation
-  // This ensures the UI stays updated even if React doesn't re-render
-  useEffect(() => {
-    const intervalId = setInterval(() => {
-      setUpdateTrigger(Date.now());
-    }, 1000); // Update once per second
-    
-    return () => clearInterval(intervalId);
-  }, []);
+  // We'll no longer force an update every second since it causes excessive rerenders
+  // and can lead to maximum update depth exceeded errors
+  // Instead, we'll rely on the natural game time updates to trigger progress updates
   
   // Calculate progress whenever relevant data changes
   useEffect(() => {
@@ -92,7 +83,9 @@ export function useJobChallengeTimer(
       setDaysRemaining(completionTimeMonths * 30);
       setMonthsRemaining(completionTimeMonths);
     }
-  }, [currentGameDate, startDate, completionTimeMonths, dayCounter, timeSpeed]);
+  // Removing timeSpeed from dependencies to prevent excessive re-renders
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentGameDate, startDate, completionTimeMonths, dayCounter]);
   
   return { progress, isFinished, daysRemaining, monthsRemaining };
 }

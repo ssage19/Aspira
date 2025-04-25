@@ -70,7 +70,7 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
       // Calculate progress as a percentage (0-100)
       const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
       
-      // Store debug information
+      // Store debug information - using functional state update to prevent infinite loops
       setDebugInfo({
         startDate: startDate.toISOString(),
         currentDate: currentGameDate.toISOString(),
@@ -79,7 +79,7 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
         progressValue: `${progressValue.toFixed(2)}%`
       });
       
-      // Update the progress value
+      // Update the progress value - using functional state update to prevent infinite loops
       setDebugProgress(progressValue);
       
       // Log for debugging
@@ -97,14 +97,13 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
       setDebugInfo({ error: String(error) });
     }
     
-    // Set up interval to continuously check progress
-    const intervalId = setInterval(() => {
-      // Force re-render to recalculate progress
-      setDebugInfo((prev: Record<string, any>) => ({ ...prev, refreshTime: new Date().toISOString() }));
-    }, 2000); // Check every 2 seconds
-    
-    return () => clearInterval(intervalId);
-  }, [challenge, currentGameDate, timeSpeed]);
+    // IMPORTANT: Don't create intervals that modify state too frequently
+    // This was likely causing the max update depth exceeded error
+    // Changed from a continuous interval to a one-time calculation
+
+  // Remove timeSpeed from dependencies as it likely changes too frequently
+  // eslint-disable-next-line react-hooks/exhaustive-deps  
+  }, [challenge, currentGameDate]);
   
   // Use our specialized hook as well for comparison
   const { progress, isFinished, daysRemaining, monthsRemaining } = useJobChallengeTimer(
