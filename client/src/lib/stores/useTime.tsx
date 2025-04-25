@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { processOfflineIncome } from "../utils/offlineIncomeTracker";
 
 export type GameTimeSpeed = 'paused' | 'normal' | 'fast' | 'superfast';
 
@@ -724,9 +725,6 @@ export const useTime = create<TimeState>()(
           // Process comprehensive passive income tracking
           if (fullDaysToProcess > 0) {
             try {
-              // Import the offline income tracker
-              const { processOfflineIncome } = require('../utils/offlineIncomeTracker');
-              
               // Process the offline income with the dates and days passed
               console.log(`Processing offline income for ${fullDaysToProcess} days (from ${startingGameDate.toLocaleDateString()} to ${newGameDate.toLocaleDateString()})`);
               processOfflineIncome(startingGameDate, newGameDate, fullDaysToProcess);
