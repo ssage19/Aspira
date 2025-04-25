@@ -526,6 +526,9 @@ export const useTime = create<TimeState>()(
             };
           }
           
+          // Record the starting game date for offline income calculations
+          const startingGameDate = new Date(state.currentYear, state.currentMonth - 1, state.currentDay);
+          
           console.log(`Processing offline time: ${realMsPassed}ms real time passed since last session`);
           console.log(`Current state - Day: ${state.currentDay}, Month: ${state.currentMonth}, Year: ${state.currentYear}`);
           console.log(`Time multiplier: ${timeMultiplier || 1.0}`);
@@ -710,6 +713,25 @@ export const useTime = create<TimeState>()(
           
           // Create the new game date
           const newGameDate = new Date(currentYear, currentMonth - 1, currentDay);
+          
+          // Process comprehensive passive income tracking
+          if (fullDaysToProcess > 0) {
+            try {
+              // Import the offline income tracker
+              const { processOfflineIncome } = require('../utils/offlineIncomeTracker');
+              
+              // Process the offline income with the dates and days passed
+              console.log(`Processing offline income for ${fullDaysToProcess} days (from ${startingGameDate.toLocaleDateString()} to ${newGameDate.toLocaleDateString()})`);
+              processOfflineIncome(startingGameDate, newGameDate, fullDaysToProcess);
+              
+              console.log(`Offline income processing completed successfully`);
+            } catch (incomeProcessingError) {
+              console.error('Error processing offline income:', incomeProcessingError);
+              if (incomeProcessingError instanceof Error) {
+                console.error('Error stack:', incomeProcessingError.stack);
+              }
+            }
+          }
           
           // The new state with updated time values
           const newState = {
