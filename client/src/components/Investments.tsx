@@ -29,7 +29,7 @@ import {
   FiShoppingCart, FiShoppingBag, FiGift, FiTruck, FiPackage, // Consumer
   FiHome, FiTool, FiLayers, FiBox, FiArchive, // Industrial
   FiGlobe, FiWifi, FiShare2, FiRadio, FiPhone, // Communication
-  FiCoffee, FiUtensils, FiShield, FiMusic, FiStar, // Consumer Cyclical
+  FiCoffee, FiShield, FiMusic, FiStar, // Consumer Cyclical
   FiActivity, FiHeart, FiThermometer, FiEye, FiClipboard, // Healthcare
   FiMapPin, FiCompass, FiNavigation, FiMap, FiFlag, // Real Estate
   FiBarChart, FiArrowUpRight, // Other
@@ -63,6 +63,38 @@ export function Investments() {
   // Handle audio functions safely
   const playSuccess = () => audio.playSound && audio.playSound('success');
   const playHit = () => audio.playSound && audio.playSound('hit');
+  
+  // Function to get stock icon based on sector
+  const getStockIcon = (sector: string) => {
+    const iconProps = { className: "mr-2 h-4 w-4" };
+    
+    switch (sector.toLowerCase()) {
+      case 'tech':
+        return <FiCpu {...iconProps} />;
+      case 'finance':
+        return <FiDollarSign {...iconProps} />;
+      case 'energy':
+        return <FiZap {...iconProps} />;
+      case 'consumer':
+        return <FiShoppingCart {...iconProps} />;
+      case 'industrial':
+        return <FiTool {...iconProps} />;
+      case 'communication':
+        return <FiGlobe {...iconProps} />;
+      case 'consumer_cyclical':
+        return <FiCoffee {...iconProps} />;
+      case 'healthcare':
+        return <FiActivity {...iconProps} />;
+      case 'real_estate':
+        return <FiHome {...iconProps} />;
+      case 'utilities':
+        return <FiDroplet {...iconProps} />;
+      case 'materials':
+        return <FiLayers {...iconProps} />;
+      default:
+        return <FiBarChart {...iconProps} />;
+    }
+  };
   
   const [selectedStock, setSelectedStock] = useState<Stock>(expandedStockMarket[0]);
   const [investmentAmount, setInvestmentAmount] = useState(100);
@@ -1567,7 +1599,10 @@ export function Investments() {
                     onClick={() => setSelectedStock(stock)}
                   >
                     <div className="flex justify-between items-center">
-                      <span className="font-medium text-base">{stock.name} ({stock.symbol})</span>
+                      <span className="font-medium text-base flex items-center">
+                        {getStockIcon(stock.sector)}
+                        {stock.name} ({stock.symbol})
+                      </span>
                       <span className={`font-mono font-semibold ${
                         stockPrices[stock.id] > stock.basePrice 
                           ? 'text-accessible-green' 
@@ -1604,7 +1639,10 @@ export function Investments() {
             
             <div>
               <h3 className="font-semibold mb-2 text-lg flex items-center">
-                {selectedStock.name} ({selectedStock.symbol})
+                <span className="flex items-center">
+                  {getStockIcon(selectedStock.sector)}
+                  {selectedStock.name} ({selectedStock.symbol})
+                </span>
                 <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
                   priceChangePercent > 0 
                     ? 'bg-accessible-green/10 text-accessible-green' 
@@ -1625,7 +1663,7 @@ export function Investments() {
               </div>
               <p className="text-sm mb-3 bg-muted p-2 rounded">{selectedStock.description}</p>
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
                 <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Current Price</p>
                   <p className="font-semibold">${(stockPrices[selectedStock.id] || selectedStock.basePrice).toFixed(2)}</p>
@@ -1633,6 +1671,13 @@ export function Investments() {
                 <div className="bg-muted p-2 rounded">
                   <p className="text-xs text-gray-500 dark:text-gray-400">Owned Value</p>
                   <p className="font-semibold">{formatCurrency(getOwnedStockValue(selectedStock.id))}</p>
+                </div>
+                <div className="bg-muted p-2 rounded">
+                  <p className="text-xs text-gray-500 dark:text-gray-400">Sector</p>
+                  <p className="font-semibold flex items-center">
+                    {getStockIcon(selectedStock.sector)}
+                    {selectedStock.sector.charAt(0).toUpperCase() + selectedStock.sector.slice(1).replace('_', ' ')}
+                  </p>
                 </div>
               </div>
               
