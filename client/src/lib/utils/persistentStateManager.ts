@@ -11,47 +11,35 @@
  * 4. Metadata about the last saved state for validation
  */
 
-// Import these dynamically to avoid circular dependencies
-let useCharacter: any;
-let useTime: any;
-let useAssetTracker: any;
-let useEconomy: any;
+// IMPORTANT: Importing directly to avoid issues with circular dependencies
+import * as useCharacterModule from '../stores/useCharacter';
+import * as useTimeModule from '../stores/useTime';
+import * as useAssetTrackerModule from '../stores/useAssetTracker';
+import * as useEconomyModule from '../stores/useEconomy';
 
-// Helper to ensure stores are loaded
-function loadStores() {
+// Store references
+const useCharacter = useCharacterModule.default || useCharacterModule;
+const useTime = useTimeModule.useTime;
+const useAssetTracker = useAssetTrackerModule.useAssetTracker;
+const useEconomy = useEconomyModule.useEconomy;
+
+// Helper to validate stores are available
+function validateStores() {
   try {
-    if (!useCharacter) {
-      // Try to get the default export of useCharacter
-      const characterModule = require('../stores/useCharacter');
-      useCharacter = characterModule.default || characterModule.useCharacter;
+    // Basic validation of critical stores
+    if (!useCharacter || !useCharacter.getState) {
+      console.error('Character store is not properly initialized');
+      return false;
     }
     
-    if (!useTime) {
-      // The useTime store is exported as a named export
-      const timeModule = require('../stores/useTime');
-      useTime = timeModule.useTime;
+    if (!useTime || !useTime.getState) {
+      console.error('Time store is not properly initialized');
+      return false;
     }
     
-    if (!useAssetTracker) {
-      // The useAssetTracker store is likely exported as a named export
-      const assetModule = require('../stores/useAssetTracker');
-      useAssetTracker = assetModule.useAssetTracker;
-    }
-    
-    if (!useEconomy) {
-      // The useEconomy store is likely exported as a named export
-      const economyModule = require('../stores/useEconomy');
-      useEconomy = economyModule.useEconomy;
-    }
-    
-    // Check that we successfully loaded the essential stores
-    const success = !!useCharacter && !!useTime;
-    if (!success) {
-      console.error('Failed to load critical stores for game state');
-    }
-    return success;
+    return true;
   } catch (error) {
-    console.error('Error loading stores:', error);
+    console.error('Error validating stores:', error);
     return false;
   }
 }
@@ -141,9 +129,9 @@ export function stopPersistentStateManager() {
  */
 export function saveAllGameState() {
   try {
-    // Load stores first
-    if (!loadStores()) {
-      console.error('Failed to load stores - cannot save game state');
+    // Validate stores before proceeding
+    if (!validateStores()) {
+      console.error('Failed to validate stores - cannot save game state');
       return;
     }
     
@@ -174,9 +162,9 @@ export function saveAllGameState() {
  */
 export function saveShutdownState() {
   try {
-    // Load stores first
-    if (!loadStores()) {
-      console.error('Failed to load stores - cannot save shutdown state');
+    // Validate stores before proceeding
+    if (!validateStores()) {
+      console.error('Failed to validate stores - cannot save shutdown state');
       return;
     }
     
@@ -231,9 +219,9 @@ export function processOfflineTimeIfNeeded() {
       return;
     }
     
-    // Load stores first
-    if (!loadStores()) {
-      console.error('Failed to load stores - cannot process offline time');
+    // Validate stores before proceeding
+    if (!validateStores()) {
+      console.error('Failed to validate stores - cannot process offline time');
       return;
     }
     
