@@ -504,14 +504,21 @@ export const useTime = create<TimeState>()(
           const currentTime = Date.now();
           const { lastRealTimestamp, wasPaused, timeMultiplier } = state;
           
-          // Skip if game was paused when closed or if this is the first load (lastRealTimestamp is 0)
-          if (wasPaused || lastRealTimestamp === 0) {
-            console.log(`Skipping offline processing: ${wasPaused ? 'Game was paused' : 'First load detected'}`);
+          // Skip if it's the first load (lastRealTimestamp is 0)
+          if (lastRealTimestamp === 0) {
+            console.log(`Skipping offline processing: First load detected`);
             // Update the timestamp without processing time
             return {
               ...state,
               lastRealTimestamp: currentTime
             };
+          }
+          
+          // For paused games, log but still continue processing
+          // This allows offline time to advance even if the game was paused
+          if (wasPaused) {
+            console.log(`Game was paused, but still processing offline time to ensure progression`);
+            // We won't return here, but continue with processing
           }
           
           // Calculate how much real time has passed since the last session

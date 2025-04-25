@@ -197,6 +197,8 @@ export function saveShutdownState() {
     // 2. Create a shutdown state object with metadata
     const shutdownState = {
       timestamp: Date.now(),
+      // Very important: Only consider the game paused if it's explicitly paused
+      // Setting this to false allows offline time to process even when user closes the tab/browser
       wasPaused: timeState.timeSpeed === 'paused',
       gameDate: {
         day: timeState.currentDay,
@@ -204,7 +206,9 @@ export function saveShutdownState() {
         year: timeState.currentYear
       },
       timeSpeed: timeState.timeSpeed,
-      timeMultiplier: timeState.timeMultiplier
+      timeMultiplier: timeState.timeMultiplier,
+      // Add a flag to indicate this is a normal shutdown, not a pause
+      isNormalShutdown: true
     };
     
     // 3. Save to localStorage
@@ -257,8 +261,23 @@ export function processOfflineTimeIfNeeded() {
         // Update the time state with the shutdown metadata before processing offline time
         const timeState = useTime.getState();
         
-        // Set wasPaused directly - this affects whether offline time is processed
-        useTime.setState({ wasPaused: shutdownState.wasPaused || false });
+        // For a normal shutdown (not an explicit pause by the user),
+        // we should process offline time regardless
+        if (shutdownState.isNormalShutdown) {
+          // Override wasPaused to false to ensure offline time is processed
+          useTime.setState({ wasPaused: false });
+          console.log('Normal shutdown detected - ensuring offline time will be processed');
+        } else {
+          // Only respect the wasPaused flag if it wasn't a normal shutdown
+          useTime.setState({ wasPaused: shutdownState.wasPaused || false });
+          console.log(`Setting wasPaused to ${shutdownState.wasPaused || false} based on shutdown state`);
+        }
+        
+        // Update lastRealTimestamp to ensure proper time calculation
+        if (shutdownState.timestamp) {
+          useTime.setState({ lastRealTimestamp: shutdownState.timestamp });
+          console.log(`Updated lastRealTimestamp to ${new Date(shutdownState.timestamp).toLocaleString()}`);
+        }
         
         // Clear the shutdown state since we've used it
         localStorage.removeItem(SHUTDOWN_STATE_KEY);
