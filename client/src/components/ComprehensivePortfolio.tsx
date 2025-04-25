@@ -35,7 +35,7 @@ export function ComprehensivePortfolio() {
   const { triggerRefresh } = useAssetRefresh();
   
   // Get character wealth directly for the cash ratio calculation
-  const characterCash = useCharacter(state => state.wealth);
+  const characterCash = useCharacter(state => state.wealth) || 0;
   
   // Get all the values we need from the asset tracker
   const {

@@ -2311,8 +2311,8 @@ export const useCharacter = create<CharacterState>()(
         
         // CRITICAL ENHANCEMENT: Before doing anything else, force cash sync to ensure consistency
         // This ensures that the character's cash is always the source of truth
-        const characterCash = parseFloat(state.wealth.toFixed(1));
-        const trackerCash = parseFloat(assetTracker.cash.toFixed(1));
+        const characterCash = state.wealth !== null && state.wealth !== undefined ? parseFloat(state.wealth.toFixed(1)) : 0;
+        const trackerCash = assetTracker.cash !== null && assetTracker.cash !== undefined ? parseFloat(assetTracker.cash.toFixed(1)) : 0;
         
         if (characterCash !== trackerCash) {
           console.log(`Cash force-sync: Character wealth (${characterCash}) as source of truth over tracker cash (${trackerCash})`);
