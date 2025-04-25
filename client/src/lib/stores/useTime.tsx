@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
 import { processOfflineIncome } from "../utils/offlineIncomeTracker";
-import { registerStore } from "../utils/storeRegistry";
+import { registerStore, getStore } from "../utils/storeRegistry";
 
 export type GameTimeSpeed = 'paused' | 'normal' | 'fast' | 'superfast';
 
@@ -479,7 +479,7 @@ const timeStore = create<TimeState>()(
       }),
       
       // Process time that passed while the application was closed
-      processOfflineTime: () => set((state) => {
+      processOfflineTime: () => set((state): TimeState => {
         try {
           console.log("Beginning offline time processing...");
           
@@ -587,33 +587,45 @@ const timeStore = create<TimeState>()(
               // Process daily income from properties and other passive sources
               console.log(`Step 1: Attempting to load useCharacter store...`);
               
-              // Import dynamically to avoid circular dependencies - use default export
-              let useCharacter;
-              try {
-                useCharacter = (require('./useCharacter').default);
-                console.log(`Successfully loaded useCharacter store: ${!!useCharacter}`);
-              } catch (characterImportError) {
-                console.error('Failed to import useCharacter store:', characterImportError);
-                continue; // Skip to next day if we can't load the character store
+              // Get character store from registry to avoid circular dependencies
+              console.log(`Step 2: Attempting to get character store from registry...`);
+              const characterStore = getStore('character');
+              
+              if (!characterStore) {
+                console.error('Character store not found in registry');
+                
+                // Fallback to direct import if registry fails
+                try {
+                  const directCharacterStore = (require('./useCharacter').default);
+                  console.log(`Successfully loaded character store via direct import as fallback: ${!!directCharacterStore}`);
+                  
+                  if (!directCharacterStore || typeof directCharacterStore.getState !== 'function') {
+                    console.error('Character store from direct import is invalid');
+                    continue;
+                  }
+                  
+                  const characterState = directCharacterStore.getState();
+                  if (!characterState) {
+                    console.error('Character state from direct import is null');
+                    continue;
+                  }
+                  
+                  console.log(`Successfully got character state via fallback: ${!!characterState}`);
+                  
+                  // Continue with the fallback characterState
+                } catch (fallbackError) {
+                  console.error('Fallback to direct import failed:', fallbackError);
+                  continue; // Skip to next day if we can't load the character store
+                }
               }
               
-              if (!useCharacter) {
-                console.error('useCharacter store is undefined after import');
-                continue;
-              }
-              
-              if (typeof useCharacter.getState !== 'function') {
-                console.error('useCharacter.getState is not a function:', useCharacter);
-                continue;
-              }
-              
-              console.log(`Step 2: Attempting to get character state...`);
+              console.log(`Step 3: Attempting to get character state from registry...`);
               let characterState;
               try {
-                characterState = useCharacter.getState();
-                console.log(`Successfully got character state: ${!!characterState}`);
+                characterState = characterStore.getState();
+                console.log(`Successfully got character state from registry: ${!!characterState}`);
               } catch (getStateError) {
-                console.error('Error getting character state:', getStateError);
+                console.error('Error getting character state from registry:', getStateError);
                 continue;
               }
               
@@ -627,7 +639,7 @@ const timeStore = create<TimeState>()(
                 console.log(`Step 4: Setting current day in character state context...`);
                 try {
                   // Set current day in state context
-                  useCharacter.setState({
+                  characterStore.setState({
                     currentDay,
                     currentMonth,
                     currentYear
@@ -655,18 +667,44 @@ const timeStore = create<TimeState>()(
               if (dayCounter % 7 === 0) {
                 console.log(`Weekly update check for day counter: ${dayCounter}`);
                 try {
-                  // Import economy store dynamically to avoid circular dependencies
-                  const useEconomy = (require('./useEconomy').default);
-                  if (useEconomy && useEconomy.getState) {
-                    const economyState = useEconomy.getState();
-                    if (typeof economyState.processWeeklyUpdate === 'function') {
-                      economyState.processWeeklyUpdate();
-                      console.log(`Processed weekly update during offline time for day counter: ${dayCounter}`);
-                    } else {
-                      console.warn('processWeeklyUpdate is not a function on economy state');
+                  // Get economy store from registry
+                  console.log(`Weekly update: Attempting to get economy store from registry...`);
+                  const economyStore = getStore('economy');
+                  
+                  if (!economyStore) {
+                    console.warn('Economy store not found in registry for weekly update');
+                    
+                    // Fallback to direct import
+                    try {
+                      console.log('Attempting fallback to direct import for economy store (weekly update)');
+                      const directEconomyStore = (require('./useEconomy').default);
+                      
+                      if (directEconomyStore && typeof directEconomyStore.getState === 'function') {
+                        const economyState = directEconomyStore.getState();
+                        if (typeof economyState.processWeeklyUpdate === 'function') {
+                          economyState.processWeeklyUpdate();
+                          console.log(`Processed weekly update during offline time via fallback for day counter: ${dayCounter}`);
+                        } else {
+                          console.warn('processWeeklyUpdate is not a function on economy state from direct import');
+                        }
+                      } else {
+                        console.warn('Direct economy store import failed for weekly update');
+                      }
+                    } catch (fallbackError) {
+                      console.error('Fallback to direct import failed for weekly update:', fallbackError);
                     }
+                    
+                    // Continue with other logic if we're not in a nested function
+                    // Since we're within a try/catch block in a for loop, continue to next item
+                  }
+                  
+                  // Use the store from registry
+                  const economyState = economyStore.getState();
+                  if (typeof economyState.processWeeklyUpdate === 'function') {
+                    economyState.processWeeklyUpdate();
+                    console.log(`Processed weekly update during offline time from registry for day counter: ${dayCounter}`);
                   } else {
-                    console.warn('useEconomy store or getState method is not available');
+                    console.warn('processWeeklyUpdate is not a function on economy state from registry');
                   }
                 } catch (weeklyError) {
                   console.error('Error processing offline weekly update:', weeklyError);
@@ -683,18 +721,40 @@ const timeStore = create<TimeState>()(
                 console.log(`End of month detected: ${currentMonth}/${currentYear}`);
                 try {
                   // Process monthly economy update
-                  console.log(`Attempting monthly economy update...`);
-                  const useEconomy = (require('./useEconomy').default);
-                  if (useEconomy && useEconomy.getState) {
-                    const economyState = useEconomy.getState();
-                    if (typeof economyState.processMonthlyUpdate === 'function') {
-                      economyState.processMonthlyUpdate();
-                      console.log(`Processed monthly economy update during offline time for: ${currentMonth}/${currentYear}`);
-                    } else {
-                      console.warn('processMonthlyUpdate is not a function on economy state');
+                  console.log(`Monthly update: Attempting to get economy store from registry...`);
+                  const economyStore = getStore('economy');
+                  
+                  if (!economyStore) {
+                    console.warn('Economy store not found in registry for monthly update');
+                    
+                    // Fallback to direct import
+                    try {
+                      console.log('Attempting fallback to direct import for economy store (monthly update)');
+                      const directEconomyStore = (require('./useEconomy').default);
+                      
+                      if (directEconomyStore && typeof directEconomyStore.getState === 'function') {
+                        const economyState = directEconomyStore.getState();
+                        if (typeof economyState.processMonthlyUpdate === 'function') {
+                          economyState.processMonthlyUpdate();
+                          console.log(`Processed monthly economy update during offline time via fallback for: ${currentMonth}/${currentYear}`);
+                        } else {
+                          console.warn('processMonthlyUpdate is not a function on economy state from direct import');
+                        }
+                      } else {
+                        console.warn('Direct economy store import failed for monthly update');
+                      }
+                    } catch (fallbackError) {
+                      console.error('Fallback to direct import failed for monthly update:', fallbackError);
                     }
                   } else {
-                    console.warn('useEconomy store or getState method is not available for monthly update');
+                    // Use the store from registry
+                    const economyState = economyStore.getState();
+                    if (typeof economyState.processMonthlyUpdate === 'function') {
+                      economyState.processMonthlyUpdate();
+                      console.log(`Processed monthly economy update during offline time from registry for: ${currentMonth}/${currentYear}`);
+                    } else {
+                      console.warn('processMonthlyUpdate is not a function on economy state from registry');
+                    }
                   }
                   
                   // Process monthly character expenses (housing, subscriptions, etc.)

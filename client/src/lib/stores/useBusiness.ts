@@ -1,10 +1,10 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
-import { useCharacter } from './useCharacter';
-import { useTime } from './useTime';
-import { useEconomy } from './useEconomy';
 import { formatCurrency } from '../utils';
+import { registerStore, getStore } from '../utils/storeRegistry';
+// Instead of direct imports, we'll get these stores from the registry
+// in the methods where they're needed
 
 // Types for business-related data
 export type BusinessType = 
