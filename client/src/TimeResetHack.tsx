@@ -15,10 +15,24 @@ const TimeResetHack: React.FC = () => {
     // If there is, we should be careful about resetting time to avoid data loss
     const hasCharacter = localStorage.getItem('business-empire-character');
     
+    // Check URL parameters first to detect if we're coming from a reset
+    const urlParams = new URLSearchParams(window.location.search);
+    const isFromReset = urlParams.get('reset') !== null;
+    const isForceNavigated = urlParams.get('force') === 'true';
+    
     // Special case: If we just performed a complete game reset, we need to ensure
     // the correct date is being used
     const forceCurrentDate = sessionStorage.getItem('force_current_date') === 'true';
     const blockTimeLoads = sessionStorage.getItem('block_time_loads') === 'true';
+    const gameResetInProgress = sessionStorage.getItem('game_reset_in_progress') === 'true';
+    
+    // If this is from a game reset with force=true, do not interfere with the redirect process
+    if (isFromReset && isForceNavigated) {
+      console.log('⚠️ TimeResetHack: Force=true detected in URL, this is from a game reset. Not interfering with reset process.');
+      // Only clean up flags we're sure are safe to remove
+      sessionStorage.removeItem('time_reset_already_run');
+      return;
+    }
     
     if (forceCurrentDate || blockTimeLoads) {
       console.log('⚠️ TimeResetHack: Force current date flag detected, ensuring we use today\'s date');

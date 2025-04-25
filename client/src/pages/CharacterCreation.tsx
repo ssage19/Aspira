@@ -26,7 +26,25 @@ export default function CharacterCreation() {
   
   // CRITICAL FIX: Check for existing character and redirect if found
   useEffect(() => {
-    // Check if character exists in localStorage
+    // Check if we have the force=true parameter in URL which means we should stay here 
+    // regardless of whether a character exists (used by reset game functionality)
+    const searchParams = new URLSearchParams(window.location.search);
+    const isForceNavigated = searchParams.get('force') === 'true';
+    
+    if (isForceNavigated) {
+      console.log("CharacterCreation: Force=true parameter found, remaining on character creation regardless of existing character");
+      // Clear any navigation flags to ensure clean state
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        sessionStorage.removeItem('smooth_navigation');
+        sessionStorage.removeItem('force_current_date');
+        sessionStorage.removeItem('block_time_loads');
+        sessionStorage.removeItem('game_reset_in_progress');
+        sessionStorage.removeItem('game_reset_completed');
+      }
+      return;
+    }
+    
+    // If not force navigated, check if character exists in localStorage
     const existingCharacter = localStorage.getItem('business-empire-character');
     
     if (existingCharacter) {
