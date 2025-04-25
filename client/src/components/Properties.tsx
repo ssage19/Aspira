@@ -498,6 +498,56 @@ export function Properties() {
                     </div>
                   )}
                   
+                  {selectedProperty.id === 'urban_loft' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/converted_loft.jpg" 
+                        alt="Converted Loft" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'garden_apartment' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/garden_apartment.jpg" 
+                        alt="Garden Apartment" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'highrise_1br' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/highrise_one_bedroom.jpg" 
+                        alt="Highrise 1-Bedroom" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'suburban_condo' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/suburban_condo.jpg" 
+                        alt="Suburban Condo" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'duplex' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/residential_duplex.jpg" 
+                        alt="Residential Duplex" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-gray-500">Purchase Price</p>
