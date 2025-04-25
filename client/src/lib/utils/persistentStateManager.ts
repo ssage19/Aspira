@@ -12,58 +12,98 @@
  */
 
 // We'll safely access store states through localStorage to avoid circular dependencies
-// Store getter functions - these will get initialized dynamically on demand
-let _characterStore: any = null;
-let _timeStore: any = null;
-let _assetTrackerStore: any = null;
-let _economyStore: any = null;
+// Flags to track if we already tried to access the stores
+let _characterStoreAccessAttempted = false;
+let _timeStoreAccessAttempted = false;
+let _assetTrackerStoreAccessAttempted = false;
+let _economyStoreAccessAttempted = false;
 
-// This function safely gets the store instances if possible
+// Get stores directly from the window object where they're registered
+// This is more reliable than using require() which can cause issues
+function getCharacterStore() {
+  if (_characterStoreAccessAttempted) return null;
+  _characterStoreAccessAttempted = true;
+  
+  try {
+    if (typeof window !== 'undefined' && (window as any).businessEmpireStores?.character) {
+      return (window as any).businessEmpireStores.character;
+    }
+    console.warn('Character store not available on window.businessEmpireStores, using localStorage fallback');
+    return null;
+  } catch (error) {
+    console.warn('Could not access character store, will use localStorage fallback', error);
+    return null;
+  }
+}
+
+function getTimeStore() {
+  if (_timeStoreAccessAttempted) return null;
+  _timeStoreAccessAttempted = true;
+  
+  try {
+    if (typeof window !== 'undefined' && (window as any).businessEmpireStores?.time) {
+      return (window as any).businessEmpireStores.time;
+    }
+    console.warn('Time store not available on window.businessEmpireStores, using localStorage fallback');
+    return null;
+  } catch (error) {
+    console.warn('Could not access time store, will use localStorage fallback', error);
+    return null;
+  }
+}
+
+function getAssetTrackerStore() {
+  if (_assetTrackerStoreAccessAttempted) return null;
+  _assetTrackerStoreAccessAttempted = true;
+  
+  try {
+    if (typeof window !== 'undefined' && (window as any).businessEmpireStores?.assetTracker) {
+      return (window as any).businessEmpireStores.assetTracker;
+    }
+    console.warn('Asset tracker store not available on window.businessEmpireStores, using localStorage fallback');
+    return null;
+  } catch (error) {
+    console.warn('Could not access asset tracker store, will use localStorage fallback', error);
+    return null;
+  }
+}
+
+function getEconomyStore() {
+  if (_economyStoreAccessAttempted) return null;
+  _economyStoreAccessAttempted = true;
+  
+  try {
+    if (typeof window !== 'undefined' && (window as any).businessEmpireStores?.economy) {
+      return (window as any).businessEmpireStores.economy;
+    }
+    console.warn('Economy store not available on window.businessEmpireStores, using localStorage fallback');
+    return null;
+  } catch (error) {
+    console.warn('Could not access economy store, will use localStorage fallback', error);
+    return null;
+  }
+}
+
+// This function attempts to access all store instances
 function loadStores() {
   try {
-    // Don't try to import directly if we're not in the browser
+    // Don't try to access if we're not in the browser
     if (typeof window === 'undefined') return false;
     
-    // Try to load the store modules only if needed
-    if (!_characterStore) {
-      try {
-        const { useCharacter } = require('../stores/useCharacter');
-        _characterStore = useCharacter;
-      } catch (error) {
-        console.warn('Could not dynamically load character store, will use localStorage fallback', error);
-      }
-    }
+    // Reset flags to allow retrying
+    _characterStoreAccessAttempted = false;
+    _timeStoreAccessAttempted = false;
+    _assetTrackerStoreAccessAttempted = false;
+    _economyStoreAccessAttempted = false;
     
-    if (!_timeStore) {
-      try {
-        const { useTime } = require('../stores/useTime');
-        _timeStore = useTime;
-      } catch (error) {
-        console.warn('Could not dynamically load time store, will use localStorage fallback', error);
-      }
-    }
-    
-    if (!_assetTrackerStore) {
-      try {
-        const { useAssetTracker } = require('../stores/useAssetTracker');
-        _assetTrackerStore = useAssetTracker;
-      } catch (error) {
-        console.warn('Could not dynamically load asset tracker store, will use localStorage fallback', error);
-      }
-    }
-    
-    if (!_economyStore) {
-      try {
-        const { useEconomy } = require('../stores/useEconomy');
-        _economyStore = useEconomy;
-      } catch (error) {
-        console.warn('Could not dynamically load economy store, will use localStorage fallback', error);
-      }
+    // Create the businessEmpireStores object if it doesn't exist
+    if (!(window as any).businessEmpireStores) {
+      (window as any).businessEmpireStores = {};
     }
     
     return true;
   } catch (error) {
-    console.error('Failed to load stores:', error);
+    console.error('Failed to prepare store access:', error);
     return false;
   }
 }
@@ -72,12 +112,14 @@ function loadStores() {
 function validateStores() {
   try {
     // Basic validation of critical stores
-    if (!_characterStore || !_characterStore.getState) {
+    const characterStore = getCharacterStore();
+    if (!characterStore || !characterStore.getState) {
       console.error('Character store is not properly initialized');
       return false;
     }
     
-    if (!_timeStore || !_timeStore.getState) {
+    const timeStore = getTimeStore();
+    if (!timeStore || !timeStore.getState) {
       console.error('Time store is not properly initialized');
       return false;
     }
@@ -185,9 +227,10 @@ export function saveAllGameState() {
     
     // 1. Get current states from all stores if possible
     // If any store is not available, use fallback approach
-    if (_characterStore && _characterStore.getState) {
+    const characterStore = getCharacterStore();
+    if (characterStore && characterStore.getState) {
       try {
-        const characterState = _characterStore.getState();
+        const characterState = characterStore.getState();
         // 2. Save individual states (each store handles its own serialization)
         if (characterState && characterState.saveState) {
           characterState.saveState();
@@ -224,7 +267,8 @@ export function saveShutdownState() {
     }
     
     // 1. Get the time state
-    if (!_timeStore || !_timeStore.getState) {
+    const timeStore = getTimeStore();
+    if (!timeStore || !timeStore.getState) {
       console.error('Time store not available, cannot save shutdown state properly');
       // Still proceed with a basic shutdown state
       const now = Date.now();
@@ -235,7 +279,7 @@ export function saveShutdownState() {
       return;
     }
     
-    const timeState = _timeStore.getState();
+    const timeState = timeStore.getState();
     
     // 2. Create a shutdown state object with metadata
     const shutdownState = {
@@ -308,22 +352,23 @@ export function processOfflineTimeIfNeeded() {
         const shutdownState = JSON.parse(shutdownStateStr);
         
         // If time store is available, update it with shutdown data
-        if (_timeStore && _timeStore.getState) {
+        const timeStore = getTimeStore();
+        if (timeStore && timeStore.getState) {
           // For a normal shutdown (not an explicit pause by the user),
           // we should process offline time regardless
           if (shutdownState.isNormalShutdown) {
             // Override wasPaused to false to ensure offline time is processed
-            _timeStore.setState({ wasPaused: false });
+            timeStore.setState({ wasPaused: false });
             console.log('Normal shutdown detected - ensuring offline time will be processed');
           } else {
             // Only respect the wasPaused flag if it wasn't a normal shutdown
-            _timeStore.setState({ wasPaused: shutdownState.wasPaused || false });
+            timeStore.setState({ wasPaused: shutdownState.wasPaused || false });
             console.log(`Setting wasPaused to ${shutdownState.wasPaused || false} based on shutdown state`);
           }
           
           // Update lastRealTimestamp to ensure proper time calculation
           if (shutdownState.timestamp) {
-            _timeStore.setState({ lastRealTimestamp: shutdownState.timestamp });
+            timeStore.setState({ lastRealTimestamp: shutdownState.timestamp });
             console.log(`Updated lastRealTimestamp to ${new Date(shutdownState.timestamp).toLocaleString()}`);
           }
           
@@ -352,15 +397,15 @@ export function processOfflineTimeIfNeeded() {
           
           // Apply all time tracking updates if any exist
           if (Object.keys(timeUpdates).length > 0) {
-            _timeStore.setState(timeUpdates);
+            timeStore.setState(timeUpdates);
             console.log('Restored additional time tracking data from shutdown state');
           }
           
           // Process offline time if the time store is available
-          if (_timeStore.getState().processOfflineTime) {
+          if (timeStore.getState().processOfflineTime) {
             // 3. Process offline time using the regular mechanism
             console.log(`Processing ${(timeSinceLastSave / 1000).toFixed(1)} seconds of offline time`);
-            _timeStore.getState().processOfflineTime();
+            timeStore.getState().processOfflineTime();
           } else {
             console.error('processOfflineTime function not available in time store');
           }
