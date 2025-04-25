@@ -41,6 +41,7 @@ import { GlobalAutoMaintenance } from "./components/GlobalAutoMaintenance";
 import { MarketPriceUpdaterWrapper } from "./components/MarketPriceUpdaterWrapper";
 import { useRandomEvents } from "./lib/stores/useRandomEvents";
 import { initializeHealthMonitor, checkHealthStatus } from "./lib/services/healthMonitor";
+import { initPersistentStateManager, stopPersistentStateManager, processOfflineTimeIfNeeded } from "./lib/utils/persistentStateManager";
 import TimeResetHack from "./TimeResetHack";
 import AssetRefreshProvider from "./components/AssetRefreshProvider";
 
@@ -342,6 +343,24 @@ function App() {
       return () => clearInterval(eventCheckInterval);
     }
   }, [phase, checkForNewEvents]);
+  
+  // Initialize persistent state manager
+  useEffect(() => {
+    if (phase === "playing") {
+      console.log("Initializing persistent state manager...");
+      
+      // Process any offline time that may have occurred
+      processOfflineTimeIfNeeded();
+      
+      // Start the persistent state manager
+      initPersistentStateManager();
+      
+      // Clean up on unmount
+      return () => {
+        stopPersistentStateManager();
+      };
+    }
+  }, [phase]);
 
   // Initialize health monitoring system
   useEffect(() => {
