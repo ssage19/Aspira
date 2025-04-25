@@ -122,34 +122,66 @@ export const refreshAllAssets = () => {
     // Convert to strings truncated to 1 decimal place to address floating-point precision issues
     const characterWealthFixed = parseFloat(characterState.wealth.toFixed(1));
     const trackerCashFixed = parseFloat(assetTrackerState.totalCash.toFixed(1));
+    const characterNetWorthFixed = parseFloat(characterState.netWorth.toFixed(1));
+    const trackerNetWorthFixed = parseFloat(assetTrackerState.totalNetWorth.toFixed(1));
     
     // Use a wider tolerance threshold to prevent excessive syncs
     // But we'll now explicitly force synchronization for exact matches
+    let mismatchDetected = false;
+    
+    // First check: Cash values
     if (Math.abs(characterWealthFixed - trackerCashFixed) > 0.1) {
       // There's a mismatch that's beyond rounding error
       console.warn("⚠️ Cash values don't match, forcing synchronization");
       console.log(`Cash mismatch details: Character wealth: ${characterWealthFixed}, Asset tracker cash: ${trackerCashFixed}`);
+      mismatchDetected = true;
+    } else {
+      console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
+    }
+    
+    // Second check: Net worth values
+    if (Math.abs(characterNetWorthFixed - trackerNetWorthFixed) > 0.1) {
+      // There's a mismatch that's beyond rounding error
+      console.warn("⚠️ Net worth values don't match");
+      console.log(`Net worth mismatch details: Character: ${characterNetWorthFixed}, Asset tracker: ${trackerNetWorthFixed}`);
+      mismatchDetected = true;
+    } else {
+      console.log(`✅ Net worth values match within tolerance (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed})`);
+    }
+    
+    // If we detected a mismatch, perform a two-way sync to ensure consistency
+    if (mismatchDetected) {
+      console.log("🔄 Performing two-way synchronization between stores");
       
-      // IMPORTANT CHANGE: Instead of trying to calculate the difference and adjust,
-      // we'll simply set the asset tracker cash to match character wealth exactly
-      // This ensures they are always in perfect sync
+      // 1. First, sync asset tracker cash to match character wealth
       useAssetTracker.setState({ 
         cash: characterState.wealth,
         totalCash: characterState.wealth,
         lastUpdated: Date.now()
       });
       
-      // Recalculate totals to ensure accurate net worth
+      // 2. Recalculate asset tracker totals
       assetTrackerState.recalculateTotals();
       
-      // Log the fix
-      console.log(`Fixed cash mismatch by syncing asset tracker directly to character wealth: ${characterState.wealth}`);
+      // 3. Get the updated asset tracker state after recalculation
+      const updatedAssetTracker = useAssetTracker.getState();
+      
+      // 4. Update character's net worth based on the asset tracker's total net worth
+      // This ensures properties, investments and other assets are properly reflected
+      characterState.setNetWorth(updatedAssetTracker.totalNetWorth);
+      
+      // Log the fixes
+      console.log(`✅ Fixed cash mismatch: Asset tracker cash now ${updatedAssetTracker.cash}`);
+      console.log(`✅ Fixed net worth mismatch: Character net worth now ${characterState.netWorth}`);
       
       // Double-check that the fix worked
+      const finalCharacterState = useCharacter.getState();
       const finalTrackerState = useAssetTracker.getState();
-      console.log(`Verification: Character wealth: ${characterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}`);
-    } else {
-      console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
+      
+      console.log(`Final verification: 
+        Character wealth: ${finalCharacterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}
+        Character net worth: ${finalCharacterState.netWorth}, Asset tracker net worth: ${finalTrackerState.totalNetWorth}
+      `);
     }
     
     // Take after snapshots for debugging

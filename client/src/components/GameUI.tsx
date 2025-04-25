@@ -44,7 +44,7 @@ const DAY_DURATION_MS = 24 * 1000; // exactly 24,000 ms per in-game day
 
 export function GameUI() {
   const navigate = useNavigate();
-  const { wealth, netWorth, addWealth } = useCharacter();
+  const { wealth, netWorth } = useCharacter();
   const { 
     currentDay, 
     currentMonth, 
@@ -62,8 +62,13 @@ export function GameUI() {
   } = useTime();
   const audioState = useAudio();
   const isMuted = audioState.isMuted;
+  // Get financial data from both character and asset tracker
   const totalCash = useAssetTracker(state => state.totalCash || 0);
   const totalNetWorth = useAssetTracker(state => state.totalNetWorth || 0);
+  
+  // For display, prioritize character values if available, fall back to asset tracker
+  const displayCash = wealth || totalCash || 0;
+  const displayNetWorth = netWorth || totalNetWorth || 0;
   const [showTooltip, setShowTooltip] = useState('');
   // Track which months we've already deducted expenses for to prevent double-charging
   const [lastExpenseMonth, setLastExpenseMonth] = useState<string | null>(null);
@@ -516,8 +521,8 @@ export function GameUI() {
             <DollarSign className="h-5 w-5 text-quaternary" />
           </div>
           <div className="ml-2">
-            <p className="text-lg font-bold">{formatCurrency(totalCash)}</p>
-            {!isMobile && <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(totalNetWorth)}</p>}
+            <p className="text-lg font-bold">{formatCurrency(displayCash)}</p>
+            {!isMobile && <p className="text-xs text-muted-foreground">Net Worth: {formatCurrency(displayNetWorth)}</p>}
           </div>
         </div>
         
