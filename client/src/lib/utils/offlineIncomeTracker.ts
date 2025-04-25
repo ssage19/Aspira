@@ -1,7 +1,35 @@
-import { useCharacter } from '../stores/useCharacter';
-import { useMonthlyFinances } from '../hooks/useMonthlyFinances';
 import { formatCurrency } from '../utils';
 import { toast } from 'sonner';
+
+// Import dynamically to avoid circular dependencies
+let _useCharacter: any;
+let _useMonthlyFinances: any;
+
+// Helper function to get store instances only when needed
+function getStores() {
+  if (!_useCharacter) {
+    try {
+      const { useCharacter } = require('../stores/useCharacter');
+      _useCharacter = useCharacter;
+    } catch (error) {
+      console.error('Failed to load useCharacter store:', error);
+    }
+  }
+  
+  if (!_useMonthlyFinances) {
+    try {
+      const { useMonthlyFinances } = require('../hooks/useMonthlyFinances');
+      _useMonthlyFinances = useMonthlyFinances;
+    } catch (error) {
+      console.error('Failed to load useMonthlyFinances hook:', error);
+    }
+  }
+  
+  return {
+    useCharacter: _useCharacter,
+    useMonthlyFinances: _useMonthlyFinances
+  };
+}
 
 /**
  * OfflineIncomeTracker - A utility to comprehensively track income during offline periods
@@ -39,6 +67,20 @@ export function calculateOfflineIncome(
   startDate: Date, 
   endDate: Date
 ): OfflineIncomeReport {
+  // Get stores using our helper function to avoid circular dependencies
+  const { useCharacter, useMonthlyFinances } = getStores();
+  
+  if (!useCharacter || !useMonthlyFinances) {
+    console.error('Cannot calculate offline income - stores not available');
+    return {
+      totalIncome: 0,
+      sources: [],
+      daysPassed,
+      startTimestamp: startDate.getTime(),
+      endTimestamp: endDate.getTime()
+    };
+  }
+  
   // Get the character state for calculations
   const characterState = useCharacter.getState();
   
@@ -191,7 +233,7 @@ export function calculateOfflineIncome(
   
   // 5. Matured investments (startups, bonds that reached maturity, etc.)
   // This requires checking each investment's maturity date
-  characterState.assets.forEach(asset => {
+  characterState.assets.forEach((asset: any) => {
     // Only consider assets with maturity dates that fall within the offline period
     if (asset.maturityDate && !asset.outcomeProcessed) {
       const maturityDate = new Date(asset.maturityDate);
@@ -259,7 +301,12 @@ export function applyOfflineIncome(report: OfflineIncomeReport): void {
     return; // No income to apply
   }
   
-  // Get character state
+  // Get character state using our helper function
+  const { useCharacter } = getStores();
+  if (!useCharacter) {
+    console.error('Cannot apply offline income - character store not available');
+    return;
+  }
   const characterState = useCharacter.getState();
   
   // Add the accumulated income to the player's wealth
