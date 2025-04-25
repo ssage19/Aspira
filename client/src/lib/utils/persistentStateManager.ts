@@ -208,7 +208,13 @@ export function saveShutdownState() {
       timeSpeed: timeState.timeSpeed,
       timeMultiplier: timeState.timeMultiplier,
       // Add a flag to indicate this is a normal shutdown, not a pause
-      isNormalShutdown: true
+      isNormalShutdown: true,
+      // Include dayCounter and other time tracking info for better sync
+      dayCounter: timeState.dayCounter,
+      daysPassed: timeState.daysPassed,
+      // Store progress information for smoother resumption
+      timeProgress: timeState.timeProgress,
+      lastTickTime: timeState.lastTickTime
     };
     
     // 3. Save to localStorage
@@ -277,6 +283,35 @@ export function processOfflineTimeIfNeeded() {
         if (shutdownState.timestamp) {
           useTime.setState({ lastRealTimestamp: shutdownState.timestamp });
           console.log(`Updated lastRealTimestamp to ${new Date(shutdownState.timestamp).toLocaleString()}`);
+        }
+        
+        // Restore additional time tracking values if they exist in shutdown state
+        const timeUpdates: any = {};
+        
+        if (typeof shutdownState.dayCounter === 'number') {
+          timeUpdates.dayCounter = shutdownState.dayCounter;
+          console.log(`Restoring dayCounter: ${shutdownState.dayCounter}`);
+        }
+        
+        if (typeof shutdownState.daysPassed === 'number') {
+          timeUpdates.daysPassed = shutdownState.daysPassed;
+          console.log(`Restoring daysPassed: ${shutdownState.daysPassed}`);
+        }
+        
+        if (typeof shutdownState.timeProgress === 'number') {
+          timeUpdates.timeProgress = shutdownState.timeProgress;
+          console.log(`Restoring timeProgress: ${shutdownState.timeProgress.toFixed(2)}%`);
+        }
+        
+        if (typeof shutdownState.lastTickTime === 'number') {
+          timeUpdates.lastTickTime = shutdownState.lastTickTime;
+          console.log(`Restoring lastTickTime: ${new Date(shutdownState.lastTickTime).toLocaleString()}`);
+        }
+        
+        // Apply all time tracking updates if any exist
+        if (Object.keys(timeUpdates).length > 0) {
+          useTime.setState(timeUpdates);
+          console.log('Restored additional time tracking data from shutdown state');
         }
         
         // Clear the shutdown state since we've used it
