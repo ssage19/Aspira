@@ -11,10 +11,50 @@
  * 4. Metadata about the last saved state for validation
  */
 
-import { useCharacter } from '../stores/useCharacter';
-import { useTime } from '../stores/useTime';
-import { useAssetTracker } from '../stores/useAssetTracker';
-import { useEconomy } from '../stores/useEconomy';
+// Import these dynamically to avoid circular dependencies
+let useCharacter: any;
+let useTime: any;
+let useAssetTracker: any;
+let useEconomy: any;
+
+// Helper to ensure stores are loaded
+function loadStores() {
+  try {
+    if (!useCharacter) {
+      // Try to get the default export of useCharacter
+      const characterModule = require('../stores/useCharacter');
+      useCharacter = characterModule.default || characterModule.useCharacter;
+    }
+    
+    if (!useTime) {
+      // The useTime store is exported as a named export
+      const timeModule = require('../stores/useTime');
+      useTime = timeModule.useTime;
+    }
+    
+    if (!useAssetTracker) {
+      // The useAssetTracker store is likely exported as a named export
+      const assetModule = require('../stores/useAssetTracker');
+      useAssetTracker = assetModule.useAssetTracker;
+    }
+    
+    if (!useEconomy) {
+      // The useEconomy store is likely exported as a named export
+      const economyModule = require('../stores/useEconomy');
+      useEconomy = economyModule.useEconomy;
+    }
+    
+    // Check that we successfully loaded the essential stores
+    const success = !!useCharacter && !!useTime;
+    if (!success) {
+      console.error('Failed to load critical stores for game state');
+    }
+    return success;
+  } catch (error) {
+    console.error('Error loading stores:', error);
+    return false;
+  }
+}
 
 // Key names for localStorage
 const LAST_SAVE_TIMESTAMP_KEY = 'business-empire-last-save';
@@ -101,6 +141,12 @@ export function stopPersistentStateManager() {
  */
 export function saveAllGameState() {
   try {
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot save game state');
+      return;
+    }
+    
     // 1. Get current states from all stores
     const characterState = useCharacter.getState();
     const timeState = useTime.getState();
@@ -128,6 +174,12 @@ export function saveAllGameState() {
  */
 export function saveShutdownState() {
   try {
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot save shutdown state');
+      return;
+    }
+    
     // 1. Get the time state
     const timeState = useTime.getState();
     
@@ -176,6 +228,12 @@ export function processOfflineTimeIfNeeded() {
     // Skip if less than 5 seconds have passed
     if (timeSinceLastSave < 5000) {
       console.log('Less than 5 seconds since last save - skipping offline processing');
+      return;
+    }
+    
+    // Load stores first
+    if (!loadStores()) {
+      console.error('Failed to load stores - cannot process offline time');
       return;
     }
     
