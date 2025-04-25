@@ -84,16 +84,28 @@ export function GameUI() {
   
   // Update investment values based on market fluctuations
   const updateInvestments = () => {
-    const { assets } = useCharacter.getState();
-    
-    // Skip if no assets
-    if (assets.length === 0) return { 
-      gainers: 0, 
-      losers: 0, 
-      gains: 0, 
-      losses: 0, 
-      netChange: 0 
-    };
+    try {
+      const characterState = useCharacter.getState();
+      const assets = characterState?.assets || [];
+      
+      // Skip if no assets
+      if (assets.length === 0) return { 
+        gainers: 0, 
+        losers: 0, 
+        gains: 0, 
+        losses: 0, 
+        netChange: 0 
+      };
+    } catch (error) {
+      console.error("Error accessing character state in updateInvestments:", error);
+      return { 
+        gainers: 0, 
+        losers: 0, 
+        gains: 0, 
+        losses: 0, 
+        netChange: 0 
+      };
+    }
     
     // We'll simulate market fluctuations by randomly adjusting values
     // In a real implementation, this would use more complex market simulation
@@ -294,7 +306,16 @@ export function GameUI() {
           processDailyFinances();
           
           // Process daily character update (including salary)
-          useCharacter.getState().processDailyUpdate();
+          try {
+            const characterState = useCharacter.getState();
+            if (characterState && typeof characterState.processDailyUpdate === 'function') {
+              characterState.processDailyUpdate();
+            } else {
+              console.warn("Character state or processDailyUpdate method not available");
+            }
+          } catch (error) {
+            console.error("Error processing daily character update:", error);
+          }
           
           // Advance the day
           advanceTime();
@@ -355,7 +376,15 @@ export function GameUI() {
             if (lastExpenseMonth !== monthId) {
               // Call the character store's monthly update method to handle expense deduction
               // This includes deducting lifestyle expenses and showing visual feedback
-              characterState.monthlyUpdate();
+              try {
+                if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                  characterState.monthlyUpdate();
+                } else {
+                  console.warn("Character state or monthlyUpdate method not available");
+                }
+              } catch (error) {
+                console.error("Error in monthly update:", error);
+              }
               
               // Update the last expense month to prevent double-charging
               setLastExpenseMonth(monthId);
@@ -399,7 +428,16 @@ export function GameUI() {
     processDailyFinances();
     
     // Process daily character update (including salary)
-    useCharacter.getState().processDailyUpdate();
+    try {
+      const characterState = useCharacter.getState();
+      if (characterState && typeof characterState.processDailyUpdate === 'function') {
+        characterState.processDailyUpdate();
+      } else {
+        console.warn("Character state or processDailyUpdate method not available in manual advancement");
+      }
+    } catch (error) {
+      console.error("Error processing daily character update in manual advancement:", error);
+    }
     
     // Advance the day
     advanceTime();
@@ -444,7 +482,15 @@ export function GameUI() {
       // Check if we've already processed expenses for this month
       if (lastExpenseMonth !== monthId) {
         // Call the character store's monthly update method to handle expense deduction
-        characterState.monthlyUpdate();
+        try {
+          if (characterState && typeof characterState.monthlyUpdate === 'function') {
+            characterState.monthlyUpdate();
+          } else {
+            console.warn("Character state or monthlyUpdate method not available in manual advancement");
+          }
+        } catch (error) {
+          console.error("Error in monthly update during manual advancement:", error);
+        }
         
         // Update the last expense month to prevent double-charging
         setLastExpenseMonth(monthId);
