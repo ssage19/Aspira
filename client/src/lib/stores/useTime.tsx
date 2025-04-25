@@ -187,33 +187,41 @@ const timeStore = create<TimeState>()(
       daysPassed: savedTime?.daysPassed || 0,
       
       advanceTime: () => set((state) => {
-        let newDay = state.currentDay + 1;
-        let newMonth = state.currentMonth;
-        let newYear = state.currentYear;
-        
-        // Fix for month calculation:
-        // Get days in current month by using the actual JavaScript Date API correctly
-        // JS months are 0-indexed, so state.currentMonth-1 gives us the current month in JS
+        // Important: First, get the days in the current month
+        // In JS Date API: new Date(year, month, 0) gives last day of previous month
+        // So we pass the current month number directly to get correct days in month
         const daysInMonth = new Date(state.currentYear, state.currentMonth, 0).getDate();
-        console.log(`Days in month ${state.currentMonth}/${state.currentYear}: ${daysInMonth}`);
+        console.log(`Days in current month ${state.currentMonth}/${state.currentYear}: ${daysInMonth}`);
         
-        // Add additional logging to debug this issue
-        console.log(`Current date: ${state.currentMonth}/${state.currentDay}/${state.currentYear}`);
-        console.log(`New day after increment: ${newDay} (limit: ${daysInMonth})`);
-        if (newDay > daysInMonth) {
-          console.log(`Month will increment: ${state.currentMonth} -> ${state.currentMonth + 1}`);
-        }
+        // Check if this is the last day of the month
+        const isEndOfMonth = state.currentDay >= daysInMonth;
         
-        // Check if we need to advance to next month
-        if (newDay > daysInMonth) {
-          newDay = 1;
-          newMonth += 1;
+        // Initialize new date values
+        let newDay, newMonth, newYear;
+        
+        // Detailed debug logging
+        console.log(`Current date before update: ${state.currentMonth}/${state.currentDay}/${state.currentYear}`);
+        
+        if (isEndOfMonth) {
+          // If it's the end of month, reset day to 1 and advance month
+          newDay = 1; 
+          newMonth = state.currentMonth + 1;
+          newYear = state.currentYear;
+          
+          console.log(`End of month reached (${state.currentDay} >= ${daysInMonth}). Incrementing month: ${state.currentMonth} -> ${newMonth}`);
           
           // Check if we need to advance to next year
           if (newMonth > 12) {
             newMonth = 1;
             newYear += 1;
+            console.log(`End of year reached. Incrementing year: ${state.currentYear} -> ${newYear}`);
           }
+        } else {
+          // Normal day increment within the same month
+          newDay = state.currentDay + 1;
+          newMonth = state.currentMonth;
+          newYear = state.currentYear;
+          console.log(`Normal day increment: ${state.currentDay} -> ${newDay}`);
         }
         
         // Create a new Date object for the updated date
