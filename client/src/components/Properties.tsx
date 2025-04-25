@@ -548,6 +548,56 @@ export function Properties() {
                     </div>
                   )}
                   
+                  {selectedProperty.id === 'garden_condo' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/garden_district_condo.jpg" 
+                        alt="Garden District Condo" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'modern_townhome' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/modern_townhome.jpg" 
+                        alt="Modern Townhome" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'colonial_home' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/colonial_style_home.jpg" 
+                        alt="Colonial Style Home" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'vacation_cottage' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/weekend_cottage.jpg" 
+                        alt="Weekend Cottage" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
+                  {selectedProperty.id === 'ranch_style' && (
+                    <div className="mb-3">
+                      <img 
+                        src="/images/properties/ranch_style_home.jpg" 
+                        alt="Ranch Style Home" 
+                        className="rounded-md w-full h-auto object-cover"
+                      />
+                    </div>
+                  )}
+                  
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
                       <p className="text-gray-500">Purchase Price</p>
