@@ -1,10 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useCharacter } from '../lib/stores/useCharacter';
-import { useTime } from '../lib/stores/useTime';
-import { useAudio } from '../lib/stores/useAudio';
-import useEconomy from '../lib/stores/useEconomy';
-import { useAssetTracker } from '../lib/stores/useAssetTracker';
+import { getStore } from '../lib/utils/storeRegistry';
+import { useStoreRegistry, useCharacterRegistry, useStoreMethod } from '../lib/hooks/useStoreRegistry';
 import { useResponsive } from '../lib/hooks/useResponsive';
 import { setLocalStorage } from '../lib/utils';
 
@@ -44,27 +41,31 @@ const DAY_DURATION_MS = 24 * 1000; // exactly 24,000 ms per in-game day
 
 export default function GameUI() {
   const navigate = useNavigate();
-  const { wealth, netWorth } = useCharacter();
-  const { 
-    currentDay, 
-    currentMonth, 
-    currentYear, 
-    advanceTime, 
-    timeSpeed, 
-    timeMultiplier, 
-    setTimeSpeed,
-    autoAdvanceEnabled,
-    timeProgress,
-    lastTickTime,
-    setAutoAdvance,
-    setTimeProgress,
-    updateLastTickTime
-  } = useTime();
-  const audioState = useAudio();
-  const isMuted = audioState.isMuted;
-  // Get financial data from both character and asset tracker
-  const totalCash = useAssetTracker(state => state.totalCash || 0);
-  const totalNetWorth = useAssetTracker(state => state.totalNetWorth || 0);
+  
+  // Use registry pattern for all stores
+  const wealth = useCharacterRegistry(state => state.wealth, 0);
+  const netWorth = useCharacterRegistry(state => state.netWorth, 0);
+  
+  // Time store data
+  const currentDay = useStoreRegistry('time', state => state.currentDay, 1);
+  const currentMonth = useStoreRegistry('time', state => state.currentMonth, 1);
+  const currentYear = useStoreRegistry('time', state => state.currentYear, 2025);
+  const timeSpeed = useStoreRegistry('time', state => state.timeSpeed, 'normal');
+  const timeMultiplier = useStoreRegistry('time', state => state.timeMultiplier, 1);
+  const autoAdvanceEnabled = useStoreRegistry('time', state => state.autoAdvanceEnabled, false);
+  const timeProgress = useStoreRegistry('time', state => state.timeProgress, 0);
+  const lastTickTime = useStoreRegistry('time', state => state.lastTickTime, 0);
+  
+  // Get financial data from asset tracker
+  const totalCash = useStoreRegistry('assetTracker', state => state.totalCash || 0, 0);
+  const totalNetWorth = useStoreRegistry('assetTracker', state => state.totalNetWorth || 0, 0);
+  
+  // Get store methods using the useStoreMethod hook
+  const advanceTime = useStoreMethod('time', 'advanceTime');
+  const setTimeSpeed = useStoreMethod('time', 'setTimeSpeed');
+  const setAutoAdvance = useStoreMethod('time', 'setAutoAdvance');
+  const setTimeProgress = useStoreMethod('time', 'setTimeProgress');
+  const updateLastTickTime = useStoreMethod('time', 'updateLastTickTime');
   
   // For display, prioritize character values if available, fall back to asset tracker
   const displayCash = wealth || totalCash || 0;
@@ -94,7 +95,18 @@ export default function GameUI() {
     let netChange = 0;
     
     try {
-      const characterState = useCharacter.getState();
+      const characterStore = getStore('character');
+      if (!characterStore) {
+        return { 
+          gainers: 0, 
+          losers: 0, 
+          gains: 0, 
+          losses: 0, 
+          netChange: 0 
+        };
+      }
+      
+      const characterState = characterStore.getState();
       if (!characterState || !characterState.assets || characterState.assets.length === 0) {
         return { 
           gainers: 0, 
@@ -190,20 +202,26 @@ export default function GameUI() {
   // Toggle auto advance time
   const toggleAutoAdvance = () => {
     const currentTime = Date.now();
+    const timeStore = getStore('time');
+    
+    if (!timeStore) {
+      console.error('Time store not available for toggling auto advance');
+      return;
+    }
     
     if (autoAdvanceEnabled) {
       // We're pausing the game - store current progress in milliseconds
       // Convert percentage to milliseconds
       const progressInMs = (timeProgress / 100) * DAY_DURATION_MS;
-      useTime.getState().setAccumulatedProgress(progressInMs);
-      useTime.getState().setPausedTimestamp(currentTime);
+      timeStore.getState().setAccumulatedProgress(progressInMs);
+      timeStore.getState().setPausedTimestamp(currentTime);
       
       // Setting autoAdvance to false will also update wasPaused and lastRealTimestamp
       setAutoAdvance(false);
     } else {
       // We're resuming the game
       // Get paused data from the store
-      const { pausedTimestamp, accumulatedProgress } = useTime.getState();
+      const { pausedTimestamp, accumulatedProgress } = timeStore.getState();
       
       // If we have accumulated progress, use it
       if (accumulatedProgress > 0) {
@@ -247,7 +265,7 @@ export default function GameUI() {
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [autoAdvanceEnabled, setTimeSpeed]);
+  }, [autoAdvanceEnabled, setTimeSpeed, toggleAutoAdvance]);
   
   // Auto day advancement timer
   useEffect(() => {
@@ -305,11 +323,14 @@ export default function GameUI() {
           
           // Process daily character update (including salary)
           try {
-            const characterState = useCharacter.getState();
-            if (characterState && typeof characterState.processDailyUpdate === 'function') {
-              characterState.processDailyUpdate();
-            } else {
-              console.warn("Character state or processDailyUpdate method not available");
+            const characterStore = getStore('character');
+            if (characterStore) {
+              const characterState = characterStore.getState();
+              if (characterState && typeof characterState.processDailyUpdate === 'function') {
+                characterState.processDailyUpdate();
+              } else {
+                console.warn("Character state or processDailyUpdate method not available");
+              }
             }
           } catch (error) {
             console.error("Error processing daily character update:", error);
@@ -317,83 +338,99 @@ export default function GameUI() {
           
           // Advance the day
           advanceTime();
-          if (audioState.playSuccess) {
-            audioState.playSuccess();
-          }
           
           // Get the updated dayCounter after advancing time
-          const { dayCounter } = useTime.getState();
+          const timeStore = getStore('time');
+          const economyStore = getStore('economy');
+          let dayCounter = 0;
           
-          // Check for weekly updates (every 7 days)
-          if (dayCounter % 7 === 0) {
-            useEconomy.getState().processWeeklyUpdate();
-            console.log("Weekly update processed on day counter:", dayCounter);
-          }
-          
-          // Get the current date and state
-          const { currentDay, currentMonth, currentYear } = useTime.getState();
-          const isLastDayOfMonth = isEndOfMonth(currentDay, currentMonth, currentYear);
-          
-          // Check for monthly updates on the last day of each month
-          if (isLastDayOfMonth) {
-            useEconomy.getState().processMonthlyUpdate();
-            console.log("Monthly update processed on day counter:", dayCounter);
+          if (timeStore) {
+            const timeState = timeStore.getState();
+            dayCounter = timeState.dayCounter || 0;
             
-            // Create a month ID string (e.g., "4-2025" for April 2025)
-            const monthId = `${currentMonth}-${currentYear}`;
-            
-            // Get character state for calculations
-            const characterState = useCharacter.getState();
-            
-            // Calculate summary information for the toast
-            const propertyIncome = characterState.properties.reduce((total, property) => 
-              total + property.income, 0);
-            const lifestyleExpenses = characterState.lifestyleItems.reduce((total, item) => {
-              const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
-              return total + monthlyCost;
-            }, 0);
-            const job = characterState.job;
-            const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
-            // Calculate financial data for the monthly report
-            const housingExp = characterState.housingType === 'rental' ? 1800 : 
-                              characterState.housingType === 'shared' ? 900 : 0;
-            
-            const transportExp = characterState.vehicleType === 'economy' ? 300 :
-                               characterState.vehicleType === 'standard' ? 450 :
-                               characterState.vehicleType === 'luxury' ? 1000 :
-                               characterState.vehicleType === 'premium' ? 1500 :
-                               characterState.vehicleType === 'bicycle' ? 50 : 0;
-            
-            const foodExp = 600; // Standard food expense
-            
-            const totalExp = lifestyleExpenses + housingExp + transportExp + foodExp;
-            const totalInc = propertyIncome + monthlySalary;
-            const netChange = totalInc - totalExp;
-            
-            // Check if we've already processed expenses for this month
-            if (lastExpenseMonth !== monthId) {
-              // Call the character store's monthly update method to handle expense deduction
-              // This includes deducting lifestyle expenses and showing visual feedback
-              try {
-                if (characterState && typeof characterState.monthlyUpdate === 'function') {
-                  characterState.monthlyUpdate();
-                } else {
-                  console.warn("Character state or monthlyUpdate method not available");
-                }
-              } catch (error) {
-                console.error("Error in monthly update:", error);
+            // Check for weekly updates (every 7 days)
+            if (dayCounter % 7 === 0 && economyStore) {
+              const processWeeklyUpdate = economyStore.getState().processWeeklyUpdate;
+              if (typeof processWeeklyUpdate === 'function') {
+                processWeeklyUpdate();
+                console.log("Weekly update processed on day counter:", dayCounter);
               }
-              
-              // Update the last expense month to prevent double-charging
-              setLastExpenseMonth(monthId);
-              console.log(`Set last expense month to: ${monthId}`);
-            } else {
-              console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
             }
             
-            // No need to calculate expenses here - the monthly summary is 
-            // now shown in the dedicated MonthlyFinancesWidget
-            console.log("End of month reached - expense calculations handled by MonthlyFinancesWidget");
+            // Get the current date and state for month-end checks
+            const currentDayValue = timeState.currentDay || 1;
+            const currentMonthValue = timeState.currentMonth || 1;
+            const currentYearValue = timeState.currentYear || 2025;
+            
+            const isLastDayOfMonth = isEndOfMonth(currentDayValue, currentMonthValue, currentYearValue);
+            
+            // Check for monthly updates on the last day of each month
+            if (isLastDayOfMonth && economyStore) {
+              const processMonthlyUpdate = economyStore.getState().processMonthlyUpdate;
+              if (typeof processMonthlyUpdate === 'function') {
+                processMonthlyUpdate();
+                console.log("Monthly update processed on day counter:", dayCounter);
+              }
+            
+              // Create a month ID string (e.g., "4-2025" for April 2025)
+              const monthId = `${currentMonthValue}-${currentYearValue}`;
+              
+              // Get character state for calculations
+              const characterStore = getStore('character');
+              if (characterStore) {
+                const characterState = characterStore.getState();
+            
+                // Calculate summary information for the toast
+                const propertyIncome = characterState.properties.reduce((total: number, property: any) => 
+                  total + property.income, 0);
+                const lifestyleExpenses = characterState.lifestyleItems.reduce((total: number, item: any) => {
+                  const monthlyCost = item.monthlyCost || (item.maintenanceCost ? item.maintenanceCost * 30 : 0);
+                  return total + monthlyCost;
+                }, 0);
+                const job = characterState.job;
+                const monthlySalary = job ? (job.salary / 26) * 2.17 : 0;
+                // Calculate financial data for the monthly report
+                const housingExp = characterState.housingType === 'rental' ? 1800 : 
+                                  characterState.housingType === 'shared' ? 900 : 0;
+                
+                const transportExp = characterState.vehicleType === 'economy' ? 300 :
+                                   characterState.vehicleType === 'standard' ? 450 :
+                                   characterState.vehicleType === 'luxury' ? 1000 :
+                                   characterState.vehicleType === 'premium' ? 1500 :
+                                   characterState.vehicleType === 'bicycle' ? 50 : 0;
+                
+                const foodExp = 600; // Standard food expense
+                
+                const totalExp = lifestyleExpenses + housingExp + transportExp + foodExp;
+                const totalInc = propertyIncome + monthlySalary;
+                const netChange = totalInc - totalExp;
+                
+                // Check if we've already processed expenses for this month
+                if (lastExpenseMonth !== monthId) {
+                  // Call the character store's monthly update method to handle expense deduction
+                  // This includes deducting lifestyle expenses and showing visual feedback
+                  try {
+                    if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                      characterState.monthlyUpdate();
+                    } else {
+                      console.warn("Character state or monthlyUpdate method not available");
+                    }
+                  } catch (error) {
+                    console.error("Error in monthly update:", error);
+                  }
+                  
+                  // Update the last expense month to prevent double-charging
+                  setLastExpenseMonth(monthId);
+                  console.log(`Set last expense month to: ${monthId}`);
+                } else {
+                  console.log(`Skipping expense deduction for month ${monthId} as it was already processed`);
+                }
+                
+                // No need to calculate expenses here - the monthly summary is 
+                // now shown in the dedicated MonthlyFinancesWidget
+                console.log("End of month reached - expense calculations handled by MonthlyFinancesWidget");
+              }
+            }
           }
           
           // Check for unlockable achievements
