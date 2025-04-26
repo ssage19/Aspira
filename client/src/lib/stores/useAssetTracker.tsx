@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { registerStore } from '../utils/storeRegistry';
 import { WealthTier, getCurrentWealthTier, wealthTiers } from '../data/wealthTiers';
+import { getTotalOwnershipValue } from '../utils/ownershipUtils';
 
 // Storage key for the asset tracker store
 export const ASSET_TRACKER_STORAGE_KEY = 'business-empire-asset-tracker';
@@ -871,17 +872,9 @@ export const useAssetTracker = create<AssetTrackerState>()(
         const totalLifestyleValue = state.lifestyleItems.reduce((acc, item) => acc + item.currentValue, 0);
         
         // Get ownership assets (Formula 1, Horse Racing, Sports Teams, Businesses)
-        let totalOwnershipValue = 0;
-        try {
-          // Use dynamic import to avoid circular dependency issues
-          const { getTotalOwnershipValue } = require('../utils/ownershipUtils');
-          if (typeof getTotalOwnershipValue === 'function') {
-            totalOwnershipValue = getTotalOwnershipValue();
-            console.log(`Asset Tracker: Including ownership assets: ${totalOwnershipValue}`);
-          }
-        } catch (e) {
-          console.error('Error getting ownership assets:', e);
-        }
+        // Use the imported helper function rather than dynamic require
+        const totalOwnershipValue = getTotalOwnershipValue();
+        console.log(`Asset Tracker: Including ownership assets: $${totalOwnershipValue.toLocaleString()}`);
         
         // Calculate total net worth
         const totalNetWorth = 
@@ -1139,6 +1132,9 @@ export const useAssetTracker = create<AssetTrackerState>()(
       getNetWorthBreakdown: () => {
         const state = get();
         
+        // Get ownership assets value
+        const ownershipValue = getTotalOwnershipValue();
+        
         // Return the current state values without recalculating
         // This prevents infinite update loops when multiple components
         // access the breakdown simultaneously
@@ -1152,6 +1148,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
           propertyValue: state.totalPropertyValue,
           propertyDebt: state.totalPropertyDebt,
           lifestyleItems: state.totalLifestyleValue,
+          ownershipAssets: ownershipValue, // Include ownership assets value
           total: state.totalNetWorth,
           version: state.lastUpdated,
         };
