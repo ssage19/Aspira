@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { registerStore } from "../utils/storeRegistry";
 
 // Define event categories
 export type EventCategory = 
@@ -349,5 +350,8 @@ function saveState() {
   
   setLocalStorage(STORAGE_KEY, dataToSave);
 }
+
+// Register with the global store registry
+registerStore('randomEvents', useRandomEvents);
 
 export default useRandomEvents;

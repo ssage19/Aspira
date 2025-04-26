@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
+import { registerStore } from '../utils/storeRegistry';
 
 interface AudioState {
   // Sound settings
@@ -41,5 +42,8 @@ export const useAudio = create<AudioState>()(
     };
   })
 );
+
+// Register with the global store registry
+registerStore('audio', useAudio);
 
 export default useAudio;
