@@ -42,6 +42,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { formatCurrency, formatPercentage, performCompleteGameReset } from '../lib/utils';
+import { getCurrentWealthTier, getNextTierProgress } from '../lib/data/wealthTiers';
 
 export default function ReliableDashboard() {
   const navigate = useNavigate();
@@ -293,8 +294,32 @@ export default function ReliableDashboard() {
                           <span className="text-muted-foreground">Net Worth:</span>
                           <span className="font-semibold text-lg">{formatCurrency(stats.netWorth)}</span>
                         </div>
-                        <div className="mt-3 pt-3 border-t border-primary/10">
-                          <WealthTierBadge netWorth={stats.netWorth} size="md" showProgress={true} />
+                        <div className="mt-3 pt-3 border-t border-primary/10 space-y-3">
+                          <WealthTierBadge netWorth={stats.netWorth} size="md" showProgress={true} showTooltip={false} />
+                          
+                          {/* Embed the tooltip content directly */}
+                          <div className="text-xs text-muted-foreground mt-2 p-2 bg-background/50 rounded-md border border-primary/10">
+                            <div className="space-y-2">
+                              {/* Current tier description */}
+                              <p>{getCurrentWealthTier(stats.netWorth).description}</p>
+                              
+                              {/* Next tier information */}
+                              {getNextTierProgress(stats.netWorth).nextTier && (
+                                <div className="pt-1 mt-1 border-t border-primary/10">
+                                  <p className="mb-1 font-medium">Next milestone: {formatCurrency(getNextTierProgress(stats.netWorth).nextTier?.minNetWorth || 0)}</p>
+                                  <p>Continue to grow your net worth to unlock new advantages and opportunities.</p>
+                                </div>
+                              )}
+                              
+                              {/* Highest tier reached */}
+                              {!getNextTierProgress(stats.netWorth).nextTier && (
+                                <div className="pt-1 mt-1 border-t border-primary/10">
+                                  <p className="font-medium">Congratulations!</p>
+                                  <p>You've reached the highest wealth tier.</p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </CardContent>
