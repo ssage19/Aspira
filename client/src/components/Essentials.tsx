@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useCharacter } from "../lib/stores/useCharacter";
-import { useAudio } from "../lib/stores/useAudio";
+// Audio removed
 import { useTime } from "../lib/stores/useTime";
 import { 
   Card, 
@@ -67,7 +67,8 @@ export function Essentials() {
     updateSocialConnections
   } = useCharacter();
   
-  const { playSound } = useAudio();
+  // Audio removed
+  const playSound = () => {};
   const { advanceTime } = useTime();
   const [activeTab, setActiveTab] = useState('food');
   // Default to auto-maintenance being ON for better user experience

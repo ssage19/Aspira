@@ -10,7 +10,7 @@ import { useCharacter } from '../lib/stores/useCharacter';
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useGame } from '../lib/stores/useGame';
 import { useRandomEvents } from '../lib/stores/useRandomEvents';
 import { useIsMobile } from '../hooks/use-is-mobile';
@@ -64,7 +64,7 @@ export default function SimpleDashboard() {
   
   // Other game systems
   const { economyState } = useEconomy();
-  const audio = useAudio();
+  // Audio removed
   
   // Update character values without causing re-renders
   const updateValues = useCallback(() => {

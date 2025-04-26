@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCharacter, Job, CharacterSkills } from '../lib/stores/useCharacter';
 import { useGame } from '../lib/stores/useGame';
 import { AppBackground } from '../components/AppBackground';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
@@ -22,7 +22,8 @@ export default function CharacterCreation() {
   const navigate = useNavigate();
   const { createNewCharacter, allocateSkillPoint, decreaseSkillPoint } = useCharacter();
   const { phase, reset, start } = useGame();
-  const { playSuccess } = useAudio();
+  // Audio removed
+  const playSuccess = () => {};
   
   // CRITICAL FIX: Check for existing character and redirect if found
   useEffect(() => {
