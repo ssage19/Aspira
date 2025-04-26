@@ -906,7 +906,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 {/* Zero - brighter green like reference image */}
                 <div className="flex">
                   <Button
-                    className="w-full h-14 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-none border-[0.5px] border-white"
+                    className="w-full h-14 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-lg border-[0.5px] border-white"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log("Placing bet on 0");
@@ -923,48 +923,50 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   {tableRows.map((row, rowIndex) => (
                     <div key={rowIndex} className="contents">
                       {row.map(number => (
-                        <Button
-                          key={number}
-                          className={`w-full h-10 flex items-center justify-center ${
-                            RED_NUMBERS.includes(number) 
-                              ? 'bg-red-600 hover:bg-red-500' 
-                              : 'bg-gray-950 hover:bg-gray-900'
-                          } text-white text-lg font-bold rounded-none border-[0.5px] border-white`}
-                          onClick={(e) => {
-                            e.preventDefault();
-                            console.log(`Placing bet on number ${number}`);
-                            addBet(numberBetOptions[number]);
-                          }}
-                          disabled={spinning}
-                        >
-                          {number}
-                        </Button>
+                        <div key={number} className="p-[0.5px]">
+                          <Button
+                            className={`w-full h-10 flex items-center justify-center ${
+                              RED_NUMBERS.includes(number) 
+                                ? 'bg-red-600 hover:bg-red-500' 
+                                : 'bg-gray-950 hover:bg-gray-900'
+                            } text-white text-lg font-bold rounded-lg border-[0.5px] border-white`}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              console.log(`Placing bet on number ${number}`);
+                              addBet(numberBetOptions[number]);
+                            }}
+                            disabled={spinning}
+                          >
+                            {number}
+                          </Button>
+                        </div>
                       ))}
                     </div>
                   ))}
                 </div>
                 
                 {/* Bottom bet sections - match casino style with white borders */}
-                <div className="grid grid-cols-3 gap-0">
+                <div className="grid grid-cols-3 gap-[0.5px] px-[0.5px]">
                   {/* Dozen bets */}
                   {dozenBetOptions.map((bet, index) => (
-                    <Button
-                      key={`dozen-${index}`}
-                      className="h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-none border-[0.5px] border-white"
-                      onClick={(e) => {
-                        e.preventDefault(); 
-                        console.log(`Placing bet on ${bet.label}`);
-                        addBet(bet);
-                      }}
-                      disabled={spinning}
-                    >
-                      {bet.label}
-                    </Button>
+                    <div key={`dozen-${index}`} className="p-[0.5px]">
+                      <Button
+                        className="w-full h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg border-[0.5px] border-white"
+                        onClick={(e) => {
+                          e.preventDefault(); 
+                          console.log(`Placing bet on ${bet.label}`);
+                          addBet(bet);
+                        }}
+                        disabled={spinning}
+                      >
+                        {bet.label}
+                      </Button>
+                    </div>
                   ))}
                 </div>
                 
                 {/* Bottom bet options - white borders as in reference image */}
-                <div className="grid grid-cols-6 gap-0">
+                <div className="grid grid-cols-6 gap-[0.5px] px-[0.5px]">
                   {[
                     { label: '1-18', bet: commonBetOptions.find(b => b.type === 'low')! },
                     { label: 'EVEN', bet: commonBetOptions.find(b => b.type === 'even')! },
@@ -973,18 +975,19 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     { label: 'ODD', bet: commonBetOptions.find(b => b.type === 'odd')! },
                     { label: '19-36', bet: commonBetOptions.find(b => b.type === 'high')! }
                   ].map((item, index) => (
-                    <Button
-                      key={`bottom-${index}`}
-                      className={`h-11 ${item.color || 'bg-emerald-700 hover:bg-emerald-800'} text-white font-semibold rounded-none border-[0.5px] border-white`}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        console.log(`Placing bet on ${item.label}`);
-                        addBet(item.bet);
-                      }}
-                      disabled={spinning}
-                    >
-                      {item.label}
-                    </Button>
+                    <div key={`bottom-${index}`} className="p-[0.5px]">
+                      <Button
+                        className={`w-full h-11 ${item.color || 'bg-emerald-700 hover:bg-emerald-800'} text-white font-semibold rounded-lg border-[0.5px] border-white`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log(`Placing bet on ${item.label}`);
+                          addBet(item.bet);
+                        }}
+                        disabled={spinning}
+                      >
+                        {item.label}
+                      </Button>
+                    </div>
                   ))}
                 </div>
               </div>
@@ -992,18 +995,19 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Column bets - styled to match casino betting table with white borders */}
               <div className="grid grid-cols-3 gap-1 mb-4">
                 {columnBetOptions.map((bet, index) => (
-                  <Button
-                    key={`column-${index}`}
-                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 border-[0.5px] border-white shadow-md"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      console.log(`Placing bet on ${bet.label}`);
-                      addBet(bet);
-                    }}
-                    disabled={spinning}
-                  >
-                    {bet.label}
-                  </Button>
+                  <div key={`column-${index}`} className="p-[0.5px]">
+                    <Button
+                      className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 rounded-lg border-[0.5px] border-white shadow-md"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        console.log(`Placing bet on ${bet.label}`);
+                        addBet(bet);
+                      }}
+                      disabled={spinning}
+                    >
+                      {bet.label}
+                    </Button>
+                  </div>
                 ))}
               </div>
             </div>
