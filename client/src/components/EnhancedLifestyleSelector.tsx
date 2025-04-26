@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { 
   allEnhancedLifestyleItems, 
   EnhancedLifestyleItem 
@@ -73,7 +73,9 @@ export function EnhancedLifestyleSelector() {
     calculateNetWorth
   } = useCharacter();
   
-  const { playSuccess, playHit } = useAudio();
+  // Audio removed - using empty functions
+  const playSuccess = () => {};
+  const playHit = () => {};
   const [activeTab, setActiveTab] = useState<CategoryTab>('wellness');
   const [selectedItem, setSelectedItem] = useState<EnhancedLifestyleItem | null>(null);
   const [showDetails, setShowDetails] = useState(false);

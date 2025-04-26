@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useTime } from '../lib/stores/useTime';
 import { useNavigate } from 'react-router-dom';
 import { useResponsive } from '../lib/hooks/useResponsive';
@@ -75,7 +75,9 @@ import { hobbies } from '../lib/data/hobbies';
 
 export function Lifestyle() {
   const { wealth, addWealth, addLifestyleItem, removeLifestyleItem, lifestyleItems: ownedItems } = useCharacter();
-  const { playSuccess, playHit } = useAudio();
+  // Audio removed - using empty functions
+  const playSuccess = () => {};
+  const playHit = () => {};
   const { currentGameDate, dayCounter } = useTime(); // Access game time
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('luxury');

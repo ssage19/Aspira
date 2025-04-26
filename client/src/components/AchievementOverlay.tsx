@@ -28,7 +28,7 @@ import {
 } from './ui/tooltip';
 import { Progress } from './ui/progress';
 import { cn, formatCurrency } from '../lib/utils';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { Badge } from './ui/badge';
 
 interface AchievementIconProps {
@@ -348,7 +348,8 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
 }) => {
   const [activeCategory, setActiveCategory] = useState<AchievementCategory>('wealth');
   const [showCompletedOnly, setShowCompletedOnly] = useState(false);
-  const { playSound } = useAudio();
+  // Audio removed
+  const playSound = () => {};
   
   const { 
     achievements, 
@@ -390,8 +391,8 @@ export const AchievementOverlay: React.FC<AchievementOverlayProps> = ({
     const achievement = getAchievement(id);
     
     if (achievement && achievement.isUnlocked && !claimedRewards[id]) {
-      // Play a success sound
-      playSound('success.mp3');
+      // Success sound removed
+      playSound();
       
       console.log(`Overlay: Claiming reward for achievement: ${achievement.title}`);
       
