@@ -901,12 +901,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
             <div className="bg-emerald-600 rounded-lg p-6 relative z-10 shadow-xl border-2 border-emerald-800">
               <h3 className="text-xl font-bold mb-4 text-white drop-shadow-md">Betting Table</h3>
               
-              {/* Table layout - white borders like the reference image */}
-              <div className="border-[1px] border-white mb-6 overflow-hidden">
+              {/* Table layout - emerald green with white borders like the reference image */}
+              <div className="bg-emerald-600 border-[1px] border-white mb-6 overflow-hidden">
                 {/* Zero - brighter green like reference image */}
-                <div className="flex">
+                <div className="flex p-0.5 bg-emerald-600">
                   <Button
-                    className="w-full h-14 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-lg border-[0.5px] border-white"
+                    className="w-full h-12 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-sm border border-white/80 focus:ring-0 outline-none"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log("Placing bet on 0");
@@ -918,18 +918,18 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   </Button>
                 </div>
                 
-                {/* Numbers 1-36 grid - oval shape and white borders as in reference */}
-                <div className="grid grid-cols-3 gap-0">
+                {/* Numbers 1-36 grid - small oval shape with green edges and white borders as in reference */}
+                <div className="grid grid-cols-3 gap-0 bg-emerald-600 p-0.5">
                   {tableRows.map((row, rowIndex) => (
                     <div key={rowIndex} className="contents">
                       {row.map(number => (
-                        <div key={number} className="p-[0.5px]">
+                        <div key={number} className="p-0.5">
                           <Button
-                            className={`w-full h-10 flex items-center justify-center ${
+                            className={`w-full h-9 flex items-center justify-center ${
                               RED_NUMBERS.includes(number) 
                                 ? 'bg-red-600 hover:bg-red-500' 
                                 : 'bg-gray-950 hover:bg-gray-900'
-                            } text-white text-lg font-bold rounded-lg border-[0.5px] border-white`}
+                            } text-white text-base font-bold rounded-sm border border-white/80 focus:ring-0 outline-none`}
                             onClick={(e) => {
                               e.preventDefault();
                               console.log(`Placing bet on number ${number}`);
@@ -946,12 +946,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 </div>
                 
                 {/* Bottom bet sections - match casino style with white borders */}
-                <div className="grid grid-cols-3 gap-[0.5px] px-[0.5px]">
+                <div className="grid grid-cols-3 gap-0 bg-emerald-600 p-0.5">
                   {/* Dozen bets */}
                   {dozenBetOptions.map((bet, index) => (
-                    <div key={`dozen-${index}`} className="p-[0.5px]">
+                    <div key={`dozen-${index}`} className="p-0.5">
                       <Button
-                        className="w-full h-11 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-lg border-[0.5px] border-white"
+                        className="w-full h-10 bg-emerald-700 hover:bg-emerald-800 text-white font-semibold rounded-sm border border-white/80 focus:ring-0 outline-none"
                         onClick={(e) => {
                           e.preventDefault(); 
                           console.log(`Placing bet on ${bet.label}`);
@@ -966,7 +966,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 </div>
                 
                 {/* Bottom bet options - white borders as in reference image */}
-                <div className="grid grid-cols-6 gap-[0.5px] px-[0.5px]">
+                <div className="grid grid-cols-6 gap-0 bg-emerald-600 p-0.5">
                   {[
                     { label: '1-18', bet: commonBetOptions.find(b => b.type === 'low')! },
                     { label: 'EVEN', bet: commonBetOptions.find(b => b.type === 'even')! },
@@ -975,9 +975,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     { label: 'ODD', bet: commonBetOptions.find(b => b.type === 'odd')! },
                     { label: '19-36', bet: commonBetOptions.find(b => b.type === 'high')! }
                   ].map((item, index) => (
-                    <div key={`bottom-${index}`} className="p-[0.5px]">
+                    <div key={`bottom-${index}`} className="p-0.5">
                       <Button
-                        className={`w-full h-11 ${item.color || 'bg-emerald-700 hover:bg-emerald-800'} text-white font-semibold rounded-lg border-[0.5px] border-white`}
+                        className={`w-full h-10 ${item.color || 'bg-emerald-700 hover:bg-emerald-800'} text-white font-semibold rounded-sm border border-white/80 focus:ring-0 outline-none`}
                         onClick={(e) => {
                           e.preventDefault();
                           console.log(`Placing bet on ${item.label}`);
@@ -993,11 +993,11 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               </div>
               
               {/* Column bets - styled to match casino betting table with white borders */}
-              <div className="grid grid-cols-3 gap-1 mb-4">
+              <div className="grid grid-cols-3 gap-0 bg-emerald-600 p-0.5">
                 {columnBetOptions.map((bet, index) => (
-                  <div key={`column-${index}`} className="p-[0.5px]">
+                  <div key={`column-${index}`} className="p-0.5">
                     <Button
-                      className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 rounded-lg border-[0.5px] border-white shadow-md"
+                      className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 rounded-sm border border-white/80 focus:ring-0 outline-none"
                       onClick={(e) => {
                         e.preventDefault();
                         console.log(`Placing bet on ${bet.label}`);
