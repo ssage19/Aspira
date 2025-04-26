@@ -28,6 +28,9 @@ interface TimeState {
   pausedTimestamp: number; // Timestamp when time was paused
   accumulatedProgress: number; // Progress accumulated before pause (ms) - this helps in resuming time properly
   
+  // Time advancement methods
+  skipDays: (numDays: number) => void; // Skip forward a specified number of days
+  
   // Time passage tracking between sessions
   lastRealTimestamp: number; // Real timestamp of the last session
   wasPaused: boolean; // Whether the game was paused in the last session
@@ -462,6 +465,126 @@ const timeStore = create<TimeState>()(
         const newState = {
           ...state,
           accumulatedProgress: progress
+        };
+        
+        // Save to local storage
+        setLocalStorage(STORAGE_KEY, newState);
+        
+        return newState;
+      }),
+      
+      // Skip forward multiple days at once 
+      skipDays: (numDays: number) => set((state) => {
+        console.log(`Skipping forward ${numDays} days`);
+        
+        if (numDays <= 0) {
+          console.warn("Cannot skip zero or negative days");
+          return state;
+        }
+        
+        // Start with current date
+        let newDay = state.currentDay;
+        let newMonth = state.currentMonth;
+        let newYear = state.currentYear;
+        let newDayCounter = state.dayCounter;
+        let newDaysPassed = state.daysPassed;
+        
+        // Loop through and advance one day at a time to handle month/year transitions correctly
+        for (let i = 0; i < numDays; i++) {
+          // Get days in the current month
+          const daysInMonth = new Date(newYear, newMonth, 0).getDate();
+          
+          // Check if this is the last day of the month
+          if (newDay >= daysInMonth) {
+            // End of month, move to next month
+            newDay = 1;
+            newMonth++;
+            
+            // Check for year change
+            if (newMonth > 12) {
+              newMonth = 1;
+              newYear++;
+            }
+          } else {
+            // Normal day increment
+            newDay++;
+          }
+          
+          // Increment counters
+          newDayCounter++;
+          newDaysPassed++;
+          
+          // Process events for each day
+          try {
+            // Get character store if available
+            const characterStore = getStore('character');
+            if (characterStore) {
+              const characterState = characterStore.getState();
+              if (characterState && typeof characterState.processDailyUpdate === 'function') {
+                characterState.processDailyUpdate();
+              }
+            }
+            
+            // Check for bi-weekly payments (every 14 days)
+            if (newDayCounter % 14 === 0) {
+              const characterStore = getStore('character');
+              if (characterStore) {
+                const characterState = characterStore.getState();
+                if (characterState && typeof characterState.processPaycheck === 'function') {
+                  characterState.processPaycheck();
+                }
+              }
+            }
+            
+            // Check for weekly economy updates
+            if (newDayCounter % 7 === 0) {
+              const economyStore = getStore('economy');
+              if (economyStore) {
+                const economyState = economyStore.getState();
+                if (economyState && typeof economyState.processWeeklyUpdate === 'function') {
+                  economyState.processWeeklyUpdate();
+                }
+              }
+            }
+            
+            // Check for end of month for monthly updates
+            const isLastDayOfMonth = new Date(newYear, newMonth - 1, newDay + 1).getMonth() !== (newMonth - 1);
+            if (isLastDayOfMonth) {
+              // Process monthly character update
+              const characterStore = getStore('character');
+              if (characterStore) {
+                const characterState = characterStore.getState();
+                if (characterState && typeof characterState.monthlyUpdate === 'function') {
+                  characterState.monthlyUpdate();
+                }
+              }
+              
+              // Process monthly economy update
+              const economyStore = getStore('economy');
+              if (economyStore) {
+                const economyState = economyStore.getState();
+                if (economyState && typeof economyState.processMonthlyUpdate === 'function') {
+                  economyState.processMonthlyUpdate();
+                }
+              }
+            }
+          } catch (error) {
+            console.error(`Error processing day ${i + 1} during skipDays:`, error);
+          }
+        }
+        
+        // Create a new Date object for the updated date
+        const newGameDate = new Date(newYear, newMonth - 1, newDay);
+        
+        const newState = {
+          ...state,
+          currentDay: newDay,
+          currentMonth: newMonth,
+          currentYear: newYear,
+          currentGameDate: newGameDate,
+          gameTime: newGameDate,
+          dayCounter: newDayCounter,
+          daysPassed: newDaysPassed
         };
         
         // Save to local storage
