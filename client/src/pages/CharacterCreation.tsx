@@ -174,12 +174,15 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Update local state first for immediate UI feedback
-    setSkills(prevSkills => ({
-      ...prevSkills,
-      [skill]: prevSkills[skill] + amount
-    }));
-    setSkillPoints(prevPoints => prevPoints - amount);
+    // Batch state updates to prevent multiple renders
+    const updatedSkills = {
+      ...skills,
+      [skill]: skills[skill] + amount
+    };
+    
+    // Update state once with all changes
+    setSkills(updatedSkills);
+    setSkillPoints(skillPoints - amount);
   };
   
   // Handle decreasing skills
@@ -190,12 +193,15 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Update local state for immediate UI feedback
-    setSkills(prevSkills => ({
-      ...prevSkills,
-      [skill]: prevSkills[skill] - 1
-    }));
-    setSkillPoints(prevPoints => prevPoints + 1);
+    // Batch state updates to prevent multiple renders
+    const updatedSkills = {
+      ...skills,
+      [skill]: skills[skill] - 1
+    };
+    
+    // Update state once with all changes
+    setSkills(updatedSkills);
+    setSkillPoints(skillPoints + 1);
   };
   
   const handleStartGame = () => {
