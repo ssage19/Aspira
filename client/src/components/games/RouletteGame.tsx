@@ -789,7 +789,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               </div>
             </div>
             
-            {/* Spin and reset buttons */}
+            {/* Spin and reset buttons - casino style */}
             <div className="grid grid-cols-2 gap-4 w-full">
               <Button 
                 size="lg" 
@@ -799,10 +799,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   spinWheel();
                 }}
                 disabled={spinning || activeBets.length === 0 || totalBet > playerBalance}
-                className="bg-amber-600 hover:bg-amber-700 text-white"
+                className="bg-gradient-to-b from-amber-600 to-amber-800 hover:from-amber-500 hover:to-amber-700 text-white font-bold py-6 px-8 border-2 border-amber-950 shadow-lg"
               >
-                {spinning ? 'Spinning...' : 'Spin Wheel'}
-                {!spinning && <Play className="h-4 w-4 ml-2" />}
+                <div className="flex items-center justify-center">
+                  {!spinning && <Play className="h-5 w-5 mr-2" />}
+                  <span>{spinning ? 'Spinning...' : 'Spin Wheel'}</span>
+                </div>
               </Button>
               
               <Button 
@@ -814,10 +816,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 }}
                 disabled={spinning}
                 variant="outline"
-                className="border-amber-600 text-amber-500 hover:bg-amber-900/30"
+                className="border-2 border-amber-800 text-amber-400 hover:bg-black/50 font-bold py-6 shadow-md"
               >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                {result !== null ? 'New Game' : 'Clear Bets'}
+                <div className="flex items-center justify-center">
+                  <RotateCcw className="h-5 w-5 mr-2" />
+                  <span>{result !== null ? 'New Game' : 'Clear Bets'}</span>
+                </div>
               </Button>
             </div>
           </div>
@@ -1007,9 +1011,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
         </div>
       </div>
       
-      <div className="mt-4 text-sm text-yellow-100/60 text-center">
-        <p>European roulette features a single zero and offers better odds than American roulette.</p>
-        <p>You can place multiple bets simultaneously. Maximum bet is based on your available balance.</p>
+      <div className="mt-6 p-4 bg-black/40 rounded-lg text-sm text-amber-100/80 text-center border border-amber-900/30">
+        <p className="mb-1 font-medium">European roulette features a single zero pocket and offers better odds (2.7% house edge) than American roulette.</p>
+        <p>Place multiple bets simultaneously on numbers, colors, or sections. Payouts range from 1:1 to 35:1.</p>
       </div>
     </div>
   );
