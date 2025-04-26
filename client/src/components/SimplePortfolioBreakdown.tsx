@@ -9,6 +9,7 @@ import { Banknote, BarChart3, Home, ShoppingBag, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssetRefresh } from './AssetRefreshProvider';
 import { getOwnershipBreakdown, getTotalOwnershipValue } from '../lib/utils/ownershipUtils';
+import { WealthTierBadge } from './WealthTierBadge';
 
 // Types for grouped assets
 interface AssetItem {
@@ -48,7 +49,8 @@ export function SimplePortfolioBreakdown() {
     totalPropertyValue,
     totalPropertyDebt,
     totalLifestyleValue,
-    totalNetWorth
+    totalNetWorth,
+    currentWealthTier
   } = useAssetTracker();
   
   // Local state for UI rendering
@@ -349,6 +351,15 @@ export function SimplePortfolioBreakdown() {
             <span className="text-base font-normal text-foreground-muted">{formatCurrency(displayTotal)}</span>
           </div>
         </CardTitle>
+        {/* Wealth Tier Badge */}
+        <div className="flex justify-between items-center mt-2">
+          <span className="text-sm text-muted-foreground">Wealth Status</span>
+          <WealthTierBadge 
+            netWorth={displayTotal} 
+            size="sm" 
+            showProgress={false}
+          />
+        </div>
       </CardHeader>
       <CardContent className="p-4">
         {/* Asset Categories Breakdown */}
