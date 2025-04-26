@@ -3950,13 +3950,10 @@ export const useCharacter = create<CharacterState>()(
           console.log(`MONTHLY EXPENSE DEDUCTION: ${formatCurrency(totalMonthlyExpenses)} has been deducted from your wealth.`);
           console.log(`Previous wealth: ${formatCurrency(oldWealth)}, new wealth: ${formatCurrency(updatedState.wealth)}`);
           console.log(`Expense breakdown:`, {
-            housing: financeData.housingExpense,
-            transportation: financeData.transportationExpense,
-            food: financeData.foodExpense,
-            healthcare: financeData.healthcareExpense,
-            taxes: financeData.taxExpense,
-            lifestyle: financeData.lifestyleExpenses,
-            business: financeData.businessExpenses
+            housing: financeData.housingExpenses,
+            transportation: financeData.transportationExpenses,
+            food: financeData.basicExpenses, // Basic living expenses includes food
+            lifestyle: financeData.lifestyleExpenses
           });
         }
         
