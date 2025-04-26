@@ -538,7 +538,7 @@ export function AttributesDecayManager() {
       console.log('Critical stress level: extremely high stress requiring immediate action');
       
       // Still play sound for critical warnings only
-      playSound('error');
+      playSound();
     } else if (stress > 75 && Math.random() < 0.3) {
       console.log('High stress warning: stress levels are very high');
     }
@@ -549,7 +549,7 @@ export function AttributesDecayManager() {
       console.log('Critical happiness level: happiness has dropped to a dangerous level');
       
       // Still play sound for critical warnings only
-      playSound('error');
+      playSound();
     } else if (happiness < 35 && Math.random() < 0.3) {
       console.log('Low happiness warning: happiness levels are very low');
     }
@@ -564,7 +564,7 @@ export function AttributesDecayManager() {
       console.log('Critical time management: almost no free time, unsustainable');
       
       // Still play sound for critical warnings only
-      playSound('error');
+      playSound();
     } else if (improvedFreeTimeRatio < 0.2 && Math.random() < 0.2) { // Reduced from 0.25 and 0.3 chance
       console.log('Poor time management: free time is very limited');
     }
@@ -591,7 +591,7 @@ export function AttributesDecayManager() {
       addHappiness(-feedbackSeverity);
       
       // Still play sound for critical warnings only
-      playSound('error');
+      playSound();
     }
   };
   

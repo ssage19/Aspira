@@ -143,7 +143,7 @@ export function LivingSituationManager() {
         message: `You need ${formatCurrency(option.price)} to purchase this housing option.`,
         type: "error"
       });
-      playSound('error');
+      playSound();
       return;
     }
     
@@ -176,7 +176,7 @@ export function LivingSituationManager() {
     });
     
     // Play sound
-    playSound('success');
+    playSound();
     
     // Trigger asset refresh
     triggerRefresh();
@@ -194,7 +194,7 @@ export function LivingSituationManager() {
         message: `You need ${formatCurrency(option.price)} to purchase this vehicle option.`,
         type: "error"
       });
-      playSound('error');
+      playSound();
       return;
     }
     
@@ -253,7 +253,7 @@ export function LivingSituationManager() {
     });
     
     // Play sound
-    playSound('success');
+    playSound();
     
     // Trigger asset refresh
     triggerRefresh();
