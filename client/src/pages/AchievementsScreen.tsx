@@ -49,7 +49,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '../components/ui/tooltip';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useGame } from '../lib/stores/useGame';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useAssetTracker } from '../lib/stores/useAssetTracker';
@@ -110,7 +110,8 @@ const AchievementIcon = ({ iconName, className = '' }: { iconName: string, class
 };
 
 const AchievementItem = ({ achievement, claimReward, hasUnclaimedReward }: AchievementItemProps) => {
-  const { playSuccess } = useAudio();
+  // Audio removed
+  const playSuccess = () => {};
   
   const handleClaimReward = () => {
     claimReward(achievement.id);
