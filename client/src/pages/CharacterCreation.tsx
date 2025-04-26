@@ -144,32 +144,23 @@ export default function CharacterCreation() {
   useEffect(() => {
     if (selectedCategory) {
       const professionsInCategory = professions.filter(p => p.category === selectedCategory);
-      if (professionsInCategory.length > 0 && professionsInCategory[0].id !== selectedProfessionId) {
-        // Only update if actually different to prevent unnecessary re-renders
+      if (professionsInCategory.length > 0) {
         setSelectedProfessionId(professionsInCategory[0].id);
       }
-    } else if (selectedProfessionId) {
-      // Only reset if we have a value, to prevent unnecessary re-renders
+    } else {
       setSelectedProfessionId('');
     }
-  }, [selectedCategory, selectedProfessionId, professions]);
+  }, [selectedCategory]);
   
   // When profession changes, update selected job
   useEffect(() => {
-    // Create a reference to the current selected job to avoid unnecessary updates
-    const currentJobId = selectedJob?.professionId;
-    
     if (selectedProfessionId) {
-      // Only update if the profession actually changed
-      if (currentJobId !== selectedProfessionId) {
-        const job = availableJobs.find(job => job.professionId === selectedProfessionId);
-        setSelectedJob(job || null);
-      }
-    } else if (selectedJob !== null) {
-      // Only reset if we have a value, to prevent unnecessary re-renders
+      const job = availableJobs.find(job => job.professionId === selectedProfessionId);
+      setSelectedJob(job || null);
+    } else {
       setSelectedJob(null);
     }
-  }, [selectedProfessionId, availableJobs, selectedJob]);
+  }, [selectedProfessionId, availableJobs]);
   
   // Handle skill point allocation
   const handleAllocateSkill = (skill: keyof CharacterSkills, amount: number = 1) => {
@@ -183,15 +174,12 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Batch state updates to prevent multiple renders
-    const updatedSkills = {
-      ...skills,
-      [skill]: skills[skill] + amount
-    };
-    
-    // Update state once with all changes
-    setSkills(updatedSkills);
-    setSkillPoints(skillPoints - amount);
+    // Update local state first for immediate UI feedback
+    setSkills(prevSkills => ({
+      ...prevSkills,
+      [skill]: prevSkills[skill] + amount
+    }));
+    setSkillPoints(prevPoints => prevPoints - amount);
   };
   
   // Handle decreasing skills
@@ -202,15 +190,12 @@ export default function CharacterCreation() {
       return;
     }
     
-    // Batch state updates to prevent multiple renders
-    const updatedSkills = {
-      ...skills,
-      [skill]: skills[skill] - 1
-    };
-    
-    // Update state once with all changes
-    setSkills(updatedSkills);
-    setSkillPoints(skillPoints + 1);
+    // Update local state for immediate UI feedback
+    setSkills(prevSkills => ({
+      ...prevSkills,
+      [skill]: prevSkills[skill] - 1
+    }));
+    setSkillPoints(prevPoints => prevPoints + 1);
   };
   
   const handleStartGame = () => {
@@ -1005,12 +990,8 @@ export default function CharacterCreation() {
                           Career Field
                         </label>
                         <Select 
-                          value={selectedCategory || ""} 
-                          onValueChange={(value) => {
-                            if (value && value !== selectedCategory) {
-                              setSelectedCategory(value as JobCategory);
-                            }
-                          }}
+                          value={selectedCategory} 
+                          onValueChange={(value) => setSelectedCategory(value as JobCategory)}
                         >
                           <SelectTrigger id="job-category">
                             <SelectValue placeholder="Select a career field" />
@@ -1034,12 +1015,8 @@ export default function CharacterCreation() {
                           Profession
                         </label>
                         <Select 
-                          value={selectedProfessionId || ""} 
-                          onValueChange={(value) => {
-                            if (value && value !== selectedProfessionId) {
-                              setSelectedProfessionId(value);
-                            }
-                          }}
+                          value={selectedProfessionId} 
+                          onValueChange={setSelectedProfessionId}
                           disabled={!selectedCategory}
                         >
                           <SelectTrigger id="profession">

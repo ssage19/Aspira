@@ -855,25 +855,7 @@ export default function JobScreen() {
         <Button 
           variant="outline" 
           size="default"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            console.log("Career screen: Navigating to dashboard");
-            // Use a direct location change as a fallback if navigate doesn't work
-            try {
-              navigate('/', { replace: true });
-              // Add a fallback timeout to ensure navigation happens
-              setTimeout(() => {
-                if (window.location.pathname !== '/') {
-                  console.log("Career screen: Fallback navigation to dashboard");
-                  window.location.href = '/';
-                }
-              }, 300);
-            } catch (err) {
-              console.error("Navigation error:", err);
-              window.location.href = '/';
-            }
-          }}
+          onClick={() => navigate('/')}
           className="mb-6 bg-primary/10 hover:bg-primary/20 border-primary/20 text-primary shadow-sm w-full sm:w-auto"
         >
           <ChevronLeft className="h-5 w-5 mr-2" />

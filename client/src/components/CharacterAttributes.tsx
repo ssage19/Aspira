@@ -63,51 +63,57 @@ export function CharacterAttributes() {
     housingType
   } = useCharacter();
   
-  // Use a more efficient update approach that won't cause infinite loops
-  // or excessive re-renders
+  // Ensure this component refreshes at the same rate as Dashboard and Essentials
+  // This guarantees all UI components show consistent values
   const [_, forceUpdate] = useState({});
   
   useEffect(() => {
-    console.log("CharacterAttributes: Setting up optimized subscriptions");
+    // More aggressive state update approach to ensure all UI components stay in sync
     
-    // We'll use a less aggressive interval and proper throttling
-    // This helps prevent maximum update depth exceeded errors
-    let lastUpdateTime = Date.now();
-    const MIN_UPDATE_INTERVAL = 500; // Only update at most every 500ms
+    // 1. State refresh interval - always active to ensure UI stays updated
+    const stateRefreshInterval = setInterval(() => {
+      // Get the current state
+      const currentState = useCharacter.getState();
+      
+      // Force component to rerender by updating state
+      // This is needed to ensure the component updates when values increase
+      forceUpdate({});
+    }, 100); // Even more frequent updates (100ms instead of 250ms)
     
-    // 1. Use a single subscription with a proper selector for the specific values we need
-    // This is more efficient than subscribing to the entire state
+    // 2. Subscribe to ALL basic needs and character state changes
+    // This is a more comprehensive subscription that captures all possible state changes
     const unsubscribe = useCharacter.subscribe(
-      (state) => ({
-        hunger: state.hunger, 
-        thirst: state.thirst, 
-        energy: state.energy, 
-        comfort: state.comfort,
-        health: state.health,
-        stress: state.stress,
-        happiness: state.happiness,
-        socialConnections: state.socialConnections,
-        housingType: state.housingType,
-        vehicleType: state.vehicleType,
-        prestige: state.prestige,
-        timeCommitment: state.timeCommitment,
-        freeTime: state.freeTime,
-        environmentalImpact: state.environmentalImpact,
-        skills: state.skills
-      }),
+      (state) => [
+        state.hunger, 
+        state.thirst, 
+        state.energy, 
+        state.comfort,
+        state.health,
+        state.stress,
+        state.happiness,
+        state.socialConnections
+      ],
       () => {
-        // Throttle updates to prevent infinite loops
-        const now = Date.now();
-        if (now - lastUpdateTime > MIN_UPDATE_INTERVAL) {
-          lastUpdateTime = now;
-          forceUpdate({});
-        }
+        // Force an immediate update whenever any relevant state changes
+        forceUpdate({});
+      }
+    );
+    
+    // 3. Add an additional subscription specifically for auto-maintenance effects
+    // This ensures we catch changes from the auto-maintenance system
+    const unsubscribeAutoMaintain = useCharacter.subscribe(
+      () => true, // Subscribe to any state change 
+      () => {
+        // Force update on any state change
+        forceUpdate({});
       }
     );
     
     // Cleanup function to prevent memory leaks
     return () => {
+      clearInterval(stateRefreshInterval);
       unsubscribe();
+      unsubscribeAutoMaintain();
     };
   }, []);
   
