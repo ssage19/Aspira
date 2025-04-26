@@ -2,43 +2,30 @@ import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { registerStore } from '../utils/storeRegistry';
 
+// Simplified audio interface - all audio functionality has been removed from the game
 interface AudioState {
-  // Sound settings
+  // Placeholder toggle to keep interfaces working
   isMuted: boolean;
-  volume: number;
+  toggleMute: () => void;
   
-  // Music and sound effects
-  backgroundMusic: null;
-  
-  // Functions
-  playMusic: (music: string) => void;
-  stopMusic: () => void;
+  // Empty no-op methods to prevent errors in components that call these
   playSound: (sound: string) => void;
   playSuccess: () => void;
   playHit: () => void;
-  setMuted: (muted: boolean) => void;
-  setVolume: (volume: number) => void;
 }
 
-// This is a dummy audio hook that does nothing - sound functionality has been removed
+// This is a minimal audio hook placeholder - all sound functionality has been removed from the game
 export const useAudio = create<AudioState>()(
-  subscribeWithSelector((set, get) => {
+  subscribeWithSelector((set) => {
     return {
-      // Sound settings - always muted
+      // Always muted
       isMuted: true,
-      volume: 0,
       
-      // Music and sounds - always null
-      backgroundMusic: null,
-      
-      // Empty methods that do nothing
-      playMusic: (music: string) => {},
-      stopMusic: () => {},
-      playSound: (sound: string) => {},
+      // Methods that do nothing
+      toggleMute: () => {},
+      playSound: () => {},
       playSuccess: () => {},
-      playHit: () => {},
-      setMuted: (muted: boolean) => { set({ isMuted: true }) },
-      setVolume: (volume: number) => { set({ volume: 0 }) }
+      playHit: () => {}
     };
   })
 );

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getStore } from '../lib/utils/storeRegistry';
 import { useTime } from '../lib/stores/useTime';
 import { useEconomy } from '../lib/stores/useEconomy';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import useRandomEvents from '../lib/stores/useRandomEvents';
@@ -590,7 +590,7 @@ export default function Dashboard() {
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction onClick={() => {
                                   // Handle backup logic here
-                                  audio.playSuccess();
+                                  // Audio removed
                                   setShowBackupDialog(true);
                                 }}>
                                   Create Backup

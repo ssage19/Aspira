@@ -31,14 +31,7 @@ export function Interface() {
       
       {/* Top-right corner UI controls */}
       <div className="fixed top-4 right-4 flex gap-2 z-10">
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={toggleMute}
-          title={isMuted ? "Unmute" : "Mute"}
-        >
-          {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-        </Button>
+        {/* Audio controls removed */}
         
         <Button
           variant="outline"
@@ -85,7 +78,6 @@ export function Interface() {
               <li>WASD or Arrow Keys: Move the ball</li>
               <li>Space: Jump</li>
               <li>R: Restart game</li>
-              <li>M: Toggle sound</li>
             </ul>
           </CardContent>
         </Card>
