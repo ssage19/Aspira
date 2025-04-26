@@ -144,23 +144,32 @@ export default function CharacterCreation() {
   useEffect(() => {
     if (selectedCategory) {
       const professionsInCategory = professions.filter(p => p.category === selectedCategory);
-      if (professionsInCategory.length > 0) {
+      if (professionsInCategory.length > 0 && professionsInCategory[0].id !== selectedProfessionId) {
+        // Only update if actually different to prevent unnecessary re-renders
         setSelectedProfessionId(professionsInCategory[0].id);
       }
-    } else {
+    } else if (selectedProfessionId) {
+      // Only reset if we have a value, to prevent unnecessary re-renders
       setSelectedProfessionId('');
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, selectedProfessionId, professions]);
   
   // When profession changes, update selected job
   useEffect(() => {
+    // Create a reference to the current selected job to avoid unnecessary updates
+    const currentJobId = selectedJob?.professionId;
+    
     if (selectedProfessionId) {
-      const job = availableJobs.find(job => job.professionId === selectedProfessionId);
-      setSelectedJob(job || null);
-    } else {
+      // Only update if the profession actually changed
+      if (currentJobId !== selectedProfessionId) {
+        const job = availableJobs.find(job => job.professionId === selectedProfessionId);
+        setSelectedJob(job || null);
+      }
+    } else if (selectedJob !== null) {
+      // Only reset if we have a value, to prevent unnecessary re-renders
       setSelectedJob(null);
     }
-  }, [selectedProfessionId, availableJobs]);
+  }, [selectedProfessionId, availableJobs, selectedJob]);
   
   // Handle skill point allocation
   const handleAllocateSkill = (skill: keyof CharacterSkills, amount: number = 1) => {
@@ -996,8 +1005,12 @@ export default function CharacterCreation() {
                           Career Field
                         </label>
                         <Select 
-                          value={selectedCategory} 
-                          onValueChange={(value) => setSelectedCategory(value as JobCategory)}
+                          value={selectedCategory || ""} 
+                          onValueChange={(value) => {
+                            if (value && value !== selectedCategory) {
+                              setSelectedCategory(value as JobCategory);
+                            }
+                          }}
                         >
                           <SelectTrigger id="job-category">
                             <SelectValue placeholder="Select a career field" />
@@ -1021,8 +1034,12 @@ export default function CharacterCreation() {
                           Profession
                         </label>
                         <Select 
-                          value={selectedProfessionId} 
-                          onValueChange={setSelectedProfessionId}
+                          value={selectedProfessionId || ""} 
+                          onValueChange={(value) => {
+                            if (value && value !== selectedProfessionId) {
+                              setSelectedProfessionId(value);
+                            }
+                          }}
                           disabled={!selectedCategory}
                         >
                           <SelectTrigger id="profession">
