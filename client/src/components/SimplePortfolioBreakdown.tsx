@@ -1,10 +1,10 @@
 import { useEffect, useState, useCallback } from 'react';
-import { formatCurrency, formatPercentage } from '../lib/utils';
+import { formatCurrency, formatPercentage, getPropertyImagePath } from '../lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { RefreshCw } from 'lucide-react';
 import { Button } from './ui/button';
 import useAssetTracker from '../lib/stores/useAssetTracker';
-import { useCharacter } from '../lib/stores/useCharacter';
+import { useCharacter, Property } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssetRefresh } from './AssetRefreshProvider';
