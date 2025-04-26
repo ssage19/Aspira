@@ -34,6 +34,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
 import { Calendar, Settings, DollarSign, Crown, ChartBar, 
   Briefcase, Home, HardDrive, Landmark, Shield, RefreshCw, Download, 
   Upload, Trash2, RotateCcw, HeartPulse, Target, Palette, Trophy, Star, Users, Dice1 } from 'lucide-react';
+import { WealthTierBadge } from '../components/WealthTierBadge';
 
 // Import data stores directly (for direct access)
 import useAssetTracker from '../lib/stores/useAssetTracker';
@@ -291,6 +292,9 @@ export default function ReliableDashboard() {
                         <div className="flex justify-between items-center">
                           <span className="text-muted-foreground">Net Worth:</span>
                           <span className="font-semibold text-lg">{formatCurrency(stats.netWorth)}</span>
+                        </div>
+                        <div className="mt-3 pt-3 border-t border-primary/10">
+                          <WealthTierBadge netWorth={stats.netWorth} size="md" showProgress={true} />
                         </div>
                       </div>
                     </CardContent>

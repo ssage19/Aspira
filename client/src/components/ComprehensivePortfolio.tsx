@@ -329,10 +329,7 @@ export function ComprehensivePortfolio() {
     <Card className="w-full shadow-sm">
       <CardHeader className="pb-1">
         <CardTitle className="text-lg flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <span>Asset Portfolio</span>
-            <WealthTierBadge netWorth={displayTotal} size="sm" />
-          </div>
+          <span>Asset Portfolio</span>
           <div className="flex items-center space-x-2">
             <Button 
               variant="ghost" 
