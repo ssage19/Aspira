@@ -483,9 +483,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
   // Render European Roulette table layout
   return (
     <div className="flex flex-col w-full max-w-7xl mx-auto">
-      <div className="text-center mb-6">
-        <h2 className="text-4xl font-bold text-amber-500 font-serif">EUROPEAN ROULETTE</h2>
-        <p className="text-yellow-200/80 mt-1">Place multiple bets on numbers, colors, or sections</p>
+      <div className="text-center mb-8">
+        <h2 className="text-5xl font-bold text-amber-500 font-serif tracking-wide drop-shadow-md">EUROPEAN ROULETTE</h2>
+        <p className="text-amber-200/90 mt-2 text-lg">Place your bets on numbers, colors, or sections for instant payouts</p>
       </div>
       
       {/* Main roulette table */}
@@ -501,23 +501,25 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               {/* Outer rim - golden edge */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-yellow-500 to-yellow-700 border-4 border-yellow-600 shadow-xl"></div>
               
-              {/* Wooden wheel base with timing marks */}
-              <div className="absolute inset-[4px] rounded-full bg-gradient-to-br from-amber-600 to-amber-800">
-                {/* Timing marks on outer ring */}
-                {[...Array(12)].map((_, i) => {
-                  const angle = (i / 12) * 360;
+              {/* Wooden wheel base with timing marks - rich brown color like in reference image */}
+              <div className="absolute inset-[4px] rounded-full bg-gradient-to-br from-amber-800 to-amber-950">
+                {/* Timing marks on outer ring - golden markers around the wheel */}
+                {[...Array(16)].map((_, i) => {
+                  const angle = (i / 16) * 360;
                   return (
                     <div 
                       key={`mark-${i}`} 
                       className="absolute"
                       style={{
-                        width: '12px',
-                        height: '3px',
+                        width: '8px',
+                        height: '8px',
                         backgroundColor: '#f3d19e',
+                        borderRadius: '50%',
                         top: '10px',
                         left: '50%',
                         transform: `translateX(-50%) rotate(${angle}deg) translateY(-145px)`,
                         transformOrigin: 'center 145px',
+                        boxShadow: '0 0 3px 1px rgba(255, 215, 0, 0.6)',
                       }}
                     ></div>
                   );
@@ -559,7 +561,8 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                           const startAngle = angle - (360 / WHEEL_SEQUENCE.length / 2);
                           const endAngle = angle + (360 / WHEEL_SEQUENCE.length / 2);
                           const isRed = RED_NUMBERS.includes(number);
-                          const color = number === 0 ? '#0a8f0a' : isRed ? '#d10a0a' : '#000';
+                          // Updated colors to match reference - brighter green for 0, deeper red, rich black
+                          const color = number === 0 ? '#00a800' : isRed ? '#e60000' : '#000000';
                           
                           // Calculate SVG arc path
                           const innerRadius = 75;
@@ -821,14 +824,16 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
           
           {/* Right section - Betting table */}
           <div className="flex flex-col">
-            {/* Bet amount controls */}
-            <div className="bg-green-900/60 rounded-lg p-4 mb-6">
+            {/* Bet amount controls - casino style premium look */}
+            <div className="bg-gradient-to-b from-gray-900 to-gray-950 rounded-lg p-5 mb-6 border-2 border-amber-900/50 shadow-xl">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-bold text-yellow-300">Bet Amount</h3>
-                <div className="text-xs text-yellow-200/70">Balance: {formatCurrency(playerBalance)}</div>
+                <h3 className="text-xl font-bold text-amber-400 drop-shadow">Bet Amount</h3>
+                <div className="text-sm text-amber-200 font-medium bg-black/30 px-3 py-1 rounded border border-amber-950/50">
+                  Balance: {formatCurrency(playerBalance)}
+                </div>
               </div>
               
-              <div className="flex items-center gap-3 mb-3">
+              <div className="flex items-center gap-3 mb-4">
                 <Button 
                   size="sm" 
                   onClick={(e) => {
@@ -837,19 +842,19 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     adjustBetAmount(-100);
                   }}
                   disabled={parseInt(customBetInput, 10) <= 100 || spinning}
-                  className="bg-amber-700 hover:bg-amber-800"
+                  className="bg-black hover:bg-gray-900 text-amber-400 border border-amber-800"
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 
                 <div className="flex-1 relative">
-                  <DollarSign className="h-4 w-4 absolute left-3 top-2.5 text-yellow-500" />
+                  <DollarSign className="h-5 w-5 absolute left-3 top-2.5 text-amber-500" />
                   <Input
                     type="text"
                     value={customBetInput}
                     onChange={handleCustomBetInput}
                     disabled={spinning}
-                    className="pl-8 bg-black/30 border-amber-900 text-yellow-300 font-medium"
+                    className="pl-9 bg-black border-2 border-amber-900/70 text-amber-300 font-bold text-lg"
                   />
                 </div>
                 
@@ -861,13 +866,13 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     adjustBetAmount(100);
                   }}
                   disabled={spinning}
-                  className="bg-amber-700 hover:bg-amber-800"
+                  className="bg-black hover:bg-gray-900 text-amber-400 border border-amber-800"
                 >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
               
-              {/* Quick bet buttons */}
+              {/* Quick bet buttons - casino chip style */}
               <div className="grid grid-cols-4 gap-2">
                 {[50, 100, 250, 500].map(amount => (
                   <Button 
@@ -880,7 +885,7 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                     }}
                     disabled={spinning}
                     variant="outline"
-                    className="border-amber-600/50 hover:bg-amber-900/30 text-yellow-200"
+                    className="border-2 border-amber-900 bg-gradient-to-b from-amber-950 to-black hover:from-amber-900 hover:to-amber-950 text-amber-400 font-bold py-1"
                   >
                     ${amount}
                   </Button>
@@ -888,16 +893,16 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
               </div>
             </div>
             
-            {/* Roulette table layout */}
-            <div className="bg-green-900/60 rounded-lg p-4 relative z-10">
-              <h3 className="text-lg font-bold mb-4 text-yellow-300">Betting Table</h3>
+            {/* Roulette table layout - casino-style bright green felt */}
+            <div className="bg-emerald-600 rounded-lg p-6 relative z-10 shadow-xl border-2 border-emerald-800">
+              <h3 className="text-xl font-bold mb-4 text-white drop-shadow-md">Betting Table</h3>
               
-              {/* Table layout */}
-              <div className="border-2 border-amber-900/50 rounded-md mb-4 overflow-hidden">
-                {/* Zero */}
+              {/* Table layout - no rounded corners, sharp edges like real casino tables */}
+              <div className="border-4 border-amber-900 mb-6 overflow-hidden">
+                {/* Zero - brighter green like reference image */}
                 <div className="flex">
                   <Button
-                    className="w-full h-12 bg-green-700 hover:bg-green-600 text-white rounded-none border border-amber-900/30"
+                    className="w-full h-16 bg-green-600 hover:bg-green-500 text-white text-xl font-bold rounded-none border-r-2 border-amber-950"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log("Placing bet on 0");
@@ -909,14 +914,18 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   </Button>
                 </div>
                 
-                {/* Numbers 1-36 grid */}
+                {/* Numbers 1-36 grid - brighter colors like in casino tables */}
                 <div className="grid grid-cols-3 gap-0">
                   {tableRows.map((row, rowIndex) => (
                     <div key={rowIndex} className="contents">
                       {row.map(number => (
                         <Button
                           key={number}
-                          className={`w-full h-12 ${RED_NUMBERS.includes(number) ? 'bg-red-700 hover:bg-red-600' : 'bg-zinc-900 hover:bg-zinc-800'} text-white rounded-none border border-amber-900/30`}
+                          className={`w-full h-14 ${
+                            RED_NUMBERS.includes(number) 
+                              ? 'bg-red-600 hover:bg-red-500' 
+                              : 'bg-black hover:bg-gray-900'
+                          } text-white text-lg font-bold rounded-none border border-amber-950`}
                           onClick={(e) => {
                             e.preventDefault();
                             console.log(`Placing bet on number ${number}`);
@@ -931,13 +940,13 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   ))}
                 </div>
                 
-                {/* Bottom bet sections */}
+                {/* Bottom bet sections - match casino style */}
                 <div className="grid grid-cols-3 gap-0">
                   {/* Dozen bets */}
                   {dozenBetOptions.map((bet, index) => (
                     <Button
                       key={`dozen-${index}`}
-                      className="h-10 bg-purple-900 hover:bg-purple-800 text-white rounded-none border border-amber-900/30"
+                      className="h-12 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-none border border-amber-950"
                       onClick={(e) => {
                         e.preventDefault(); 
                         console.log(`Placing bet on ${bet.label}`);
@@ -950,19 +959,19 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                   ))}
                 </div>
                 
-                {/* Bottom bet options */}
+                {/* Bottom bet options - standardized with casino colors */}
                 <div className="grid grid-cols-6 gap-0">
                   {[
                     { label: '1-18', bet: commonBetOptions.find(b => b.type === 'low')! },
                     { label: 'EVEN', bet: commonBetOptions.find(b => b.type === 'even')! },
-                    { label: 'RED', bet: commonBetOptions.find(b => b.type === 'red')!, color: 'bg-red-700 hover:bg-red-600' },
-                    { label: 'BLACK', bet: commonBetOptions.find(b => b.type === 'black')!, color: 'bg-black hover:bg-zinc-800' },
+                    { label: 'RED', bet: commonBetOptions.find(b => b.type === 'red')!, color: 'bg-red-600 hover:bg-red-500' },
+                    { label: 'BLACK', bet: commonBetOptions.find(b => b.type === 'black')!, color: 'bg-black hover:bg-gray-900' },
                     { label: 'ODD', bet: commonBetOptions.find(b => b.type === 'odd')! },
                     { label: '19-36', bet: commonBetOptions.find(b => b.type === 'high')! }
                   ].map((item, index) => (
                     <Button
                       key={`bottom-${index}`}
-                      className={`h-10 ${item.color || 'bg-blue-900 hover:bg-blue-800'} text-white rounded-none border border-amber-900/30`}
+                      className={`h-12 ${item.color || 'bg-emerald-700 hover:bg-emerald-800'} text-white font-bold rounded-none border border-amber-950`}
                       onClick={(e) => {
                         e.preventDefault();
                         console.log(`Placing bet on ${item.label}`);
@@ -976,12 +985,12 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
                 </div>
               </div>
               
-              {/* Column bets */}
+              {/* Column bets - styled to match casino betting table */}
               <div className="grid grid-cols-3 gap-4 mb-4">
                 {columnBetOptions.map((bet, index) => (
                   <Button
                     key={`column-${index}`}
-                    className="bg-indigo-800 hover:bg-indigo-700 text-white"
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-2 border-2 border-amber-950/50 shadow-md"
                     onClick={(e) => {
                       e.preventDefault();
                       console.log(`Placing bet on ${bet.label}`);
