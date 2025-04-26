@@ -29,13 +29,13 @@ export interface PerformanceSettingsType {
   [key: string]: boolean | number;
 }
 
-// Default performance settings
+// Default performance settings - optimized for better performance
 export const PerformanceSettings: PerformanceSettingsType = {
   maxAssetsPerBatch: 15,
   prioritizeVisibleAssets: true,
   throttleBackgroundAssets: true,
   batchUpdates: true,
-  baseUpdateInterval: 2000,
+  baseUpdateInterval: 5000, // Increased from 2000ms to 5000ms for better performance
   useProgressiveLoading: true
 };
 
@@ -161,7 +161,7 @@ export function resetPerformanceSettings(): void {
   PerformanceSettings.prioritizeVisibleAssets = true;
   PerformanceSettings.throttleBackgroundAssets = true;
   PerformanceSettings.batchUpdates = true;
-  PerformanceSettings.baseUpdateInterval = 2000;
+  PerformanceSettings.baseUpdateInterval = 5000; // Updated to match our new optimized default
   PerformanceSettings.useProgressiveLoading = true;
 }
 
