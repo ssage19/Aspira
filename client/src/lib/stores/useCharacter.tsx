@@ -4266,13 +4266,16 @@ function saveState() {
   // Get the current state
   const state = useCharacter.getState();
   
-  // Add timestamp property without using setState to avoid triggering listeners
-  const updatedState = {
-    ...state,
-    lastUpdated: Date.now()
-  };
+  // Always update the lastUpdated timestamp to ensure synchronization
+  const currentTimestamp = Date.now();
   
-  // Save directly to localStorage without triggering another state update
+  // Set the lastUpdated timestamp directly
+  useCharacter.setState({ lastUpdated: currentTimestamp });
+  
+  // Get the updated state with the new timestamp
+  const updatedState = useCharacter.getState();
+  
+  // Save to localStorage
   setLocalStorage(STORAGE_KEY, updatedState);
 }
 

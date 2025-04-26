@@ -29,13 +29,13 @@ export interface PerformanceSettingsType {
   [key: string]: boolean | number;
 }
 
-// Default performance settings - optimized for better performance
+// Default performance settings
 export const PerformanceSettings: PerformanceSettingsType = {
   maxAssetsPerBatch: 15,
   prioritizeVisibleAssets: true,
   throttleBackgroundAssets: true,
   batchUpdates: true,
-  baseUpdateInterval: 5000, // Increased from 2000ms to 5000ms for better performance
+  baseUpdateInterval: 2000,
   useProgressiveLoading: true
 };
 
@@ -103,14 +103,9 @@ export function getRecommendedUpdateInterval(): number {
  */
 export function getVisibleAssets(assetTracker: any): string[] {
   try {
-    if (!assetTracker || typeof assetTracker.getAllAssetsWithQuantities !== 'function') {
-      // Return empty array if assetTracker is invalid
-      return [];
-    }
-    
     // Get owned assets - these are always high priority
     const ownedAssets = assetTracker.getAllAssetsWithQuantities();
-    const ownedAssetIds = Object.keys(ownedAssets || {}).filter(id => ownedAssets[id] > 0);
+    const ownedAssetIds = Object.keys(ownedAssets).filter(id => ownedAssets[id] > 0);
     
     // Get recently viewed assets from localStorage
     const recentlyViewed: string[] = [];
@@ -166,7 +161,7 @@ export function resetPerformanceSettings(): void {
   PerformanceSettings.prioritizeVisibleAssets = true;
   PerformanceSettings.throttleBackgroundAssets = true;
   PerformanceSettings.batchUpdates = true;
-  PerformanceSettings.baseUpdateInterval = 5000; // Updated to match our new optimized default
+  PerformanceSettings.baseUpdateInterval = 2000;
   PerformanceSettings.useProgressiveLoading = true;
 }
 

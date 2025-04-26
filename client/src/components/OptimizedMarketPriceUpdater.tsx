@@ -379,7 +379,7 @@ export const OptimizedMarketPriceUpdater: React.FC = () => {
       updateAllPrices();
     }, updateIntervalRef.current);
     
-    // Set up market open/close detection - reduced frequency for better performance
+    // Set up market open/close detection
     const marketStatusInterval = setInterval(() => {
       const isCurrentlyOpen = isMarketOpen();
       

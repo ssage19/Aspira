@@ -1,16 +1,5 @@
 import { Suspense, useEffect, lazy } from "react";
-import { 
-  BrowserRouter as Router, 
-  Routes, 
-  Route,
-  // Opt into the new behavior early
-  UNSAFE_useScrollRestoration, 
-  UNSAFE_DataRouterContext,
-  UNSAFE_DataRouterStateContext,
-  UNSAFE_LocationContext,
-  UNSAFE_NavigationContext,
-  UNSAFE_RouteContext
-} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "sonner";
@@ -384,10 +373,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
-        <Router future={{ 
-          v7_startTransition: true, 
-          v7_relativeSplatPath: true
-        }}>
+        <Router>
           {/* ScrollToTop ensures the window scrolls to the top on navigation */}
           <ScrollToTop />
           
@@ -396,7 +382,7 @@ function App() {
             <AppBackground />
             
             {/* Asset Refresh Provider - maintains consistent asset values across the app */}
-            <AssetRefreshProvider refreshInterval={3000}>
+            <AssetRefreshProvider refreshInterval={2000}>
               <Routes>
                 {/* Use our new ReliableDashboard for better data consistency */}
                 <Route path="/" element={<ReliableDashboard />} />
