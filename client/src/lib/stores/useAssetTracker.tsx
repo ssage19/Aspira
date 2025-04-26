@@ -870,6 +870,19 @@ export const useAssetTracker = create<AssetTrackerState>()(
         const totalPropertyEquity = state.properties.reduce((acc, property) => acc + property.equity, 0);
         const totalLifestyleValue = state.lifestyleItems.reduce((acc, item) => acc + item.currentValue, 0);
         
+        // Get ownership assets (Formula 1, Horse Racing, Sports Teams, Businesses)
+        let totalOwnershipValue = 0;
+        try {
+          // Use dynamic import to avoid circular dependency issues
+          const { getTotalOwnershipValue } = require('../utils/ownershipUtils');
+          if (typeof getTotalOwnershipValue === 'function') {
+            totalOwnershipValue = getTotalOwnershipValue();
+            console.log(`Asset Tracker: Including ownership assets: ${totalOwnershipValue}`);
+          }
+        } catch (e) {
+          console.error('Error getting ownership assets:', e);
+        }
+        
         // Calculate total net worth
         const totalNetWorth = 
           state.cash + 
@@ -878,7 +891,8 @@ export const useAssetTracker = create<AssetTrackerState>()(
           totalBonds + 
           totalOtherInvestments + 
           totalPropertyEquity +
-          totalLifestyleValue;
+          totalLifestyleValue +
+          totalOwnershipValue;
         
         // Update wealth tier based on current net worth
         const currentWealthTier = getCurrentWealthTier(totalNetWorth);
