@@ -10,6 +10,7 @@ import { Slider } from './ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
+import { formatCurrency, getPropertyImagePath } from '../lib/utils';
 import { 
   Home, 
   Building2, 
@@ -29,7 +30,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { formatCurrency } from '../lib/utils';
 import { 
   residentialProperties, 
   luxuryProperties, 
@@ -1253,15 +1253,23 @@ export function Properties() {
                         <CardContent className="pb-2">
                           <div className="space-y-2 text-sm">
                             {/* Property Image */}
-                            {property.id === 'single_family' && (
-                              <div className="mb-2">
-                                <img 
-                                  src="/images/properties/single_family_home.jpg" 
-                                  alt="Single Family Home" 
-                                  className="rounded-md w-full h-32 object-cover"
-                                />
-                              </div>
-                            )}
+                            {(() => {
+                              // Get property image using our utility function
+                              const imagePath = getPropertyImagePath(property.id) || getPropertyImagePath(property.name);
+                              
+                              // Log for debugging
+                              console.log(`Portfolio property image check - ID: ${property.id}, Name: ${property.name}, Path: ${imagePath}`);
+                              
+                              return imagePath ? (
+                                <div className="mb-2">
+                                  <img 
+                                    src={imagePath} 
+                                    alt={property.name} 
+                                    className="rounded-md w-full h-32 object-cover"
+                                  />
+                                </div>
+                              ) : null;
+                            })()}
                             
                             <div className="flex justify-between">
                               <span>Current Value:</span>
