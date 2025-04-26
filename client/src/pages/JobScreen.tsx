@@ -13,7 +13,7 @@ import type { Profession, CareerPath } from '../lib/data/jobs';
 import GameUI from '../components/GameUI';
 import { useTime } from '../lib/stores/useTime';
 import { useGame } from '../lib/stores/useGame';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 
 // Define challenge types for skill development
 type ChallengeType = {
@@ -186,7 +186,6 @@ export default function JobScreen() {
   }, [latestCurrentGameDate, latestDayCounter]);
   
   const { unlockAchievement } = useGame();
-  const audio = useAudio();
   
   // Using useRef for values that shouldn't trigger rerenders when they change
   const [profession, setProfession] = useState<Profession | undefined>(undefined);

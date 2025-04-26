@@ -61,8 +61,9 @@ export function Investments() {
   const navigate = useNavigate();
   
   // Handle audio functions safely
-  const playSuccess = () => audio.playSound && audio.playSound('success');
-  const playHit = () => audio.playSound && audio.playSound('hit');
+  // Audio methods removed
+  const playSuccess = () => {};
+  const playHit = () => {};
   
   // Function to get stock icon based on sector
   const getStockIcon = (sector: string) => {
