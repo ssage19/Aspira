@@ -177,9 +177,8 @@ export function ComprehensivePortfolio() {
     
     setAssetCategories(categories);
     
-    // Also update the display total with ownership value included
-    const newTotalWithOwnership = totalNetWorth + totalOwnershipValue;
-    setDisplayTotal(newTotalWithOwnership);
+    // Use the actual total net worth from the asset tracker (already includes ownership assets)
+    setDisplayTotal(totalNetWorth);
     
   }, [totalCash, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, 
       totalPropertyEquity, totalLifestyleValue, totalNetWorth]);
@@ -288,9 +287,8 @@ export function ComprehensivePortfolio() {
       // Get the latest ownership values
       const ownershipValue = getTotalOwnershipValue();
       
-      // Force a UI update with the very latest values (including ownership)
-      const totalWithOwnership = assetTracker.totalNetWorth + ownershipValue;
-      setDisplayTotal(totalWithOwnership);
+      // Force a UI update with the very latest values (already includes ownership assets)
+      setDisplayTotal(assetTracker.totalNetWorth);
       
       // Update our local categories with latest data
       updateAssetCategories();
