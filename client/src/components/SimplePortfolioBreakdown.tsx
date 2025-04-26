@@ -15,6 +15,7 @@ interface AssetItem {
   label: string;
   value: number;
   color: string;
+  propertyId?: string; // For property images
 }
 
 interface AssetCategory {
@@ -93,6 +94,18 @@ export function SimplePortfolioBreakdown() {
       ]
     };
     
+    // Add detailed property items (to be shown when expanded)
+    const propertyList = useCharacter.getState().properties || [];
+    if (propertyList.length > 0) {
+      // Clear existing items and add individual properties
+      propertyAssets.items = propertyList.map(property => ({
+        label: property.name,
+        value: property.currentValue - property.loanAmount, // Equity
+        color: 'bg-pink-500',
+        propertyId: property.id // Store property ID for image lookup
+      }));
+    }
+    
     // Lifestyle assets category
     const lifestyleAssets: AssetCategory = {
       title: "Lifestyle Assets",
@@ -118,37 +131,37 @@ export function SimplePortfolioBreakdown() {
     };
     
     // Add F1 team if owned
-    if (ownershipBreakdown.f1Team.owned) {
+    if (ownershipBreakdown.formula1 > 0) {
       ownershipAssets.items.push({
-        label: `F1: ${ownershipBreakdown.f1Team.name}`,
-        value: ownershipBreakdown.f1Team.value,
+        label: 'Formula 1 Team',
+        value: ownershipBreakdown.formula1,
         color: 'bg-red-500'
       });
     }
     
     // Add horses if owned
-    if (ownershipBreakdown.horses.count > 0) {
+    if (ownershipBreakdown.horseRacing > 0) {
       ownershipAssets.items.push({
-        label: `Horses (${ownershipBreakdown.horses.count})`,
-        value: ownershipBreakdown.horses.value,
+        label: 'Racing Horses',
+        value: ownershipBreakdown.horseRacing,
         color: 'bg-yellow-600'
       });
     }
     
     // Add sports team if owned
-    if (ownershipBreakdown.sportsTeam.owned) {
+    if (ownershipBreakdown.sportsTeam > 0) {
       ownershipAssets.items.push({
-        label: `Team: ${ownershipBreakdown.sportsTeam.name}`,
-        value: ownershipBreakdown.sportsTeam.value,
+        label: 'Sports Team',
+        value: ownershipBreakdown.sportsTeam,
         color: 'bg-blue-600'
       });
     }
     
     // Add businesses if owned
-    if (ownershipBreakdown.businesses && ownershipBreakdown.businesses.count > 0) {
+    if (ownershipBreakdown.businesses > 0) {
       ownershipAssets.items.push({
-        label: `Businesses (${ownershipBreakdown.businesses.count})`,
-        value: ownershipBreakdown.businesses.value,
+        label: 'Business Ventures',
+        value: ownershipBreakdown.businesses,
         color: 'bg-emerald-500'
       });
     }
@@ -357,20 +370,35 @@ export function SimplePortfolioBreakdown() {
               {category.items.length > 0 ? (
                 <table className="w-full border-separate border-spacing-y-1">
                   <tbody>
-                    {category.items.map((asset, index) => (
-                      <tr key={index} className="border-b border-border/50 last:border-0">
-                        <td className="py-1">
-                          <div className="flex items-center">
-                            <div className={`w-2 h-2 rounded-full ${asset.color} mr-2`}></div>
-                            <span className="text-xs font-medium">{asset.label}</span>
-                          </div>
-                        </td>
-                        <td className="text-right text-xs">{formatCurrency(asset.value)}</td>
-                        <td className="text-right text-xs w-16 font-medium">
-                          {formatPercentage(asset.value / (calculatedTotal || 1))}
-                        </td>
-                      </tr>
-                    ))}
+                    {category.items.map((asset, index) => {
+                      // Get property image if this is a property asset
+                      const imagePath = asset.propertyId ? getPropertyImagePath(asset.propertyId) : null;
+                      
+                      return (
+                        <tr key={index} className="border-b border-border/50 last:border-0">
+                          <td className="py-1">
+                            <div className="flex items-center">
+                              {imagePath ? (
+                                // Display property image
+                                <img 
+                                  src={imagePath} 
+                                  alt={asset.label} 
+                                  className="h-8 w-12 rounded-sm object-cover mr-2"
+                                />
+                              ) : (
+                                // Display color dot for non-property assets
+                                <div className={`w-2 h-2 rounded-full ${asset.color} mr-2`}></div>
+                              )}
+                              <span className="text-xs font-medium">{asset.label}</span>
+                            </div>
+                          </td>
+                          <td className="text-right text-xs">{formatCurrency(asset.value)}</td>
+                          <td className="text-right text-xs w-16 font-medium">
+                            {formatPercentage(asset.value / (calculatedTotal || 1))}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               ) : (
