@@ -51,7 +51,7 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-export function Investments() {
+function Investments() {
   const character = useCharacter();
   const { wealth, addWealth, addAsset, sellAsset, assets } = character;
   const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
