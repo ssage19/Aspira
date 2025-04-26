@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 import { getLocalStorage, setLocalStorage } from "../utils";
+import { registerStore } from '../utils/storeRegistry';
 
 export type GamePhase = "ready" | "creating" | "playing" | "paused" | "finished";
 
@@ -188,5 +189,8 @@ function saveState() {
   const state = useGame.getState();
   setLocalStorage(STORAGE_KEY, state);
 }
+
+// Register with the global store registry 
+registerStore('game', useGame);
 
 export default useGame;
