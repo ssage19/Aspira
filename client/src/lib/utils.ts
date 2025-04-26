@@ -715,27 +715,39 @@ export const formatPercentage = (value: number, fixed: number = 1): string => {
  * @returns The image path or null if not found
  */
 export function getPropertyImagePath(propertyId: string): string | null {
+  // First, let's add debug logging to understand the property ID format
+  console.log("Getting image path for property ID:", propertyId);
+  
+  // Map full property names to their image paths
   const imageMapping: Record<string, string> = {
+    // Using exact names from the property details screen
+    'Single Family Home': '/images/properties/single_family_home.jpg',
+    'City Apartment': '/images/properties/city_apartment.jpg',
+    'Luxury City Apartment': '/images/properties/luxury_city_apartment.jpg',
+    'Suburban Townhouse': '/images/properties/suburban_townhome.jpg',
+    'Urban Studio': '/images/properties/urban_studio.jpg',
+    'Converted Loft': '/images/properties/converted_loft.jpg',
+    'Garden Apartment': '/images/properties/garden_apartment.jpg',
+    'Highrise One Bedroom': '/images/properties/highrise_one_bedroom.jpg',
+    'Suburban Condo': '/images/properties/suburban_condo.jpg',
+    'Residential Duplex': '/images/properties/residential_duplex.jpg',
+    'Weekend Cottage': '/images/properties/weekend_cottage.jpg',
+    'Waterfront Apartment': '/images/properties/waterfront_apartment.jpg',
+    'Senior Living Condo': '/images/properties/senior_living_condo.jpg',
+    'Garden District Condo': '/images/properties/garden_district_condo.jpg',
+    'Lakeside Cabin': '/images/properties/lakeside_cabin.jpg',
+    'Split Level Home': '/images/properties/split_level_home.jpg',
+    'Colonial Style Home': '/images/properties/colonial_style_home.jpg',
+    'Craftsman Bungalow': '/images/properties/craftsman_bungalow.jpg',
+    'Ranch Style Home': '/images/properties/ranch_style_home.jpg',
+    'Modern Townhome': '/images/properties/modern_townhome.jpg',
+    
+    // Also keep the underscored versions for backward compatibility
     'single_family': '/images/properties/single_family_home.jpg',
     'apartment_basic': '/images/properties/city_apartment.jpg',
     'apartment_luxury': '/images/properties/luxury_city_apartment.jpg',
     'townhouse': '/images/properties/suburban_townhome.jpg',
-    'studio_apartment': '/images/properties/urban_studio.jpg',
-    'urban_loft': '/images/properties/converted_loft.jpg',
-    'garden_apartment': '/images/properties/garden_apartment.jpg',
-    'highrise_1br': '/images/properties/highrise_one_bedroom.jpg',
-    'suburban_condo': '/images/properties/suburban_condo.jpg',
-    'duplex': '/images/properties/residential_duplex.jpg',
-    'weekend_cottage': '/images/properties/weekend_cottage.jpg',
-    'waterfront_apartment': '/images/properties/waterfront_apartment.jpg',
-    'senior_living': '/images/properties/senior_living_condo.jpg',
-    'garden_district': '/images/properties/garden_district_condo.jpg',
-    'lakeside_cabin': '/images/properties/lakeside_cabin.jpg',
-    'split_level': '/images/properties/split_level_home.jpg',
-    'colonial': '/images/properties/colonial_style_home.jpg',
-    'craftsman': '/images/properties/craftsman_bungalow.jpg',
-    'ranch_style': '/images/properties/ranch_style_home.jpg',
-    'modern_townhome': '/images/properties/modern_townhome.jpg'
+    'studio_apartment': '/images/properties/urban_studio.jpg'
   };
 
   return imageMapping[propertyId] || null;

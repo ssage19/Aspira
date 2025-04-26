@@ -374,8 +374,13 @@ export function SimplePortfolioBreakdown() {
                 <table className="w-full border-separate border-spacing-y-1">
                   <tbody>
                     {category.items.map((asset, index) => {
-                      // Get property image if this is a property asset
-                      const imagePath = asset.propertyId ? getPropertyImagePath(asset.propertyId) : null;
+                      // Try to get property image using property ID first
+                      let imagePath = asset.propertyId ? getPropertyImagePath(asset.propertyId) : null;
+                      
+                      // If not found by ID, try using the asset label (property name)
+                      if (!imagePath && category.title === "Properties") {
+                        imagePath = getPropertyImagePath(asset.label);
+                      }
                       
                       return (
                         <tr key={index} className="border-b border-border/50 last:border-0">
