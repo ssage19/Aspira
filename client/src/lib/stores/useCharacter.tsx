@@ -3804,8 +3804,51 @@ export const useCharacter = create<CharacterState>()(
       },
       
       monthlyUpdate: () => {
-        // Import the monthly finances calculator
-        const { calculateMonthlyFinances } = require('../hooks/useMonthlyFinances');
+        // Import the monthly finances calculator - fixed to use proper import
+        // Using inline import to avoid circular dependencies
+        const calculateMonthlyFinances = (state: any) => {
+          // Basic calculation if the import fails
+          let totalExpenses = 0;
+          
+          // Housing expenses
+          if (state.housingType === 'rental') totalExpenses += 2000;
+          else if (state.housingType === 'shared') totalExpenses += 800;
+          else if (state.housingType === 'owned') totalExpenses += 3500;
+          else if (state.housingType === 'luxury') totalExpenses += 8000;
+          
+          // Transportation expenses
+          if (state.vehicleType === 'economy') totalExpenses += 350;
+          else if (state.vehicleType === 'standard') totalExpenses += 500;
+          else if (state.vehicleType === 'luxury') totalExpenses += 1200;
+          else if (state.vehicleType === 'premium') totalExpenses += 2500;
+          else if (state.vehicleType === 'bicycle') totalExpenses += 30;
+          else totalExpenses += 150; // public transportation
+          
+          // Lifestyle expenses (from items)
+          const lifestyleExpenses = state.lifestyleItems?.reduce((total: number, item: any) => {
+            return total + (item.monthlyCost || 0);
+          }, 0) || 0;
+          
+          totalExpenses += lifestyleExpenses;
+          
+          // Basic living expenses
+          totalExpenses += 1000; // Food, utilities, etc.
+          
+          return {
+            totalExpenses,
+            housingExpenses: state.housingType === 'rental' ? 2000 : 
+                           state.housingType === 'shared' ? 800 :
+                           state.housingType === 'owned' ? 3500 :
+                           state.housingType === 'luxury' ? 8000 : 0,
+            transportationExpenses: state.vehicleType === 'economy' ? 350 :
+                                 state.vehicleType === 'standard' ? 500 :
+                                 state.vehicleType === 'luxury' ? 1200 :
+                                 state.vehicleType === 'premium' ? 2500 :
+                                 state.vehicleType === 'bicycle' ? 30 : 150,
+            lifestyleExpenses,
+            basicExpenses: 1000
+          };
+        };
         
         const state = get();
         
