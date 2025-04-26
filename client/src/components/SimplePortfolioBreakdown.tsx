@@ -97,6 +97,9 @@ export function SimplePortfolioBreakdown() {
     // Add detailed property items (to be shown when expanded)
     const propertyList = useCharacter.getState().properties || [];
     if (propertyList.length > 0) {
+      // Log the properties for debugging
+      console.log("DEBUG PROPERTIES:", propertyList.map(p => ({id: p.id, name: p.name})));
+      
       // Clear existing items and add individual properties
       propertyAssets.items = propertyList.map(property => ({
         label: property.name,
