@@ -1537,46 +1537,105 @@ export const useBusiness = create<BusinessState>()(
 
 // Helper function to calculate daily revenue based on business attributes
 function calculateDailyRevenue(business: Business): number {
-  // Base revenue calculation based on business capacity utilization
-  const utilizationRate = business.currentCapacity / business.capacity;
+  // Base revenue calculation based on business type and investment
+  // Higher initial investment should yield higher revenue potential
+  let baseRevenue = business.initialInvestment * 0.003; // 0.3% of initial investment daily (9% monthly return)
   
-  // Calculate base daily revenue
-  let baseRevenue = business.initialInvestment * 0.001; // 0.1% of initial investment daily
+  // Minimum employees needed before a business can properly function (generate significant revenue)
+  const minimumEmployeesNeeded = {
+    restaurant: 3, // Need at least chef, server, host
+    retail: 2,     // Need at least sales associate and cashier
+    tech: 2,       // Need at least developer and manager
+    consulting: 2, // Need at least consultant and analyst
+    manufacturing: 3, // Need at least worker, quality control, supervisor
+    real_estate: 2, // Need at least agent and admin
+    creative: 2    // Need at least designer and account manager
+  };
+  
+  // Minimum employee requirement
+  const minEmployees = minimumEmployeesNeeded[business.type] || 2;
+  
+  // If not enough employees, severely reduce revenue
+  if (business.employees.length < minEmployees) {
+    // Each missing employee reduces revenue potential by 50%
+    const missingEmployeePenalty = Math.pow(0.5, minEmployees - business.employees.length);
+    baseRevenue *= missingEmployeePenalty;
+  }
+  
+  // Calculate capacity utilization - minimum 10% even with no business to represent walk-ins
+  const utilizationRate = Math.max(0.1, business.currentCapacity / business.capacity);
   
   // Adjust based on utilization
   baseRevenue *= utilizationRate;
   
   // Adjust based on quality and reputation
-  const qualityFactor = business.quality / 100 * 1.5; // Up to 50% more for high quality
-  const reputationFactor = business.reputation / 100 * 1.3; // Up to 30% more for high reputation
+  const qualityFactor = 1 + (business.quality / 100); // Up to 100% more for high quality
+  const reputationFactor = 1 + (business.reputation / 100 * 0.8); // Up to 80% more for high reputation
   
   // Combine factors
   const totalRevenue = baseRevenue * qualityFactor * reputationFactor;
   
-  // Employee contribution
-  const employeeProductivityBonus = business.employees.reduce((total, emp) => {
-    return total + (emp.productivity / 100) * 0.05; // Each employee adds up to 5% based on their productivity
-  }, 1);
+  // Employee contribution - stronger employee impact
+  // Calculate the average employee productivity
+  const averageProductivity = business.employees.length > 0
+    ? business.employees.reduce((sum, emp) => sum + emp.productivity, 0) / business.employees.length
+    : 0;
+    
+  // Each employee after the minimum adds a significant revenue boost
+  const employeeBonus = business.employees.length >= minEmployees
+    ? 1 + ((business.employees.length - minEmployees) * 0.2) // Each employee beyond minimum adds 20% revenue
+    : 1;
   
-  // Final revenue with employee bonus
-  return totalRevenue * employeeProductivityBonus;
+  // Productivity bonus - team average productivity affects overall output
+  const productivityBonus = 1 + (averageProductivity / 100 * 0.5); // Up to 50% bonus for 100% productivity
+  
+  // Final revenue with all bonuses
+  return totalRevenue * employeeBonus * productivityBonus;
 }
 
 // Helper function to calculate daily expenses
 function calculateDailyExpenses(business: Business): number {
-  // Base expenses
-  const baseExpense = business.initialInvestment * 0.0005; // 0.05% of initial investment daily
+  // Business type specific base expense rates (percentage of initial investment)
+  const baseExpenseRates = {
+    restaurant: 0.0004, // 0.04% - Higher food costs but lower tech costs
+    retail: 0.0003,     // 0.03% - Inventory focused
+    tech: 0.0002,       // 0.02% - Digital products have lower physical costs
+    consulting: 0.0002, // 0.02% - Knowledge-based work with lower overhead
+    manufacturing: 0.0006, // 0.06% - High equipment and material costs
+    real_estate: 0.0003,  // 0.03% - Property management costs
+    creative: 0.0003     // 0.03% - Mixed overhead
+  };
   
-  // Employee salaries
+  // Base expense based on business type
+  const baseExpenseRate = baseExpenseRates[business.type] || 0.0004;
+  const baseExpense = business.initialInvestment * baseExpenseRate;
+  
+  // Employee salaries - the main expense for most businesses
   const dailySalaries = business.employees.reduce((total, emp) => {
     return total + (emp.salary / 30); // Monthly salary divided by 30 for daily cost
   }, 0);
   
-  // Maintenance costs based on business size and type
-  const maintenanceCost = business.capacity * 0.5; // $0.50 per unit of capacity daily
+  // Maintenance costs based on business size, type, and capacity
+  // Lower maintenance cost for startups with few employees
+  const maintenanceScale = Math.min(1, business.employees.length / 5); // Scale up to full maintenance at 5 employees
+  const typicalMaintenanceCost = business.capacity * 0.3; // Reduced from 0.5
+  const scaledMaintenanceCost = typicalMaintenanceCost * maintenanceScale;
+  
+  // Additional expenses based on business type
+  const additionalExpenses = {
+    restaurant: dailySalaries * 0.3, // Food costs scale with staff/customers
+    retail: dailySalaries * 0.4,     // Inventory costs
+    tech: dailySalaries * 0.2,       // Software/servers
+    consulting: dailySalaries * 0.1, // Low additional costs
+    manufacturing: dailySalaries * 0.5, // Materials and parts
+    real_estate: dailySalaries * 0.2,  // Property upkeep
+    creative: dailySalaries * 0.2     // Creative supplies
+  };
+  
+  const typeSpecificExpense = additionalExpenses[business.type] || 0;
   
   // Total daily expenses
-  return baseExpense + dailySalaries + maintenanceCost;
+  return baseExpense + dailySalaries + scaledMaintenanceCost + typeSpecificExpense;
 }
 
 // Register store in the global registry
