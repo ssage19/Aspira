@@ -3400,10 +3400,15 @@ export const useCharacter = create<CharacterState>()(
             if (daysSincePromotion > 0 && daysSincePromotion % 30 === 0) {
               console.log(`30-day job milestone reached! Days since promotion: ${daysSincePromotion}`);
               
+              // Calculate the total months to ensure we don't miss any if multiple months passed
+              const totalMonthsPassed = Math.floor(daysSincePromotion / 30);
+              const previousMonths = state.job.monthsInPosition;
+              const newMonthCount = totalMonthsPassed + previousMonths - Math.floor((daysSincePromotion - 30) / 30);
+              
+              console.log(`Job tenure calculation: Total months passed: ${totalMonthsPassed}, Previous months: ${previousMonths}, New month count: ${newMonthCount}`);
+              
               // Update the monthsInPosition counter on the job
               // This is the value shown in the Career tab UI
-              // When we reach 30 days, we increment months and reset days to 1
-              const newMonthCount = state.job.monthsInPosition + 1;
               state.job.monthsInPosition = newMonthCount;
               
               // Reset days to 1 (not 0) to maintain consistent counting
@@ -3944,14 +3949,23 @@ export const useCharacter = create<CharacterState>()(
           
           if (updatedJob) {
             // Calculate months based on days (30 days = 1 month)
+            // We need the total months across the job's entire tenure
+            const previousMonths = updatedJob.monthsInPosition || 0;
             const calculatedMonths = Math.floor(daysSincePromotion / 30);
             
+            // Calculate total tenure (existing months plus the newly calculated months)
+            // We want to ensure we don't double-count months that were already counted
+            // by the daily update function
+            const totalCalculatedMonths = calculatedMonths;
+            
+            console.log(`Monthly job tenure check: Days since promotion: ${daysSincePromotion}, Previous months: ${previousMonths}, Calculated: ${calculatedMonths}`);
+            
             // Only update if there's a discrepancy
-            if (updatedJob.monthsInPosition !== calculatedMonths) {
+            if (updatedJob.monthsInPosition !== totalCalculatedMonths) {
               // Sync monthsInPosition with daysSincePromotion for consistency
               updatedJob = {
                 ...updatedJob,
-                monthsInPosition: calculatedMonths
+                monthsInPosition: totalCalculatedMonths
               };
               
               // Log the synchronization
