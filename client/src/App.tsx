@@ -22,7 +22,8 @@ import { ThemeProvider } from "./lib/ThemeProvider";
 import Dashboard from "./pages/Dashboard";
 import SimpleDashboard from "./pages/SimpleDashboard";
 import ReliableDashboard from "./pages/ReliableDashboard";
-import CharacterCreation from "./pages/CharacterCreation";
+// Temporarily use the simple version that doesn't rely on Select component
+import CharacterCreation from "./pages/CharacterCreationSimple";
 import InvestmentScreen from "./pages/InvestmentScreen";
 import LifestyleScreen from "./pages/LifestyleScreen";
 import PropertyScreen from "./pages/PropertyScreen";
