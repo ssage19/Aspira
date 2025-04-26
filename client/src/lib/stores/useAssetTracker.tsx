@@ -156,6 +156,7 @@ export interface AssetTrackerState {
     propertyValue: number;
     propertyDebt: number;
     lifestyleItems: number;
+    ownershipAssets: number; // Ownership assets (Formula 1, horses, sports teams, businesses)
     total: number;
     version: number;
   };
@@ -945,6 +946,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
             propertyValue: totalPropertyValue,
             propertyDebt: totalPropertyDebt,
             lifestyleItems: totalLifestyleValue,
+            ownershipAssets: totalOwnershipValue, // Include ownership assets
             total: totalNetWorth,
             version: Date.now(),
           };
