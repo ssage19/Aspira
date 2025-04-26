@@ -313,7 +313,7 @@ export default function Dashboard() {
   }, []);
   
   const { economyState } = useEconomy();
-  const audio = useAudio();
+  // Audio removed
   const game = useGame();
   const randomEvents = useRandomEvents();
   

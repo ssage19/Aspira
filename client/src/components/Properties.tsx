@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useResponsive } from '../lib/hooks/useResponsive';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -43,7 +43,9 @@ export function Properties() {
   const { wealth, addWealth, addProperty, sellProperty, properties: ownedProperties } = useCharacter();
   const { interestRate, realEstateMarketHealth } = useEconomy();
   const { currentDay, currentMonth, currentYear } = useTime();
-  const { playSuccess, playHit } = useAudio();
+  // Audio removed - using empty functions
+  const playSuccess = () => {};
+  const playHit = () => {};
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
   
