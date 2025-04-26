@@ -1038,14 +1038,112 @@ export const useBusiness = create<BusinessState>()(
           return false;
         }
         
+        // Define role-specific capacity and productivity bonuses
+        const roleCapacityImpact = {
+          // Restaurant
+          'Chef': 8,
+          'Server': 12,
+          'Host': 10,
+          'Manager': 6,
+          'Dishwasher': 5,
+          'Bartender': 8,
+          
+          // Retail
+          'Sales Associate': 12,
+          'Cashier': 15,
+          'Store Manager': 8,
+          'Visual Merchandiser': 5,
+          'Inventory Specialist': 6,
+          
+          // Tech
+          'Developer': 10,
+          'Tech Designer': 8,
+          'Product Manager': 6,
+          'QA Tester': 5,
+          'CTO': 4,
+          'Support Specialist': 15,
+          
+          // Consulting
+          'Consultant': 12,
+          'Analyst': 8,
+          'Partner': 10,
+          'Associate': 10,
+          'Researcher': 6,
+          'Admin Assistant': 5,
+          
+          // Manufacturing
+          'Line Worker': 12,
+          'Quality Control': 8,
+          'Supervisor': 7,
+          'Engineer': 9,
+          'Maintenance': 5,
+          'Logistics Manager': 6,
+          
+          // Real Estate
+          'Agent': 12,
+          'Property Manager': 10,
+          'Broker': 10,
+          'Appraiser': 8,
+          'Admin': 5,
+          'Marketing Specialist': 8,
+          
+          // Creative
+          'Creative Designer': 10,
+          'Creative Director': 8,
+          'Copywriter': 9,
+          'Artist': 8,
+          'Producer': 7,
+          'Account Manager': 12
+        };
+        
+        // Create employee with role-specific attributes
         const newEmployee: BusinessEmployee = {
           id: generateId(),
           role,
           salary,
-          productivity: 70 + Math.floor(Math.random() * 30),  // 70-100
-          morale: 70 + Math.floor(Math.random() * 30),        // 70-100
+          productivity: 75 + Math.floor(Math.random() * 26),  // 75-100 (improved baseline)
+          morale: 80 + Math.floor(Math.random() * 21),        // 80-100 (improved baseline)
           hireDate: Date.now()
         };
+        
+        // Get role-specific capacity impact or use default
+        const capacityImpact = roleCapacityImpact[role] || 6;
+        
+        // Calculate how hiring this employee changes the business status
+        const isFirstEmployee = business.employees.length === 0;
+        
+        // Check minimum employees needed for this business type
+        const minimumEmployeesNeeded = {
+          restaurant: 3, // Need at least chef, server, host
+          retail: 2,     // Need at least sales associate and cashier
+          tech: 2,       // Need at least developer and manager
+          consulting: 2, // Need at least consultant and analyst
+          manufacturing: 3, // Need at least worker, quality control, supervisor
+          real_estate: 2, // Need at least agent and admin
+          creative: 2    // Need at least designer and account manager
+        };
+        
+        const minEmployees = minimumEmployeesNeeded[business.type] || 2;
+        
+        // Check if this hire means we've met the minimum requirements to open
+        const willMeetMinimumRequirements = (business.employees.length + 1) >= minEmployees;
+        
+        // If this is the first employee or we're meeting min requirements, set the business to open
+        const updatedIsOpen = isFirstEmployee || willMeetMinimumRequirements ? true : business.isOpen;
+        
+        // If first employee, also add a small capacity baseline
+        const baselineCapacity = isFirstEmployee ? 10 : 0;
+        
+        // Calculate boost to current capacity (more customers)
+        // New hires increase current customers by attracting new ones
+        const currentCapacityBoost = Math.min(10, capacityImpact * 0.8);
+        
+        // Update business quality slightly when hiring skilled employees
+        // Certain roles improve business quality
+        const qualityBoostRoles = ['Chef', 'Manager', 'Store Manager', 'Developer', 'Tech Designer', 
+                                'CTO', 'Partner', 'Engineer', 'Broker', 'Creative Director', 'Creative Designer'];
+        
+        const qualityBoost = qualityBoostRoles.includes(role) ? 2 : 0;
         
         // Update business with new employee
         const updatedBusinesses = get().businesses.map(b => 
@@ -1055,7 +1153,14 @@ export const useBusiness = create<BusinessState>()(
                 employees: [...b.employees, newEmployee],
                 // Hiring employees increases both expenses and capacity
                 expenses: b.expenses + (salary / 30), // Daily expense
-                capacity: b.capacity + 5 // Each employee adds some capacity
+                capacity: b.capacity + capacityImpact + baselineCapacity, // Role-specific capacity boost
+                currentCapacity: Math.min(
+                  b.capacity + capacityImpact + baselineCapacity, // Can't exceed new capacity
+                  b.currentCapacity + currentCapacityBoost // Add new customers
+                ),
+                isOpen: updatedIsOpen,
+                quality: Math.min(100, b.quality + qualityBoost), // Improve quality with skilled hires
+                cash: b.cash - (salary / 2) // Pay half a month's salary upfront (signing bonus/training)
               } 
             : b
         );
