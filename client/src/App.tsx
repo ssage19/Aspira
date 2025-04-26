@@ -1,5 +1,16 @@
 import { Suspense, useEffect, lazy } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { 
+  BrowserRouter as Router, 
+  Routes, 
+  Route,
+  // Opt into the new behavior early
+  UNSAFE_useScrollRestoration, 
+  UNSAFE_DataRouterContext,
+  UNSAFE_DataRouterStateContext,
+  UNSAFE_LocationContext,
+  UNSAFE_NavigationContext,
+  UNSAFE_RouteContext
+} from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "sonner";
@@ -373,7 +384,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           {/* ScrollToTop ensures the window scrolls to the top on navigation */}
           <ScrollToTop />
           
