@@ -1,15 +1,14 @@
 import { useEffect } from "react";
 import { useGame } from "@/lib/stores/useGame";
-import { useAudio } from "@/lib/stores/useAudio";
+// Audio removed
 import { Button } from "./button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./card";
 import { Confetti } from "../game/Confetti";
-import { VolumeX, Volume2, RotateCw, Trophy } from "lucide-react";
+import { RotateCw, Trophy } from "lucide-react";
 
 export function Interface() {
   const restart = useGame((state) => state.restart);
   const phase = useGame((state) => state.phase);
-  const { isMuted, toggleMute } = useAudio();
 
   // Handle clicks on the interface in the ready phase to start the game
   useEffect(() => {

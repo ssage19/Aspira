@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
 import { ChevronLeft, Dice1, DollarSign, Trophy, CaseSensitive, Coins } from 'lucide-react';
 import { useCharacter } from '../lib/stores/useCharacter';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
 import BlackjackGame from '../components/games/BlackjackGame';
@@ -16,7 +16,9 @@ import GameUI from '../components/GameUI';
 export default function CasinoScreen() {
   const navigate = useNavigate();
   const { wealth, addWealth } = useCharacter();
-  const { playSuccess, playHit } = useAudio();
+  // Audio removed - using empty functions
+  const playSuccess = () => {};
+  const playHit = () => {};
   const [activeGame, setActiveGame] = useState<'blackjack' | 'roulette' | 'poker'>('blackjack');
 
   // Handle winning and losing money with improved tracking - optimized with useCallback

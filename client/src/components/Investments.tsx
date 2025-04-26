@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useNavigate } from 'react-router-dom';
 import { useResponsive } from '../lib/hooks/useResponsive';
@@ -56,11 +56,10 @@ export function Investments() {
   const { wealth, addWealth, addAsset, sellAsset, assets } = character;
   const { marketTrend, stockMarketHealth, getStockMarketHealthCategory } = useEconomy();
   const { currentDay } = useTime();
-  const audio = useAudio();
+  // Audio removed
   const assetTracker = useAssetTracker();
   const navigate = useNavigate();
   
-  // Handle audio functions safely
   // Audio methods removed
   const playSuccess = () => {};
   const playHit = () => {};
