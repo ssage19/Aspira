@@ -9,6 +9,7 @@ import { Banknote, BarChart3, Home, ShoppingBag, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAssetRefresh } from './AssetRefreshProvider';
 import { getOwnershipBreakdown, getTotalOwnershipValue, getBusinesses, getFormula1Team, getHorseRacingData, getSportsTeam } from '../lib/utils/ownershipUtils';
+import { WealthTierBadge } from './WealthTierBadge';
 
 // Types for grouped assets
 interface AssetItem {
@@ -328,7 +329,10 @@ export function ComprehensivePortfolio() {
     <Card className="w-full shadow-sm">
       <CardHeader className="pb-1">
         <CardTitle className="text-lg flex justify-between items-center">
-          <span>Asset Portfolio</span>
+          <div className="flex items-center gap-2">
+            <span>Asset Portfolio</span>
+            <WealthTierBadge netWorth={displayTotal} size="sm" />
+          </div>
           <div className="flex items-center space-x-2">
             <Button 
               variant="ghost" 
