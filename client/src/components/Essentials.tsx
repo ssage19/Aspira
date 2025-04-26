@@ -130,8 +130,8 @@ export function Essentials() {
       // No toast notification for time passage
     }
     
-    // Play sound
-    playSound('success');
+    // No sound functionality
+    playSound();
     
     // No toast message for completion to avoid annoying players
   };
