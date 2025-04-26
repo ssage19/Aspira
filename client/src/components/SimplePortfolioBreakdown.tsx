@@ -181,9 +181,8 @@ export function SimplePortfolioBreakdown() {
     
     setAssetCategories(categories);
     
-    // Also update the display total with ownership value included
-    const newTotalWithOwnership = totalNetWorth + totalOwnershipValue;
-    setDisplayTotal(newTotalWithOwnership);
+    // Use the actual total net worth from the asset tracker (already includes ownership assets)
+    setDisplayTotal(totalNetWorth);
     
   }, [totalCash, totalStocks, totalCrypto, totalBonds, totalOtherInvestments, 
       totalPropertyEquity, totalLifestyleValue, totalNetWorth]);
@@ -290,15 +289,9 @@ export function SimplePortfolioBreakdown() {
       // Recalculate totals again after syncing
       useAssetTracker.getState().recalculateTotals();
       
-      // Get the latest values
+      // Get the latest values and update display total
       const assetTracker = useAssetTracker.getState();
-      
-      // Get the latest ownership values
-      const ownershipValue = getTotalOwnershipValue();
-      
-      // Force a UI update with the very latest values (including ownership)
-      const totalWithOwnership = assetTracker.totalNetWorth + ownershipValue;
-      setDisplayTotal(totalWithOwnership);
+      setDisplayTotal(assetTracker.totalNetWorth);
       
       // Update our local categories with latest data
       updateAssetCategories();
@@ -306,13 +299,11 @@ export function SimplePortfolioBreakdown() {
       console.log("✅ PORTFOLIO REFRESH COMPLETE - LATEST VALUES:", {
         stocks: assetTracker.totalStocks,
         netWorth: assetTracker.totalNetWorth,
-        ownershipValue,
-        totalWithOwnership,
         cash: assetTracker.totalCash
       });
       
       // Show visual feedback
-      toast.success(`Portfolio refreshed: ${formatCurrency(totalWithOwnership)}`, {
+      toast.success(`Portfolio refreshed: ${formatCurrency(assetTracker.totalNetWorth)}`, {
         duration: 2000,
         position: "bottom-center"
       });
@@ -329,9 +320,8 @@ export function SimplePortfolioBreakdown() {
   
   // Calculate the actual total to use for percentage calculations
   // (with a fallback to 1 to avoid division by zero)
-  // Add ownership values to the total for accurate percentages
-  const ownershipValue = getTotalOwnershipValue();
-  const calculatedTotal = (totalNetWorth + ownershipValue) || 1;
+  // No need to add ownership values as they are already included in totalNetWorth
+  const calculatedTotal = totalNetWorth || 1;
   
   return (
     <Card className="w-full shadow-sm">

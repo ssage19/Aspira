@@ -284,9 +284,6 @@ export function ComprehensivePortfolio() {
       // Get the latest values
       const assetTracker = useAssetTracker.getState();
       
-      // Get the latest ownership values
-      const ownershipValue = getTotalOwnershipValue();
-      
       // Force a UI update with the very latest values (already includes ownership assets)
       setDisplayTotal(assetTracker.totalNetWorth);
       
@@ -296,13 +293,11 @@ export function ComprehensivePortfolio() {
       console.log("✅ PORTFOLIO REFRESH COMPLETE - LATEST VALUES:", {
         stocks: assetTracker.totalStocks,
         netWorth: assetTracker.totalNetWorth,
-        ownershipValue,
-        totalWithOwnership,
         cash: assetTracker.totalCash
       });
       
       // Show visual feedback
-      toast.success(`Portfolio refreshed: ${formatCurrency(totalWithOwnership)}`, {
+      toast.success(`Portfolio refreshed: ${formatCurrency(assetTracker.totalNetWorth)}`, {
         duration: 2000,
         position: "bottom-center"
       });
@@ -319,9 +314,8 @@ export function ComprehensivePortfolio() {
   
   // Calculate the actual total to use for percentage calculations
   // (with a fallback to 1 to avoid division by zero)
-  // Add ownership values to the total for accurate percentages
-  const ownershipValue = getTotalOwnershipValue();
-  const calculatedTotal = (totalNetWorth + ownershipValue) || 1;
+  // No need to add ownership values as they are already included in totalNetWorth
+  const calculatedTotal = totalNetWorth || 1;
   
   return (
     <Card className="w-full shadow-sm">
