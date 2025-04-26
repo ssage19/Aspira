@@ -489,9 +489,9 @@ export default function RouletteGame({ onWin, onLoss, playerBalance }: RouletteG
       </div>
       
       {/* Main roulette table */}
-      <div className="relative bg-green-800 border-8 border-amber-950/80 rounded-3xl shadow-2xl p-8 overflow-hidden">
-        {/* Background texture - subtle gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-800 to-green-900 pointer-events-none"></div>
+      <div className="relative bg-emerald-600 border-8 border-emerald-800 rounded-3xl shadow-2xl p-8 overflow-hidden">
+        {/* Background texture - bright green like casino table */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-emerald-600 pointer-events-none"></div>
         
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 relative z-10">
           {/* Left section - Wheel and active bets */}
