@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useCharacter } from "../lib/stores/useCharacter";
 import { useNotification } from "../lib/stores/useNotification";
-import { useAudio } from "../lib/stores/useAudio";
+// Audio removed
 import { useTime } from "../lib/stores/useTime";
 import { useAssetRefresh } from "./AssetRefreshProvider";
 import { 
@@ -98,7 +98,8 @@ export function LivingSituationManager() {
   } = useCharacter();
   
   const { showNotification } = useNotification();
-  const { playSound } = useAudio();
+  // Audio removed
+  const playSound = () => {};
   const { advanceTime } = useTime();
   const { triggerRefresh } = useAssetRefresh();
   

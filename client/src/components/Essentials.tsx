@@ -82,8 +82,8 @@ export function Essentials() {
   const handleConsumeEssential = (item: EssentialItem) => {
     // Check if user has enough money
     if (item.price > wealth) {
-      // Just play a sound for insufficient funds, no message
-      playSound('hit');
+      // No sound for insufficient funds, just return
+      playSound();
       return;
     }
     

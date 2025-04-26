@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "sonner";
-import { useAudio } from "./lib/stores/useAudio";
+// Audio removed
 import { useGame } from "./lib/stores/useGame";
 import { useEconomy } from "./lib/stores/useEconomy";
 import { useTime } from "./lib/stores/useTime";
@@ -52,7 +52,7 @@ import "@fontsource/inter";
 
 // Main App component
 function App() {
-  const { playMusic } = useAudio();
+  // Audio removed
   const { phase, start } = useGame();
   const { checkForNewEvents } = useRandomEvents();
 

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useTime } from '../lib/stores/useTime';
 import { useNotification } from '../lib/stores/useNotification';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 
 /**
  * AttributesDecayManager - A component that manages the dynamic decay of character attributes
@@ -53,7 +53,8 @@ export function AttributesDecayManager() {
   } = useTime();
   
   const { showNotification } = useNotification();
-  const { playSound } = useAudio();
+  // Audio removed
+  const playSound = () => {};
   
   // Track last check time for hourly effects
   const hourlyEffectsInterval = 3; // Apply effects every 3 hours of game time
