@@ -103,9 +103,14 @@ export function getRecommendedUpdateInterval(): number {
  */
 export function getVisibleAssets(assetTracker: any): string[] {
   try {
+    if (!assetTracker || typeof assetTracker.getAllAssetsWithQuantities !== 'function') {
+      // Return empty array if assetTracker is invalid
+      return [];
+    }
+    
     // Get owned assets - these are always high priority
     const ownedAssets = assetTracker.getAllAssetsWithQuantities();
-    const ownedAssetIds = Object.keys(ownedAssets).filter(id => ownedAssets[id] > 0);
+    const ownedAssetIds = Object.keys(ownedAssets || {}).filter(id => ownedAssets[id] > 0);
     
     // Get recently viewed assets from localStorage
     const recentlyViewed: string[] = [];
