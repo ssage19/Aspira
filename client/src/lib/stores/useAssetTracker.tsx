@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { registerStore } from '../utils/storeRegistry';
+import { WealthTier, getCurrentWealthTier, wealthTiers } from '../data/wealthTiers';
 
 // Storage key for the asset tracker store
 export const ASSET_TRACKER_STORAGE_KEY = 'business-empire-asset-tracker';
@@ -92,6 +93,9 @@ export interface AssetTrackerState {
   totalPropertyEquity: number;
   totalLifestyleValue: number;
   totalNetWorth: number;
+  
+  // Wealth tier tracking
+  currentWealthTier: WealthTier;
   
   // The version/timestamp of this data
   lastUpdated: number;
@@ -193,6 +197,9 @@ const initialState: Omit<AssetTrackerState,
   totalPropertyEquity: 0,
   totalLifestyleValue: 0,
   totalNetWorth: 10000,
+  
+  // Initialize with the beginner wealth tier
+  currentWealthTier: wealthTiers[0],
   
   // Version tracking
   lastUpdated: Date.now(),
@@ -873,6 +880,36 @@ export const useAssetTracker = create<AssetTrackerState>()(
           totalPropertyEquity +
           totalLifestyleValue;
         
+        // Update wealth tier based on current net worth
+        const currentWealthTier = getCurrentWealthTier(totalNetWorth);
+        const previousTier = state.currentWealthTier;
+        
+        // Check if the wealth tier has changed to a higher tier
+        if (previousTier && currentWealthTier.id !== previousTier.id && 
+            currentWealthTier.minNetWorth > previousTier.minNetWorth) {
+          // Only show tier up notification if this isn't the first load
+          if (state.lastUpdated > 0 && typeof window !== 'undefined') {
+            // We've advanced to a new tier! Show a toast notification
+            try {
+              // Try to access toast from window context (if available)
+              const toast = (window as any)?.toast;
+              if (toast) {
+                toast({
+                  title: "Wealth Tier Increased!",
+                  description: `Congratulations! You've reached the ${currentWealthTier.name} tier.`,
+                  duration: 5000
+                });
+              } else {
+                // Fallback
+                console.log(`Wealth tier increased to ${currentWealthTier.name}!`);
+              }
+            } catch (e) {
+              // Fallback if toast is not available
+              console.log(`Wealth tier increased to ${currentWealthTier.name}!`);
+            }
+          }
+        }
+        
         set({
           totalCash: state.cash,
           totalStocks,
@@ -884,6 +921,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
           totalPropertyEquity,
           totalLifestyleValue,
           totalNetWorth,
+          currentWealthTier,
           lastUpdated: Date.now(),
         });
         
@@ -1024,6 +1062,7 @@ export const useAssetTracker = create<AssetTrackerState>()(
           cash: 10000, // Reset to starting cash value
           totalCash: 10000,
           totalNetWorth: 10000,
+          currentWealthTier: wealthTiers[0], // Reset to beginner wealth tier
           lastUpdated: Date.now(),
           // Explicitly set empty arrays again to be absolutely certain
           globalStockPrices: {},
@@ -1129,6 +1168,9 @@ export const useAssetTracker = create<AssetTrackerState>()(
         totalPropertyEquity: state.totalPropertyEquity,
         totalLifestyleValue: state.totalLifestyleValue,
         totalNetWorth: state.totalNetWorth,
+        
+        // Persist wealth tier
+        currentWealthTier: state.currentWealthTier,
         
         // Include version for freshness tracking
         lastUpdated: state.lastUpdated,
