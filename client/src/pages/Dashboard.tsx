@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getStore } from '../lib/utils/storeRegistry';
 import { useTime } from '../lib/stores/useTime';
@@ -12,7 +12,6 @@ import { toast } from 'sonner';
 
 import { CharacterAttributes } from '../components/CharacterAttributes';
 import { ActiveEventsIndicator } from '../components/ActiveEventsIndicator';
-// Temporarily disabled due to rendering issues
 import { SimplePortfolioBreakdown } from '../components/SimplePortfolioBreakdown';
 import { 
   DollarSign, 
@@ -61,41 +60,80 @@ import { formatCurrency, performCompleteGameReset } from '../lib/utils';
 import { useEffect as useInitAchievements } from 'react';
 import { checkAllAchievements } from '../lib/services/achievementTracker';
 
-// Achievement Widget component
-const AchievementsWidget = () => {
+// Type definition for achievements
+interface AchievementType {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  isUnlocked: boolean;
+  progress: number;
+  unlockedDate?: string;
+}
+
+// Achievement Widget component - Memoized to prevent re-renders
+const AchievementsWidget = React.memo(() => {
   const { achievements, getCompletedAchievements, getInProgressAchievements } = useAchievements();
   const navigate = useNavigate();
   
-  // Check all achievements when dashboard loads
+  // Achievement checking interval with useRef to avoid closure issues
+  const checkIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastCheckTimeRef = useRef(0);
+  
+  // Check all achievements when dashboard loads - optimized with throttling
   useInitAchievements(() => {
-    // Check for achievements on component mount
-    checkAllAchievements();
-    // Set up interval to periodically check achievements (every 10 seconds)
-    const interval = setInterval(() => {
-      checkAllAchievements();
-    }, 10000);
+    // Function to check achievements with rate limiting
+    const checkAchievementsThrottled = () => {
+      const now = Date.now();
+      // Only check if it's been at least 5 seconds since the last check
+      if (now - lastCheckTimeRef.current > 5000) {
+        console.log("Checking achievements (throttled)");
+        checkAllAchievements();
+        lastCheckTimeRef.current = now;
+      }
+    };
     
-    return () => clearInterval(interval);
+    // Check once on mount
+    checkAchievementsThrottled();
+    
+    // Set up interval using longer duration (15 seconds instead of 10)
+    // This reduces CPU usage while still keeping achievements reasonably up-to-date
+    if (checkIntervalRef.current) {
+      clearInterval(checkIntervalRef.current);
+    }
+    
+    checkIntervalRef.current = setInterval(checkAchievementsThrottled, 15000);
+    
+    return () => {
+      if (checkIntervalRef.current) {
+        clearInterval(checkIntervalRef.current);
+        checkIntervalRef.current = null;
+      }
+    };
   }, []);
   
-  // Get the most recent 3 completed achievements
-  const recentCompletedAchievements = getCompletedAchievements()
-    .sort((a, b) => {
-      if (!a.unlockedDate) return 1;
-      if (!b.unlockedDate) return -1;
-      return new Date(b.unlockedDate).getTime() - new Date(a.unlockedDate).getTime();
-    })
-    .slice(0, 3);
-    
-  // Get 3 achievements that are in progress but not completed
-  const inProgressAchievements = getInProgressAchievements()
-    .sort((a, b) => b.progress - a.progress)
-    .slice(0, 3);
-    
-  // Combine them, showing completed ones first
-  const displayAchievements = [...recentCompletedAchievements, ...inProgressAchievements].slice(0, 4);
+  // Memoize expensive achievement calculations to avoid re-computing on every render
+  const displayAchievements = useMemo(() => {
+    // Get the most recent 3 completed achievements
+    const recentCompletedAchievements = getCompletedAchievements()
+      .sort((a, b) => {
+        if (!a.unlockedDate) return 1;
+        if (!b.unlockedDate) return -1;
+        return new Date(b.unlockedDate).getTime() - new Date(a.unlockedDate).getTime();
+      })
+      .slice(0, 3);
+      
+    // Get 3 achievements that are in progress but not completed
+    const inProgressAchievements = getInProgressAchievements()
+      .sort((a, b) => b.progress - a.progress)
+      .slice(0, 3);
+      
+    // Combine them, showing completed ones first
+    return [...recentCompletedAchievements, ...inProgressAchievements].slice(0, 4);
+  }, [achievements, getCompletedAchievements, getInProgressAchievements]);
   
-  const getCategoryColor = (category: string) => {
+  // Memoize color function to avoid recreation on each render
+  const getCategoryColor = useCallback((category: string) => {
     switch (category) {
       case 'wealth': return 'text-quinary';
       case 'property': return 'text-tertiary';
@@ -104,7 +142,7 @@ const AchievementsWidget = () => {
       case 'general': return 'text-primary';
       default: return 'text-primary';
     }
-  };
+  }, []);
   
   if (displayAchievements.length === 0) {
     return null;
@@ -191,7 +229,7 @@ const AchievementsWidget = () => {
       </CardFooter>
     </Card>
   );
-};
+});
 
 // Create a global update function that can be called from anywhere
 // This is defined outside the component to avoid re-creation on renders
@@ -218,57 +256,95 @@ if (!(window as any).globalUpdateAllPrices) {
 export default function Dashboard() {
   const navigate = useNavigate();
   
-  // Get character state directly from the store registry
-  // Using memoized selectors to avoid infinite loops
-  const [character, setCharacter] = useState({
-    name: 'Player', 
-    happiness: 50,
-    prestige: 0,
-    stress: 0,
-    energy: 100,
-    health: 100
-  });
+  // Using individual selectors for character properties
+  // This is more efficient as it only re-renders when the specific value changes
+  const characterStore = getStore('character');
   
-  // Get character data from store registry when available
-  useEffect(() => {
-    const characterStore = getStore('character');
-    if (characterStore) {
-      const state = characterStore.getState();
-      setCharacter({
-        name: state.name,
-        happiness: state.happiness,
-        prestige: state.prestige,
-        stress: state.stress,
-        energy: state.energy,
-        health: state.health
-      });
-      
-      // Subscribe to future changes
-      const unsubscribe = characterStore.subscribe((state) => {
-        setCharacter({
-          name: state.name,
-          happiness: state.happiness,
-          prestige: state.prestige,
-          stress: state.stress,
-          energy: state.energy,
-          health: state.health
-        });
-      });
-      
-      return unsubscribe;
-    }
+  // Individual character attributes with memoized selectors to prevent unnecessary re-renders
+  const name = useMemo(() => {
+    return characterStore?.getState()?.name || 'Player';
   }, []);
   
-  // Destructure for convenience
-  const { name, happiness, prestige, stress, energy, health } = character;
+  // For attributes that change frequently, use the store's subscribe mechanism
+  // with selective updates to minimize re-renders
+  const [happiness, setHappiness] = useState(characterStore?.getState()?.happiness || 50);
+  const [prestige, setPrestige] = useState(characterStore?.getState()?.prestige || 0);
+  const [stress, setStress] = useState(characterStore?.getState()?.stress || 0);
+  const [energy, setEnergy] = useState(characterStore?.getState()?.energy || 100);
+  const [health, setHealth] = useState(characterStore?.getState()?.health || 100);
+  
+  // Throttled update mechanism to reduce render frequency
+  const lastUpdateRef = useRef(Date.now());
+  const updatesQueuedRef = useRef(false);
+  const pendingUpdatesRef = useRef<{[key: string]: any}>({});
+  
+  // Get character data from store registry when available with throttling
+  useEffect(() => {
+    if (!characterStore) return;
+    
+    // Function to apply batched updates
+    const applyUpdates = () => {
+      if (Object.keys(pendingUpdatesRef.current).length > 0) {
+        // Apply all queued updates at once
+        if (pendingUpdatesRef.current.happiness !== undefined) setHappiness(pendingUpdatesRef.current.happiness);
+        if (pendingUpdatesRef.current.prestige !== undefined) setPrestige(pendingUpdatesRef.current.prestige);
+        if (pendingUpdatesRef.current.stress !== undefined) setStress(pendingUpdatesRef.current.stress);
+        if (pendingUpdatesRef.current.energy !== undefined) setEnergy(pendingUpdatesRef.current.energy);
+        if (pendingUpdatesRef.current.health !== undefined) setHealth(pendingUpdatesRef.current.health);
+        
+        // Reset pending updates
+        pendingUpdatesRef.current = {};
+        updatesQueuedRef.current = false;
+        lastUpdateRef.current = Date.now();
+      }
+    };
+    
+    // Set up throttled update mechanism
+    const throttledUpdateCheck = () => {
+      if (updatesQueuedRef.current && Date.now() - lastUpdateRef.current > 200) {
+        applyUpdates();
+      }
+    };
+    
+    // Set initial values
+    const initialState = characterStore.getState();
+    setHappiness(initialState.happiness || 50);
+    setPrestige(initialState.prestige || 0);
+    setStress(initialState.stress || 0);
+    setEnergy(initialState.energy || 100);
+    setHealth(initialState.health || 100);
+    
+    // Subscribe to future changes with throttling
+    const unsubscribe = characterStore.subscribe((state: any) => {
+      // Queue updates instead of applying immediately
+      pendingUpdatesRef.current.happiness = state.happiness;
+      pendingUpdatesRef.current.prestige = state.prestige;
+      pendingUpdatesRef.current.stress = state.stress;
+      pendingUpdatesRef.current.energy = state.energy;
+      pendingUpdatesRef.current.health = state.health;
+      
+      updatesQueuedRef.current = true;
+      
+      // Apply immediately if no recent updates, otherwise wait
+      throttledUpdateCheck();
+    });
+    
+    // Set up interval to check for pending updates
+    const checkInterval = setInterval(throttledUpdateCheck, 100);
+    
+    return () => {
+      unsubscribe();
+      clearInterval(checkInterval);
+    };
+  }, []);
   
   // Get financial data directly from useAssetTracker with stable selectors
   const netWorth = useAssetTracker(
-    React.useCallback(state => state.totalNetWorth, [])
+    useCallback(state => state.totalNetWorth, [])
   );
   
   const wealth = useAssetTracker(
-    React.useCallback(state => state.totalCash, [])
+    useCallback(state => state.totalCash, [])
   );
   
   // Force reload of date from localStorage when dashboard mounts
@@ -310,7 +386,7 @@ export default function Dashboard() {
     } catch (e) {
       console.error('Error checking time consistency in Dashboard:', e);
     }
-  }, []);
+  }, [currentDay, currentMonth, currentYear, timeStore]);
   
   const { economyState } = useEconomy();
   // Audio removed
@@ -322,19 +398,34 @@ export default function Dashboard() {
   const recalculateTotals = useAssetTracker(state => state.recalculateTotals);
   const forceUpdate = useAssetTracker(state => state.forceUpdate);
   
-  // Fixed dependency array and optimized refresh logic
+  // Optimized refresh logic with useRef to avoid closure issues
+  const lastUpdateTime = useRef(0);
+  const updateIntervalRef = useRef(5000); // Reduce update frequency to 5 seconds
+  
   useEffect(() => {
     // Log for debugging
     console.log("Dashboard: Syncing assets with tracker on mount");
     
-    // Run once on mount
+    // Run once on mount with debouncing logic
     const syncAssetsOnce = () => {
+      const now = Date.now();
+      // Skip if last update was too recent (prevents excessive updates)
+      if (now - lastUpdateTime.current < updateIntervalRef.current * 0.8) {
+        console.log("Skipping asset sync - too soon since last update");
+        return;
+      }
+      
+      // Record update time
+      lastUpdateTime.current = now;
+      
       // Access state directly to avoid component re-renders
       if ((window as any).globalUpdateAllPrices) {
+        console.log("Dashboard: Running global price update");
         (window as any).globalUpdateAllPrices();
       } else {
         const characterStore = getStore('character');
         if (characterStore) {
+          console.log("Dashboard: Syncing assets with tracker");
           characterStore.getState().syncAssetsWithAssetTracker();
           recalculateTotals();
         } else {
@@ -346,14 +437,14 @@ export default function Dashboard() {
     // Sync immediately on mount
     syncAssetsOnce();
     
-    // Set up interval with stabilized functions
-    const refreshInterval = setInterval(syncAssetsOnce, 2000);
+    // Set up interval with stabilized functions and longer duration
+    const refreshInterval = setInterval(syncAssetsOnce, updateIntervalRef.current);
     
     // Cleanup on unmount
     return () => {
       clearInterval(refreshInterval);
     };
-  }, []); // Empty dependency array to run only on mount/unmount
+  }, [recalculateTotals]); // Include recalculateTotals in dependencies to avoid lint warnings
   
   // Simple state variables
   const [activeTab, setActiveTab] = useState('overview');
@@ -545,116 +636,133 @@ export default function Dashboard() {
                   <Button
                     variant="ghost"
                     size="lg"
-                    className="w-full h-20 futuristic-card card-hover border border-quaternary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
-                    onClick={() => navigate('/lifestyle')}
+                    className="w-full h-20 futuristic-card card-hover border border-quinary/30 flex flex-col items-center justify-center bg-background/30 backdrop-blur-sm"
+                    onClick={() => navigate('/businesses')}
                   >
-                    <Crown className="h-5 w-5 mb-2" />
-                    Lifestyle
+                    <Building className="h-5 w-5 mb-2 text-quinary" />
+                    Businesses
                   </Button>
                 </div>
               </TabsContent>
               
-              <TabsContent value="settings" className="mt-0 p-0">
+              <TabsContent value="settings" className="mt-4">
                 <div className="space-y-6">
-                  <Card className="border-primary/30 shadow-lg relative overflow-hidden">
-                    <div className="absolute -top-4 right-1/3 h-16 w-16 bg-primary/20 blur-2xl rounded-full"></div>
+                  <Card className="futuristic-card border-primary/30 shadow-lg backdrop-blur-sm bg-primary/5">
                     <CardHeader>
-                      <CardTitle className="text-xl">Game Settings</CardTitle>
-                      <CardDescription>Adjust your game preferences and manage your data</CardDescription>
+                      <CardTitle className="flex items-center">
+                        <RefreshCw className="h-5 w-5 mr-2 text-primary/70" />
+                        Time Settings
+                      </CardTitle>
+                      <CardDescription>Manage game time settings</CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {/* Game Data Management */}
-                      <div className="space-y-4">
-                        <h3 className="text-lg font-medium flex items-center">
-                          <HardDrive className="mr-2 h-5 w-5 text-primary" />
-                          Game Data Management
-                        </h3>
-                        <div className="flex flex-col space-y-2">
-                          {/* Save Game Data */}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start">
-                                <RefreshCw className="mr-2 h-4 w-4" />
-                                Backup Game Data
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Backup Game Data</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will save your current game data to your browser&apos;s local storage.
-                                  You can restore from this backup later if needed.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => {
-                                  // Handle backup logic here
-                                  // Audio removed
-                                  setShowBackupDialog(true);
-                                }}>
-                                  Create Backup
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                          
-                          {/* Reset Game Data */}
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" className="w-full justify-start border-red-500/30 text-red-500">
-                                <AlertTriangle className="mr-2 h-4 w-4" />
-                                Reset Game
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle className="text-red-500">Reset Game Data</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  This will permanently delete all your game progress. This action cannot be undone.
-                                  Are you sure you want to start fresh?
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => {
-                                  // First, manually clear character data to ensure it's gone
-                                  localStorage.removeItem('business-empire-character');
-                                  console.log("CRITICAL: Manually removed character data from Dashboard reset button");
-                                  
-                                  // Use our centralized reset function that ensures complete reset
-                                  performCompleteGameReset();
-                                  
-                                  // Display a toast message
-                                  toast.success("Game data has been completely reset");
-                                }} className="bg-red-500 hover:bg-red-600">
-                                  Reset Game
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="font-medium">Current Date</p>
+                          <p className="text-sm text-muted-foreground">
+                            <Calendar className="h-4 w-4 inline-block mr-1" />
+                            {formattedDate}
+                          </p>
                         </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            // Explicit type to avoid issues
+                            const currentTimeState = useTime.getState();
+                            console.log("Starting time skip...");
+                            currentTimeState.skipDays(7);
+                            toast.success("Skipped ahead 7 days");
+                          }}
+                        >
+                          <Clock className="h-4 w-4 mr-1.5" />
+                          Skip 7 Days
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  <Card className="futuristic-card border-primary/30 shadow-lg backdrop-blur-sm bg-primary/5">
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <HardDrive className="h-5 w-5 mr-2 text-primary/70" />
+                        Game Data
+                      </CardTitle>
+                      <CardDescription>Manage your saved game data</CardDescription>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="font-medium">Save Data</p>
+                          <p className="text-sm text-muted-foreground">Save & backup your game progress</p>
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            toast.success("Game saved");
+                          }}
+                        >
+                          <HardDrive className="h-4 w-4 mr-1.5" />
+                          Save Game
+                        </Button>
                       </div>
                       
-                      <Separator />
-                      
-                      {/* Game Credits */}
-                      <div className="pt-4">
-                        <h3 className="text-lg font-medium mb-2 flex items-center">
-                          <Award className="mr-2 h-5 w-5 text-yellow-400" />
-                          About This Game
-                        </h3>
-                        <div className="text-sm text-muted-foreground mb-4">
-                          <div className="font-semibold text-lg">Aspira</div>
-                          <div className="font-medium mb-2">Dream. Build. Live.</div>
-                          <p>A financial simulator that lets you experience the journey of wealth building through various investment decisions and lifestyle choices.</p>
+                      <div className="flex items-center justify-between">
+                        <div className="space-y-1">
+                          <p className="font-medium">Backup Data</p>
+                          <p className="text-sm text-muted-foreground">Create a backup of your progress</p>
                         </div>
-                        <div className="text-xs text-muted-foreground space-y-1">
-                          <p>Version: 1.0.0</p>
-                          <p>Created with 💖 by Replit</p>
-                          <p>© 2024 All Rights Reserved</p>
-                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => setShowBackupDialog(true)}
+                        >
+                          <HardDrive className="h-4 w-4 mr-1.5" />
+                          Export Backup
+                        </Button>
                       </div>
+                      
+                      {/* Reset game button - with confirmation */}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button 
+                            variant="destructive" 
+                            className="w-full mt-4"
+                          >
+                            <AlertTriangle className="h-4 w-4 mr-1.5" />
+                            Reset Game
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action will completely reset your game. All progress, assets, wealth, and stats will be lost and cannot be recovered.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => {
+                                performCompleteGameReset();
+                                toast.success("Game reset complete", {
+                                  description: "All progress has been reset. The game will restart.",
+                                });
+                                
+                                // Force a reload after a brief delay
+                                setTimeout(() => {
+                                  window.location.reload();
+                                }, 1500);
+                              }}
+                              className="bg-red-500 hover:bg-red-600"
+                            >
+                              <AlertTriangle className="h-4 w-4 mr-1.5" />
+                              Reset Everything
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
                     </CardContent>
                   </Card>
                 </div>
@@ -663,6 +771,36 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+      
+      {/* Export Backup Dialog */}
+      <AlertDialog open={showBackupDialog} onOpenChange={setShowBackupDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Export Game Backup</AlertDialogTitle>
+            <AlertDialogDescription>
+              Copy the text below to save your game progress. You can import this data later to restore your game.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="my-4 p-3 bg-primary/10 border border-primary/20 rounded-md max-h-[200px] overflow-auto font-mono text-xs">
+            {JSON.stringify(localStorage)}
+          </div>
+          
+          <Button 
+            onClick={() => {
+              navigator.clipboard.writeText(JSON.stringify(localStorage));
+              toast.success("Backup copied to clipboard");
+            }}
+            className="w-full mb-2"
+          >
+            Copy to Clipboard
+          </Button>
+          
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
