@@ -384,7 +384,10 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark">
       <QueryClientProvider client={queryClient}>
-        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <Router future={{ 
+          v7_startTransition: true, 
+          v7_relativeSplatPath: true
+        }}>
           {/* ScrollToTop ensures the window scrolls to the top on navigation */}
           <ScrollToTop />
           
@@ -393,7 +396,7 @@ function App() {
             <AppBackground />
             
             {/* Asset Refresh Provider - maintains consistent asset values across the app */}
-            <AssetRefreshProvider refreshInterval={2000}>
+            <AssetRefreshProvider refreshInterval={3000}>
               <Routes>
                 {/* Use our new ReliableDashboard for better data consistency */}
                 <Route path="/" element={<ReliableDashboard />} />
