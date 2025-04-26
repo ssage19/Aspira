@@ -166,8 +166,25 @@ export default function JobScreen() {
   const allocateSkillPoint = useCharacter(state => state.allocateSkillPoint);
   const spendEarnedSkillPoint = useCharacter(state => state.spendEarnedSkillPoint);
   
-  // Extract just the current date to prevent rerenders when other time properties change
-  const currentGameDate = useTime(state => state.currentGameDate);
+  // Extract just the current date and day counter to prevent rerenders when other time properties change
+  // Using a ref to avoid rerendering when these values change
+  const timeRef = useRef({
+    currentGameDate: useTime(state => state.currentGameDate),
+    dayCounter: useTime(state => state.dayCounter)
+  });
+  
+  // Update the ref values when time changes without causing rerenders
+  const latestCurrentGameDate = useTime(state => state.currentGameDate);
+  const latestDayCounter = useTime(state => state.dayCounter);
+  
+  // Update refs with latest values
+  useEffect(() => {
+    timeRef.current = {
+      currentGameDate: latestCurrentGameDate,
+      dayCounter: latestDayCounter
+    };
+  }, [latestCurrentGameDate, latestDayCounter]);
+  
   const { unlockAchievement } = useGame();
   const audio = useAudio();
   
@@ -584,32 +601,33 @@ export default function JobScreen() {
     }
   }, [challenges, job]);
   
-  // Challenge status checking and updating system - runs on game time changes
+  // Challenge status checking and updating system - runs on game time changes but with throttling
   useEffect(() => {
     // Only run if we have challenges and a valid game date
-    if (challenges.length === 0 || !currentGameDate) return;
+    if (challenges.length === 0 || !timeRef.current.currentGameDate) return;
     
-    console.log("🔍 Running challenge status check. Game date:", currentGameDate.toLocaleString());
+    console.log("🔍 Running challenge status check. Game date:", timeRef.current.currentGameDate?.toLocaleString());
     
     try {
-      // Create a fresh copy of challenges to avoid reference issues
-      const updatedChallenges = challenges.map(challenge => {
-        // Skip challenges that aren't in progress or are already complete
-        if (!challenge.inProgress || !challenge.startDate || challenge.completed) {
-          return challenge;
-        }
-        
-        // Use our specialized hook's logic directly here
-        // This avoids having to create React components for each challenge
-        try {
-          // Calculate progress using the same logic as our hook
-          const startDate = challenge.startDate instanceof Date 
-            ? challenge.startDate 
-            : new Date(challenge.startDate);
+        // Create a fresh copy of challenges to avoid reference issues
+        const updatedChallenges = challenges.map(challenge => {
+          // Skip challenges that aren't in progress or are already complete
+          if (!challenge.inProgress || !challenge.startDate || challenge.completed) {
+            return challenge;
+          }
           
-          const msDiff = currentGameDate.getTime() - startDate.getTime();
-          const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-          const monthsPassed = Math.floor(daysPassed / 30);
+          // Use our specialized hook's logic directly here
+          // This avoids having to create React components for each challenge
+          try {
+            // Calculate progress using the same logic as our hook
+            const startDate = challenge.startDate instanceof Date 
+              ? challenge.startDate 
+              : new Date(challenge.startDate);
+            
+            // Use timeRef to prevent rerendering
+            const msDiff = timeRef.current.currentGameDate.getTime() - startDate.getTime();
+            const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
+            const monthsPassed = Math.floor(daysPassed / 30);
           
           // Calculate progress percentage (0-100) based on days for more granular updates
           const totalDaysRequired = challenge.completionTime * 30;
@@ -641,14 +659,14 @@ export default function JobScreen() {
             return {
               ...challenge,
               readyForCompletion: true,
-              lastProgressUpdate: new Date(currentGameDate)
+              lastProgressUpdate: new Date(timeRef.current.currentGameDate)
             };
           }
           
           // Not ready yet, but always update the lastProgressUpdate for UI refresh
           return {
             ...challenge,
-            lastProgressUpdate: new Date(currentGameDate)
+            lastProgressUpdate: new Date(timeRef.current.currentGameDate)
           };
         } catch (calcError) {
           console.error(`Error calculating progress for challenge "${challenge.title}":`, calcError);
@@ -682,7 +700,7 @@ export default function JobScreen() {
     } catch (error) {
       console.error("Error in challenge status update system:", error);
     }
-  }, [currentGameDate, job, challenges, useTime(state => state.dayCounter)]);
+  }, [job, challenges]);
   
   // Start working on a challenge
   const handleStartChallenge = (challenge: ChallengeType) => {
@@ -699,13 +717,13 @@ export default function JobScreen() {
     // Audio removed
     
     // Create current date copy to avoid reference issues
-    const now = new Date(currentGameDate.getTime());
+    const now = new Date(timeRef.current.currentGameDate.getTime());
     
     // Debug the challenge start date to ensure it's working
     console.log(`📅 Starting challenge with date:`, {
       challenge: challenge.title,
       startDate: now.toISOString(),
-      currentGameDate: currentGameDate.toISOString(),
+      currentGameDate: timeRef.current.currentGameDate.toISOString(),
       dateObjectType: Object.prototype.toString.call(now),
       completionTimeInMonths: challenge.completionTime,
       totalDaysRequired: challenge.completionTime * 30
@@ -764,7 +782,7 @@ export default function JobScreen() {
     if (challenge.inProgress && challenge.startDate) {
       const startDate = new Date(challenge.startDate);
       // Calculate days passed since challenge started
-      const daysPassed = Math.floor((currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const daysPassed = Math.floor((timeRef.current.currentGameDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
       
       // Calculate total days required
       const totalDaysRequired = challenge.completionTime * 30;
