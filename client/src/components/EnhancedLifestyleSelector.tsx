@@ -603,28 +603,28 @@ export function EnhancedLifestyleSelector() {
           <div className="mt-4 space-y-4">
             {/* Basic Information */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-50 p-3 rounded-md">
-                <h4 className="font-medium text-sm mb-2 flex items-center">
-                  <Wallet className="h-4 w-4 mr-1 text-gray-600" />
+              <div className="bg-gray-800/90 p-3 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-2 flex items-center text-blue-300">
+                  <Wallet className="h-4 w-4 mr-1 text-blue-400" />
                   Financial Details
                 </h4>
-                <div className="space-y-1 text-sm">
+                <div className="space-y-1 text-sm text-gray-300">
                   <p>Initial Cost: {formatCurrency(selectedItem.price)}</p>
                   <p>Monthly Cost: {formatCurrency(selectedItem.maintenanceCost)}</p>
                   {selectedItem.requires?.netWorth && (
-                    <p className="text-amber-600">
+                    <p className="text-amber-400">
                       Requires Net Worth: {formatCurrency(selectedItem.requires.netWorth)}
                     </p>
                   )}
                 </div>
               </div>
               
-              <div className="bg-gray-50 p-3 rounded-md">
-                <h4 className="font-medium text-sm mb-2 flex items-center">
-                  <Star className="h-4 w-4 mr-1 text-gray-600" />
+              <div className="bg-gray-800/90 p-3 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-2 flex items-center text-blue-300">
+                  <Star className="h-4 w-4 mr-1 text-yellow-400" />
                   Core Benefits
                 </h4>
-                <div className="space-y-1 text-sm">
+                <div className="space-y-1 text-sm text-gray-300">
                   <p>Happiness: +{selectedItem.happiness}</p>
                   <p>Prestige: +{selectedItem.prestige}</p>
                   {selectedItem.durationInDays && (
@@ -635,13 +635,13 @@ export function EnhancedLifestyleSelector() {
             </div>
             
             {/* Direct Attributes Section */}
-            <div className="bg-blue-50 p-4 rounded-md">
-              <h4 className="font-medium text-sm mb-3 flex items-center">
-                <Activity className="h-4 w-4 mr-1 text-blue-600" />
+            <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
+              <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
+                <Activity className="h-4 w-4 mr-1 text-blue-400" />
                 Immediate Attribute Effects
               </h4>
               
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-300">
                 {selectedItem.attributes.healthImpact !== undefined && (
                   <div className="flex items-center">
                     <HeartPulse className={`h-4 w-4 mr-1 ${selectedItem.attributes.healthImpact >= 0 ? 'text-green-500' : 'text-red-500'}`} />
@@ -697,9 +697,9 @@ export function EnhancedLifestyleSelector() {
               selectedItem.attributes.mentalHealthEffects || 
               selectedItem.attributes.personalGrowth || 
               selectedItem.attributes.careerEffects) && (
-              <div className="bg-emerald-50 p-4 rounded-md">
-                <h4 className="font-medium text-sm mb-3 flex items-center">
-                  <Flame className="h-4 w-4 mr-1 text-emerald-600" />
+              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
+                  <Flame className="h-4 w-4 mr-1 text-orange-400" />
                   Long-term Effects
                 </h4>
                 
@@ -772,9 +772,9 @@ export function EnhancedLifestyleSelector() {
             
             {/* Synergies & Conflicts Section */}
             {(selectedItem.attributes.synergies || selectedItem.attributes.conflicts) && (
-              <div className="bg-gray-50 p-4 rounded-md">
-                <h4 className="font-medium text-sm mb-3 flex items-center">
-                  <Sparkles className="h-4 w-4 mr-1 text-amber-600" />
+              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
+                  <Sparkles className="h-4 w-4 mr-1 text-yellow-400" />
                   Synergies & Conflicts
                 </h4>
                 
@@ -782,13 +782,13 @@ export function EnhancedLifestyleSelector() {
                   {selectedItem.attributes.synergies?.map((synergy, index) => {
                     const synergyItem = allEnhancedLifestyleItems.find(item => item.id === synergy.itemId);
                     return (
-                      <div key={`synergy-${index}`} className="p-2 bg-green-50 border border-green-100 rounded-md">
-                        <h5 className="font-medium flex items-center text-green-600">
+                      <div key={`synergy-${index}`} className="p-2 bg-gray-800/40 border border-green-900/50 rounded-md">
+                        <h5 className="font-medium flex items-center text-green-400">
                           <Check className="h-3.5 w-3.5 mr-1" />
                           Synergy with {synergyItem?.name || 'another lifestyle choice'}
                         </h5>
-                        <p className="text-gray-600 mt-1">{synergy.description}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs">
+                        <p className="text-gray-300 mt-1">{synergy.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
                           {synergy.bonusEffects.map((effect, i) => (
                             <span key={`effect-${i}`} className="bg-green-100 text-green-800 rounded-full px-2 py-0.5">
                               {effect.attribute}: {effect.value >= 0 ? '+' : ''}{effect.value}
@@ -833,8 +833,8 @@ export function EnhancedLifestyleSelector() {
                 <div className="space-y-3 text-sm">
                   {selectedItem.attributes.specialTriggers.map((trigger, index) => (
                     <div key={`trigger-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <p className="text-gray-800">{trigger.description}</p>
-                      <div className="flex items-center mt-1 text-xs text-gray-500">
+                      <p className="text-gray-300">{trigger.description}</p>
+                      <div className="flex items-center mt-1 text-xs text-gray-300">
                         <span>Trigger type: {trigger.triggerType}</span>
                         <span className="ml-2">Chance: {Math.round(trigger.probability * 100)}%</span>
                       </div>
