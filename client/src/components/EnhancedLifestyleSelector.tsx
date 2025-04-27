@@ -802,13 +802,13 @@ export function EnhancedLifestyleSelector() {
                   {selectedItem.attributes.conflicts?.map((conflict, index) => {
                     const conflictItem = allEnhancedLifestyleItems.find(item => item.id === conflict.itemId);
                     return (
-                      <div key={`conflict-${index}`} className="p-2 bg-red-50 border border-red-100 rounded-md">
-                        <h5 className="font-medium flex items-center text-red-600">
+                      <div key={`conflict-${index}`} className="p-2 bg-gray-800/40 border border-red-900/50 rounded-md">
+                        <h5 className="font-medium flex items-center text-red-400">
                           <X className="h-3.5 w-3.5 mr-1" />
                           Conflict with {conflictItem?.name || 'another lifestyle choice'}
                         </h5>
-                        <p className="text-gray-600 mt-1">{conflict.description}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs">
+                        <p className="text-gray-300 mt-1">{conflict.description}</p>
+                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
                           {conflict.penaltyEffects.map((effect, i) => (
                             <span key={`effect-${i}`} className="bg-red-100 text-red-800 rounded-full px-2 py-0.5">
                               {effect.attribute}: {effect.value >= 0 ? '+' : ''}{effect.value}
@@ -824,9 +824,9 @@ export function EnhancedLifestyleSelector() {
             
             {/* Special Triggers Section */}
             {selectedItem.attributes.specialTriggers && (
-              <div className="bg-purple-50 p-4 rounded-md">
-                <h4 className="font-medium text-sm mb-3 flex items-center">
-                  <Gem className="h-4 w-4 mr-1 text-purple-600" />
+              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
+                  <Gem className="h-4 w-4 mr-1 text-purple-400" />
                   Special Opportunities
                 </h4>
                 
@@ -846,17 +846,17 @@ export function EnhancedLifestyleSelector() {
             
             {/* Additional Requirements & Restrictions */}
             {(selectedItem.requires || selectedItem.excludes) && (
-              <div className="bg-amber-50 p-4 rounded-md">
-                <h4 className="font-medium text-sm mb-3 flex items-center">
-                  <ShieldAlert className="h-4 w-4 mr-1 text-amber-600" />
+              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
+                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
+                  <ShieldAlert className="h-4 w-4 mr-1 text-amber-400" />
                   Requirements & Restrictions
                 </h4>
                 
                 <div className="space-y-3 text-sm">
                   {selectedItem.requires?.itemIds && selectedItem.requires.itemIds.length > 0 && (
                     <div>
-                      <p className="font-medium text-amber-700">Prerequisites:</p>
-                      <ul className="list-disc list-inside ml-2 text-gray-700">
+                      <p className="font-medium text-amber-400">Prerequisites:</p>
+                      <ul className="list-disc list-inside ml-2 text-gray-300">
                         {selectedItem.requires.itemIds.map((id, index) => {
                           const requiredItem = allEnhancedLifestyleItems.find(item => item.id === id);
                           return (
@@ -871,8 +871,8 @@ export function EnhancedLifestyleSelector() {
                   
                   {selectedItem.excludes && selectedItem.excludes.length > 0 && (
                     <div>
-                      <p className="font-medium text-amber-700">Conflicts with:</p>
-                      <ul className="list-disc list-inside ml-2 text-gray-700">
+                      <p className="font-medium text-amber-400">Conflicts with:</p>
+                      <ul className="list-disc list-inside ml-2 text-gray-300">
                         {selectedItem.excludes.map((id, index) => {
                           const excludedItem = allEnhancedLifestyleItems.find(item => item.id === id);
                           return (
