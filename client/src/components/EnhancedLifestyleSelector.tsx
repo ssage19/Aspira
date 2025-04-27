@@ -705,12 +705,12 @@ export function EnhancedLifestyleSelector() {
                 
                 <div className="space-y-3 text-sm">
                   {selectedItem.attributes.chronicHealthCondition?.map((condition, index) => (
-                    <div key={`health-${index}`} className="p-2 bg-white rounded-md">
+                    <div key={`health-${index}`} className="p-2 bg-gray-800/40 rounded-md">
                       <h5 className={`font-medium flex items-center ${condition.healthImpactPerMonth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         <HeartPulse className="h-3.5 w-3.5 mr-1" />
                         {condition.name}
                       </h5>
-                      <p className="text-gray-600 mt-1">{condition.description}</p>
+                      <p className="text-gray-300 mt-1">{condition.description}</p>
                       <div className="flex items-center mt-1 text-xs">
                         <span>Monthly Health Impact: {condition.healthImpactPerMonth >= 0 ? '+' : ''}{condition.healthImpactPerMonth}</span>
                         {condition.treatmentCostPerMonth && (
@@ -721,13 +721,13 @@ export function EnhancedLifestyleSelector() {
                   ))}
                   
                   {selectedItem.attributes.mentalHealthEffects?.map((effect, index) => (
-                    <div key={`mental-${index}`} className="p-2 bg-white rounded-md">
+                    <div key={`mental-${index}`} className="p-2 bg-gray-800/40 rounded-md">
                       <h5 className={`font-medium flex items-center ${effect.type === 'positive' ? 'text-blue-600' : 'text-amber-600'}`}>
                         <Brain className="h-3.5 w-3.5 mr-1" />
                         Mental Health {effect.type === 'positive' ? 'Benefit' : 'Impact'}
                       </h5>
-                      <p className="text-gray-600 mt-1">{effect.description}</p>
-                      <div className="flex items-center mt-1 text-xs">
+                      <p className="text-gray-300 mt-1">{effect.description}</p>
+                      <div className="flex items-center mt-1 text-xs text-gray-300">
                         <span>Monthly Happiness: {effect.happinessImpactPerMonth >= 0 ? '+' : ''}{effect.happinessImpactPerMonth}</span>
                         <span className="ml-3">Monthly Stress: {effect.stressImpactPerMonth >= 0 ? '+' : ''}{effect.stressImpactPerMonth}</span>
                       </div>
@@ -735,13 +735,13 @@ export function EnhancedLifestyleSelector() {
                   ))}
                   
                   {selectedItem.attributes.careerEffects?.map((effect, index) => (
-                    <div key={`career-${index}`} className="p-2 bg-white rounded-md">
+                    <div key={`career-${index}`} className="p-2 bg-gray-800/40 rounded-md">
                       <h5 className="font-medium flex items-center text-purple-600">
                         <Briefcase className="h-3.5 w-3.5 mr-1" />
                         Career Impact: {effect.aspect}
                       </h5>
-                      <p className="text-gray-600 mt-1">{effect.description}</p>
-                      <div className="flex items-center mt-1 text-xs">
+                      <p className="text-gray-300 mt-1">{effect.description}</p>
+                      <div className="flex items-center mt-1 text-xs text-gray-300">
                         <span>Prestige Impact: +{effect.prestigeImpact}</span>
                         {effect.incomeMultiplier && (
                           <span className="ml-3">Income Potential: ×{effect.incomeMultiplier.toFixed(2)}</span>
@@ -751,13 +751,13 @@ export function EnhancedLifestyleSelector() {
                   ))}
                   
                   {selectedItem.attributes.personalGrowth?.map((growth, index) => (
-                    <div key={`growth-${index}`} className="p-2 bg-white rounded-md">
+                    <div key={`growth-${index}`} className="p-2 bg-gray-800/40 rounded-md">
                       <h5 className="font-medium flex items-center text-indigo-600">
                         <Award className="h-3.5 w-3.5 mr-1" />
                         Personal Growth: {growth.area}
                       </h5>
-                      <p className="text-gray-600 mt-1">{growth.description}</p>
-                      <div className="flex flex-wrap gap-2 mt-1 text-xs">
+                      <p className="text-gray-300 mt-1">{growth.description}</p>
+                      <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
                         {growth.skillImpact.map((impact, i) => (
                           <span key={`skill-${i}`} className="bg-indigo-100 text-indigo-800 rounded-full px-2 py-0.5">
                             {impact.skillName}: +{impact.value}/month
@@ -832,7 +832,7 @@ export function EnhancedLifestyleSelector() {
                 
                 <div className="space-y-3 text-sm">
                   {selectedItem.attributes.specialTriggers.map((trigger, index) => (
-                    <div key={`trigger-${index}`} className="p-2 bg-white rounded-md">
+                    <div key={`trigger-${index}`} className="p-2 bg-gray-800/40 rounded-md">
                       <p className="text-gray-800">{trigger.description}</p>
                       <div className="flex items-center mt-1 text-xs text-gray-500">
                         <span>Trigger type: {trigger.triggerType}</span>
