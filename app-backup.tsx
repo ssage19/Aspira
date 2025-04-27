@@ -381,8 +381,12 @@ function App() {
             {/* Background with gradient based on theme */}
             <AppBackground />
             
-            {/* Asset Refresh Provider - maintains consistent asset values across the app */}
-            <AssetRefreshProvider refreshInterval={2000}>
+            {/* Asset Refresh Provider - only active when game is playing */}
+            {phase === "playing" ? (
+              <AssetRefreshProvider refreshInterval={2000}>
+            ) : (
+              // When not playing, just render content without the provider wrapper
+              <>
               <Routes>
                 {/* Use our new ReliableDashboard for better data consistency */}
                 <Route path="/" element={<ReliableDashboard />} />
