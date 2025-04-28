@@ -1826,6 +1826,44 @@ export const useCharacter = create<CharacterState>()(
         saveState();
       },
       
+      // Utility function to calculate property holding period in days
+      calculatePropertyHoldingPeriod: (property) => {
+        if (!property.purchaseTimestamp) {
+          // If no timestamp is available, try to use the purchaseDate string
+          if (!property.purchaseDate) {
+            console.log(`Property ${property.name} has no purchase date information`);
+            return 0;
+          }
+          
+          // Convert the ISO date string to a timestamp
+          const purchaseDate = new Date(property.purchaseDate);
+          if (isNaN(purchaseDate.getTime())) {
+            console.log(`Property ${property.name} has invalid purchase date: ${property.purchaseDate}`);
+            return 0;
+          }
+          
+          // Calculate days between purchase date and now
+          const now = Date.now();
+          const purchaseTime = purchaseDate.getTime();
+          const millisecondsSincePurchase = now - purchaseTime;
+          const daysSincePurchase = Math.floor(millisecondsSincePurchase / (1000 * 60 * 60 * 24));
+          
+          console.log(`Property ${property.name} holding period calculated from date string: ${daysSincePurchase} days`);
+          return Math.max(0, daysSincePurchase);
+        }
+        
+        // Calculate days between purchase timestamp and now
+        const now = Date.now();
+        const purchaseTime = property.purchaseTimestamp;
+        const millisecondsSincePurchase = now - purchaseTime;
+        const daysSincePurchase = Math.floor(millisecondsSincePurchase / (1000 * 60 * 60 * 24));
+        
+        console.log(`Property ${property.name} holding period calculated from timestamp: ${daysSincePurchase} days`);
+        
+        // Make sure we never return a negative number (could happen if system clock is wrong)
+        return Math.max(0, daysSincePurchase);
+      },
+      
       // Lifestyle
       addLifestyleItem: (item) => {
         // Use maintenanceCost for monthly expenses, defaulting to 0 if not provided
