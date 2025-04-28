@@ -384,6 +384,17 @@ const useChallengesStore = create<ChallengesState>()(
                 currentProgress = Math.min(characterState.jobHistory.length, 1);
                 conditionMet = characterState.jobHistory.length > 1;
                 break;
+              case 'career-5':
+                if (!characterState.job) {
+                  currentProgress = 0;
+                  conditionMet = false;
+                } else {
+                  const daysWorked = characterState.job.daysWorked || 0;
+                  currentProgress = Math.min(daysWorked, 30);
+                  conditionMet = daysWorked >= 30;
+                  console.log(`Career veteran challenge progress: ${daysWorked}/${30} days worked`);
+                }
+                break;
               
               // Skill challenges
               case 'skills-1':
@@ -1126,6 +1137,33 @@ function generateChallenges(): Challenge[] {
       },
       checkCondition: () => (characterState.job?.salary || 0) >= 100000,
       getProgressValue: () => Math.min(characterState.job?.salary || 0, 100000)
+    },
+    {
+      id: 'career-5',
+      title: 'Career Veteran',
+      description: 'Work for 30 days at the same job',
+      category: 'career',
+      difficulty: 'advanced',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 30,
+      reward: {
+        type: 'skill_points',
+        value: 150,
+        description: '150 skill points'
+      },
+      checkCondition: () => {
+        if (!characterState.job) return false;
+        const daysWorked = characterState.job.daysWorked || 0;
+        return daysWorked >= 30;
+      },
+      getProgressValue: () => {
+        if (!characterState.job) return 0;
+        const daysWorked = characterState.job.daysWorked || 0;
+        return Math.min(daysWorked, 30);
+      }
     },
     
     // --- MORE SKILL CHALLENGES ---
