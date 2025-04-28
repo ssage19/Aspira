@@ -3888,20 +3888,25 @@ export const useCharacter = create<CharacterState>()(
               paidOffProperties.push(property.name);
             }
             
-            // Log the mortgage payment breakdown (console only, no toast)
+            // Calculate current equity (property value minus remaining loan)
+            const currentEquity = property.currentValue - finalLoanAmount;
+            
+            // Log detailed mortgage payment breakdown (console only, no toast)
             console.log(`Property mortgage payment for ${property.name}:`);
+            console.log(`  Property current value: $${property.currentValue.toFixed(2)}`);
             console.log(`  Total payment: $${property.monthlyPayment.toFixed(2)}`);
             console.log(`  Interest portion: $${interestPayment.toFixed(2)}`);
             console.log(`  Principal portion: $${principalPayment.toFixed(2)}`);
             console.log(`  Previous loan balance: $${property.loanAmount.toFixed(2)}`);
             console.log(`  New loan balance: $${finalLoanAmount.toFixed(2)}`);
+            console.log(`  Updated equity: $${currentEquity.toFixed(2)}`);
             
-            // Return updated property with new loan amount
+            // Return updated property with new loan amount and recalculated equity
             return {
               ...property,
               loanAmount: finalLoanAmount,
               // Update equity (current value minus remaining loan)
-              equity: property.currentValue - finalLoanAmount
+              equity: currentEquity
             };
           });
           
@@ -3923,16 +3928,32 @@ export const useCharacter = create<CharacterState>()(
             }
           }
           
-          // Sync with asset tracker if it's available
+          // Sync with asset tracker if it's available - CRITICAL for mortgage payment tracking
           if (useAssetTracker) {
             const assetTracker = useAssetTracker.getState();
             
-            // Update each property in the asset tracker
+            // Update each property in the asset tracker after mortgage payments
+            console.log("Monthly update: Syncing updated properties to asset tracker after mortgage payments");
+            
             updatedProperties.forEach(property => {
               if (assetTracker.updateProperty) {
-                assetTracker.updateProperty(property.id, property.currentValue, property.loanAmount);
+                console.log(`Syncing property ${property.name} after mortgage payment:`, {
+                  value: property.currentValue,
+                  loanAmount: property.loanAmount,
+                  equity: property.equity || (property.currentValue - property.loanAmount)
+                });
+                
+                // This ensures mortgage payments are properly reflected in asset tracker
+                assetTracker.updateProperty(
+                  property.id, 
+                  property.currentValue,
+                  property.loanAmount
+                );
               }
             });
+            
+            // Force asset tracker to recalculate totals after all property updates
+            assetTracker.recalculateTotals();
           }
         }
         

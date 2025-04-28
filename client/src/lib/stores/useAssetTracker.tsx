@@ -598,6 +598,28 @@ export const useAssetTracker = create<AssetTrackerState>()(
       
       updateProperty: (id, currentValue, mortgage) => {
         set((state) => {
+          // Find the existing property to log changes
+          const existingProperty = state.properties.find(p => p.id === id);
+          
+          if (existingProperty) {
+            // Calculate old equity and new equity
+            const oldEquity = existingProperty.currentValue - existingProperty.mortgage;
+            const newEquity = currentValue - mortgage;
+            const equityChange = newEquity - oldEquity;
+            
+            // Log detailed property update for debugging
+            console.log(`AssetTracker: Updating property ${existingProperty.name} (${id})`);
+            console.log(`  Value: ${existingProperty.currentValue.toFixed(2)} → ${currentValue.toFixed(2)}`);
+            console.log(`  Mortgage: ${existingProperty.mortgage.toFixed(2)} → ${mortgage.toFixed(2)}`);
+            console.log(`  Equity: ${oldEquity.toFixed(2)} → ${newEquity.toFixed(2)} (${equityChange >= 0 ? '+' : ''}${equityChange.toFixed(2)})`);
+            
+            // Check for unrealistic changes
+            const valueChangePercent = ((currentValue - existingProperty.currentValue) / existingProperty.currentValue) * 100;
+            if (Math.abs(valueChangePercent) > 5) {
+              console.warn(`WARNING: Large property value change detected (${valueChangePercent.toFixed(2)}%)`);
+            }
+          }
+          
           const updatedProperties = state.properties.map(property => {
             if (property.id === id) {
               const equity = currentValue - mortgage;
