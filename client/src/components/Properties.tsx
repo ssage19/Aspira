@@ -1248,7 +1248,16 @@ export function Properties() {
                             {property.type === 'industrial' && <Warehouse className="h-4 w-4 mr-2 text-orange-500" />}
                             {property.name}
                           </CardTitle>
-                          <CardDescription>Purchased: {property.purchaseDate}</CardDescription>
+                          <CardDescription>
+                            Purchased: {property.purchaseDate}
+                            {property.holdingPeriodInDays !== undefined && (
+                              <span className="block text-xs text-muted-foreground">
+                                Holding Period: {property.holdingPeriodInDays} days 
+                                {property.holdingPeriodInDays > 365 ? 
+                                  ` (${(property.holdingPeriodInDays / 365).toFixed(1)} years)` : ''}
+                              </span>
+                            )}
+                          </CardDescription>
                         </CardHeader>
                         <CardContent className="pb-2">
                           <div className="space-y-2 text-sm">

@@ -1215,17 +1215,21 @@ export const useCharacter = create<CharacterState>()(
             // Also track real-world timestamp for accurate holding period calculations
             property.purchaseTimestamp = Date.now();
             
-            console.log(`Set property purchase date to game date: ${property.purchaseDate}`);
-            console.log(`Set property purchase timestamp to: ${new Date(property.purchaseTimestamp).toLocaleString()}`);
+            console.log(`[PROPERTY HOLDING] Set property purchase date to game date: ${property.purchaseDate}`);
+            console.log(`[PROPERTY HOLDING] Set property purchase timestamp to: ${new Date(property.purchaseTimestamp).toLocaleString()}`);
           } else {
             // Fallback to current real-world date
             const now = new Date();
             property.purchaseDate = now.toISOString().split('T')[0];
             property.purchaseTimestamp = now.getTime();
             
-            console.log(`Set property purchase date to current date: ${property.purchaseDate}`);
+            console.log(`[PROPERTY HOLDING] Set property purchase date to current date: ${property.purchaseDate}`);
           }
         }
+        
+        // Initialize the holding period in days to 0 for newly purchased properties
+        property.holdingPeriodInDays = 0;
+        console.log(`[PROPERTY HOLDING] Initialized holding period to 0 days for new property: ${property.name}`);
         
         // Check if the purchase would result in negative wealth
         const currentWealth = get().wealth;
@@ -1291,7 +1295,7 @@ export const useCharacter = create<CharacterState>()(
             - mortgage: ${mortgage}
           `);
           
-          // Make sure we pass purchase date to the asset tracker
+          // Make sure we pass purchase date and holding period to the asset tracker
           assetTracker.addProperty({
             id: property.id,
             name: property.name,
@@ -1299,7 +1303,8 @@ export const useCharacter = create<CharacterState>()(
             currentValue: currentValue,
             mortgage: mortgage,
             purchaseDate: property.purchaseDate,
-            purchaseTimestamp: property.purchaseTimestamp
+            purchaseTimestamp: property.purchaseTimestamp,
+            holdingPeriodInDays: property.holdingPeriodInDays
           });
           
           // Update cash in asset tracker to match character wealth exactly
