@@ -369,8 +369,16 @@ const useChallengesStore = create<ChallengesState>()(
               
               // Career challenges
               case 'career-1':
-                currentProgress = characterState.job ? 1 : 0;
-                conditionMet = characterState.job !== null;
+                // Use the daysWorked property to track job duration
+                if (!characterState.job) {
+                  currentProgress = 0;
+                  conditionMet = false;
+                } else {
+                  const daysWorked = characterState.job.daysWorked || 0;
+                  currentProgress = Math.min(daysWorked, 7);
+                  conditionMet = daysWorked >= 7;
+                  console.log(`Career challenge progress: ${daysWorked}/${7} days worked`);
+                }
                 break;
               case 'career-2':
                 currentProgress = Math.min(characterState.jobHistory.length, 1);
@@ -794,13 +802,17 @@ function generateChallenges(): Challenge[] {
       },
       checkCondition: () => {
         if (!characterState.job) return false;
-        const daysSinceHired = characterState.job.daysWorked || 0;
-        return daysSinceHired >= 7;
+        const daysWorked = characterState.job.daysWorked || 0;
+        const completed = daysWorked >= 7;
+        if (completed) {
+          console.log(`Career-1 challenge completed! Days worked: ${daysWorked}`);
+        }
+        return completed;
       },
       getProgressValue: () => {
         if (!characterState.job) return 0;
-        const daysSinceHired = characterState.job.daysWorked || 0;
-        return Math.min(daysSinceHired, 7);
+        const daysWorked = characterState.job.daysWorked || 0;
+        return Math.min(daysWorked, 7);
       }
     },
     {
