@@ -1828,37 +1828,61 @@ export const useCharacter = create<CharacterState>()(
       
       // Utility function to calculate property holding period in days
       calculatePropertyHoldingPeriod: (property) => {
+        // First try to use the game time from the time store for more accurate in-game time
+        const timeStore = getStore('time');
+        let currentGameDate = new Date();
+        let useGameTime = false;
+        
+        // Try to get the current game date from the time store
+        if (timeStore && timeStore.getState) {
+          try {
+            const timeState = timeStore.getState();
+            if (timeState && timeState.currentGameDate) {
+              currentGameDate = timeState.currentGameDate;
+              useGameTime = true;
+            }
+          } catch (error) {
+            console.warn(`[PROPERTY HOLDING] Failed to get game time:`, error);
+            // Fall back to system time
+          }
+        }
+        
         if (!property.purchaseTimestamp) {
           // If no timestamp is available, try to use the purchaseDate string
           if (!property.purchaseDate) {
-            console.log(`Property ${property.name} has no purchase date information`);
+            console.log(`[PROPERTY HOLDING] Property ${property.name} has no purchase date information`);
             return 0;
           }
           
           // Convert the ISO date string to a timestamp
           const purchaseDate = new Date(property.purchaseDate);
           if (isNaN(purchaseDate.getTime())) {
-            console.log(`Property ${property.name} has invalid purchase date: ${property.purchaseDate}`);
+            console.log(`[PROPERTY HOLDING] Property ${property.name} has invalid purchase date: ${property.purchaseDate}`);
             return 0;
           }
           
-          // Calculate days between purchase date and now
-          const now = Date.now();
+          // Calculate days between purchase date and the current game date or now
+          const currentTime = useGameTime ? currentGameDate.getTime() : Date.now();
           const purchaseTime = purchaseDate.getTime();
-          const millisecondsSincePurchase = now - purchaseTime;
+          const millisecondsSincePurchase = currentTime - purchaseTime;
           const daysSincePurchase = Math.floor(millisecondsSincePurchase / (1000 * 60 * 60 * 24));
           
-          console.log(`Property ${property.name} holding period calculated from date string: ${daysSincePurchase} days`);
+          if (useGameTime) {
+            console.log(`[PROPERTY HOLDING] Property ${property.name} holding period calculated from date string using game time: ${daysSincePurchase} days`);
+          }
+          
           return Math.max(0, daysSincePurchase);
         }
         
-        // Calculate days between purchase timestamp and now
-        const now = Date.now();
+        // Calculate days between purchase timestamp and the current game date or now
+        const currentTime = useGameTime ? currentGameDate.getTime() : Date.now();
         const purchaseTime = property.purchaseTimestamp;
-        const millisecondsSincePurchase = now - purchaseTime;
+        const millisecondsSincePurchase = currentTime - purchaseTime;
         const daysSincePurchase = Math.floor(millisecondsSincePurchase / (1000 * 60 * 60 * 24));
         
-        console.log(`Property ${property.name} holding period calculated from timestamp: ${daysSincePurchase} days`);
+        if (useGameTime) {
+          console.log(`[PROPERTY HOLDING] Property ${property.name} holding period calculated from timestamp using game time: ${daysSincePurchase} days`);
+        }
         
         // Make sure we never return a negative number (could happen if system clock is wrong)
         return Math.max(0, daysSincePurchase);
@@ -3496,6 +3520,70 @@ export const useCharacter = create<CharacterState>()(
           
           // Update the current day in state for property income calculations
           state.currentDay = currentDay;
+          
+          // Update holding period for all properties
+          if (state.properties && state.properties.length > 0) {
+            console.log(`[PROPERTY HOLDING] Updating holding periods for ${state.properties.length} properties`);
+            
+            // Process each property to update its holding period
+            state.properties = state.properties.map(property => {
+              if (property.purchaseDate || property.purchaseTimestamp) {
+                // Calculate days since purchase
+                const holdingPeriodInDays = state.calculatePropertyHoldingPeriod(property);
+                
+                // Log details only if the holding period has changed
+                if (holdingPeriodInDays !== property.holdingPeriodInDays) {
+                  console.log(`[PROPERTY HOLDING] ${property.name}: ${holdingPeriodInDays} days (was: ${property.holdingPeriodInDays || 0})`);
+                }
+                
+                // Return updated property with new holding period
+                return {
+                  ...property,
+                  holdingPeriodInDays
+                };
+              }
+              return property;
+            });
+            
+            // After updating all properties, sync with asset tracker
+            try {
+              const assetTracker = useAssetTracker.getState();
+              if (assetTracker) {
+                // Only update properties with holding period data
+                const propertiesWithHoldingData = state.properties.filter(p => 
+                  p.holdingPeriodInDays !== undefined && 
+                  (p.purchaseDate || p.purchaseTimestamp)
+                );
+                
+                if (propertiesWithHoldingData.length > 0) {
+                  console.log(`[PROPERTY HOLDING] Syncing ${propertiesWithHoldingData.length} properties with updated holding periods to asset tracker`);
+                  
+                  // We need to remove and re-add properties since updateProperty doesn't update these fields
+                  propertiesWithHoldingData.forEach(property => {
+                    // First remove the property
+                    assetTracker.removeProperty(property.id);
+                    
+                    // Then re-add it with all the updated data
+                    assetTracker.addProperty({
+                      id: property.id,
+                      name: property.name,
+                      purchasePrice: property.purchasePrice,
+                      currentValue: property.currentValue,
+                      mortgage: property.loanAmount,
+                      purchaseDate: property.purchaseDate,
+                      purchaseTimestamp: property.purchaseTimestamp,
+                      holdingPeriodInDays: property.holdingPeriodInDays
+                    });
+                  });
+                  
+                  // Force asset tracker to recalculate totals
+                  assetTracker.recalculateTotals();
+                }
+              }
+            } catch (error) {
+              console.error("[PROPERTY HOLDING] Error syncing holding periods to asset tracker:", error);
+            }
+          }
           
           // If the character has a job, check if we need to improve job-related skills
           if (state.job && state.job.monthsInPosition !== undefined) {            
