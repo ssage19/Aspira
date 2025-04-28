@@ -49,10 +49,11 @@ export function MarketPriceUpdater() {
   }, []);
   
   // Helper function to get market factor based on market trend
+  // More balanced market factors with similar magnitude effects in both directions
   const getMarketFactor = useCallback((trend: string): number => {
-    if (trend === 'bull') return 1.08; // Increased bullish effect
-    if (trend === 'bear') return 0.97; // Decreased bearish effect (less negative)
-    return 1.01; // Slightly positive bias for stable market (realistic long-term growth)
+    if (trend === 'bull') return 1.04; // Reduced bullish effect (4% instead of 8%)
+    if (trend === 'bear') return 0.96; // Increased bearish effect (-4% instead of -3%)
+    return 1.00; // Neutral stable market (removed positive bias)
   }, []);
 
   // Occasional updates to lifestyle item values (very low volatility)
@@ -543,11 +544,11 @@ export function MarketPriceUpdater() {
         // Time-based component (very minor influence)
         const timeFactor = Math.sin(currentDay / 30 * Math.PI) * volatilityFactor * 0.1;
         
-        // Calculate random price movement with a slight bias toward positive returns
-        // This better simulates long-term market growth while maintaining volatility
-        // Adjusted to create a 55% chance of positive movement, 45% negative
+        // Calculate random price movement with NO bias (true 50/50 chance)
+        // This creates a more realistic market that doesn't allow "sure thing" investments
+        // A true random walk is more realistic than a perpetually rising market
         const randomValue = Math.random(); // Random value between 0 and 1
-        const adjustedRandom = randomValue * 1.1 - 0.5; // Slight positive bias
+        const adjustedRandom = (randomValue * 2) - 1; // True random from -1.0 to +1.0 (no bias)
         const baseChangePercent = adjustedRandom * volatilityFactor;
         
         // Apply market influence as a subtle bias, not a guaranteed direction
@@ -556,15 +557,19 @@ export function MarketPriceUpdater() {
         // Combine random movement, market influence and time factor
         let totalChangePercent = baseChangePercent + marketEffect + timeFactor;
         
-        // Add a tiny natural growth factor (simulates overall market growth over time)
-        totalChangePercent += 0.0003; // Very small increment (~0.03% extra growth)
+        // Natural growth factor - but make it variable based on market conditions
+        // In bull markets: tiny growth, bear markets: tiny decline, stable markets: zero
+        const naturalFactor = marketTrend === 'bull' ? 0.0001 : 
+                             marketTrend === 'bear' ? -0.0001 : 0;
+        totalChangePercent += naturalFactor;
         
         // Force occasional opposite direction movements regardless of market trend
-        // This ensures realistic price patterns with proper corrections
-        if (Math.random() < 0.30) { // Reduced to 30% chance (less contrarian movements)
-          // If the change is positive, make it negative and vice versa, but less severe
+        // This ensures realistic price patterns with proper corrections and market cycles
+        if (Math.random() < 0.40) { // Increased to 40% chance (more contrarian movements)
+          // If the change is positive, make it negative and vice versa
+          // Apply full strength for more pronounced corrections
           const originalDirection = Math.sign(totalChangePercent);
-          totalChangePercent = -originalDirection * Math.abs(totalChangePercent) * 0.7;
+          totalChangePercent = -originalDirection * Math.abs(totalChangePercent) * 0.9;
           console.log(`MarketPriceUpdater: Forcing contrarian movement for ${stock.id}: ${totalChangePercent.toFixed(4)}%`);
         }
         
