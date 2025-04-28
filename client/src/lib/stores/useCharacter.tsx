@@ -1968,8 +1968,14 @@ export const useCharacter = create<CharacterState>()(
       
       // Career
       setJob: (job) => {
+        // Initialize the daysWorked property for the new job
+        const jobWithDaysWorked = {
+          ...job,
+          daysWorked: 0 // Start tracking from day 0
+        };
+        
         set((state) => ({
-          job,
+          job: jobWithDaysWorked,
           // We'll calculate income dynamically on a daily basis now
           // but we'll keep income field as total annual income for reference
           income: job.salary,
@@ -1978,6 +1984,7 @@ export const useCharacter = create<CharacterState>()(
           freeTime: Math.max(0, 168 - job.timeCommitment) // 168 hours in a week
         }));
         
+        console.log(`Started new job: ${job.title} at ${job.company} with daysWorked initialized to 0`);
         saveState();
       },
       
@@ -1997,8 +2004,17 @@ export const useCharacter = create<CharacterState>()(
             ? [...state.jobHistory, { ...oldJob, monthsInPosition: monthsInPosition }] 
             : state.jobHistory;
           
+          // Initialize daysWorked counter for the new job
+          const jobWithDaysWorked = {
+            ...newJob,
+            monthsInPosition: 0, // Reset months in position for new job
+            daysWorked: 0 // Initialize days worked counter for challenge tracking
+          };
+          
+          console.log(`Promoted to new job: ${newJob.title} at ${newJob.company} with daysWorked initialized to 0`);
+          
           return {
-            job: { ...newJob, monthsInPosition: 0 }, // Reset months in position for new job
+            job: jobWithDaysWorked,
             jobHistory: updatedHistory,
             // Keep income as the annual salary for reference
             income: newJob.salary,
@@ -3595,6 +3611,15 @@ export const useCharacter = create<CharacterState>()(
           if (state.job && state.job.monthsInPosition !== undefined) {            
             // Increment days since promotion counter first
             daysSincePromotion += 1;
+            
+            // Increment days worked counter for challenge tracking
+            if (state.job.daysWorked !== undefined) {
+              state.job.daysWorked += 1;
+              console.log(`Job days worked updated: ${state.job.daysWorked} days at ${state.job.title}`);
+            } else {
+              state.job.daysWorked = 1;
+              console.log(`Started tracking job days worked: 1 day at ${state.job.title}`);
+            }
             
             // Check if we've reached a 30-day milestone with the job
             // The daysSincePromotion counter tracks job tenure in days
