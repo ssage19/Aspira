@@ -3123,6 +3123,18 @@ export const useCharacter = create<CharacterState>()(
           // 4. Update/add existing properties
           (state.properties || []).forEach(property => {
             if (property && property.id) {
+              // Update holding period calculation for each property
+              // This updates the property in memory before syncing to asset tracker
+              if (property.purchaseDate || property.purchaseTimestamp) {
+                // Calculate days since purchase and update the property
+                const holdingPeriodInDays = state.calculatePropertyHoldingPeriod(property);
+                property.holdingPeriodInDays = holdingPeriodInDays;
+                
+                console.log(`[PROPERTY HOLDING] ${property.name}: ${holdingPeriodInDays} days since purchase`);
+              } else {
+                console.log(`[PROPERTY HOLDING] ${property.name}: Missing purchase date information`);
+              }
+              
               // Check if property exists in the tracker
               const existingProperty = assetTracker.properties.find(p => p.id === property.id);
               
@@ -3133,15 +3145,36 @@ export const useCharacter = create<CharacterState>()(
                   property.currentValue, 
                   property.loanAmount
                 );
+                
+                // Unfortunately updateProperty doesn't update purchase dates
+                // So we need to remove and re-add the property to ensure all data is synchronized
+                if (property.purchaseDate || property.purchaseTimestamp) {
+                  assetTracker.removeProperty(property.id);
+                  assetTracker.addProperty({
+                    id: property.id,
+                    name: property.name,
+                    purchasePrice: property.purchasePrice,
+                    currentValue: property.currentValue,
+                    mortgage: property.loanAmount,
+                    purchaseDate: property.purchaseDate,
+                    purchaseTimestamp: property.purchaseTimestamp,
+                    holdingPeriodInDays: property.holdingPeriodInDays
+                  });
+                  console.log(`[PROPERTY SYNC] Re-added ${property.name} with holding period data`);
+                }
               } else {
-                // Add new property to tracker
+                // Add new property to tracker with all purchase date information
                 assetTracker.addProperty({
                   id: property.id,
                   name: property.name,
                   purchasePrice: property.purchasePrice,
                   currentValue: property.currentValue,
                   mortgage: property.loanAmount,
+                  purchaseDate: property.purchaseDate,
+                  purchaseTimestamp: property.purchaseTimestamp,
+                  holdingPeriodInDays: property.holdingPeriodInDays
                 });
+                console.log(`[PROPERTY SYNC] Added new property ${property.name} with holding period: ${property.holdingPeriodInDays || 0} days`);
               }
             }
           });
