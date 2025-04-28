@@ -626,27 +626,46 @@ function generateChallenges(): Challenge[] {
     // --- WEALTH CHALLENGES ---
     {
       id: 'wealth-1',
-      title: 'First $10,000',
-      description: 'Accumulate $10,000 in cash',
+      title: 'First $5,000',
+      description: 'Accumulate $5,000 in cash',
       category: 'wealth',
       difficulty: 'beginner',
       isActive: false,
       isCompleted: false,
       isFailed: false,
       progress: 0,
-      targetValue: 10000,
+      targetValue: 5000,
       reward: {
         type: 'cash',
-        value: 1000,
-        description: '$1,000 cash bonus'
+        value: 500,
+        description: '$500 cash bonus'
       },
-      checkCondition: () => characterState.wealth >= 10000,
-      getProgressValue: () => Math.min(characterState.wealth, 10000)
+      checkCondition: () => characterState.wealth >= 5000,
+      getProgressValue: () => Math.min(characterState.wealth, 5000)
     },
     {
       id: 'wealth-2',
-      title: 'First $50,000',
-      description: 'Accumulate $50,000 in cash',
+      title: 'First $20,000',
+      description: 'Accumulate $20,000 in cash',
+      category: 'wealth',
+      difficulty: 'beginner',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 20000,
+      reward: {
+        type: 'cash',
+        value: 2000,
+        description: '$2,000 cash bonus'
+      },
+      checkCondition: () => characterState.wealth >= 20000,
+      getProgressValue: () => Math.min(characterState.wealth, 20000)
+    },
+    {
+      id: 'wealth-3',
+      title: 'First $50,000 Net Worth',
+      description: 'Reach $50,000 in total net worth',
       category: 'wealth',
       difficulty: 'intermediate',
       isActive: false,
@@ -659,11 +678,11 @@ function generateChallenges(): Challenge[] {
         value: 5000,
         description: '$5,000 cash bonus'
       },
-      checkCondition: () => characterState.wealth >= 50000,
-      getProgressValue: () => Math.min(characterState.wealth, 50000)
+      checkCondition: () => characterState.netWorth >= 50000,
+      getProgressValue: () => Math.min(characterState.netWorth, 50000)
     },
     {
-      id: 'wealth-3',
+      id: 'wealth-6',
       title: 'First $100,000 Net Worth',
       description: 'Reach $100,000 in total net worth',
       category: 'wealth',
@@ -685,22 +704,41 @@ function generateChallenges(): Challenge[] {
     // --- INVESTMENT CHALLENGES ---
     {
       id: 'invest-1',
-      title: 'Diversification Beginner',
-      description: 'Own 5 different stocks',
+      title: 'First Investment',
+      description: 'Own your first stock or bond',
       category: 'investment',
       difficulty: 'beginner',
       isActive: false,
       isCompleted: false,
       isFailed: false,
       progress: 0,
-      targetValue: 5,
+      targetValue: 1,
       reward: {
         type: 'cash',
-        value: 2000,
-        description: '$2,000 cash bonus'
+        value: 500,
+        description: '$500 cash bonus'
       },
-      checkCondition: () => assetTrackerState.stocks.length >= 5,
-      getProgressValue: () => Math.min(assetTrackerState.stocks.length, 5)
+      checkCondition: () => assetTrackerState.stocks.length + assetTrackerState.bonds.length >= 1,
+      getProgressValue: () => Math.min(assetTrackerState.stocks.length + assetTrackerState.bonds.length, 1)
+    },
+    {
+      id: 'invest-5',
+      title: 'Diversification Beginner',
+      description: 'Own 3 different stocks',
+      category: 'investment',
+      difficulty: 'beginner',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 3,
+      reward: {
+        type: 'cash',
+        value: 1500,
+        description: '$1,500 cash bonus'
+      },
+      checkCondition: () => assetTrackerState.stocks.length >= 3,
+      getProgressValue: () => Math.min(assetTrackerState.stocks.length, 3)
     },
     {
       id: 'invest-2',
@@ -740,22 +778,30 @@ function generateChallenges(): Challenge[] {
     // --- CAREER CHALLENGES ---
     {
       id: 'career-1',
-      title: 'Job Hunter',
-      description: 'Get hired for your first job',
+      title: 'Work Experience',
+      description: 'Complete 7 days at your current job',
       category: 'career',
       difficulty: 'beginner',
       isActive: false,
       isCompleted: false,
       isFailed: false,
       progress: 0,
-      targetValue: 1,
+      targetValue: 7,
       reward: {
         type: 'skill_points',
         value: 50,
         description: '50 skill points'
       },
-      checkCondition: () => characterState.job !== null,
-      getProgressValue: () => characterState.job ? 1 : 0
+      checkCondition: () => {
+        if (!characterState.job) return false;
+        const daysSinceHired = characterState.job.daysWorked || 0;
+        return daysSinceHired >= 7;
+      },
+      getProgressValue: () => {
+        if (!characterState.job) return 0;
+        const daysSinceHired = characterState.job.daysWorked || 0;
+        return Math.min(daysSinceHired, 7);
+      }
     },
     {
       id: 'career-2',
@@ -781,6 +827,40 @@ function generateChallenges(): Challenge[] {
     // --- SKILLS CHALLENGES ---
     {
       id: 'skills-1',
+      title: 'Skill Building',
+      description: 'Reach 100 points in any skill',
+      category: 'skills',
+      difficulty: 'beginner',
+      isActive: false,
+      isCompleted: false,
+      isFailed: false,
+      progress: 0,
+      targetValue: 100,
+      reward: {
+        type: 'skill_points',
+        value: 50,
+        description: '50 skill points to allocate'
+      },
+      checkCondition: () => {
+        return (
+          characterState.skills.technical >= 100 ||
+          characterState.skills.leadership >= 100 ||
+          characterState.skills.creativity >= 100 ||
+          characterState.skills.charisma >= 100
+        );
+      },
+      getProgressValue: () => {
+        const skillValues = [
+          characterState.skills.technical,
+          characterState.skills.leadership,
+          characterState.skills.creativity,
+          characterState.skills.charisma
+        ];
+        return Math.min(Math.max(...skillValues), 100);
+      }
+    },
+    {
+      id: 'skills-5',
       title: 'Technical Expert',
       description: 'Reach 500 Technical skill points',
       category: 'skills',

@@ -144,6 +144,7 @@ export interface Job {
   jobLevel: 'entry' | 'junior' | 'mid' | 'senior' | 'executive';
   monthsInPosition: number;
   experienceRequired: number;
+  daysWorked?: number; // Days worked at current job for tracking challenge progress
 }
 
 interface NetWorthBreakdown {
