@@ -1194,6 +1194,33 @@ export const useCharacter = create<CharacterState>()(
           property.monthlyPayment = property.loanAmount * factor;
         }
         
+        // Set purchase date if not provided
+        if (!property.purchaseDate) {
+          // Get current game time
+          const timeState = useTime ? useTime.getState() : null;
+          
+          if (timeState) {
+            // Format date as ISO string using game time: YYYY-MM-DD
+            const year = timeState.currentYear;
+            const month = String(timeState.currentMonth).padStart(2, '0');
+            const day = String(timeState.currentDay).padStart(2, '0');
+            property.purchaseDate = `${year}-${month}-${day}`;
+            
+            // Also track real-world timestamp for accurate holding period calculations
+            property.purchaseTimestamp = Date.now();
+            
+            console.log(`Set property purchase date to game date: ${property.purchaseDate}`);
+            console.log(`Set property purchase timestamp to: ${new Date(property.purchaseTimestamp).toLocaleString()}`);
+          } else {
+            // Fallback to current real-world date
+            const now = new Date();
+            property.purchaseDate = now.toISOString().split('T')[0];
+            property.purchaseTimestamp = now.getTime();
+            
+            console.log(`Set property purchase date to current date: ${property.purchaseDate}`);
+          }
+        }
+        
         // Check if the purchase would result in negative wealth
         const currentWealth = get().wealth;
         if (currentWealth < downPayment) {
@@ -1258,12 +1285,15 @@ export const useCharacter = create<CharacterState>()(
             - mortgage: ${mortgage}
           `);
           
+          // Make sure we pass purchase date to the asset tracker
           assetTracker.addProperty({
             id: property.id,
             name: property.name,
             purchasePrice: purchasePrice,
             currentValue: currentValue,
             mortgage: mortgage,
+            purchaseDate: property.purchaseDate,
+            purchaseTimestamp: property.purchaseTimestamp
           });
           
           // Update cash in asset tracker to match character wealth exactly
