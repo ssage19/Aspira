@@ -70,6 +70,9 @@ export interface AssetTrackerState {
     currentValue: number;
     mortgage: number;
     equity: number;
+    purchaseDate?: string;
+    purchaseTimestamp?: number;
+    holdingPeriodInDays?: number;
   }[];
   
   // Lifestyle assets

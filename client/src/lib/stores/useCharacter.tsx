@@ -6,6 +6,7 @@ import { registerStore, getStore } from "../utils/storeRegistry";
 import useAssetTracker from "./useAssetTracker";
 import { startupInvestments } from "../data/investments";
 import { useChallenges } from "./useChallenges";
+import { useTime } from "./useTime";
 
 // Expense rate constants
 const EXPENSE_RATES = {
@@ -87,7 +88,9 @@ export interface Property {
   expenses: number;         // Monthly expenses (excluding mortgage)
   monthlyIncome?: number;   // Legacy field, replaced by income
   appreciationRate: number; // Annual appreciation rate
-  purchaseDate: string;
+  purchaseDate: string;     // The date the property was purchased in YYYY-MM-DD format
+  purchaseTimestamp?: number; // Unix timestamp of when property was purchased (for accurate time calculations)
+  holdingPeriodInDays?: number; // Calculated holding period in days
   equity?: number;          // Current equity in the property (currentValue - loanAmount)
   squareFeet?: number;
   bedrooms?: number;
