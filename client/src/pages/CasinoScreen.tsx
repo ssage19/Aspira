@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { ChevronLeft, Dice1, DollarSign, Trophy, CaseSensitive, Coins, Box3dIcon, Layers } from 'lucide-react';
+import { ChevronLeft, Dice1, DollarSign, Trophy, CaseSensitive, Coins, BoxIcon, Layers } from 'lucide-react';
 import { useCharacter } from '../lib/stores/useCharacter';
 // Audio removed
 import { formatCurrency } from '../lib/utils';

@@ -113,8 +113,7 @@ export default function ReliableDashboard() {
   useEffect(() => {
     console.log("🚀 RELIABLE DASHBOARD: Component mounted");
     
-    // Get existing global refresh info
-    const { lastRefreshTime, triggerRefresh } = useAssetRefresh();
+    // Use refresh trigger from the existing hook instead of calling the hook again
     
     // Initial data load on component mount
     const initialTimeout = setTimeout(() => {
@@ -130,7 +129,7 @@ export default function ReliableDashboard() {
       clearTimeout(initialTimeout);
       console.log("👋 RELIABLE DASHBOARD: Component unmounting");
     };
-  }, [refreshDashboardData]);
+  }, [refreshDashboardData, triggerRefresh]);
   
   // Listen for global refresh events from AssetRefreshProvider
   const { lastRefreshTime } = useAssetRefresh();
