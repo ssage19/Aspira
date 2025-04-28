@@ -320,21 +320,22 @@ export function MarketPriceUpdater() {
     });
   }, [assets, assetTracker, marketTrend]);
   
-  // Occasionally update property values (real estate changes more slowly)
+  // Occasionally update property values (real estate changes VERY slowly)
   const updatePropertyValues = useCallback(() => {
-    // Only update property values occasionally (10% chance per update)
-    if (Math.random() > 0.1) return;
+    // Only update property values RARELY (1% chance per update)
+    // This makes property values much more stable, which is more realistic for real estate
+    if (Math.random() > 0.01) return;
     
     // Get properties directly from character state
     const { properties } = useCharacter.getState();
     
     if (!properties || properties.length === 0) return;
     
-    console.log("MarketPriceUpdater: Updating", properties.length, "property values");
+    console.log("MarketPriceUpdater: Updating", properties.length, "property values (rare event)");
     
-    // Real estate market has minimal market influence for more balanced price changes
-    // Improved market factor with slight positive bias (real estate tends to grow)
-    const marketInfluence = marketTrend === 'bull' ? 1.004 : marketTrend === 'bear' ? 0.999 : 1.001;
+    // Real estate market has extremely minimal market influence
+    // Much more subtle market influence
+    const marketInfluence = marketTrend === 'bull' ? 1.0015 : marketTrend === 'bear' ? 0.9995 : 1.0005;
     
     properties.forEach(property => {
       if (!property) return;
@@ -342,22 +343,22 @@ export function MarketPriceUpdater() {
       // Cast to PropertyWithLoan to access the specific property fields
       const propertyWithLoan = property as PropertyWithLoan;
       
-      // Properties have very low volatility
-      const volatilityFactor = 0.01; // Even smaller movements for real estate
+      // Properties have extremely low volatility (reduced by 5x)
+      const volatilityFactor = 0.002; // Drastically smaller movements for real estate
       
-      // Use biased random for realistic long-term positive returns
+      // Less biased random for more realistic property value changes
       const randomValue = Math.random();
-      const adjustedRandom = randomValue * 1.08 - 0.5; // 8% positive bias (real estate appreciates)
+      const adjustedRandom = randomValue * 1.03 - 0.5; // Only 3% positive bias (more realistic appreciation)
       const randomFactor = adjustedRandom * volatilityFactor;
       
-      // Small natural appreciation factor (real estate tends to appreciate long-term)
-      const naturalGrowth = 0.0002; // Very small growth factor
+      // Much smaller natural appreciation factor
+      const naturalGrowth = 0.0001; // Very tiny growth factor
       
-      // Force contrarian movement occasionally to ensure both up and down trends
+      // Force contrarian movement more often to ensure both up and down trends
       let finalFactor = randomFactor + naturalGrowth;
-      if (Math.random() < 0.22) { // 22% chance of opposite movement (less than before)
+      if (Math.random() < 0.30) { // 30% chance of opposite movement
         const originalDirection = Math.sign(finalFactor);
-        finalFactor = -originalDirection * Math.abs(finalFactor) * 0.6;
+        finalFactor = -originalDirection * Math.abs(finalFactor) * 0.7;
         console.log(`MarketPriceUpdater: Forcing contrarian movement for property ${property.name}`);
       }
       
@@ -365,17 +366,31 @@ export function MarketPriceUpdater() {
       const storedValue = assetTracker.getAssetPrice(property.id);
       const currentPropertyValue = storedValue || propertyWithLoan.currentValue || property.purchasePrice;
       
-      // Use finalFactor instead of randomFactor to include the contrarian movements
+      // Calculate new value with much more subtle changes
       const newValue = currentPropertyValue * marketInfluence * (1 + finalFactor);
       const formattedValue = parseFloat(newValue.toFixed(2));
       
-      // Update the property value in asset tracker
+      // Only update if the change is significant enough (prevents unnecessary updates)
+      const percentChange = Math.abs((formattedValue - currentPropertyValue) / currentPropertyValue);
+      if (percentChange < 0.001) {
+        console.log(`MarketPriceUpdater: Skipping update for ${property.name} - change too small (${(percentChange * 100).toFixed(4)}%)`);
+        return;
+      }
+      
+      // Update the property value in asset tracker AND character store
       if (assetTracker.updateProperty) {
+        // Update in asset tracker
         assetTracker.updateProperty(
           property.id,
           formattedValue,
           propertyWithLoan.loanAmount || 0
         );
+        
+        // Also update the property in character store to keep values in sync
+        const characterStore = useCharacter.getState();
+        if (characterStore && characterStore.updatePropertyValue) {
+          characterStore.updatePropertyValue(property.id, formattedValue);
+        }
         
         console.log(`MarketPriceUpdater: Updated ${property.name} value to $${formattedValue.toFixed(2)}`);
       }
