@@ -324,6 +324,9 @@ interface CharacterState {
   // Save state
   saveState: () => void;
   resetCharacter: () => void;
+  
+  // Utility function to calculate property holding period
+  calculatePropertyHoldingPeriod: (property: Property) => number;
 }
 
 const STORAGE_KEY = 'business-empire-character';
