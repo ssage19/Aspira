@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '../components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/tabs';
-import { ChevronLeft, Dice1, DollarSign, Trophy, CaseSensitive, Coins } from 'lucide-react';
+import { ChevronLeft, Dice1, DollarSign, Trophy, CaseSensitive, Coins, Box3dIcon, Layers } from 'lucide-react';
 import { useCharacter } from '../lib/stores/useCharacter';
 // Audio removed
 import { formatCurrency } from '../lib/utils';
@@ -12,6 +12,7 @@ import BlackjackGame from '../components/games/BlackjackGame';
 import RouletteGame from '../components/games/RouletteGame';
 import PokerGame from '../components/games/PokerGame';
 import GameUI from '../components/GameUI';
+import Casino3DEnvironment from '../components/games/3d/Casino3DEnvironment';
 
 export default function CasinoScreen() {
   const navigate = useNavigate();
@@ -20,6 +21,7 @@ export default function CasinoScreen() {
   const playSuccess = () => {};
   const playHit = () => {};
   const [activeGame, setActiveGame] = useState<'blackjack' | 'roulette' | 'poker'>('blackjack');
+  const [is3DMode, setIs3DMode] = useState(false);
 
   // Handle winning and losing money with improved tracking - optimized with useCallback
   const handleWin = useCallback((amount: number) => {
