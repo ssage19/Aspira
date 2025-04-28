@@ -16,7 +16,6 @@ import { useRandomEvents } from '../lib/stores/useRandomEvents';
 import { useIsMobile } from '../hooks/use-is-mobile';
 import { formatCurrency, formatPercentage } from '../lib/utils';
 import refreshAllAssets from '../lib/services/assetRefresh';
-import { useAssetRefresh } from '../components/AssetRefreshProvider';
 
 // Import UI components
 import GameUI from '../components/GameUI';
@@ -67,68 +66,79 @@ export default function SimpleDashboard() {
   const { economyState } = useEconomy();
   // Audio removed
   
-  // Get the asset refresh functionality from the central provider
-  const { triggerRefresh, lastRefreshTime } = useAssetRefresh();
-  
   // Update character values without causing re-renders
   const updateValues = useCallback(() => {
-    // Get latest values from stores - no need to manually refresh assets
-    const character = useCharacter.getState();
-    const assetTracker = useAssetTracker.getState();
+    // First do a deep refresh of all assets to ensure everything is up to date
+    console.log("⚡️ SimpleDashboard: Requesting comprehensive asset refresh");
+    refreshAllAssets();
     
-    // DEBUG: Log what we're getting from both stores
-    console.log("📊 SimpleDashboard - Current values:", {
-      characterWealth: character.wealth,
-      assetTrackerNetWorth: assetTracker.totalNetWorth,
-      assetTrackerCash: assetTracker.totalCash,
-      assetTrackerStocks: assetTracker.totalStocks
-    });
-    
-    // Update the component state
-    setCharacterValues({
-      wealth: character.wealth,
-      name: character.name,
-      happiness: character.happiness,
-      prestige: character.prestige,
-      stress: character.stress,
-      energy: character.energy,
-      health: character.health
-    });
-    
-    setNetWorth(assetTracker.totalNetWorth);
-    
-    console.log("✅ SimpleDashboard - Values updated with latest data");
+    // IMPORTANT: Wait for the refresh to complete before reading values
+    setTimeout(() => {
+      // Get latest values from stores
+      const character = useCharacter.getState();
+      const assetTracker = useAssetTracker.getState();
+      
+      // DEBUG: Log what we're getting from both stores
+      console.log("📊 SimpleDashboard - Current values:", {
+        characterWealth: character.wealth,
+        assetTrackerNetWorth: assetTracker.totalNetWorth,
+        assetTrackerCash: assetTracker.totalCash,
+        assetTrackerStocks: assetTracker.totalStocks
+      });
+      
+      // Update the component state
+      setCharacterValues({
+        wealth: character.wealth,
+        name: character.name,
+        happiness: character.happiness,
+        prestige: character.prestige,
+        stress: character.stress,
+        energy: character.energy,
+        health: character.health
+      });
+      
+      setNetWorth(assetTracker.totalNetWorth);
+      
+      console.log("✅ SimpleDashboard - Values updated with latest data");
+    }, 100); // Small delay to ensure refresh completes
   }, []);
   
-  // Initial setup - get values once on mount and trigger a refresh
+  // Set up update interval
   useEffect(() => {
-    console.log("🚀 SimpleDashboard: Component mounted, using AssetRefreshProvider");
+    console.log("🚀 SimpleDashboard: Component mounted, setting up refresh cycle");
     
-    // Initial data load
+    // MULTI-STAGE REFRESH STRATEGY:
+    // 1. Immediate refresh on mount
     updateValues();
     
-    // Request a refresh through the global provider
-    triggerRefresh();
-    
-    // Secondary refresh after a short delay (in case the first one misses anything)
+    // 2. Secondary refresh after a short delay (in case the first one misses anything)
     const initialRefreshTimeout = setTimeout(() => {
-      console.log("🔄 SimpleDashboard: Performing secondary values update");
+      console.log("🔄 SimpleDashboard: Performing secondary refresh");
       updateValues();
     }, 800);
     
+    // 3. Regular interval for continuous updates
+    const interval = setInterval(() => {
+      console.log("🔄 SimpleDashboard: Performing scheduled refresh");
+      updateValues();
+    }, 2000); // More frequent updates
+    
+    // 4. Extra refresh whenever the tab becomes visible again
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("👁️ SimpleDashboard: Tab became visible, refreshing data");
+        updateValues();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
     return () => {
+      clearInterval(interval);
       clearTimeout(initialRefreshTimeout);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       console.log("👋 SimpleDashboard: Component unmounting, cleanup complete");
     };
-  }, [updateValues, triggerRefresh]);
-  
-  // React to changes in the global refresh state
-  useEffect(() => {
-    if (lastRefreshTime > 0) {
-      console.log("🔄 SimpleDashboard: Responding to global asset refresh");
-      updateValues();
-    }
-  }, [lastRefreshTime, updateValues]);
+  }, [updateValues]);
   
   // Format the date
   const formattedDate = new Date(currentYear, currentMonth - 1, currentDay)

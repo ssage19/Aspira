@@ -31,9 +31,7 @@ const AssetRefreshContext = createContext<AssetRefreshContextType>({
 });
 
 // Hook for components to request refreshes
-export function useAssetRefresh() {
-  return useContext(AssetRefreshContext);
-}
+export const useAssetRefresh = () => useContext(AssetRefreshContext);
 
 interface AssetRefreshProviderProps {
   children: React.ReactNode;
