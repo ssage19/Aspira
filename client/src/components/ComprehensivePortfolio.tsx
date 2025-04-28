@@ -219,29 +219,19 @@ export function ComprehensivePortfolio() {
     
     // Update categories whenever values change
     updateAssetCategories();
-    
-    // Set up a refresh timer but at a reduced frequency to avoid performance issues
-    const intervalId = setInterval(() => {
-      // First trigger market price updates to keep investment values fresh
-      if ((window as any).globalUpdateAllPrices) {
-        (window as any).globalUpdateAllPrices();
-      }
-      
-      // Then sync assets
-      useCharacter.getState().syncAssetsWithAssetTracker();
-      
-      // Recalculate totals 
-      useAssetTracker.getState().recalculateTotals();
-      
-      // Finally, update the local UI
-      updateAssetCategories();
-      
-    }, 3000); // Update every 3 seconds (reduced from 500ms)
-    
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
   }, [updateAssetCategories, totalCash, totalStocks, totalCrypto, totalBonds, 
       totalOtherInvestments, totalPropertyEquity, totalPropertyValue, totalLifestyleValue, totalNetWorth]);
+      
+  // React to global asset refresh events from the central provider
+  const { lastRefreshTime } = useAssetRefresh();
+  
+  // When global refresh happens, update our UI
+  useEffect(() => {
+    if (lastRefreshTime > 0) {
+      console.log("Comprehensive portfolio responding to global asset refresh");
+      updateAssetCategories();
+    }
+  }, [lastRefreshTime, updateAssetCategories]);
   
   // Enhanced manual refresh - more aggressive about getting fresh data
   const handleRefresh = async () => {

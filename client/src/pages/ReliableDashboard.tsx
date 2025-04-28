@@ -109,51 +109,40 @@ export default function ReliableDashboard() {
   }, [isLoading]);
   
   // Simplified refresh strategy to avoid freezing
+  // Setup initial data and listen to AssetRefreshProvider updates
   useEffect(() => {
     console.log("🚀 RELIABLE DASHBOARD: Component mounted");
     
-    // Force sync between character and asset tracker on dashboard load
-    // This is critical when returning from the investments screen
-    useCharacter.getState().syncAssetsWithAssetTracker();
-    useAssetTracker.getState().recalculateTotals();
+    // Get existing global refresh info
+    const { lastRefreshTime, triggerRefresh } = useAssetRefresh();
     
-    // Force market price update on component mount
-    if ((window as any).globalUpdateAllPrices) {
-      console.log("ReliableDashboard: Triggering global price update on mount");
-      (window as any).globalUpdateAllPrices();
-    }
-    
-    // One-time initial data load with a small delay to ensure state is ready
+    // Initial data load on component mount
     const initialTimeout = setTimeout(() => {
-      // Force another sync before loading data
-      useCharacter.getState().syncAssetsWithAssetTracker();
-      useAssetTracker.getState().recalculateTotals();
-      
-      // Update dashboard with fresh data
+      console.log("ReliableDashboard: Loading initial dashboard data");
       refreshDashboardData();
     }, 100);
     
-    // Reduced frequency interval to prevent performance issues
-    const refreshInterval = setInterval(() => {
-      // First trigger market price updates to keep investment values fresh
-      if ((window as any).globalUpdateAllPrices) {
-        (window as any).globalUpdateAllPrices();
-      }
-      
-      // Then sync data before each refresh
-      useCharacter.getState().syncAssetsWithAssetTracker();
-      useAssetTracker.getState().recalculateTotals();
-      
-      // Finally update the UI
-      refreshDashboardData();
-    }, 5000); // Reduced to every 5 seconds to prevent freezing
+    // Trigger an immediate refresh through the global provider
+    triggerRefresh();
     
+    // Cleanup function
     return () => {
-      clearInterval(refreshInterval);
       clearTimeout(initialTimeout);
       console.log("👋 RELIABLE DASHBOARD: Component unmounting");
     };
   }, [refreshDashboardData]);
+  
+  // Listen for global refresh events from AssetRefreshProvider
+  const { lastRefreshTime } = useAssetRefresh();
+  
+  // Update UI when global refresh happens
+  useEffect(() => {
+    // Skip the first render
+    if (lastRefreshTime > 0) {
+      console.log("ReliableDashboard: Responding to global asset refresh");
+      refreshDashboardData();
+    }
+  }, [lastRefreshTime, refreshDashboardData]);
   
   // Enhanced manual refresh - performs a thorough refresh of all data
   const handleManualRefresh = async () => {

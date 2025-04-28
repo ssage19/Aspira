@@ -8,6 +8,7 @@ import { useGame } from '../lib/stores/useGame';
 import { useAchievements } from '../lib/stores/useAchievements';
 import useRandomEvents from '../lib/stores/useRandomEvents';
 import useAssetTracker from '../lib/stores/useAssetTracker';
+import { useAssetRefresh } from '../components/AssetRefreshProvider';
 import { toast } from 'sonner';
 
 import { CharacterAttributes } from '../components/CharacterAttributes';
@@ -398,53 +399,30 @@ export default function Dashboard() {
   const recalculateTotals = useAssetTracker(state => state.recalculateTotals);
   const forceUpdate = useAssetTracker(state => state.forceUpdate);
   
-  // Optimized refresh logic with useRef to avoid closure issues
-  const lastUpdateTime = useRef(0);
-  const updateIntervalRef = useRef(5000); // Reduce update frequency to 5 seconds
+  // Get asset refresh functionality from the central provider
+  const { triggerRefresh, lastRefreshTime } = useAssetRefresh();
   
+  // Use the centralized asset refresh provider instead of local interval
   useEffect(() => {
     // Log for debugging
-    console.log("Dashboard: Syncing assets with tracker on mount");
+    console.log("Dashboard: Using central AssetRefreshProvider");
     
-    // Run once on mount with debouncing logic
-    const syncAssetsOnce = () => {
-      const now = Date.now();
-      // Skip if last update was too recent (prevents excessive updates)
-      if (now - lastUpdateTime.current < updateIntervalRef.current * 0.8) {
-        console.log("Skipping asset sync - too soon since last update");
-        return;
-      }
+    // Trigger a refresh when the component mounts
+    triggerRefresh();
+    
+    // No cleanup needed as the provider handles intervals
+  }, []); // No dependencies needed since triggerRefresh is stable
+  
+  // Update UI when the global refresh happens
+  useEffect(() => {
+    if (lastRefreshTime > 0) {
+      console.log("Dashboard: Responding to global asset refresh event");
+      // No need to manually trigger refresh since it's handled by the provider
       
-      // Record update time
-      lastUpdateTime.current = now;
-      
-      // Access state directly to avoid component re-renders
-      if ((window as any).globalUpdateAllPrices) {
-        console.log("Dashboard: Running global price update");
-        (window as any).globalUpdateAllPrices();
-      } else {
-        const characterStore = getStore('character');
-        if (characterStore) {
-          console.log("Dashboard: Syncing assets with tracker");
-          characterStore.getState().syncAssetsWithAssetTracker();
-          recalculateTotals();
-        } else {
-          console.error('Failed to sync assets: Character store not found in registry');
-        }
-      }
-    };
-    
-    // Sync immediately on mount
-    syncAssetsOnce();
-    
-    // Set up interval with stabilized functions and longer duration
-    const refreshInterval = setInterval(syncAssetsOnce, updateIntervalRef.current);
-    
-    // Cleanup on unmount
-    return () => {
-      clearInterval(refreshInterval);
-    };
-  }, [recalculateTotals]); // Include recalculateTotals in dependencies to avoid lint warnings
+      // Instead, just make sure our totals are recalculated
+      recalculateTotals();
+    }
+  }, [lastRefreshTime, recalculateTotals]);
   
   // Simple state variables
   const [activeTab, setActiveTab] = useState('overview');
