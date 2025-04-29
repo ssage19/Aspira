@@ -742,12 +742,56 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Ranch Style Home': '/images/properties/ranch_style_home.jpg',
     'Modern Townhome': '/images/properties/modern_townhome.jpg',
     
+    // Luxury Properties
+    'Downtown Penthouse': '/images/properties/downtown_penthouse.jpg',
+    'Oceanfront Beach House': '/images/properties/oceanfront_beach_house.jpg',
+    'Gated Estate': '/images/properties/urban_palace.jpg', // Using Urban Palace image for Gated Estate
+    'Mediterranean Villa': '/images/properties/mediterranean_villa.jpg',
+    'Lakefront Mansion': '/images/properties/lakefront_mansion.jpg',
+    'Luxury Mountain Chalet': '/images/properties/luxury_mountain_chalet.jpg',
+    'Historic Mansion': '/images/properties/historic_mansion.jpg',
+    'Tropical Estate': '/images/properties/tropical_estate.jpg',
+    'Modern Architectural Masterpiece': '/images/properties/modern_architectural_masterpiece.jpg',
+    'Equestrian Estate': '/images/properties/equestrian_estate.jpg',
+    'Private Island Retreat': '/images/properties/private_island_retreat.jpg',
+    'French-Inspired Château': '/images/properties/french_inspired_chateau.jpg',
+    'Desert Oasis Estate': '/images/properties/desert_oasis_estate.jpg',
+    'Urban Palace': '/images/properties/urban_palace.jpg',
+    'Vineyard Estate': '/images/properties/vineyard_estate.jpg',
+    'Waterfront Compound': '/images/properties/waterfront_compound.jpg',
+    'Golf Course Estate': '/images/properties/golf_course_estate.jpg',
+    'Celebrity Compound': '/images/properties/celebrity_compound.jpg',
+    'Ultra-Modern Smart Mansion': '/images/properties/ultra_modern_smart_mansion.jpg',
+    'Ski-In/Ski-Out Chalet': '/images/properties/ski_in_ski_out_chalet.jpg',
+    
     // Also keep the underscored versions for backward compatibility
     'single_family': '/images/properties/single_family_home.jpg',
     'apartment_basic': '/images/properties/city_apartment.jpg',
     'apartment_luxury': '/images/properties/luxury_city_apartment.jpg',
     'townhouse': '/images/properties/suburban_townhome.jpg',
-    'studio_apartment': '/images/properties/urban_studio.jpg'
+    'studio_apartment': '/images/properties/urban_studio.jpg',
+    
+    // Luxury property IDs
+    'penthouse': '/images/properties/downtown_penthouse.jpg',
+    'beach_house': '/images/properties/oceanfront_beach_house.jpg',
+    'mansion': '/images/properties/urban_palace.jpg',
+    'villa': '/images/properties/mediterranean_villa.jpg',
+    'lakefront_mansion': '/images/properties/lakefront_mansion.jpg',
+    'mountain_chalet': '/images/properties/luxury_mountain_chalet.jpg',
+    'historic_mansion': '/images/properties/historic_mansion.jpg',
+    'tropical_estate': '/images/properties/tropical_estate.jpg',
+    'modern_architectural': '/images/properties/modern_architectural_masterpiece.jpg',
+    'equestrian_estate': '/images/properties/equestrian_estate.jpg',
+    'island_retreat': '/images/properties/private_island_retreat.jpg',
+    'château': '/images/properties/french_inspired_chateau.jpg',
+    'desert_oasis': '/images/properties/desert_oasis_estate.jpg',
+    'city_palace': '/images/properties/urban_palace.jpg',
+    'vineyard_estate': '/images/properties/vineyard_estate.jpg',
+    'waterfront_compound': '/images/properties/waterfront_compound.jpg',
+    'golf_estate': '/images/properties/golf_course_estate.jpg',
+    'celebrity_compound': '/images/properties/celebrity_compound.jpg',
+    'smart_mansion': '/images/properties/ultra_modern_smart_mansion.jpg',
+    'ski_chalet': '/images/properties/ski_in_ski_out_chalet.jpg'
   };
 
   return imageMapping[propertyId] || null;
