@@ -233,7 +233,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
   const valuePerSalaryDollar = effectiveness / (salary / 5000); // Normalized to a typical salary
   
   return (
-    <Card className={`border-primary/30 ${productivity >= 80 && morale >= 70 ? 'bg-green-50/30' : ''}`}>
+    <Card className="border-primary/30 bg-background/95 dark:bg-gray-900/70">
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
           <div>
@@ -254,7 +254,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
             </CardTitle>
             <CardDescription className="text-xs">Hired on {hireDate_formatted}</CardDescription>
           </div>
-          <Badge className={valuePerSalaryDollar >= 1.0 ? 'bg-green-500' : valuePerSalaryDollar >= 0.8 ? 'bg-blue-500' : 'bg-amber-500'}>
+          <Badge className="bg-blue-500 dark:bg-blue-600">
             {formatCurrency(salary)}/mo
           </Badge>
         </div>
@@ -348,7 +348,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="w-full text-red-500 hover:bg-red-50 hover:text-red-600" 
+                className="w-full text-red-500 hover:bg-red-50 hover:text-red-600 dark:hover:bg-gray-800" 
                 onClick={() => onFire(id)}
                 disabled={!canAffordSeverance}
               >
