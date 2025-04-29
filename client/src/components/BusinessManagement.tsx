@@ -756,7 +756,6 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   const [isHireDialogOpen, setIsHireDialogOpen] = useState(false);
   
   // Marketing campaign states
-  const [marketingBudget, setMarketingBudget] = useState((business.marketingBudget || 0).toString());
   const [campaignType, setCampaignType] = useState('');
   const [campaignDuration, setCampaignDuration] = useState('');
   const [campaignBudget, setCampaignBudget] = useState('');
@@ -773,7 +772,6 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
     toggleAutoManage,
     processBusinesses,
     sellBusiness,
-    updateMarketingBudget,
     createMarketingCampaign,
     cancelMarketingCampaign,
     createInternalInvestment
@@ -797,10 +795,6 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
     return () => clearInterval(interval);
   }, [processBusinesses]);
   
-  // Update marketing budget input when business data changes
-  useEffect(() => {
-    setMarketingBudget((business.marketingBudget || 0).toString());
-  }, [business.marketingBudget]);
   
   // Handle investment
   const handleInvest = () => {
