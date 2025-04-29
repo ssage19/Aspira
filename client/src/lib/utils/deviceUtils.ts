@@ -104,8 +104,17 @@ export function getRecommendedUpdateInterval(): number {
 export function getVisibleAssets(assetTracker: any): string[] {
   try {
     // Get owned assets - these are always high priority
-    const ownedAssets = assetTracker.getAllAssetsWithQuantities();
-    const ownedAssetIds = Object.keys(ownedAssets).filter(id => ownedAssets[id] > 0);
+    const ownedAssetIds: string[] = [];
+    
+    // Get stock IDs from asset tracker
+    if (assetTracker.stocks && Array.isArray(assetTracker.stocks)) {
+      ownedAssetIds.push(...assetTracker.stocks.map(stock => stock.id));
+    }
+    
+    // Get crypto IDs from asset tracker
+    if (assetTracker.cryptoAssets && Array.isArray(assetTracker.cryptoAssets)) {
+      ownedAssetIds.push(...assetTracker.cryptoAssets.map(crypto => crypto.id));
+    }
     
     // Get recently viewed assets from localStorage
     const recentlyViewed: string[] = [];
