@@ -381,59 +381,152 @@ const UpgradeCard: React.FC<UpgradeCardProps> = ({ upgrade, onPurchase, business
   // Check if business can afford the upgrade
   const canAfford = businessCash >= cost;
   
+  // Determine ROI and priority category
+  const calculateROI = () => {
+    let roi = 0;
+    if (effect.revenueMultiplier) {
+      roi += (effect.revenueMultiplier - 1) * 100;
+    }
+    if (effect.expenseReduction) {
+      roi += effect.expenseReduction * 70;
+    }
+    if (effect.employeeProductivity) {
+      roi += effect.employeeProductivity * 50;
+    }
+    if (effect.qualityBoost) {
+      roi += effect.qualityBoost * 10;
+    }
+    if (effect.customerSatisfaction) {
+      roi += effect.customerSatisfaction * 8;
+    }
+    if (effect.maxCapacity) {
+      roi += effect.maxCapacity * 5;
+    }
+    return roi / (cost / 5000); // Normalized to a typical upgrade cost
+  };
+  
+  const roi = calculateROI();
+  
   // Format effect descriptions
   const getEffectDescriptions = () => {
     const descriptions = [];
     
     if (effect.revenueMultiplier) {
-      descriptions.push(`${formatPercentage(effect.revenueMultiplier - 1)} increased revenue`);
+      descriptions.push({
+        text: `${formatPercentage(effect.revenueMultiplier - 1)} increased revenue`,
+        impact: 'high'
+      });
     }
     
     if (effect.expenseReduction) {
-      descriptions.push(`${formatPercentage(effect.expenseReduction)} reduced expenses`);
+      descriptions.push({
+        text: `${formatPercentage(effect.expenseReduction)} reduced expenses`,
+        impact: 'high'
+      });
     }
     
     if (effect.qualityBoost) {
-      descriptions.push(`+${effect.qualityBoost} quality points`);
+      descriptions.push({
+        text: `+${effect.qualityBoost} quality points`,
+        impact: 'medium'
+      });
     }
     
     if (effect.employeeProductivity) {
-      descriptions.push(`+${formatPercentage(effect.employeeProductivity)} employee productivity`);
+      descriptions.push({
+        text: `+${formatPercentage(effect.employeeProductivity)} employee productivity`,
+        impact: 'high'
+      });
     }
     
     if (effect.customerSatisfaction) {
-      descriptions.push(`+${effect.customerSatisfaction} customer satisfaction`);
+      descriptions.push({
+        text: `+${effect.customerSatisfaction} customer satisfaction`,
+        impact: 'medium'
+      });
     }
     
     if (effect.maxCapacity) {
-      descriptions.push(`+${effect.maxCapacity} maximum capacity`);
+      descriptions.push({
+        text: `+${effect.maxCapacity} maximum capacity`,
+        impact: 'medium'
+      });
     }
     
     return descriptions;
   };
   
+  const getImpactColor = (impact: string) => {
+    switch (impact) {
+      case 'high': 
+        return 'text-green-600';
+      case 'medium': 
+        return 'text-blue-600';
+      default: 
+        return 'text-slate-600';
+    }
+  };
+  
   return (
-    <Card className={`border-primary/30 ${purchased ? 'bg-primary/5' : ''}`}>
+    <Card className={`border-primary/30 ${purchased ? 'bg-primary/5' : ''} ${!purchased && roi > 1.5 ? 'ring-1 ring-green-500/40' : ''}`}>
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{name}</CardTitle>
+          <div>
+            <CardTitle className="text-lg flex items-center">
+              {name}
+              {!purchased && roi > 1.5 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Star className="ml-1.5 h-3.5 w-3.5 text-yellow-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">High-value upgrade: Excellent return on investment</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </CardTitle>
+            <CardDescription>{description}</CardDescription>
+          </div>
           {purchased ? (
             <Badge variant="outline" className="bg-primary/20 border-primary">Purchased</Badge>
           ) : (
-            <Badge variant="outline">{formatCurrency(cost)}</Badge>
+            <Badge 
+              variant="outline" 
+              className={canAfford ? 'border-green-500/50' : 'border-amber-500/50'}
+            >
+              {formatCurrency(cost)}
+            </Badge>
           )}
         </div>
-        <CardDescription>{description}</CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-2 pb-2">
         <div className="text-sm space-y-1">
           {getEffectDescriptions().map((desc, i) => (
             <div key={i} className="flex items-center text-xs">
-              <ArrowUpRight className="h-3 w-3 mr-1 text-green-500" />
-              {desc}
+              <ArrowUpRight className={`h-3 w-3 mr-1 ${desc.impact === 'high' ? 'text-green-500' : 'text-blue-500'}`} />
+              <span className={getImpactColor(desc.impact)}>{desc.text}</span>
             </div>
           ))}
         </div>
+        
+        {!purchased && (
+          <div className="mt-3 pt-2 border-t border-primary/10">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Value rating:</span>
+              <span className={`font-medium ${roi >= 1.5 ? 'text-green-600' : roi >= 1.0 ? 'text-blue-600' : 'text-amber-600'}`}>
+                {roi >= 1.5 ? 'Excellent' : roi >= 1.0 ? 'Good' : 'Fair'}
+              </span>
+            </div>
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-muted-foreground">Payback period:</span>
+              <span className="font-medium">
+                {roi > 0 ? `~${Math.ceil(cost / (5000 * roi / 30))} days` : 'N/A'}
+              </span>
+            </div>
+          </div>
+        )}
         
         {purchased && purchasedDate && (
           <div className="mt-2 text-xs text-muted-foreground">
@@ -442,15 +535,26 @@ const UpgradeCard: React.FC<UpgradeCardProps> = ({ upgrade, onPurchase, business
         )}
       </CardContent>
       <CardFooter className="p-4 pt-2">
-        <Button 
-          variant={purchased ? "outline" : "default"}
-          size="sm"
-          className="w-full"
-          onClick={() => onPurchase(id)}
-          disabled={purchased || !canAfford}
-        >
-          {purchased ? 'Purchased' : canAfford ? 'Purchase' : 'Insufficient Funds'}
-        </Button>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant={purchased ? "outline" : roi >= 1.5 ? "default" : "outline"}
+                size="sm"
+                className={`w-full ${roi >= 1.5 && !purchased ? 'bg-green-600 hover:bg-green-700' : ''}`}
+                onClick={() => onPurchase(id)}
+                disabled={purchased || !canAfford}
+              >
+                {purchased ? 'Purchased' : canAfford ? 'Purchase' : 'Insufficient Funds'}
+              </Button>
+            </TooltipTrigger>
+            {!canAfford && !purchased && (
+              <TooltipContent>
+                <p>You need {formatCurrency(cost - businessCash)} more to purchase this upgrade</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
       </CardFooter>
     </Card>
   );
@@ -988,10 +1092,31 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <span className="flex items-center">
                           <Star className="h-4 w-4 mr-2 text-yellow-500" />
                           Quality
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Higher quality attracts customers willing to pay premium prices. Improves through upgrades and experienced employees.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </span>
-                        <span>{business.quality}%</span>
+                        <span className={`font-medium ${business.quality >= 80 ? 'text-green-600' : business.quality >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
+                          {business.quality}%
+                        </span>
                       </div>
-                      <Progress value={business.quality} className="h-2" />
+                      <Progress 
+                        value={business.quality} 
+                        className="h-2" 
+                        indicatorClassName={
+                          business.quality >= 80 ? 'bg-green-500' : 
+                          business.quality >= 60 ? 'bg-blue-500' : 
+                          business.quality >= 40 ? 'bg-amber-500' : 
+                          'bg-red-500'
+                        }
+                      />
                     </div>
                     
                     <div>
@@ -999,10 +1124,31 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <span className="flex items-center">
                           <Heart className="h-4 w-4 mr-2 text-pink-500" />
                           Customer Satisfaction
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Satisfied customers return more often and refer others. Affected by quality, employee morale, and wait times.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </span>
-                        <span>{Math.round(business.customerSatisfaction)}%</span>
+                        <span className={`font-medium ${business.customerSatisfaction >= 80 ? 'text-green-600' : business.customerSatisfaction >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
+                          {Math.round(business.customerSatisfaction)}%
+                        </span>
                       </div>
-                      <Progress value={business.customerSatisfaction} className="h-2" />
+                      <Progress 
+                        value={business.customerSatisfaction} 
+                        className="h-2" 
+                        indicatorClassName={
+                          business.customerSatisfaction >= 80 ? 'bg-green-500' : 
+                          business.customerSatisfaction >= 60 ? 'bg-blue-500' : 
+                          business.customerSatisfaction >= 40 ? 'bg-amber-500' : 
+                          'bg-red-500'
+                        }
+                      />
                     </div>
                     
                     <div>
@@ -1010,10 +1156,31 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <span className="flex items-center">
                           <Award className="h-4 w-4 mr-2 text-amber-500" />
                           Reputation
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Good reputation leads to more customers and higher prices. Builds slowly but can fall quickly with poor service.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </span>
-                        <span>{Math.round(business.reputation)}%</span>
+                        <span className={`font-medium ${business.reputation >= 80 ? 'text-green-600' : business.reputation >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
+                          {Math.round(business.reputation)}%
+                        </span>
                       </div>
-                      <Progress value={business.reputation} className="h-2" />
+                      <Progress 
+                        value={business.reputation} 
+                        className="h-2" 
+                        indicatorClassName={
+                          business.reputation >= 80 ? 'bg-green-500' : 
+                          business.reputation >= 60 ? 'bg-blue-500' : 
+                          business.reputation >= 40 ? 'bg-amber-500' : 
+                          'bg-red-500'
+                        }
+                      />
                     </div>
                     
                     <div>
@@ -1021,10 +1188,35 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <span className="flex items-center">
                           <Gauge className="h-4 w-4 mr-2 text-blue-500" />
                           Capacity Utilization
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger>
+                                <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="text-xs">Shows how much of your maximum capacity is being used. Ideal range is 70-90%. Too low means wasted resources, too high can reduce quality.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                         </span>
-                        <span>{Math.round(business.currentCapacity)}/{business.capacity} ({Math.round(business.currentCapacity / business.capacity * 100)}%)</span>
+                        <span className={`font-medium ${(business.currentCapacity / business.capacity * 100) >= 70 && (business.currentCapacity / business.capacity * 100) <= 90 ? 'text-green-600' : (business.currentCapacity / business.capacity * 100) > 90 ? 'text-amber-600' : 'text-blue-600'}`}>
+                          {Math.round(business.currentCapacity)}/{business.capacity} ({Math.round(business.currentCapacity / business.capacity * 100)}%)
+                        </span>
                       </div>
-                      <Progress value={(business.currentCapacity / business.capacity) * 100} className="h-2" />
+                      <Progress 
+                        value={(business.currentCapacity / business.capacity) * 100} 
+                        className="h-2" 
+                        indicatorClassName={
+                          (business.currentCapacity / business.capacity * 100) >= 70 && (business.currentCapacity / business.capacity * 100) <= 90 ? 'bg-green-500' :
+                          (business.currentCapacity / business.capacity * 100) > 90 ? 'bg-amber-500' :
+                          'bg-blue-500'
+                        }
+                      />
+                      <div className="flex justify-between text-xs mt-1">
+                        <span className="text-blue-500">Underused</span>
+                        <span className="text-green-500">Optimal</span>
+                        <span className="text-amber-500">Overused</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1281,18 +1473,17 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                     </h3>
                     <div className="bg-primary/10 border border-primary/20 rounded-md p-4 mb-4 text-center">
                       <span className="text-2xl font-bold">{formatCurrency(business.cash)}</span>
-                      {business.cash >= business.expenses * 90 && 
-                        <div className="text-xs font-normal text-green-600 mt-1">Healthy reserve (3+ months of expenses)</div>
-                      }
-                      {business.cash >= business.expenses * 30 && business.cash < business.expenses * 90 && 
-                        <div className="text-xs font-normal text-blue-600 mt-1">Adequate reserve (1-3 months of expenses)</div>
-                      }
-                      {business.cash < business.expenses * 30 && business.cash > 0 && 
-                        <div className="text-xs font-normal text-amber-600 mt-1">Low reserve (less than 1 month of expenses)</div>
-                      }
-                      {business.cash <= 0 && 
-                        <div className="text-xs font-normal text-red-600 mt-1">Critical: No cash reserves</div>
-                      }
+                      <div className="text-xs font-normal mt-1">
+                        {business.cash >= business.expenses * 90 ? (
+                          <span className="text-green-600">Healthy reserve (3+ months of expenses)</span>
+                        ) : business.cash >= business.expenses * 30 ? (
+                          <span className="text-blue-600">Adequate reserve (1-3 months of expenses)</span>
+                        ) : business.cash > 0 ? (
+                          <span className="text-amber-600">Low reserve (less than 1 month of expenses)</span>
+                        ) : (
+                          <span className="text-red-600">Critical: No cash reserves</span>
+                        )}
+                      </div>
                     </div>
                   </div>
                   
