@@ -18,11 +18,11 @@ export function useJobChallengeTimer(
   // Use refs to track time state without causing re-renders
   const currentGameDateRef = useRef<Date | null>(null);
   
-  // Update ref with current game date without triggering re-renders
-  currentGameDateRef.current = useTime(state => state.currentGameDate);
+  // We'll set up a proper subscription in useEffect instead of using direct selectors here
+  // This prevents issues with hooks being called conditionally or in loops
   
-  // Track when days change for updates, but don't depend directly on time state
-  const dayCounter = useTime(state => state.dayCounter);
+  // Pass an empty dependency to get a stable reference
+  const timeStore = useMemo(() => useTime, []);
   
   // State to store calculated progress values - only used for return values
   const [progress, setProgress] = useState(0);
@@ -48,6 +48,43 @@ export function useJobChallengeTimer(
       return null;
     }
   }, [startDate]);
+  
+  // Set up the time subscription
+  useEffect(() => {
+    // Get initial values
+    currentGameDateRef.current = timeStore.getState().currentGameDate;
+    
+    // Subscribe to time changes
+    const unsubscribe = timeStore.subscribe(
+      (state) => state.currentGameDate,
+      (newDate) => {
+        currentGameDateRef.current = newDate;
+      }
+    );
+    
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, [timeStore]);
+  
+  // Track day counter changes for dependency
+  const dayCounterRef = useRef(0);
+  
+  // Subscribe to day counter changes
+  useEffect(() => {
+    // Get initial day counter
+    dayCounterRef.current = timeStore.getState().dayCounter;
+    
+    // Subscribe to day counter changes
+    const unsubscribe = timeStore.subscribe(
+      (state) => state.dayCounter,
+      (newCounter) => {
+        dayCounterRef.current = newCounter;
+      }
+    );
+    
+    // Cleanup subscription
+    return () => unsubscribe();
+  }, [timeStore]);
   
   // Calculate progress on a controlled schedule
   useEffect(() => {

@@ -179,11 +179,10 @@ export default function JobScreen() {
   const allocateSkillPoint = useCharacter(state => state.allocateSkillPoint);
   const spendEarnedSkillPoint = useCharacter(state => state.spendEarnedSkillPoint);
   
-  // Extract just the current date and day counter to prevent rerenders when other time properties change
-  // Using a ref to avoid rerendering when these values change
+  // Using refs to avoid direct store subscription that would cause re-renders
   const timeRef = useRef({
-    currentGameDate: useTime(state => state.currentGameDate),
-    dayCounter: useTime(state => state.dayCounter)
+    currentGameDate: new Date(),
+    dayCounter: 0
   });
   
   // Use a subscription pattern to update the ref without causing rerenders
