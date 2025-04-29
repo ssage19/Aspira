@@ -101,6 +101,54 @@ const getDeviceType = () => {
   return 'desktop';
 };
 
+// Store previous state snapshots to detect changes
+let previousValues = {
+  characterWealth: 0,
+  characterNetWorth: 0,
+  trackerCash: 0,
+  trackerNetWorth: 0,
+  lastChangeTimestamp: 0
+};
+
+// Check if any values have changed significantly
+const detectChanges = () => {
+  try {
+    const character = useCharacter.getState();
+    const assetTracker = useAssetTracker.getState();
+    
+    // Safety check
+    if (!character || !assetTracker) return false;
+    
+    // Get current values with 1 decimal place precision
+    const currentValues = {
+      characterWealth: parseFloat(character.wealth?.toFixed(1) || '0'),
+      characterNetWorth: parseFloat(character.netWorth?.toFixed(1) || '0'),
+      trackerCash: parseFloat(assetTracker.totalCash?.toFixed(1) || '0'),
+      trackerNetWorth: parseFloat(assetTracker.totalNetWorth?.toFixed(1) || '0')
+    };
+    
+    // Check for significant changes (tolerance of 0.1)
+    const wealthChanged = Math.abs(currentValues.characterWealth - previousValues.characterWealth) > 0.1;
+    const netWorthChanged = Math.abs(currentValues.characterNetWorth - previousValues.characterNetWorth) > 0.1;
+    const trackerCashChanged = Math.abs(currentValues.trackerCash - previousValues.trackerCash) > 0.1;
+    const trackerNetWorthChanged = Math.abs(currentValues.trackerNetWorth - previousValues.trackerNetWorth) > 0.1;
+    
+    // Update previous values for next check
+    previousValues = {
+      ...currentValues,
+      lastChangeTimestamp: wealthChanged || netWorthChanged || trackerCashChanged || trackerNetWorthChanged 
+        ? Date.now() 
+        : previousValues.lastChangeTimestamp
+    };
+    
+    // Return true if any value changed significantly
+    return wealthChanged || netWorthChanged || trackerCashChanged || trackerNetWorthChanged;
+  } catch (error) {
+    console.error('Error in detectChanges:', error);
+    return false;
+  }
+};
+
 export const refreshAllAssets = () => {
   const now = Date.now();
   
@@ -136,7 +184,8 @@ export const refreshAllAssets = () => {
     return {
       success: true,
       message: 'Asset refresh skipped (throttled)',
-      throttled: true
+      throttled: true,
+      changesDetected: false
     };
   }
   
@@ -149,7 +198,8 @@ export const refreshAllAssets = () => {
     return {
       success: true,
       message: 'Asset refresh skipped (already in progress)',
-      skipped: true
+      skipped: true,
+      changesDetected: false
     };
   }
   

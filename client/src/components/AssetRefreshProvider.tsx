@@ -48,16 +48,77 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
   const previousPathRef = useRef(location.pathname);
   const refreshTimeoutId = useRef<NodeJS.Timeout | null>(null);
   
-  // Adaptive refresh interval based on device performance
+  // Adaptive refresh interval based on device performance, battery status, and hardware
   const adaptiveInterval = useMemo(() => {
-    // Check if we're running on a lower-end device
+    // Base assessment - check hardware capability
     const isLowEndDevice = window.navigator.hardwareConcurrency <= 4;
-    return isLowEndDevice ? refreshInterval * 2 : refreshInterval;
+    
+    // Initial interval adjustment based on device capability
+    let adjustedInterval = isLowEndDevice ? refreshInterval * 2 : refreshInterval;
+    
+    // Check if browser is throttling timers (indicates background tab or low power mode)
+    // @ts-ignore - navigator.userAgentData is not in all TypeScript definitions yet
+    const isMobileDevice = typeof navigator.userAgentData?.mobile === 'boolean' 
+      ? navigator.userAgentData?.mobile 
+      : /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+    
+    // Mobile devices get additional optimization
+    if (isMobileDevice) {
+      adjustedInterval *= 1.5; // Mobile devices get 50% longer interval
+      
+      // If battery API is available, check battery status
+      if ('getBattery' in navigator) {
+        // Attempt to get battery info for more advanced power-saving
+        try {
+          // @ts-ignore - navigator.getBattery() may not be in TypeScript definitions
+          navigator.getBattery().then(battery => {
+            // If battery is discharging and below 20%, increase interval more aggressively
+            if (battery.dischargingTime !== Infinity && battery.level < 0.2) {
+              console.log('🔋 Low battery detected, optimizing refresh intervals');
+              adjustedInterval *= 2; // Double the interval on low battery
+            }
+          }).catch(() => {
+            // Silently fail if battery API throws errors
+          });
+        } catch (e) {
+          // Silently fail if battery API isn't supported
+        }
+      }
+    }
+    
+    // Cap at reasonable limits
+    return Math.min(Math.max(adjustedInterval, 2000), 15000); // Between 2s and 15s
   }, [refreshInterval]);
   
-  // Handle refresh with proper state updates and debouncing
+  // Skip counter - track how many refreshes we've skipped
+  const skipCounter = useRef(0);
+  const lastChangeDetected = useRef(false);
+  
+  // Handle refresh with proper state updates, debouncing, and adaptive behavior
   const handleRefresh = async () => {
     if (isRefreshing) return;
+    
+    // Load balancing: check if we should skip this refresh
+    // We skip more often on mobile devices to conserve battery
+    // @ts-ignore - navigator.userAgentData is not in all TypeScript definitions yet
+    const isMobileDevice = typeof navigator.userAgentData?.mobile === 'boolean' 
+      ? navigator.userAgentData?.mobile 
+      : /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+      
+    // Mobile devices skip more frequently
+    const skipThreshold = isMobileDevice ? 2 : 4;
+    
+    // If we haven't detected changes recently and we're beyond skip threshold, skip this refresh
+    if (!lastChangeDetected.current && skipCounter.current < skipThreshold) {
+      skipCounter.current++;
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`⏭️ AssetRefreshProvider: Skipping refresh (${skipCounter.current}/${skipThreshold})`);
+      }
+      return;
+    }
+    
+    // Reset skip counter when we perform a refresh
+    skipCounter.current = 0;
     
     try {
       setIsRefreshing(true);
@@ -69,12 +130,16 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
       // Perform the refresh
       const result = await refreshAllAssets();
       
+      // Track if changes were detected
+      lastChangeDetected.current = result?.changesDetected || false;
+      
       // Update state
       setLastRefreshTime(Date.now());
       
       // Only log on development for performance
       if (process.env.NODE_ENV === 'development') {
-        console.log(`✅ AssetRefreshProvider: Refresh complete`, result);
+        console.log(`✅ AssetRefreshProvider: Refresh complete`, 
+          result?.changesDetected ? 'Changes detected' : 'No changes');
       }
     } catch (error) {
       console.error(`❌ AssetRefreshProvider: Refresh failed`, error);

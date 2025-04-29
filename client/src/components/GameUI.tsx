@@ -40,8 +40,13 @@ import { checkAllAchievements } from '../lib/services/achievementTracker';
 // New time scale: 1 day = 24 seconds (1 second = 1 hour in-game)
 const DAY_DURATION_MS = 24 * 1000; // exactly 24,000 ms per in-game day
 
-export default function GameUI() {
+import { memo } from 'react';
+
+function GameUI() {
   const navigate = useNavigate();
+  
+  // Add reference for interval cleanup
+  const updateInterval = useRef<NodeJS.Timeout | null>(null);
   
   // Use registry pattern for all stores
   const wealth = useCharacterRegistry(state => state.wealth, 0);
@@ -278,8 +283,15 @@ export default function GameUI() {
     }
     
     // For accurate hour tracking (1 second real time = 1 hour game time)
-    // We'll update once per 100ms to keep the animation smooth
-    const intervalId = setInterval(() => {
+    // Get the appropriate interval based on device capabilities
+    const getOptimalInterval = () => {
+      // On mobile or lower-end devices, we can use a less frequent update
+      const isLowEndDevice = window.navigator.hardwareConcurrency <= 4 || isMobile;
+      return isLowEndDevice ? 250 : 100; // 250ms for low-end, 100ms for high-end
+    };
+    
+    // Store the interval in the ref for cleanup
+    updateInterval.current = setInterval(() => {
       try {
         const currentTime = Date.now();
         
@@ -440,11 +452,18 @@ export default function GameUI() {
       } catch (error) {
         console.error("Error in time advancement timer:", error);
       }
-    }, 100); // Update progress every 100ms for smoother animation
+    }, getOptimalInterval());
+    
+    // Log the interval used based on device capabilities
+    const intervalUsed = getOptimalInterval();
+    console.log(`Using ${intervalUsed}ms interval for time updates (mobile: ${isMobile ? 'yes' : 'no'}, cores: ${window.navigator.hardwareConcurrency || 'unknown'})`);
     
     return () => {
       console.log("Cleaning up time advancement timer");
-      clearInterval(intervalId);
+      if (updateInterval.current) {
+        clearInterval(updateInterval.current);
+        updateInterval.current = null;
+      }
     };
   }, [
     autoAdvanceEnabled, 
@@ -455,7 +474,8 @@ export default function GameUI() {
     updateLastTickTime, 
     lastExpenseMonth, 
     setLastExpenseMonth,
-    timeProgress // Add timeProgress to the dependency array to ensure we always have the latest value
+    timeProgress, // Add timeProgress to the dependency array to ensure we always have the latest value
+    isMobile // Add isMobile to dependencies to recalculate interval when device/orientation changes
   ]);
   
   // Handle manual time advance
@@ -777,3 +797,6 @@ export default function GameUI() {
     </div>
   );
 }
+
+// Export the optimized memoized component
+export default memo(GameUI);
