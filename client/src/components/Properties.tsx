@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
@@ -306,6 +306,16 @@ export function Properties() {
     
     return capRate.toFixed(1);
   };
+  
+  // Enhanced property description section with image
+  const PropertyDescriptionWithImage = useCallback(({ description, id, name }: { description: string; id: string; name: string }) => {
+    return (
+      <>
+        <p className="text-sm">{description}</p>
+        <PropertyImage propertyId={id} propertyName={name} />
+      </>
+    );
+  }, []);
   
   const mortgageDetails = calculateMonthlyPayment();
   
