@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, memo } from 'react';
 import { isLowPerformanceDevice } from '../lib/utils/deviceUtils';
 import { OptimizedMarketPriceUpdater } from './OptimizedMarketPriceUpdater';
 import { MarketPriceUpdater } from './MarketPriceUpdater';
@@ -6,15 +6,29 @@ import { PerformanceOptimizer } from './PerformanceOptimizer';
 
 /**
  * This wrapper component decides whether to use the standard or optimized
- * market price updater based on device capabilities and user preferences
+ * market price updater based on device capabilities and user preferences.
+ * Now optimized for mobile and lower-end devices with aggressive optimization.
  */
-export const MarketPriceUpdaterWrapper: React.FC = () => {
-  const [useOptimized, setUseOptimized] = useState<boolean | null>(null);
+const MarketPriceUpdaterWrapperComponent: React.FC = () => {
+  // Default to true for optimized version to ensure smooth initial experience
+  const [useOptimized, setUseOptimized] = useState<boolean>(true);
   
   // Determine whether to use the optimized version
   useEffect(() => {
+    // Initialize with optimized version immediately for faster startup
+    
     // Check if device is likely a mobile or low-performance device
-    const shouldUseOptimized = isLowPerformanceDevice();
+    const checkDevicePerformance = () => {
+      // Always use optimized version on mobile
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      if (isMobileDevice) {
+        console.log("MarketPriceUpdaterWrapper: Mobile device detected, using optimized updater");
+        return true;
+      }
+      
+      // Check hardware capabilities
+      return isLowPerformanceDevice();
+    };
     
     // Check user preference from localStorage
     const userPreference = localStorage.getItem('use_optimized_market_updater');
@@ -22,20 +36,24 @@ export const MarketPriceUpdaterWrapper: React.FC = () => {
     if (userPreference === 'true') {
       setUseOptimized(true);
     } else if (userPreference === 'false') {
-      setUseOptimized(false);
+      const shouldUseOptimized = checkDevicePerformance();
+      // Only honor 'false' on high-performance devices
+      if (shouldUseOptimized) {
+        console.log("MarketPriceUpdaterWrapper: Low-performance device detected, overriding user preference");
+        localStorage.setItem('use_optimized_market_updater', 'true');
+        setUseOptimized(true);
+      } else {
+        setUseOptimized(false);
+      }
     } else {
       // No explicit preference set, use device detection
+      const shouldUseOptimized = checkDevicePerformance();
       setUseOptimized(shouldUseOptimized);
       
       // Save the auto-detection result
       localStorage.setItem('use_optimized_market_updater', String(shouldUseOptimized));
     }
   }, []);
-  
-  // Wait until we've determined which version to use
-  if (useOptimized === null) {
-    return null;
-  }
   
   return (
     <>
@@ -50,3 +68,6 @@ export const MarketPriceUpdaterWrapper: React.FC = () => {
     </>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+export const MarketPriceUpdaterWrapper = memo(MarketPriceUpdaterWrapperComponent);

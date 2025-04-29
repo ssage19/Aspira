@@ -13,7 +13,7 @@
  * navigate through the application.
  */
 
-import React, { useEffect, useState, createContext, useContext } from 'react';
+import React, { useEffect, useState, createContext, useContext, useRef, useMemo } from 'react';
 import refreshAllAssets from '../lib/services/assetRefresh';
 import { useLocation } from 'react-router-dom';
 
@@ -40,26 +40,42 @@ interface AssetRefreshProviderProps {
 
 export const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
   children,
-  refreshInterval = 2000, // default to 2 seconds
+  refreshInterval = 5000, // Increased to 5 seconds for better performance
 }) => {
   const location = useLocation();
   const [lastRefreshTime, setLastRefreshTime] = useState(Date.now());
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const previousPathRef = useRef(location.pathname);
+  const refreshTimeoutId = useRef<NodeJS.Timeout | null>(null);
   
-  // Handle refresh with proper state updates
+  // Adaptive refresh interval based on device performance
+  const adaptiveInterval = useMemo(() => {
+    // Check if we're running on a lower-end device
+    const isLowEndDevice = window.navigator.hardwareConcurrency <= 4;
+    return isLowEndDevice ? refreshInterval * 2 : refreshInterval;
+  }, [refreshInterval]);
+  
+  // Handle refresh with proper state updates and debouncing
   const handleRefresh = async () => {
     if (isRefreshing) return;
     
     try {
       setIsRefreshing(true);
-      console.log(`🔄 AssetRefreshProvider: Running refresh (path: ${location.pathname})`);
+      // Only log on development for performance
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`🔄 AssetRefreshProvider: Running refresh (path: ${location.pathname})`);
+      }
       
       // Perform the refresh
       const result = await refreshAllAssets();
       
       // Update state
       setLastRefreshTime(Date.now());
-      console.log(`✅ AssetRefreshProvider: Refresh complete`, result);
+      
+      // Only log on development for performance
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`✅ AssetRefreshProvider: Refresh complete`, result);
+      }
     } catch (error) {
       console.error(`❌ AssetRefreshProvider: Refresh failed`, error);
     } finally {
@@ -67,37 +83,69 @@ export const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
     }
   };
   
-  // STRATEGY 1: Regular interval refreshes
+  // Debounced refresh function to prevent excessive updates
+  const debouncedRefresh = () => {
+    // Clear any existing timeout
+    if (refreshTimeoutId.current) {
+      clearTimeout(refreshTimeoutId.current);
+    }
+    
+    // Set a new timeout
+    refreshTimeoutId.current = setTimeout(() => {
+      handleRefresh();
+    }, 200); // Short debounce time
+  };
+  
+  // STRATEGY 1: Regular interval refreshes with adaptive timing
   useEffect(() => {
-    console.log("🚀 AssetRefreshProvider: Setting up refresh interval");
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`🚀 AssetRefreshProvider: Setting up refresh interval (${adaptiveInterval}ms)`);
+    }
     
-    // Initial refresh on mount
-    handleRefresh();
+    // Initial refresh on mount (with slight delay for app stability)
+    const initialTimeout = setTimeout(() => {
+      handleRefresh();
+    }, 500);
     
-    // Set up interval for regular refreshes
+    // Set up interval for regular refreshes with adaptive interval
     const intervalId = setInterval(() => {
       handleRefresh();
-    }, refreshInterval);
+    }, adaptiveInterval);
     
-    // Cleanup interval on unmount
+    // Cleanup interval and timeout on unmount
     return () => {
-      console.log("👋 AssetRefreshProvider: Cleaning up refresh interval");
+      if (process.env.NODE_ENV === 'development') {
+        console.log("👋 AssetRefreshProvider: Cleaning up refresh interval");
+      }
+      clearTimeout(initialTimeout);
       clearInterval(intervalId);
+      if (refreshTimeoutId.current) {
+        clearTimeout(refreshTimeoutId.current);
+      }
     };
-  }, [refreshInterval]);
+  }, [adaptiveInterval]);
   
-  // STRATEGY 2: Refresh on route changes
+  // STRATEGY 2: Refresh on meaningful route changes only
   useEffect(() => {
-    console.log(`📍 AssetRefreshProvider: Route changed to ${location.pathname}`);
-    handleRefresh();
+    // Only refresh if the path actually changed (not just query params)
+    if (previousPathRef.current !== location.pathname) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`📍 AssetRefreshProvider: Route changed to ${location.pathname}`);
+      }
+      previousPathRef.current = location.pathname;
+      debouncedRefresh();
+    }
   }, [location.pathname]);
   
-  // STRATEGY 3: Visibility change detection
+  // STRATEGY 3: Visibility change detection - optimized for mobile
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log("👁️ AssetRefreshProvider: Tab became visible, refreshing data");
-        handleRefresh();
+        if (process.env.NODE_ENV === 'development') {
+          console.log("👁️ AssetRefreshProvider: Tab became visible, refreshing data");
+        }
+        // Use debounced refresh for stability
+        debouncedRefresh();
       }
     };
     
@@ -108,11 +156,11 @@ export const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
   }, []);
   
   // Provide context for manual refreshes (STRATEGY 4)
-  const contextValue = {
+  const contextValue = useMemo(() => ({
     triggerRefresh: handleRefresh,
     lastRefreshTime,
     isRefreshing
-  };
+  }), [lastRefreshTime, isRefreshing]);
   
   return (
     <AssetRefreshContext.Provider value={contextValue}>

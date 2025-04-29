@@ -83,18 +83,56 @@ const logAssetSnapshots = (label: string) => {
 };
 
 // Global function that can be called from anywhere without React hooks
+// Helper for device type detection to optimize refresh rates
+const getDeviceType = () => {
+  const userAgent = navigator.userAgent;
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+  
+  // Detect specific mobile categories for more targeted optimization
+  const isHighEndMobile = isMobile && (/(iPhone\s(13|14|15)|iPad\sPro|Pixel\s[6-9])/i.test(userAgent));
+  const isLowEndMobile = isMobile && !isHighEndMobile;
+  
+  // Detect if we're running on a low-end device (fewer CPU cores)
+  const isLowEndDevice = window.navigator.hardwareConcurrency <= 2;
+  
+  if (isLowEndMobile || isLowEndDevice) return 'low-end-mobile';
+  if (isHighEndMobile) return 'high-end-mobile';
+  if (isMobile) return 'mobile';
+  return 'desktop';
+};
+
 export const refreshAllAssets = () => {
   const now = Date.now();
   
-  // Use a more aggressive throttling strategy to prevent excessive updates
-  // Use different thresholds for different screens
-  // Dashboard needs more frequent updates (500ms), other screens can use 2000ms
+  // Adaptive throttling based on device capabilities and current screen
   const isDashboard = window.location.pathname.includes('dashboard');
-  const throttleTime = isDashboard ? 500 : 2000;
+  const deviceType = getDeviceType();
+  
+  // Set throttle times based on device type and current screen
+  let throttleTime = 2000; // Default (desktop non-dashboard)
+  
+  if (deviceType === 'low-end-mobile') {
+    // Very aggressive throttling for low-end mobile
+    throttleTime = isDashboard ? 2000 : 8000;
+  } else if (deviceType === 'mobile' || deviceType === 'high-end-mobile') {
+    // Strong throttling for all mobile devices
+    throttleTime = isDashboard ? 1000 : 5000;
+  } else {
+    // Standard throttling for desktop
+    throttleTime = isDashboard ? 500 : 3000;
+  }
+  
+  // Only log in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log(`Device type: ${deviceType}, throttle time: ${throttleTime}ms`);
+  }
   
   // Throttle refreshes to prevent performance issues
   if (now - lastRefreshTime < throttleTime) {
-    console.log(`⏱️ Asset refresh throttled - skipping (refresh interval < ${throttleTime}ms)`);
+    // Only log in development to reduce console noise
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`⏱️ Asset refresh throttled - skipping (refresh interval < ${throttleTime}ms)`);
+    }
     return {
       success: true,
       message: 'Asset refresh skipped (throttled)',
@@ -104,7 +142,10 @@ export const refreshAllAssets = () => {
   
   // Prevent concurrent refreshes
   if (refreshInProgress) {
-    console.log("⚠️ Asset refresh already in progress - skipping");
+    // Only log in development to reduce console noise
+    if (process.env.NODE_ENV === 'development') {
+      console.log("⚠️ Asset refresh already in progress - skipping");
+    }
     return {
       success: true,
       message: 'Asset refresh skipped (already in progress)',
@@ -114,7 +155,11 @@ export const refreshAllAssets = () => {
   
   // Set the flag first, release it in finally block
   refreshInProgress = true;
-  console.log("=== BEGINNING COMPREHENSIVE ASSET REFRESH ===");
+  
+  // Only log in development to reduce console noise
+  if (process.env.NODE_ENV === 'development') {
+    console.log("=== BEGINNING COMPREHENSIVE ASSET REFRESH ===");
+  }
   lastRefreshTime = now;
   
   try {
