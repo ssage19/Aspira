@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
@@ -53,8 +53,19 @@ export function Properties() {
   const [portfolioView, setPortfolioView] = useState('all');
   const [downPaymentPercent, setDownPaymentPercent] = useState(20);
 
+  // Function to get properties for the active tab - declared before state to avoid hoisting issues
+  const getPropertiesForActiveTab = (tab: string) => {
+    switch(tab) {
+      case 'residential': return residentialProperties;
+      case 'mansion': return luxuryProperties;
+      case 'commercial': return commercialProperties;
+      case 'industrial': return industrialProperties;
+      default: return residentialProperties;
+    }
+  };
+  
   const [selectedProperty, setSelectedProperty] = useState(residentialProperties[0]);
-
+  
   // Calculate adjusted property price based on market conditions
   const getAdjustedPrice = (basePrice: number) => {
     // Market factor ranges from 0.8 to 1.2 based on economic conditions
@@ -62,38 +73,16 @@ export function Properties() {
     return Math.round(basePrice * marketFactor);
   };
   
-  // Get properties for the active tab
-  const getPropertiesForTab = () => {
-    let properties;
-    switch(activeTab) {
-      case 'residential':
-        properties = residentialProperties;
-        break;
-      case 'mansion':
-        properties = luxuryProperties;
-        console.log('Luxury properties:', properties);
-        break;
-      case 'commercial':
-        properties = commercialProperties;
-        break;
-      case 'industrial':
-        properties = industrialProperties;
-        break;
-      default:
-        properties = residentialProperties;
-    }
-    
-    // Debug the first few properties to check their structure
+  // Memoized version of getPropertiesForActiveTab
+  const getPropertiesForTab = useCallback(() => getPropertiesForActiveTab(activeTab), [activeTab]);
+  
+  // Update selected property when tab changes
+  useEffect(() => {
+    const properties = getPropertiesForTab();
     if (properties && properties.length > 0) {
-      console.log(`First property in ${activeTab} tab:`, properties[0]);
-      if (activeTab === 'mansion' && properties.length > 1) {
-        console.log('Getting image path for luxury property with ID:', properties[0].id);
-        console.log('Image path result:', getPropertyImagePath(properties[0].id));
-      }
+      setSelectedProperty(properties[0]);
     }
-    
-    return properties;
-  };
+  }, [activeTab, getPropertiesForTab]);
   
   // Check if user already owns this property
   const isPropertyOwned = (id: string) => {
@@ -271,13 +260,10 @@ export function Properties() {
     );
   };
   
-  // Property image component for reuse
-  const PropertyImage = ({ propertyId, propertyName }: { propertyId: string; propertyName: string }) => {
+  // Property image component for reuse - memoized to prevent unnecessary rerenders
+  const PropertyImage = useCallback(({ propertyId, propertyName }: { propertyId: string; propertyName: string }) => {
     // Get property image path using our utility function
     const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(propertyName);
-    
-    // Add debug logging
-    console.log(`PropertyImage component - ID: ${propertyId}, Name: ${propertyName}, Path: ${imagePath}`);
     
     // Return the image if we have a path
     return imagePath ? (
@@ -287,13 +273,13 @@ export function Properties() {
           alt={propertyName}
           className="rounded-md w-full h-auto object-cover"
           onError={(e) => {
-            console.error(`Error loading image for ${propertyName}:`, e);
+            // Handle error silently
             e.currentTarget.style.display = 'none';
           }}
         />
       </div>
     ) : null;
-  };
+  }, []);
   
   // Calculate monthly mortgage payment
   const calculateMonthlyPayment = () => {
