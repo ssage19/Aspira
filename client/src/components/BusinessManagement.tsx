@@ -278,11 +278,11 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
                 </TooltipProvider>
               </span>
               <span className={`font-medium ${productivity >= 80 ? 'text-green-600' : productivity >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
-                {productivity}%
+                {Math.min(100, productivity)}%
               </span>
             </div>
             <Progress 
-              value={productivity} 
+              value={Math.min(100, productivity)} 
               className="h-1.5" 
               indicatorClassName={
                 productivity >= 80 ? 'bg-green-500' : 
@@ -309,11 +309,11 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
                 </TooltipProvider>
               </span>
               <span className={`font-medium ${morale >= 80 ? 'text-green-600' : morale >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
-                {morale}%
+                {Math.min(100, morale)}%
               </span>
             </div>
             <Progress 
-              value={morale} 
+              value={Math.min(100, morale)} 
               className="h-1.5"
               indicatorClassName={
                 morale >= 80 ? 'bg-green-500' : 
@@ -327,7 +327,7 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
             <div className="flex justify-between text-xs">
               <span className="text-muted-foreground">Effectiveness:</span>
               <span className={`font-medium ${effectiveness >= 0.8 ? 'text-green-600' : effectiveness >= 0.6 ? 'text-blue-600' : 'text-amber-600'}`}>
-                {Math.round(effectiveness * 100)}%
+                {Math.min(100, Math.round(effectiveness * 100))}%
               </span>
             </div>
             <div className="flex justify-between text-xs mt-1">
@@ -908,10 +908,10 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
     // 4. Quality
     // 5. Capacity utilization
     
-    const profitScore = business.profitMargin * 100; // 0-100
+    const profitScore = Math.min(100, business.profitMargin * 100); // 0-100
     const cashScore = Math.min(100, (business.cash / business.initialInvestment) * 200); // 0-100
-    const satisfactionScore = business.customerSatisfaction; // 0-100
-    const qualityScore = business.quality; // 0-100
+    const satisfactionScore = Math.min(100, business.customerSatisfaction); // 0-100
+    const qualityScore = Math.min(100, business.quality); // 0-100
     const capacityScore = Math.min(100, (business.currentCapacity / business.capacity) * 150); // 0-100
     
     // Weighted average
