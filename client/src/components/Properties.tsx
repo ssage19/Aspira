@@ -11,7 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
 import { formatCurrency, getPropertyImagePath } from '../lib/utils';
-import { useMemo } from 'react';
 import { 
   Home, 
   Building2, 
@@ -39,27 +38,6 @@ import {
   calculateMortgage
 } from '../lib/data/properties';
 import { PropertyType } from '../lib/types/PropertyTypes';
-
-// Helper component to display property images
-const PropertyImage = ({ propertyId, name }: { propertyId: string, name: string }) => {
-  // Get the image path using getPropertyImagePath utility function
-  const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(name);
-  
-  // Log for debugging
-  console.log(`PropertyImage - ID: ${propertyId}, Name: ${name}, Path: ${imagePath}`);
-  
-  if (!imagePath) return null;
-  
-  return (
-    <div className="mb-3">
-      <img 
-        src={imagePath} 
-        alt={name} 
-        className="rounded-md w-full h-auto object-cover"
-      />
-    </div>
-  );
-};
 
 export function Properties() {
   const { wealth, addWealth, addProperty, sellProperty, properties: ownedProperties } = useCharacter();
