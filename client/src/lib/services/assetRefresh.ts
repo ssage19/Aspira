@@ -262,18 +262,7 @@ export const refreshAllAssets = () => {
       console.error("Error processing businesses during global refresh:", businessError);
     }
     
-    // Process social networks if available
-    try {
-      const socialStore = getStore('socialNetwork');
-      if (socialStore && typeof socialStore.getState().processSocialNetworks === 'function') {
-        if (process.env.NODE_ENV === 'development') {
-          console.log("Processing social networks as part of global refresh");
-        }
-        socialStore.getState().processSocialNetworks();
-      }
-    } catch (socialError) {
-      console.error("Error processing social networks during global refresh:", socialError);
-    }
+    // Note: Social networks are typically updated on specific actions rather than in global refresh
     
     // Process any other game mechanics that need regular updates
     try {
@@ -287,6 +276,21 @@ export const refreshAllAssets = () => {
     } catch (economyError) {
       console.error("Error updating economy during global refresh:", economyError);
     }
+    
+    // Process challenges
+    try {
+      const challengesStore = getStore('challenges');
+      if (challengesStore && typeof challengesStore.getState().checkChallengeProgress === 'function') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Checking challenge progress as part of global refresh");
+        }
+        challengesStore.getState().checkChallengeProgress();
+      }
+    } catch (challengesError) {
+      console.error("Error checking challenge progress during global refresh:", challengesError);
+    }
+    
+    // Note: Achievements are typically checked when specific actions occur rather than on a global refresh
     
     // 4. Verify values and sync if needed
     if (process.env.NODE_ENV === 'development') {
