@@ -286,7 +286,7 @@ export const residentialProperties = [
 ];
 
 export const luxuryProperties = [
-  // Original luxury properties
+  // Luxury properties
   {
     id: 'penthouse',
     name: 'Downtown Penthouse',
@@ -364,7 +364,7 @@ export const luxuryProperties = [
   },
   {
     id: 'french_chateau',
-    name: 'French Inspired Château',
+    name: 'French-Inspired Château',
     type: 'mansion',
     price: 16500000,
     squareFeet: 14000,
@@ -437,7 +437,6 @@ export const luxuryProperties = [
     appreciationRate: 0.04,
     prestige: 90
   },
-  // Additional luxury properties
   {
     id: 'lakefront_mansion',
     name: 'Lakefront Mansion',
@@ -499,36 +498,6 @@ export const luxuryProperties = [
     prestige: 85
   },
   {
-    id: 'modern_architectural',
-    name: 'Modern Architectural Masterpiece',
-    type: 'mansion',
-    price: 15500000,
-    squareFeet: 9500,
-    bedrooms: 5,
-    bathrooms: 7,
-    location: 'Urban Premium',
-    income: 52000,
-    expenses: 18000,
-    description: 'Award-winning contemporary design with smart home technology and sustainable features.',
-    appreciationRate: 0.048,
-    prestige: 95
-  },
-  {
-    id: 'equestrian_property',
-    name: 'Equestrian Estate',
-    type: 'mansion',
-    price: 11200000,
-    squareFeet: 7000,
-    bedrooms: 5,
-    bathrooms: 5.5,
-    location: 'Rural Premium',
-    income: 35000,
-    expenses: 15500,
-    description: 'Luxury estate with professional equestrian facilities, stables, and riding arena.',
-    appreciationRate: 0.033,
-    prestige: 80
-  },
-  {
     id: 'island_retreat',
     name: 'Private Island Retreat',
     type: 'mansion',
@@ -542,36 +511,6 @@ export const luxuryProperties = [
     description: 'Exclusive island property with helicopter pad, private beaches, and staff quarters.',
     appreciationRate: 0.052,
     prestige: 100
-  },
-  {
-    id: 'château',
-    name: 'French-Inspired Château',
-    type: 'mansion',
-    price: 14500000,
-    squareFeet: 12000,
-    bedrooms: 8,
-    bathrooms: 10,
-    location: 'Rural Premium',
-    income: 48000,
-    expenses: 17500,
-    description: 'Magnificent château with formal gardens, ballroom, and authentic European details.',
-    appreciationRate: 0.036,
-    prestige: 90
-  },
-  {
-    id: 'desert_property',
-    name: 'Desert Oasis Estate',
-    type: 'mansion',
-    price: 9800000,
-    squareFeet: 7800,
-    bedrooms: 5,
-    bathrooms: 6,
-    location: 'Desert',
-    income: 34000,
-    expenses: 12000,
-    description: 'Stunning desert property with multiple pools, spa facilities, and mountain views.',
-    appreciationRate: 0.039,
-    prestige: 75
   },
   {
     id: 'city_palace',
@@ -617,36 +556,6 @@ export const luxuryProperties = [
     description: 'Exclusive property with main house, guest houses, private marina, and yacht access.',
     appreciationRate: 0.044,
     prestige: 90
-  },
-  {
-    id: 'golf_residence',
-    name: 'Golf Course Estate',
-    type: 'mansion',
-    price: 8800000,
-    squareFeet: 7200,
-    bedrooms: 5,
-    bathrooms: 6,
-    location: 'Suburban Premium',
-    income: 32000,
-    expenses: 11000,
-    description: 'Luxury residence overlooking championship golf course with private putting green.',
-    appreciationRate: 0.034,
-    prestige: 75
-  },
-  {
-    id: 'celebrity_estate',
-    name: 'Celebrity Compound',
-    type: 'mansion',
-    price: 20000000,
-    squareFeet: 15000,
-    bedrooms: 9,
-    bathrooms: 12,
-    location: 'Urban Premium',
-    income: 85000,
-    expenses: 28000,
-    description: 'Former celebrity estate with recording studio, movie theater, and paparazzi-proof security.',
-    appreciationRate: 0.047,
-    prestige: 100
   },
   {
     id: 'smart_mansion',
