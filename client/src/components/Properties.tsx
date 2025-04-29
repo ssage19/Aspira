@@ -254,6 +254,23 @@ export function Properties() {
     );
   };
   
+  // Property image component for reuse
+  const PropertyImage = ({ propertyId, propertyName }) => {
+    // Get property image path using our utility function
+    const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(propertyName);
+    
+    // Return the image if we have a path
+    return imagePath ? (
+      <div className="mb-3">
+        <img 
+          src={imagePath}
+          alt={propertyName}
+          className="rounded-md w-full h-auto object-cover"
+        />
+      </div>
+    ) : null;
+  };
+  
   // Calculate monthly mortgage payment
   const calculateMonthlyPayment = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
@@ -449,206 +466,22 @@ export function Properties() {
                 <CardContent className="space-y-2 pb-2">
                   <p className="text-sm">{selectedProperty.description}</p>
                   
-                  {/* Display images for residential properties */}
-                  {selectedProperty.id === 'single_family' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/single_family_home.jpg" 
-                        alt="Single Family Home" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'apartment_basic' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/city_apartment.jpg" 
-                        alt="City Apartment" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'apartment_luxury' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/luxury_city_apartment.jpg" 
-                        alt="Luxury City Apartment" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'townhouse' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/suburban_townhome.jpg" 
-                        alt="Suburban Townhouse" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'studio_apartment' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/urban_studio.jpg" 
-                        alt="Urban Studio" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'urban_loft' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/converted_loft.jpg" 
-                        alt="Converted Loft" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'garden_apartment' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/garden_apartment.jpg" 
-                        alt="Garden Apartment" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'highrise_1br' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/highrise_one_bedroom.jpg" 
-                        alt="Highrise 1-Bedroom" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'suburban_condo' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/suburban_condo.jpg" 
-                        alt="Suburban Condo" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'duplex' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/residential_duplex.jpg" 
-                        alt="Residential Duplex" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'garden_condo' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/garden_district_condo.jpg" 
-                        alt="Garden District Condo" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'modern_townhome' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/modern_townhome.jpg" 
-                        alt="Modern Townhome" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'colonial_home' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/colonial_style_home.jpg" 
-                        alt="Colonial Style Home" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'vacation_cottage' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/weekend_cottage.jpg" 
-                        alt="Weekend Cottage" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'ranch_style' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/ranch_style_home.jpg" 
-                        alt="Ranch Style Home" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'senior_condo' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/senior_living_condo.jpg" 
-                        alt="Senior Living Condo" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'lakeside_cabin' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/lakeside_cabin.jpg" 
-                        alt="Lakeside Cabin" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'bungalow' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/craftsman_bungalow.jpg" 
-                        alt="Craftsman Bungalow" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'split_level' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/split_level_home.jpg" 
-                        alt="Split-Level Home" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
-                  
-                  {selectedProperty.id === 'waterfront_apt' && (
-                    <div className="mb-3">
-                      <img 
-                        src="/images/properties/waterfront_apartment.jpg" 
-                        alt="Waterfront Apartment" 
-                        className="rounded-md w-full h-auto object-cover"
-                      />
-                    </div>
-                  )}
+                  {/* Display property image using utility function */}
+                  {(() => {
+                    // Get property image path using our utility function
+                    const imagePath = getPropertyImagePath(selectedProperty.id) || getPropertyImagePath(selectedProperty.name);
+                    
+                    // Return the image if we have a path
+                    return imagePath ? (
+                      <div className="mb-3">
+                        <img 
+                          src={imagePath}
+                          alt={selectedProperty.name}
+                          className="rounded-md w-full h-auto object-cover"
+                        />
+                      </div>
+                    ) : null;
+                  })()}
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
