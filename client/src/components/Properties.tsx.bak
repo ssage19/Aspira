@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
-import { useAudio } from '../lib/stores/useAudio';
+// Audio removed
 import { useResponsive } from '../lib/hooks/useResponsive';
 import { useNavigate } from 'react-router-dom';
 import { Button } from './ui/button';
@@ -10,6 +10,7 @@ import { Slider } from './ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
+import { formatCurrency, getPropertyImagePath } from '../lib/utils';
 import { 
   Home, 
   Building2, 
@@ -29,7 +30,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
-import { formatCurrency } from '../lib/utils';
 import { 
   residentialProperties, 
   luxuryProperties, 
@@ -43,37 +43,56 @@ export function Properties() {
   const { wealth, addWealth, addProperty, sellProperty, properties: ownedProperties } = useCharacter();
   const { interestRate, realEstateMarketHealth } = useEconomy();
   const { currentDay, currentMonth, currentYear } = useTime();
-  const { playSuccess, playHit } = useAudio();
+  // Audio removed - using empty functions
+  const playSuccess = () => {};
+  const playHit = () => {};
   const navigate = useNavigate();
   const { isMobile } = useResponsive();
   
   const [activeTab, setActiveTab] = useState('residential');
-  const [selectedProperty, setSelectedProperty] = useState<PropertyType>(residentialProperties[0]);
-  const [downPaymentPercent, setDownPaymentPercent] = useState(20);
   const [portfolioView, setPortfolioView] = useState('all');
-  
-  // Adjust property values based on market health
+  const [downPaymentPercent, setDownPaymentPercent] = useState(20);
+
+  const [selectedProperty, setSelectedProperty] = useState(residentialProperties[0]);
+
+  // Calculate adjusted property price based on market conditions
   const getAdjustedPrice = (basePrice: number) => {
-    // Use 65 as the baseline market health (represent a neutral market)
-    // Market factor should be 1.0 at 65% health, higher above, lower below
-    const marketFactor = realEstateMarketHealth / 65; // Normalize around 65% as baseline
+    // Market factor ranges from 0.8 to 1.2 based on economic conditions
+    const marketFactor = 0.8 + (realEstateMarketHealth / 100) * 0.4;
     return Math.round(basePrice * marketFactor);
   };
   
   // Get properties for the active tab
   const getPropertiesForTab = () => {
+    let properties;
     switch(activeTab) {
       case 'residential':
-        return residentialProperties;
+        properties = residentialProperties;
+        break;
       case 'mansion':
-        return luxuryProperties;
+        properties = luxuryProperties;
+        console.log('Luxury properties:', properties);
+        break;
       case 'commercial':
-        return commercialProperties;
+        properties = commercialProperties;
+        break;
       case 'industrial':
-        return industrialProperties;
+        properties = industrialProperties;
+        break;
       default:
-        return residentialProperties;
+        properties = residentialProperties;
     }
+    
+    // Debug the first few properties to check their structure
+    if (properties && properties.length > 0) {
+      console.log(`First property in ${activeTab} tab:`, properties[0]);
+      if (activeTab === 'mansion' && properties.length > 1) {
+        console.log('Getting image path for luxury property with ID:', properties[0].id);
+        console.log('Image path result:', getPropertyImagePath(properties[0].id));
+      }
+    }
+    
+    return properties;
   };
   
   // Check if user already owns this property
@@ -84,93 +103,92 @@ export function Properties() {
   // Handle property purchase
   const handlePurchase = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
+    const downPayment = (downPaymentPercent / 100) * adjustedPrice;
+    const loanAmount = adjustedPrice - downPayment;
     
-    // For a full purchase, the down payment is the full price
-    // For a mortgage, it's just the down payment percentage
-    const downPaymentAmount = downPaymentPercent === 100 
-      ? adjustedPrice 
-      : adjustedPrice * (downPaymentPercent / 100);
+    if (isPropertyOwned(selectedProperty.id)) {
+      toast.error("You already own this property");
+      return;
+    }
     
-    if (wealth < downPaymentAmount) {
-      toast.error("You don't have enough funds for the down payment");
-      playHit();
+    if (wealth < downPayment) {
+      toast.error("Insufficient funds for down payment");
       return;
     }
     
     // Display a warning for low down payments - these are riskier
     if (downPaymentPercent < 20) {
       toast.warning(
-        `Low down payment (${downPaymentPercent}%) means higher monthly payments and more interest paid over time`, 
-        { duration: 5000 }
+        <div className="flex flex-col">
+          <div className="flex items-center font-semibold">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            Low Down Payment Warning
+          </div>
+          <p className="text-sm mt-1">
+            Down payments below 20% typically result in higher interest rates and may be riskier.
+          </p>
+        </div>,
+        { duration: 4000 }
       );
     }
     
-    // Store property count before adding
-    const propertiesCountBefore = ownedProperties.length;
+    // Calculate mortgage details
+    const monthlyPayment = loanAmount > 0 ? mortgageDetails.monthlyPayment : 0;
     
-    // Calculate loan details based on down payment percentage
-    // We already calculated downPaymentAmount above, so just use it
-    const loanAmount = adjustedPrice - downPaymentAmount;
-    
-    // Calculate the monthly payment using the formula: P = L[i(1 + i)^n]/[(1 + i)^n - 1]
-    const interestRateDecimal = interestRate / 100;
-    const monthlyInterestRate = interestRateDecimal / 12;
-    const loanTermMonths = 30 * 12; // 30-year fixed mortgage
-    
-    const numerator = monthlyInterestRate * Math.pow(1 + monthlyInterestRate, loanTermMonths);
-    const denominator = Math.pow(1 + monthlyInterestRate, loanTermMonths) - 1;
-    const monthlyPayment = loanAmount * (numerator / denominator);
-    
-    // Format the purchase date properly (YYYY-MM-DD format)
-    // This ensures proper date comparison when calculating months owned
-    const formattedDate = `${currentYear}-${String(currentMonth).padStart(2, '0')}-${String(currentDay).padStart(2, '0')}`;
-    
-    // Add property to owned properties with mortgage details
-    addProperty({
+    // Create new property object compatible with the Property interface in useCharacter
+    const newProperty = {
       id: selectedProperty.id,
       name: selectedProperty.name,
-      type: selectedProperty.type as "residential" | "commercial" | "industrial" | "mansion", // Cast to valid type
-      value: adjustedPrice, // Current value for display
-      purchasePrice: adjustedPrice, // Full purchase price
-      downPayment: downPaymentAmount, // Amount paid upfront
-      loanAmount: loanAmount, // Remaining loan balance
-      loanTerm: 30, // 30-year fixed
-      interestRate: interestRate, // Current mortgage rate
-      monthlyPayment: monthlyPayment, // Monthly mortgage payment
+      type: activeTab as 'residential' | 'commercial' | 'industrial' | 'mansion',
+      location: selectedProperty.location,
+      description: selectedProperty.description,
+      purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
+      // Required fields for Property interface
+      purchasePrice: adjustedPrice,
+      currentValue: adjustedPrice,
+      downPayment: downPayment,
+      loanAmount: loanAmount,
+      loanTerm: 30, // Default to 30 years
+      interestRate: interestRate,
+      monthlyPayment: monthlyPayment,
       income: selectedProperty.income,
       expenses: selectedProperty.expenses,
-      purchaseDate: formattedDate,
-      currentValue: adjustedPrice, // For future value calculations and selling
-      location: selectedProperty.location,
       appreciationRate: selectedProperty.appreciationRate,
       squareFeet: selectedProperty.squareFeet,
-      ...(('bedrooms' in selectedProperty) ? { 
+      // Optional fields that exist in PropertyType
+      ...(activeTab === 'residential' && 'bedrooms' in selectedProperty) && {
         bedrooms: selectedProperty.bedrooms,
-        bathrooms: selectedProperty.bathrooms 
-      } : {}),
-      description: selectedProperty.description,
-      ...('roi' in selectedProperty ? { roi: selectedProperty.roi } : {}),
-      ...('prestige' in selectedProperty ? { prestige: selectedProperty.prestige } : {})
-    });
-    
-    // Check if the property was successfully added by checking if the property count increased
-    if (useCharacter.getState().properties.length > propertiesCountBefore) {
-      playSuccess();
-      toast.success(`Purchased ${selectedProperty.name} for ${formatCurrency(adjustedPrice)}`);
-      
-      // Display finance details
-      if (downPaymentPercent < 100) {
-        toast(`Down payment: ${formatCurrency(downPaymentAmount)}, Loan: ${formatCurrency(loanAmount)}, Monthly payment: ${formatCurrency(monthlyPayment)}`, {
-          duration: 5000
-        });
+        bathrooms: selectedProperty.bathrooms
+      },
+      ...(activeTab === 'commercial' && 'roi' in selectedProperty) && {
+        roi: selectedProperty.roi
       }
-    } else {
-      // The purchase failed (likely due to insufficient funds check in addProperty)
-      playHit();
-    }
+    };
+    
+    // For debugging
+    console.log("Creating new property:", newProperty);
+    
+    // Process purchase
+    addWealth(-downPayment);
+    
+    // Explicitly convert to Property interface type that useCharacter expects
+    addProperty(newProperty);
+    playSuccess();
+    
+    toast.success(
+      <div className="flex flex-col">
+        <div className="flex items-center font-semibold">
+          Property Purchased!
+        </div>
+        <p className="text-sm mt-1">
+          You have successfully purchased {selectedProperty.name}.
+        </p>
+      </div>,
+      { duration: 3000 }
+    );
   };
   
-  // Handle property sale
+  // Handle selling a property
   const handleSell = (propertyId: string) => {
     const property = ownedProperties.find(p => p.id === propertyId);
     if (!property) return;
@@ -180,71 +198,53 @@ export function Properties() {
     console.log(`Original purchase price: ${property.purchasePrice}, Current value: ${property.currentValue}`);
     console.log(`Purchase date: ${property.purchaseDate}`);
     
-    // Calculate current market value based on market health
-    const marketFactor = realEstateMarketHealth / 65;
+    // Calculate how long the property has been owned
+    const purchaseDateParts = property.purchaseDate.split('/');
+    const purchaseMonth = parseInt(purchaseDateParts[0]);
+    const purchaseDay = parseInt(purchaseDateParts[1]);
+    const purchaseYear = parseInt(purchaseDateParts[2]);
     
-    // Use currentValue if available, or fallback to value and finally purchasePrice
-    const propertyValue = property.currentValue || (property.value ?? property.purchasePrice);
-    const currentMarketValue = Math.round(propertyValue * marketFactor);
+    // Calculate months since purchase (this is rough, but sufficient for gameplay)
+    const currentDateValue = currentYear * 12 + currentMonth;
+    const purchaseDateValue = purchaseYear * 12 + purchaseMonth;
+    const monthsSincePurchase = currentDateValue - purchaseDateValue;
     
-    // Update the property's currentValue to reflect current market conditions
-    property.currentValue = currentMarketValue;
-    
-    // Calculate the time since purchase to check for quick-flip penalties
-    const purchaseDate = new Date(property.purchaseDate);
-    const currentDate = new Date();
-    
-    // Calculate months between dates - a proper calculation accounting for actual months
-    let monthsSincePurchase = 
-      (currentDate.getFullYear() - purchaseDate.getFullYear()) * 12 + 
-      (currentDate.getMonth() - purchaseDate.getMonth());
-    
-    // Ensure months is never negative (can happen if system clock is off)
-    monthsSincePurchase = Math.max(0, monthsSincePurchase);
-    
-    console.log(`Months since purchase: ${monthsSincePurchase}`);
-    
-    // Calculate remaining loan amount
-    const outstandingLoan = property.loanAmount || 0;
-    
-    // Calculate initial investment (down payment)
-    const originalPurchasePrice = property.purchasePrice;
-    const downPayment = originalPurchasePrice - outstandingLoan;
-    
-    // Show appropriate warning based on how long the property has been owned
+    // Different selling scenarios based on how long property has been owned
     if (monthsSincePurchase < 1) {
-      // Very quick flip - severe penalties will apply
+      // Very quick flip - significant penalties will apply
       toast.warning(
-        `Warning: Selling after less than 1 month will result in significant financial loss due to penalties and transaction costs.`, 
+        <div className="flex flex-col">
+          <div className="flex items-center font-semibold">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            Quick-Flip Warning
+          </div>
+          <p className="text-sm mt-1">
+            You've only owned this property for less than a month. Selling now will result in significant losses due to transaction costs and market penalties.
+          </p>
+        </div>,
         { duration: 5000 }
       );
       
-      // Show specific breakdown of penalties
-      toast.warning(
-        `You will incur: 15% reduction in property value, 50% increased closing costs, and additional transaction fees.`, 
-        { duration: 5000 }
-      );
-      
-      // Confirm with clear warning about financial impact
-      if (!confirm(`Are you sure you want to sell ${property.name}? This is a very quick flip (less than 1 month) and WILL result in financial loss compared to your initial investment.`)) {
+      if (!confirm(`Are you sure you want to sell ${property.name} so quickly? You will take a significant loss on this transaction.`)) {
         return; // User canceled the sale
       }
     } else if (monthsSincePurchase < 6) {
       // Moderately quick flip - moderate penalties will apply
       const displayMonths = Math.max(0, monthsSincePurchase);
       toast.warning(
-        `Warning: Selling after only ${displayMonths} months will result in reduced profits due to penalties and transaction costs.`, 
-        { duration: 5000 }
+        <div className="flex flex-col">
+          <div className="flex items-center font-semibold">
+            <AlertCircle className="h-4 w-4 mr-2" />
+            Early Sale Warning
+          </div>
+          <p className="text-sm mt-1">
+            You've only owned this property for {displayMonths} {displayMonths === 1 ? 'month' : 'months'}. Selling now may result in some losses due to transaction costs.
+          </p>
+        </div>,
+        { duration: 4000 }
       );
       
-      // Show specific breakdown of penalties
-      toast.warning(
-        `You will incur: 8% reduction in property value, 25% increased closing costs, and additional transaction fees.`, 
-        { duration: 5000 }
-      );
-      
-      // Confirm with clear warning about financial impact
-      if (!confirm(`Are you sure you want to sell ${property.name}? This is a quick flip (${displayMonths} months) and may result in reduced profits or even loss due to transaction costs.`)) {
+      if (!confirm(`Are you sure you want to sell ${property.name} after only ${displayMonths} ${displayMonths === 1 ? 'month' : 'months'}? You may take a moderate loss on this transaction.`)) {
         return; // User canceled the sale
       }
     } else {
@@ -256,36 +256,65 @@ export function Properties() {
     
     // Process sale (quick-flip penalties and calculations are handled inside sellProperty)
     const actualSaleProceeds = sellProperty(propertyId);
+    playHit();
     
-    // The detailed breakdown and toast messages are now handled in the useCharacter.sellProperty function
-    // We don't need to show any additional messages here to avoid duplicate/conflicting information
-    
-    playSuccess();
+    toast.success(
+      <div className="flex flex-col">
+        <div className="flex items-center font-semibold">
+          Property Sold!
+        </div>
+        <p className="text-sm mt-1">
+          You have sold {property.name} for {formatCurrency(actualSaleProceeds)}.
+        </p>
+      </div>,
+      { duration: 3000 }
+    );
   };
   
-  // Calculate monthly payment for a mortgage
+  // Property image component for reuse
+  const PropertyImage = ({ propertyId, propertyName }: { propertyId: string; propertyName: string }) => {
+    // Get property image path using our utility function
+    const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(propertyName);
+    
+    // Add debug logging
+    console.log(`PropertyImage component - ID: ${propertyId}, Name: ${propertyName}, Path: ${imagePath}`);
+    
+    // Return the image if we have a path
+    return imagePath ? (
+      <div className="mb-3">
+        <img 
+          src={imagePath}
+          alt={propertyName}
+          className="rounded-md w-full h-auto object-cover"
+          onError={(e) => {
+            console.error(`Error loading image for ${propertyName}:`, e);
+            e.currentTarget.style.display = 'none';
+          }}
+        />
+      </div>
+    ) : null;
+  };
+  
+  // Calculate monthly mortgage payment
   const calculateMonthlyPayment = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
-    const result = calculateMortgage(
-      adjustedPrice, 
-      downPaymentPercent, 
-      interestRate, 
-      30 // 30-year fixed mortgage
-    );
+    const downPayment = (downPaymentPercent / 100) * adjustedPrice;
     
+    // Fixed the function call to match the expected parameters
+    const result = calculateMortgage(adjustedPrice, downPaymentPercent, interestRate, 30);
     return result;
   };
   
   // Calculate ROI (Return on Investment)
   const calculateROI = () => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
-    const downPayment = adjustedPrice * (downPaymentPercent / 100);
+    const downPayment = (downPaymentPercent / 100) * adjustedPrice;
     const annualIncome = selectedProperty.income * 12;
     const annualExpenses = selectedProperty.expenses * 12;
-    const mortgage = calculateMonthlyPayment().monthlyPayment * 12;
+    const annualMortgage = mortgageDetails.monthlyPayment * 12;
     
-    const netIncome = annualIncome - annualExpenses - mortgage;
-    const roi = (netIncome / downPayment) * 100;
+    const annualCashFlow = annualIncome - annualExpenses - annualMortgage;
+    const roi = (annualCashFlow / downPayment) * 100;
     
     return roi.toFixed(1);
   };
@@ -296,11 +325,21 @@ export function Properties() {
     const annualIncome = selectedProperty.income * 12;
     const annualExpenses = selectedProperty.expenses * 12;
     
-    const netOperatingIncome = annualIncome - annualExpenses;
-    const capRate = (netOperatingIncome / adjustedPrice) * 100;
+    const annualNetOperatingIncome = annualIncome - annualExpenses;
+    const capRate = (annualNetOperatingIncome / adjustedPrice) * 100;
     
     return capRate.toFixed(1);
   };
+  
+  // Enhanced property description section with image
+  const PropertyDescriptionWithImage = useCallback(({ description, id, name }: { description: string; id: string; name: string }) => {
+    return (
+      <>
+        <p className="text-sm">{description}</p>
+        <PropertyImage propertyId={id} propertyName={name} />
+      </>
+    );
+  }, []);
   
   const mortgageDetails = calculateMonthlyPayment();
   
@@ -312,25 +351,16 @@ export function Properties() {
           {isMobile && (
             <Button 
               variant="ghost" 
-              size="icon" 
-              onClick={() => navigate(-1)} 
+              size="icon"
               className="mr-2"
+              onClick={() => navigate('/dashboard')}
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
           )}
-          <h2 className="text-2xl font-bold flex items-center">
-            <Home className="mr-2" />
-            Real Estate Portfolio
-          </h2>
+          <h2 className="text-2xl font-bold">Real Estate</h2>
         </div>
-        
-        {/* Hamburger menu removed */}
-      </div>
-      
-      <div className="mb-4">
-        <p className="text-sm text-gray-500">Market Health: {realEstateMarketHealth}%</p>
-        <p className="text-sm text-gray-500">Current Mortgage Rate: {interestRate.toFixed(1)}%</p>
+        <div className="text-xl font-semibold text-green-600">{formatCurrency(wealth)}</div>
       </div>
       
       <Tabs value={activeTab} defaultValue="residential" onValueChange={setActiveTab}>
@@ -424,8 +454,9 @@ export function Properties() {
           </TabsList>
         )}
         
-        <TabsContent value="residential" className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Residential Properties Tab */}
+        <TabsContent value="residential">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <h3 className="font-semibold mb-2">Available Properties</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -436,7 +467,7 @@ export function Properties() {
                       selectedProperty.id === property.id ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' : 'hover:bg-muted hover:border-border'
                     }`}
                     onClick={() => setSelectedProperty(property)}
-                >
+                  >
                     <div className="flex justify-between">
                       <span className="font-medium">{property.name}</span>
                       <span className="font-semibold">{formatCurrency(getAdjustedPrice(property.price))}</span>
@@ -455,123 +486,119 @@ export function Properties() {
                       </div>
                     )}
                   </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
-          
-          <div>
-            <h3 className="font-semibold mb-2">Property Details</h3>
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle>{selectedProperty.name}</CardTitle>
-                <CardDescription>{selectedProperty.location}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-2 pb-2">
-                <p className="text-sm">{selectedProperty.description}</p>
-                
-                {selectedProperty.id === 'single_family' && (
-                  <div className="mb-3">
-                    <img 
-                      src="/images/properties/single_family_home.jpg" 
-                      alt="Single Family Home" 
-                      className="rounded-md w-full h-auto object-cover"
-                    />
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <p className="text-gray-500">Purchase Price</p>
-                    <p className="font-semibold">{formatCurrency(getAdjustedPrice(selectedProperty.price))}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Size</p>
-                    <p className="font-semibold">{selectedProperty.squareFeet} sq ft</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Monthly Income</p>
-                    <p className="font-semibold text-green-600">+{formatCurrency(selectedProperty.income)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Monthly Expenses</p>
-                    <p className="font-semibold text-red-600">-{formatCurrency(selectedProperty.expenses)}</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Cap Rate</p>
-                    <p className="font-semibold">{calculateCapRate()}%</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500">Est. Annual Appreciation</p>
-                    <p className="font-semibold">{(selectedProperty.appreciationRate * 100).toFixed(1)}%</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
             
-            <div className="mt-4">
-              <h4 className="font-semibold text-sm mb-2">Financing Options</h4>
+            <div>
+              <h3 className="font-semibold mb-2">Property Details</h3>
               <Card>
-                <CardContent className="pt-4">
-                  <label className="block text-sm mb-1">
-                    Down Payment: {downPaymentPercent}% (
-                    {formatCurrency(getAdjustedPrice(selectedProperty.price) * (downPaymentPercent / 100))})
-                  </label>
-                  <Slider
-                    value={[downPaymentPercent]}
-                    min={5}
-                    max={100}
-                    step={5}
-                    onValueChange={(vals) => setDownPaymentPercent(vals[0])}
-                    className="mb-4"
+                <CardHeader className="pb-2">
+                  <CardTitle>{selectedProperty.name}</CardTitle>
+                  <CardDescription>{selectedProperty.location}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2 pb-2">
+                  <PropertyDescriptionWithImage 
+                    description={selectedProperty.description}
+                    id={selectedProperty.id}
+                    name={selectedProperty.name}
                   />
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-gray-500">Loan Amount</p>
-                      <p className="font-semibold">
-                        {formatCurrency(mortgageDetails.loanAmount)}
-                      </p>
+                      <p className="text-gray-500">Purchase Price</p>
+                      <p className="font-semibold">{formatCurrency(getAdjustedPrice(selectedProperty.price))}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Interest Rate</p>
-                      <p className="font-semibold">{interestRate.toFixed(1)}%</p>
+                      <p className="text-gray-500">Size</p>
+                      <p className="font-semibold">{selectedProperty.squareFeet} sq ft</p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Monthly Payment</p>
-                      <p className="font-semibold">
-                        {formatCurrency(mortgageDetails.monthlyPayment)}
-                      </p>
+                      <p className="text-gray-500">Monthly Income</p>
+                      <p className="font-semibold text-green-600">+{formatCurrency(selectedProperty.income)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Cash ROI</p>
-                      <p className={`font-semibold ${
-                        parseFloat(calculateROI()) > 0 ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {calculateROI()}%
-                      </p>
+                      <p className="text-gray-500">Monthly Expenses</p>
+                      <p className="font-semibold text-red-600">-{formatCurrency(selectedProperty.expenses)}</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Cap Rate</p>
+                      <p className="font-semibold">{calculateCapRate()}%</p>
+                    </div>
+                    <div>
+                      <p className="text-gray-500">Est. Annual Appreciation</p>
+                      <p className="font-semibold">{(selectedProperty.appreciationRate * 100).toFixed(1)}%</p>
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="pt-2">
-                  <Button
-                    onClick={handlePurchase}
-                    disabled={
-                      isPropertyOwned(selectedProperty.id) || 
-                      wealth < getAdjustedPrice(selectedProperty.price) * (downPaymentPercent / 100)
-                    }
-                    className="w-full"
-                  >
-                    <DollarSign className="h-4 w-4 mr-2" />
-                    {isPropertyOwned(selectedProperty.id) ? 'Already Owned' : 'Purchase Property'}
-                  </Button>
-                </CardFooter>
               </Card>
+              
+              <div className="mt-4">
+                <h4 className="font-semibold text-sm mb-2">Financing Options</h4>
+                <Card>
+                  <CardContent className="pt-4">
+                    <label className="block text-sm mb-1">
+                      Down Payment: {downPaymentPercent}% (
+                      {formatCurrency(getAdjustedPrice(selectedProperty.price) * (downPaymentPercent / 100))})
+                    </label>
+                    <Slider
+                      value={[downPaymentPercent]}
+                      min={5}
+                      max={100}
+                      step={5}
+                      onValueChange={(vals) => setDownPaymentPercent(vals[0])}
+                      className="mb-4"
+                    />
+                    
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-gray-500">Loan Amount</p>
+                        <p className="font-semibold">
+                          {formatCurrency(mortgageDetails.loanAmount)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Interest Rate</p>
+                        <p className="font-semibold">{interestRate.toFixed(1)}%</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Monthly Payment</p>
+                        <p className="font-semibold">
+                          {formatCurrency(mortgageDetails.monthlyPayment)}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500">Cash ROI</p>
+                        <p className={`font-semibold ${
+                          parseFloat(calculateROI()) > 0 ? 'text-green-600' : 'text-red-600'
+                        }`}>
+                          {calculateROI()}%
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-2">
+                    <Button
+                      onClick={handlePurchase}
+                      disabled={
+                        isPropertyOwned(selectedProperty.id) || 
+                        wealth < getAdjustedPrice(selectedProperty.price) * (downPaymentPercent / 100)
+                      }
+                      className="w-full"
+                    >
+                      <DollarSign className="h-4 w-4 mr-2" />
+                      {isPropertyOwned(selectedProperty.id) ? 'Already Owned' : 'Purchase Property'}
+                    </Button>
+                  </CardFooter>
+                </Card>
+              </div>
             </div>
           </div>
         </TabsContent>
         
-        <TabsContent value="mansion" className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Luxury Properties Tab */}
+        <TabsContent value="mansion">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <h3 className="font-semibold mb-2">Available Properties</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -706,9 +733,10 @@ export function Properties() {
             </div>
           </div>
         </TabsContent>
-
-        <TabsContent value="commercial" className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {/* Commercial Properties Tab */}
+        <TabsContent value="commercial">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <h3 className="font-semibold mb-2">Available Properties</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -842,9 +870,10 @@ export function Properties() {
             </div>
           </div>
         </TabsContent>
-
-        <TabsContent value="industrial" className="mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        
+        {/* Industrial Properties Tab */}
+        <TabsContent value="industrial">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <h3 className="font-semibold mb-2">Available Properties</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
@@ -980,163 +1009,191 @@ export function Properties() {
         </TabsContent>
         
         {/* Property Portfolio Tab */}
-        <TabsContent value="portfolio" className="mb-4">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-semibold">Your Property Portfolio</h3>
-            {ownedProperties.length > 0 && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="h-8 flex items-center gap-1 px-3">
-                    {portfolioView === 'all' && "All Properties"}
-                    {portfolioView === 'residential' && <><Home className="h-3 w-3" /> Residential</>}
-                    {portfolioView === 'commercial' && <><Building2 className="h-3 w-3" /> Commercial</>}
-                    {portfolioView === 'luxury' && <><Castle className="h-3 w-3" /> Luxury</>}
-                    {portfolioView === 'industrial' && <><Warehouse className="h-3 w-3" /> Industrial</>}
-                    <ChevronDown className="h-3 w-3 ml-1" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-40">
-                  <DropdownMenuItem onClick={() => setPortfolioView('all')}>
-                    All Properties
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPortfolioView('residential')}>
-                    <Home className="h-4 w-4 mr-2" />
-                    Residential
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPortfolioView('commercial')}>
-                    <Building2 className="h-4 w-4 mr-2" />
-                    Commercial
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPortfolioView('luxury')}>
-                    <Castle className="h-4 w-4 mr-2" />
-                    Luxury
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPortfolioView('industrial')}>
-                    <Warehouse className="h-4 w-4 mr-2" />
-                    Industrial
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+        <TabsContent value="portfolio">
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold">Your Property Portfolio</h3>
+              {ownedProperties.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 flex items-center gap-1 px-3">
+                      {portfolioView === 'all' && "All Properties"}
+                      {portfolioView === 'residential' && <><Home className="h-3 w-3" /> Residential</>}
+                      {portfolioView === 'commercial' && <><Building2 className="h-3 w-3" /> Commercial</>}
+                      {portfolioView === 'luxury' && <><Castle className="h-3 w-3" /> Luxury</>}
+                      {portfolioView === 'industrial' && <><Warehouse className="h-3 w-3" /> Industrial</>}
+                      <ChevronDown className="h-3 w-3 ml-1" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-40">
+                    <DropdownMenuItem onClick={() => setPortfolioView('all')}>
+                      All Properties
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPortfolioView('residential')}>
+                      <Home className="h-4 w-4 mr-2" />
+                      Residential
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPortfolioView('commercial')}>
+                      <Building2 className="h-4 w-4 mr-2" />
+                      Commercial
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPortfolioView('luxury')}>
+                      <Castle className="h-4 w-4 mr-2" />
+                      Luxury
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => setPortfolioView('industrial')}>
+                      <Warehouse className="h-4 w-4 mr-2" />
+                      Industrial
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+            
+            {ownedProperties.length === 0 ? (
+              <Card className="p-6 text-center">
+                <p className="text-gray-500">You don't own any properties yet. Start building your real estate empire!</p>
+              </Card>
+            ) : (
+              <>
+                {/* Portfolio Overview */}
+                <div className="mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <Card className="p-3">
+                    <p className="text-xs text-gray-500">Total Properties</p>
+                    <p className="text-lg font-semibold">{ownedProperties.length}</p>
+                  </Card>
+                  <Card className="p-3">
+                    <p className="text-xs text-gray-500">Portfolio Value</p>
+                    <p className="text-lg font-semibold">
+                      {formatCurrency(ownedProperties.reduce((sum, prop) => sum + (prop.currentValue || prop.purchasePrice), 0))}
+                    </p>
+                  </Card>
+                  <Card className="p-3">
+                    <p className="text-xs text-gray-500">Monthly Income</p>
+                    <p className="text-lg font-semibold text-green-600">
+                      +{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.income, 0))}
+                    </p>
+                  </Card>
+                  <Card className="p-3">
+                    <p className="text-xs text-gray-500">Monthly Expenses</p>
+                    <p className="text-lg font-semibold text-red-600">
+                      -{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.expenses + (prop.monthlyPayment || 0), 0))}
+                    </p>
+                  </Card>
+                </div>
+                
+                {/* Property List */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {ownedProperties
+                    .filter(property => 
+                      portfolioView === 'all' || 
+                      (portfolioView === 'residential' && property.type === 'residential') ||
+                      (portfolioView === 'commercial' && property.type === 'commercial') ||
+                      (portfolioView === 'luxury' && property.type === 'mansion') ||
+                      (portfolioView === 'industrial' && property.type === 'industrial')
+                    )
+                    .map(property => (
+                      <Card key={property.id}>
+                        <CardHeader className="pb-2">
+                          <CardTitle className="text-lg flex items-center">
+                            {property.type === 'residential' && <Home className="h-4 w-4 mr-2 text-blue-500" />}
+                            {property.type === 'commercial' && <Building2 className="h-4 w-4 mr-2 text-green-500" />}
+                            {property.type === 'mansion' && <Castle className="h-4 w-4 mr-2 text-purple-500" />}
+                            {property.type === 'industrial' && <Warehouse className="h-4 w-4 mr-2 text-orange-500" />}
+                            {property.name}
+                          </CardTitle>
+                          <CardDescription>
+                            Purchased: {property.purchaseDate}
+                            {property.holdingPeriodInDays !== undefined && (
+                              <span className="block text-xs text-muted-foreground">
+                                Holding Period: {property.holdingPeriodInDays} days 
+                                {property.holdingPeriodInDays > 365 ? 
+                                  ` (${(property.holdingPeriodInDays / 365).toFixed(1)} years)` : ''}
+                              </span>
+                            )}
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent className="pb-2">
+                          <div className="space-y-2 text-sm">
+                            {/* Property Image */}
+                            {(() => {
+                              // Get property image using our utility function
+                              const imagePath = getPropertyImagePath(property.id) || getPropertyImagePath(property.name);
+                              
+                              // Log for debugging
+                              console.log(`Portfolio property image check - ID: ${property.id}, Name: ${property.name}, Path: ${imagePath}`);
+                              
+                              return imagePath ? (
+                                <div className="mb-2">
+                                  <img 
+                                    src={imagePath} 
+                                    alt={property.name} 
+                                    className="rounded-md w-full h-32 object-cover"
+                                  />
+                                </div>
+                              ) : null;
+                            })()}
+                            
+                            <div className="flex justify-between">
+                              <span>Current Value:</span>
+                              <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
+                            </div>
+                            
+                            {/* Mortgage Information */}
+                            {property.loanAmount > 0 && (
+                              <>
+                                <div className="flex justify-between">
+                                  <span>Mortgage Balance:</span>
+                                  <span className="font-semibold text-red-600">{formatCurrency(property.loanAmount)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Equity:</span>
+                                  <span className="font-semibold">{formatCurrency(property.currentValue - property.loanAmount)}</span>
+                                </div>
+                                <div className="flex justify-between">
+                                  <span>Monthly Payment:</span>
+                                  <span className="font-semibold text-red-600">-{formatCurrency(property.monthlyPayment)}</span>
+                                </div>
+                              </>
+                            )}
+                            
+                            <div className="flex justify-between">
+                              <span>Monthly Income:</span>
+                              <span className="font-semibold text-green-600">+{formatCurrency(property.income)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Monthly Expenses:</span>
+                              <span className="font-semibold text-red-600">-{formatCurrency(property.expenses)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Net Monthly:</span>
+                              <span className={`font-semibold ${
+                                property.income - property.expenses - (property.monthlyPayment || 0) > 0 
+                                  ? 'text-green-600' 
+                                  : 'text-red-600'
+                              }`}>
+                                {formatCurrency(property.income - property.expenses - (property.monthlyPayment || 0))}
+                              </span>
+                            </div>
+                          </div>
+                        </CardContent>
+                        <CardFooter>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => handleSell(property.id)}
+                            className="w-full"
+                          >
+                            Sell Property
+                          </Button>
+                        </CardFooter>
+                      </Card>
+                    ))}
+                </div>
+              </>
             )}
           </div>
-          
-          {ownedProperties.length === 0 ? (
-            <Card className="p-6 text-center">
-              <p className="text-gray-500">You don't own any properties yet. Start building your real estate empire!</p>
-            </Card>
-          ) : (
-            <>
-              {/* Portfolio Overview */}
-              <div className="mb-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <Card className="p-3">
-                  <p className="text-xs text-gray-500">Total Properties</p>
-                  <p className="text-lg font-semibold">{ownedProperties.length}</p>
-                </Card>
-                <Card className="p-3">
-                  <p className="text-xs text-gray-500">Portfolio Value</p>
-                  <p className="text-lg font-semibold">
-                    {formatCurrency(ownedProperties.reduce((sum, prop) => sum + (prop.currentValue || prop.purchasePrice), 0))}
-                  </p>
-                </Card>
-                <Card className="p-3">
-                  <p className="text-xs text-gray-500">Monthly Income</p>
-                  <p className="text-lg font-semibold text-green-600">
-                    +{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.income, 0))}
-                  </p>
-                </Card>
-                <Card className="p-3">
-                  <p className="text-xs text-gray-500">Monthly Expenses</p>
-                  <p className="text-lg font-semibold text-red-600">
-                    -{formatCurrency(ownedProperties.reduce((sum, prop) => sum + prop.expenses + (prop.monthlyPayment || 0), 0))}
-                  </p>
-                </Card>
-              </div>
-              
-              {/* Property List */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                {ownedProperties
-                  .filter(property => 
-                    portfolioView === 'all' || 
-                    (portfolioView === 'residential' && property.type === 'residential') ||
-                    (portfolioView === 'commercial' && property.type === 'commercial') ||
-                    (portfolioView === 'luxury' && property.type === 'mansion') ||
-                    (portfolioView === 'industrial' && property.type === 'industrial')
-                  )
-                  .map(property => (
-                    <Card key={property.id}>
-                      <CardHeader className="pb-2">
-                        <CardTitle className="text-lg flex items-center">
-                          {property.type === 'residential' && <Home className="h-4 w-4 mr-2 text-blue-500" />}
-                          {property.type === 'commercial' && <Building2 className="h-4 w-4 mr-2 text-green-500" />}
-                          {property.type === 'mansion' && <Castle className="h-4 w-4 mr-2 text-purple-500" />}
-                          {property.type === 'industrial' && <Warehouse className="h-4 w-4 mr-2 text-orange-500" />}
-                          {property.name}
-                        </CardTitle>
-                        <CardDescription>Purchased: {property.purchaseDate}</CardDescription>
-                      </CardHeader>
-                      <CardContent className="pb-2">
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Current Value:</span>
-                            <span className="font-semibold">{formatCurrency(property.currentValue || property.purchasePrice)}</span>
-                          </div>
-                          
-                          {/* Mortgage Information */}
-                          {property.loanAmount > 0 && (
-                            <>
-                              <div className="flex justify-between">
-                                <span>Mortgage Balance:</span>
-                                <span className="font-semibold text-red-600">{formatCurrency(property.loanAmount)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Equity:</span>
-                                <span className="font-semibold">{formatCurrency(property.currentValue - property.loanAmount)}</span>
-                              </div>
-                              <div className="flex justify-between">
-                                <span>Monthly Payment:</span>
-                                <span className="font-semibold text-red-600">-{formatCurrency(property.monthlyPayment)}</span>
-                              </div>
-                            </>
-                          )}
-                          
-                          <div className="flex justify-between">
-                            <span>Monthly Income:</span>
-                            <span className="font-semibold text-green-600">+{formatCurrency(property.income)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Monthly Expenses:</span>
-                            <span className="font-semibold text-red-600">-{formatCurrency(property.expenses)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Net Monthly:</span>
-                            <span className={`font-semibold ${
-                              property.income - property.expenses - (property.monthlyPayment || 0) > 0 
-                                ? 'text-green-600' 
-                                : 'text-red-600'
-                            }`}>
-                              {formatCurrency(property.income - property.expenses - (property.monthlyPayment || 0))}
-                            </span>
-                          </div>
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => handleSell(property.id)}
-                          className="w-full"
-                        >
-                          Sell Property
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
+        </TabsContent>
       </Tabs>
     </div>
   );
 }
-
-export default Properties;

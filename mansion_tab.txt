@@ -1,0 +1,51 @@
+        <TabsContent value="mansion">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <h3 className="font-semibold mb-2">Available Properties</h3>
+              <div className="space-y-2 max-h-96 overflow-y-auto">
+                {getPropertiesForTab().map(property => (
+                  <div 
+                    key={property.id}
+                    className={`p-2 border rounded cursor-pointer transition-all duration-200 ${
+                      selectedProperty.id === property.id ? 'bg-primary/10 border-primary shadow-sm dark:bg-primary/20' : 'hover:bg-muted hover:border-border'
+                    }`}
+                    onClick={() => setSelectedProperty(property)}
+                  >
+                    <div className="flex justify-between">
+                      <span className="font-medium">{property.name}</span>
+                      <span className="font-semibold">{formatCurrency(getAdjustedPrice(property.price))}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500">
+                      <span>{property.location}</span>
+                      <span>
+                        {property.squareFeet} sq ft
+                        {'bedrooms' in property && property.bedrooms ? ` • ${property.bedrooms} bd, ${property.bathrooms} ba` : ''}
+                      </span>
+                    </div>
+                    {isPropertyOwned(property.id) && (
+                      <div className="mt-1 flex items-center text-xs text-green-600">
+                        <Check className="h-3 w-3 mr-1" />
+                        Owned
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-2">Property Details</h3>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle>{selectedProperty.name}</CardTitle>
+                  <CardDescription>{selectedProperty.location}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2 pb-2">
+                  <p className="text-sm">{selectedProperty.description}</p>
+                  
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-gray-500">Purchase Price</p>
+                      <p className="font-semibold">{formatCurrency(getAdjustedPrice(selectedProperty.price))}</p>
+                    </div>
+                    <div>
