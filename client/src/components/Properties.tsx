@@ -474,10 +474,11 @@ export function Properties() {
                   <CardDescription>{selectedProperty.location}</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-2 pb-2">
-                  <p className="text-sm">{selectedProperty.description}</p>
-                  
-                  {/* Display property image */}
-                  <PropertyImage propertyId={selectedProperty.id} propertyName={selectedProperty.name} />
+                  <PropertyDescriptionWithImage 
+                    description={selectedProperty.description}
+                    id={selectedProperty.id}
+                    name={selectedProperty.name}
+                  />
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
