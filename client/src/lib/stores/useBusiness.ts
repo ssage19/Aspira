@@ -902,6 +902,11 @@ export const useBusiness = create<BusinessState>()(
           const reputationChange = (business.quality / 100 * 0.5) + (business.customerSatisfaction / 100 * 0.5) - 0.5;
           newReputation = Math.max(0, Math.min(100, newReputation + reputationChange * 2));
           
+          // Apply marketing campaign effects to reputation
+          if (marketingEffect.reputationBoost > 0) {
+            newReputation = Math.min(100, newReputation + marketingEffect.reputationBoost);
+          }
+          
           // Adjust customer satisfaction based on quality and capacity
           const utilizationRate = business.currentCapacity / business.capacity;
           const satisfactionChange = (business.quality / 100 * 0.6) - (utilizationRate * 0.4);
@@ -931,15 +936,29 @@ export const useBusiness = create<BusinessState>()(
             return campaign;
           });
           
+          // Apply marketing campaign effects to customer satisfaction
+          if (marketingEffect.customerSatisfactionBoost > 0) {
+            newCustomerSatisfaction = Math.min(100, newCustomerSatisfaction + marketingEffect.customerSatisfactionBoost);
+          }
+
+          // Apply investment effects to customer satisfaction and reputation
+          if (investmentEffect.customerSatisfaction > 0) {
+            newCustomerSatisfaction = Math.min(100, newCustomerSatisfaction + investmentEffect.customerSatisfaction);
+          }
+          
+          if (investmentEffect.reputationBoost > 0) {
+            newReputation = Math.min(100, newReputation + investmentEffect.reputationBoost);
+          }
+          
           return {
             ...business,
             cash: newCash,
             revenue: actualRevenue,
             expenses: actualExpenses,
             profitMargin: actualRevenue > 0 ? profit / actualRevenue : business.profitMargin,
-            customerSatisfaction: newCustomerSatisfaction + marketingEffect.customerSatisfactionBoost + investmentEffect.customerSatisfaction,
+            customerSatisfaction: Math.min(100, newCustomerSatisfaction),
             currentCapacity: newCurrentCapacity,
-            reputation: newReputation + marketingEffect.reputationBoost + investmentEffect.reputationBoost,
+            reputation: Math.min(100, newReputation),
             currentValue: newValue,
             lastProcessed: now,
             isOpen: isOpen,
