@@ -318,6 +318,96 @@ export const luxuryProperties = [
     prestige: 65
   },
   {
+    id: 'celebrity_compound',
+    name: 'Celebrity Compound',
+    type: 'mansion',
+    price: 18500000,
+    squareFeet: 15000,
+    bedrooms: 8,
+    bathrooms: 12,
+    location: 'Urban Premium',
+    income: 60000,
+    expenses: 25000,
+    description: 'Exclusive walled compound with main house, guest houses, pool, spa, and entertainment complex.',
+    appreciationRate: 0.048,
+    prestige: 95
+  },
+  {
+    id: 'desert_oasis',
+    name: 'Desert Oasis Estate',
+    type: 'mansion',
+    price: 11500000,
+    squareFeet: 9500,
+    bedrooms: 6,
+    bathrooms: 8,
+    location: 'Desert Premium',
+    income: 42000,
+    expenses: 14500,
+    description: 'Stunning desert estate with multiple swimming pools, outdoor living spaces, and mountain views.',
+    appreciationRate: 0.041,
+    prestige: 85
+  },
+  {
+    id: 'equestrian_estate',
+    name: 'Equestrian Estate',
+    type: 'mansion',
+    price: 14800000,
+    squareFeet: 12000,
+    bedrooms: 7,
+    bathrooms: 8,
+    location: 'Rural Premium',
+    income: 48000,
+    expenses: 18000,
+    description: 'Premier equestrian estate with stables, riding arena, pastures, and luxury main residence.',
+    appreciationRate: 0.037,
+    prestige: 90
+  },
+  {
+    id: 'french_chateau',
+    name: 'French Inspired Château',
+    type: 'mansion',
+    price: 16500000,
+    squareFeet: 14000,
+    bedrooms: 8,
+    bathrooms: 10,
+    location: 'Suburban Premium',
+    income: 55000,
+    expenses: 22000,
+    description: 'Magnificent French-inspired château with ornate details, formal gardens, and grand entertaining spaces.',
+    appreciationRate: 0.036,
+    prestige: 95
+  },
+  {
+    id: 'golf_estate',
+    name: 'Golf Course Estate',
+    type: 'mansion',
+    price: 9800000,
+    squareFeet: 8500,
+    bedrooms: 5,
+    bathrooms: 7,
+    location: 'Suburban Premium',
+    income: 36000,
+    expenses: 13000,
+    description: 'Luxurious estate home overlooking a championship golf course with private putting green.',
+    appreciationRate: 0.039,
+    prestige: 80
+  },
+  {
+    id: 'modern_masterpiece',
+    name: 'Modern Architectural Masterpiece',
+    type: 'mansion',
+    price: 17200000,
+    squareFeet: 11000,
+    bedrooms: 6,
+    bathrooms: 9,
+    location: 'Urban Premium',
+    income: 58000,
+    expenses: 20000,
+    description: 'Award-winning contemporary residence with cutting-edge design, smart home technology, and infinity pool.',
+    appreciationRate: 0.047,
+    prestige: 90
+  },
+  {
     id: 'mansion',
     name: 'Gated Estate',
     type: 'mansion',
@@ -424,7 +514,7 @@ export const luxuryProperties = [
     prestige: 95
   },
   {
-    id: 'equestrian_estate',
+    id: 'equestrian_property',
     name: 'Equestrian Estate',
     type: 'mansion',
     price: 11200000,
@@ -469,7 +559,7 @@ export const luxuryProperties = [
     prestige: 90
   },
   {
-    id: 'desert_oasis',
+    id: 'desert_property',
     name: 'Desert Oasis Estate',
     type: 'mansion',
     price: 9800000,
@@ -529,7 +619,7 @@ export const luxuryProperties = [
     prestige: 90
   },
   {
-    id: 'golf_estate',
+    id: 'golf_residence',
     name: 'Golf Course Estate',
     type: 'mansion',
     price: 8800000,
@@ -544,7 +634,7 @@ export const luxuryProperties = [
     prestige: 75
   },
   {
-    id: 'celebrity_compound',
+    id: 'celebrity_estate',
     name: 'Celebrity Compound',
     type: 'mansion',
     price: 20000000,
