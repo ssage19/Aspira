@@ -718,9 +718,9 @@ export function getPropertyImagePath(propertyId: string): string | null {
   // First, let's add debug logging to understand the property ID format
   console.log("Getting image path for property ID:", propertyId);
   
-  // Map full property names to their image paths
+  // Map full property names and IDs to their image paths
   const imageMapping: Record<string, string> = {
-    // Using exact names from the property details screen
+    // Residential properties
     'Single Family Home': '/images/properties/single_family_home.jpg',
     'City Apartment': '/images/properties/city_apartment.jpg',
     'Luxury City Apartment': '/images/properties/luxury_city_apartment.jpg',
@@ -742,15 +742,76 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Ranch Style Home': '/images/properties/ranch_style_home.jpg',
     'Modern Townhome': '/images/properties/modern_townhome.jpg',
     
-    // Also keep the underscored versions for backward compatibility
+    // Residential IDs
     'single_family': '/images/properties/single_family_home.jpg',
     'apartment_basic': '/images/properties/city_apartment.jpg',
     'apartment_luxury': '/images/properties/luxury_city_apartment.jpg',
     'townhouse': '/images/properties/suburban_townhome.jpg',
-    'studio_apartment': '/images/properties/urban_studio.jpg'
+    'studio_apartment': '/images/properties/urban_studio.jpg',
+    
+    // Luxury properties
+    'Downtown Penthouse': '/images/properties/penthouse_luxury.jpg',
+    'Oceanfront Beach House': '/images/properties/beach_house.jpg',
+    'Estate Manor': '/images/properties/estate_manor.jpg',
+    'Mountain Retreat': '/images/properties/mountain_retreat.jpg',
+    'Vineyard Estate': '/images/properties/vineyard_estate.jpg',
+    
+    // Luxury IDs
+    'penthouse': '/images/properties/penthouse_luxury.jpg',
+    'beach_house': '/images/properties/beach_house.jpg',
+    'estate_manor': '/images/properties/estate_manor.jpg',
+    'mountain_retreat': '/images/properties/mountain_retreat.jpg',
+    'vineyard_estate': '/images/properties/vineyard_estate.jpg',
+    
+    // Commercial properties
+    'Retail Storefront': '/images/properties/retail_storefront.jpg',
+    'Small Office Building': '/images/properties/small_office.jpg',
+    'Mixed-Use Development': '/images/properties/mixed_use.jpg',
+    'Strip Mall': '/images/properties/strip_mall.jpg',
+    'Downtown Commercial Building': '/images/properties/downtown_commercial.jpg',
+    
+    // Commercial IDs
+    'retail_small': '/images/properties/retail_storefront.jpg',
+    'office_small': '/images/properties/small_office.jpg',
+    'mixed_use': '/images/properties/mixed_use.jpg',
+    'strip_mall': '/images/properties/strip_mall.jpg',
+    'commercial_downtown': '/images/properties/downtown_commercial.jpg',
+    
+    // Industrial properties
+    'Small Warehouse': '/images/properties/small_warehouse.jpg',
+    'Manufacturing Facility': '/images/properties/manufacturing_facility.jpg',
+    'Logistics Center': '/images/properties/logistics_center.jpg',
+    'Research & Development Campus': '/images/properties/research_campus.jpg',
+    'Industrial Park': '/images/properties/industrial_park.jpg',
+    
+    // Industrial IDs
+    'warehouse_small': '/images/properties/small_warehouse.jpg',
+    'manufacturing': '/images/properties/manufacturing_facility.jpg',
+    'logistics_center': '/images/properties/logistics_center.jpg',
+    'research_campus': '/images/properties/research_campus.jpg',
+    'industrial_park': '/images/properties/industrial_park.jpg'
   };
 
-  return imageMapping[propertyId] || null;
+  // Return the image path or a default image based on property type if mapping doesn't exist
+  if (imageMapping[propertyId]) {
+    return imageMapping[propertyId];
+  }
+  
+  // Extract property type from ID if available (for fallback)
+  const propertyType = propertyId.includes('apartment') || propertyId.includes('family') || propertyId.includes('town') ? 'residential' :
+                       propertyId.includes('penthouse') || propertyId.includes('estate') || propertyId.includes('luxury') ? 'mansion' :
+                       propertyId.includes('office') || propertyId.includes('retail') || propertyId.includes('commercial') ? 'commercial' :
+                       propertyId.includes('warehouse') || propertyId.includes('industrial') ? 'industrial' : null;
+  
+  // Default image by property type (fallback)
+  const defaultImages = {
+    'residential': '/images/properties/city_apartment.jpg',
+    'mansion': '/images/properties/estate_manor.jpg',
+    'commercial': '/images/properties/small_office.jpg',
+    'industrial': '/images/properties/small_warehouse.jpg'
+  };
+  
+  return propertyType ? defaultImages[propertyType] : null;
 }
 
 // Export local storage helpers
