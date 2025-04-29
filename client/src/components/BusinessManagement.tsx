@@ -1181,16 +1181,16 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                             </Tooltip>
                           </TooltipProvider>
                         </span>
-                        <span className={`font-medium ${(business.currentCapacity / business.capacity * 100) >= 70 && (business.currentCapacity / business.capacity * 100) <= 90 ? 'text-green-600' : (business.currentCapacity / business.capacity * 100) > 90 ? 'text-amber-600' : 'text-blue-600'}`}>
-                          {Math.round(business.currentCapacity)}/{business.capacity} ({Math.round(business.currentCapacity / business.capacity * 100)}%)
+                        <span className={`font-medium ${Math.min(100, (business.currentCapacity / business.capacity * 100)) >= 70 && Math.min(100, (business.currentCapacity / business.capacity * 100)) <= 90 ? 'text-green-600' : Math.min(100, (business.currentCapacity / business.capacity * 100)) > 90 ? 'text-amber-600' : 'text-blue-600'}`}>
+                          {Math.round(Math.min(business.currentCapacity, business.capacity) * 10) / 10}/{business.capacity} ({Math.min(100, Math.round((business.currentCapacity / business.capacity) * 1000) / 10)}%)
                         </span>
                       </div>
                       <Progress 
-                        value={(business.currentCapacity / business.capacity) * 100} 
+                        value={Math.min(100, (business.currentCapacity / business.capacity) * 100)} 
                         className="h-2" 
                         indicatorClassName={
-                          (business.currentCapacity / business.capacity * 100) >= 70 && (business.currentCapacity / business.capacity * 100) <= 90 ? 'bg-green-500' :
-                          (business.currentCapacity / business.capacity * 100) > 90 ? 'bg-amber-500' :
+                          Math.min(100, (business.currentCapacity / business.capacity * 100)) >= 70 && Math.min(100, (business.currentCapacity / business.capacity * 100)) <= 90 ? 'bg-green-500' :
+                          Math.min(100, (business.currentCapacity / business.capacity * 100)) > 90 ? 'bg-amber-500' :
                           'bg-blue-500'
                         }
                       />
