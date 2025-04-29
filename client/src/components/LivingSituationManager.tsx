@@ -3,7 +3,7 @@ import { useCharacter } from "../lib/stores/useCharacter";
 import { useNotification } from "../lib/stores/useNotification";
 // Audio removed
 import { useTime } from "../lib/stores/useTime";
-import { useAssetRefresh } from "./AssetRefreshProvider";
+import { useAssetRefresh } from "../hooks/useAssetRefresh";
 import { 
   HousingOption, 
   VehicleOption, 

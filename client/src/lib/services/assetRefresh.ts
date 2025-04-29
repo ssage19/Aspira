@@ -391,17 +391,21 @@ export const refreshAllAssets = () => {
       };
     }
     
+    // Check if any changes were detected during the refresh
+    const changesDetected = detectChanges();
+    
     // Take after snapshots for debugging (only in development)
     if (process.env.NODE_ENV === 'development') {
       logAssetSnapshots("AFTER REFRESH");
-      console.log('=== COMPREHENSIVE ASSET REFRESH COMPLETE ===');
+      console.log(`=== COMPREHENSIVE ASSET REFRESH COMPLETE ${changesDetected ? '(CHANGES DETECTED)' : '(NO CHANGES)'} ===`);
     }
     
     return {
       success: true,
-      message: 'Asset values refreshed successfully',
+      message: changesDetected ? 'Asset values refreshed with changes' : 'Asset values refreshed successfully (no changes)',
       netWorth: assetTrackerState.totalNetWorth,
-      cash: characterState.wealth
+      cash: characterState.wealth,
+      changesDetected
     };
   } catch (error) {
     console.error('❌ ERROR IN ASSET REFRESH:', error);

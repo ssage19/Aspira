@@ -8,7 +8,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import refreshAllAssets from '../lib/services/assetRefresh';
-import { useAssetRefresh } from '../components/AssetRefreshProvider';
+import { useAssetRefresh } from '../hooks/useAssetRefresh';
 import { useResponsive } from '../lib/hooks/useResponsive';
 
 // Import UI components

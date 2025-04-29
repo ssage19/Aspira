@@ -24,14 +24,12 @@ interface AssetRefreshContextType {
   isRefreshing: boolean;
 }
 
-const AssetRefreshContext = createContext<AssetRefreshContextType>({
+// Export the context for use in the separate hook file
+export const AssetRefreshContext = createContext<AssetRefreshContextType>({
   triggerRefresh: () => {},
   lastRefreshTime: 0,
   isRefreshing: false
 });
-
-// Hook for components to request refreshes
-export const useAssetRefresh = () => useContext(AssetRefreshContext);
 
 interface AssetRefreshProviderProps {
   children: React.ReactNode;
@@ -56,11 +54,9 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
     // Initial interval adjustment based on device capability
     let adjustedInterval = isLowEndDevice ? refreshInterval * 2 : refreshInterval;
     
-    // Check if browser is throttling timers (indicates background tab or low power mode)
-    // @ts-ignore - navigator.userAgentData is not in all TypeScript definitions yet
-    const isMobileDevice = typeof navigator.userAgentData?.mobile === 'boolean' 
-      ? navigator.userAgentData?.mobile 
-      : /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+    // Simple mobile detection that works across all browsers
+    const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+      (window.innerWidth <= 768);
     
     // Mobile devices get additional optimization
     if (isMobileDevice) {
@@ -100,10 +96,8 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
     
     // Load balancing: check if we should skip this refresh
     // We skip more often on mobile devices to conserve battery
-    // @ts-ignore - navigator.userAgentData is not in all TypeScript definitions yet
-    const isMobileDevice = typeof navigator.userAgentData?.mobile === 'boolean' 
-      ? navigator.userAgentData?.mobile 
-      : /Android|iPhone|iPad|iPod|webOS/i.test(navigator.userAgent);
+    const isMobileDevice = /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+      (window.innerWidth <= 768);
       
     // Mobile devices skip more frequently
     const skipThreshold = isMobileDevice ? 2 : 4;

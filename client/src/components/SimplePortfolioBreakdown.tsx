@@ -7,7 +7,7 @@ import useAssetTracker from '../lib/stores/useAssetTracker';
 import { useCharacter, Property } from '../lib/stores/useCharacter';
 import { Banknote, BarChart3, Home, ShoppingBag, Trophy } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAssetRefresh } from './AssetRefreshProvider';
+import { useAssetRefresh } from '../hooks/useAssetRefresh';
 import { getOwnershipBreakdown, getTotalOwnershipValue } from '../lib/utils/ownershipUtils';
 import { WealthTierBadge } from './WealthTierBadge';
 
