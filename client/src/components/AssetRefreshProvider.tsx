@@ -38,7 +38,7 @@ interface AssetRefreshProviderProps {
   refreshInterval?: number; // in ms
 }
 
-export const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
+const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
   children,
   refreshInterval = 5000, // Increased to 5 seconds for better performance
 }) => {

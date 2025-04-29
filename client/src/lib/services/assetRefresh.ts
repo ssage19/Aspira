@@ -166,27 +166,37 @@ export const refreshAllAssets = () => {
     
     // Check if market is open for stock price updates
     const marketOpen = isMarketOpen();
-    console.log(`MARKET STATUS: ${marketOpen ? 'OPEN' : 'CLOSED'} during asset refresh`);
     
-    // Take before snapshots for debugging
-    logAssetSnapshots("BEFORE REFRESH");
+    // Only log in development to reduce console noise
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`MARKET STATUS: ${marketOpen ? 'OPEN' : 'CLOSED'} during asset refresh`);
+      
+      // Take before snapshots for debugging (only in development)
+      logAssetSnapshots("BEFORE REFRESH");
+    }
     
     // Get the store states directly instead of through hooks
     const characterState = useCharacter.getState();
     const assetTrackerState = useAssetTracker.getState();
     
     // 1. First step: Sync character assets with asset tracker
-    console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - no price updates)'}`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`STEP 1: Syncing character with asset tracker ${marketOpen ? '(with price updates)' : '(MARKET CLOSED - no price updates)'}`);
+    }
     
     // If the market is closed, indicate that stock prices should not update
     characterState.syncAssetsWithAssetTracker(marketOpen);
     
     // 2. Second step: Recalculate all totals in the asset tracker
-    console.log("STEP 2: Recalculating asset tracker totals");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("STEP 2: Recalculating asset tracker totals");
+    }
     assetTrackerState.recalculateTotals();
     
     // 3. Third step: Verify values and sync if needed
-    console.log("STEP 3: Verifying values between stores");
+    if (process.env.NODE_ENV === 'development') {
+      console.log("STEP 3: Verifying values between stores");
+    }
     
     try {
       // Safety check - ensure we have necessary data
@@ -225,24 +235,30 @@ export const refreshAllAssets = () => {
       // First check: Cash values
       if (Math.abs(characterWealthFixed - trackerCashFixed) > TOLERANCE_THRESHOLD) {
         // There's a significant mismatch
-        console.log(`Cash values don't match, will synchronize (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed}, diff: ${Math.abs(characterWealthFixed - trackerCashFixed).toFixed(2)})`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Cash values don't match, will synchronize (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed}, diff: ${Math.abs(characterWealthFixed - trackerCashFixed).toFixed(2)})`);
+        }
         mismatchDetected = true;
-      } else {
+      } else if (process.env.NODE_ENV === 'development') {
         console.log(`✅ Cash values match within tolerance (Character: ${characterWealthFixed}, Tracker: ${trackerCashFixed})`);
       }
       
       // Second check: Net worth values
       if (Math.abs(characterNetWorthFixed - trackerNetWorthFixed) > TOLERANCE_THRESHOLD) {
         // There's a significant mismatch
-        console.log(`Net worth values don't match (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed}, diff: ${Math.abs(characterNetWorthFixed - trackerNetWorthFixed).toFixed(2)})`);
+        if (process.env.NODE_ENV === 'development') {
+          console.log(`Net worth values don't match (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed}, diff: ${Math.abs(characterNetWorthFixed - trackerNetWorthFixed).toFixed(2)})`);
+        }
         mismatchDetected = true;
-      } else {
+      } else if (process.env.NODE_ENV === 'development') {
         console.log(`✅ Net worth values match within tolerance (Character: ${characterNetWorthFixed}, Tracker: ${trackerNetWorthFixed})`);
       }
       
       // If we detected a mismatch, perform synchronization to ensure consistency
       if (mismatchDetected) {
-        console.log("🔄 Performing synchronization between stores");
+        if (process.env.NODE_ENV === 'development') {
+          console.log("🔄 Performing synchronization between stores");
+        }
         
         try {
           // Two-way synchronization to ensure both stores have correct values
@@ -284,27 +300,32 @@ export const refreshAllAssets = () => {
             console.error("Error during final recalculation:", recalcError);
           }
           
-          // Log the fixes
-          console.log(`✅ Fixed cash mismatch: Asset tracker cash now ${updatedAssetTracker.cash}`);
-          console.log(`✅ Fixed net worth mismatch: Character net worth now ${updatedNetWorth}`);
+          // Log the fixes only in development mode
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`✅ Fixed cash mismatch: Asset tracker cash now ${updatedAssetTracker.cash}`);
+            console.log(`✅ Fixed net worth mismatch: Character net worth now ${updatedNetWorth}`);
+          }
           
           // Double-check that the fix worked
           const finalCharacterState = useCharacter.getState();
           const finalTrackerState = useAssetTracker.getState();
           
-          // Provide clear verification confirmation
-          console.log(`Final verification: 
-            Character wealth: ${finalCharacterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}
-            Character net worth: ${finalCharacterState.netWorth}, Asset tracker net worth: ${finalTrackerState.totalNetWorth}
-          `);
+          // Provide clear verification confirmation only in development mode
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`Final verification: 
+              Character wealth: ${finalCharacterState.wealth}, Asset tracker cash: ${finalTrackerState.cash}
+              Character net worth: ${finalCharacterState.netWorth}, Asset tracker net worth: ${finalTrackerState.totalNetWorth}
+            `);
+          }
           
           // Detect if we still have a mismatch after sync
           const finalWealthDiff = Math.abs(finalCharacterState.wealth - finalTrackerState.cash);
           const finalNetWorthDiff = Math.abs(finalCharacterState.netWorth - finalTrackerState.totalNetWorth);
           
           if (finalWealthDiff > 0.1 || finalNetWorthDiff > 0.1) {
+            // Always log warnings for critical issues
             console.warn(`⚠️ Values still don't match after sync! Diffs: Cash=${finalWealthDiff.toFixed(2)}, NetWorth=${finalNetWorthDiff.toFixed(2)}`);
-          } else {
+          } else if (process.env.NODE_ENV === 'development') {
             console.log(`✅ Sync successful! Values now match within tolerance`);
           }
         } catch (innerError) {
@@ -320,11 +341,11 @@ export const refreshAllAssets = () => {
       };
     }
     
-    // Take after snapshots for debugging
-    logAssetSnapshots("AFTER REFRESH");
-    
-    // Log completion
-    console.log('=== COMPREHENSIVE ASSET REFRESH COMPLETE ===');
+    // Take after snapshots for debugging (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      logAssetSnapshots("AFTER REFRESH");
+      console.log('=== COMPREHENSIVE ASSET REFRESH COMPLETE ===');
+    }
     
     return {
       success: true,
