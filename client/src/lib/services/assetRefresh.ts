@@ -16,6 +16,7 @@
 import useAssetTracker from '../stores/useAssetTracker';
 import { useCharacter } from '../stores/useCharacter';
 import { useTime } from '../stores/useTime';
+import { getStore } from '../utils/storeRegistry';
 
 // Track the last refresh time to prevent spamming
 let lastRefreshTime = 0;
@@ -243,9 +244,53 @@ export const refreshAllAssets = () => {
     }
     assetTrackerState.recalculateTotals();
     
-    // 3. Third step: Verify values and sync if needed
+    // 3. Process businesses and update values
     if (process.env.NODE_ENV === 'development') {
-      console.log("STEP 3: Verifying values between stores");
+      console.log("STEP 3: Processing businesses and other game elements");
+    }
+    
+    // Update businesses
+    try {
+      const businessStore = getStore('business');
+      if (businessStore) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Processing businesses as part of global refresh");
+        }
+        businessStore.getState().processBusinesses(false); // Don't force update to avoid performance issues
+      }
+    } catch (businessError) {
+      console.error("Error processing businesses during global refresh:", businessError);
+    }
+    
+    // Process social networks if available
+    try {
+      const socialStore = getStore('socialNetwork');
+      if (socialStore && typeof socialStore.getState().processSocialNetworks === 'function') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Processing social networks as part of global refresh");
+        }
+        socialStore.getState().processSocialNetworks();
+      }
+    } catch (socialError) {
+      console.error("Error processing social networks during global refresh:", socialError);
+    }
+    
+    // Process any other game mechanics that need regular updates
+    try {
+      const economyStore = getStore('economy');
+      if (economyStore && typeof economyStore.getState().updateEconomy === 'function') {
+        if (process.env.NODE_ENV === 'development') {
+          console.log("Updating economy as part of global refresh");
+        }
+        economyStore.getState().updateEconomy();
+      }
+    } catch (economyError) {
+      console.error("Error updating economy during global refresh:", economyError);
+    }
+    
+    // 4. Verify values and sync if needed
+    if (process.env.NODE_ENV === 'development') {
+      console.log("STEP 4: Verifying values between stores");
     }
     
     try {
