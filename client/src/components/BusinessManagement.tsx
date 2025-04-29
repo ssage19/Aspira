@@ -226,14 +226,38 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
   // Check if business can afford to fire them (needs money for severance)
   const canAffordSeverance = businessCash >= salary;
   
+  // Calculate employee effectiveness based on productivity and morale
+  const effectiveness = (productivity * 0.7 + morale * 0.3) / 100;
+  
+  // Calculate cost-effectiveness (value vs. salary)
+  const valuePerSalaryDollar = effectiveness / (salary / 5000); // Normalized to a typical salary
+  
   return (
-    <Card className="border-primary/30">
+    <Card className={`border-primary/30 ${productivity >= 80 && morale >= 70 ? 'bg-green-50/30' : ''}`}>
       <CardHeader className="p-4 pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg">{role}</CardTitle>
-          <Badge>{formatCurrency(salary)}/mo</Badge>
+          <div>
+            <CardTitle className="text-lg flex items-center">
+              {role}
+              {productivity >= 90 && morale >= 80 && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Star className="ml-1.5 h-3.5 w-3.5 text-yellow-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Star performer: High productivity and morale</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </CardTitle>
+            <CardDescription className="text-xs">Hired on {hireDate_formatted}</CardDescription>
+          </div>
+          <Badge className={valuePerSalaryDollar >= 1.0 ? 'bg-green-500' : valuePerSalaryDollar >= 0.8 ? 'bg-blue-500' : 'bg-amber-500'}>
+            {formatCurrency(salary)}/mo
+          </Badge>
         </div>
-        <CardDescription className="text-xs">Hired on {hireDate_formatted}</CardDescription>
       </CardHeader>
       <CardContent className="p-4 pt-2 pb-2">
         <div className="space-y-3">
@@ -242,20 +266,78 @@ const EmployeeCard: React.FC<EmployeeCardProps> = ({ employee, onFire, businessC
               <span className="flex items-center">
                 <TrendingUp className="h-3 w-3 mr-1 text-blue-500" />
                 Productivity
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Higher productivity directly increases revenue. Affected by morale and business upgrades.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </span>
-              <span>{productivity}%</span>
+              <span className={`font-medium ${productivity >= 80 ? 'text-green-600' : productivity >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
+                {productivity}%
+              </span>
             </div>
-            <Progress value={productivity} className="h-1.5" />
+            <Progress 
+              value={productivity} 
+              className="h-1.5" 
+              indicatorClassName={
+                productivity >= 80 ? 'bg-green-500' : 
+                productivity >= 60 ? 'bg-blue-500' : 
+                productivity >= 40 ? 'bg-amber-500' : 
+                'bg-red-500'
+              }
+            />
           </div>
           <div>
             <div className="flex justify-between mb-1 text-xs">
               <span className="flex items-center">
                 <Heart className="h-3 w-3 mr-1 text-pink-500" />
                 Morale
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Lightbulb className="ml-1 h-3 w-3 text-amber-500" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">Higher morale improves productivity and customer satisfaction. Affected by business decisions.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               </span>
-              <span>{morale}%</span>
+              <span className={`font-medium ${morale >= 80 ? 'text-green-600' : morale >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
+                {morale}%
+              </span>
             </div>
-            <Progress value={morale} className="h-1.5" />
+            <Progress 
+              value={morale} 
+              className="h-1.5"
+              indicatorClassName={
+                morale >= 80 ? 'bg-green-500' : 
+                morale >= 60 ? 'bg-blue-500' : 
+                morale >= 40 ? 'bg-amber-500' : 
+                'bg-red-500'
+              }
+            />
+          </div>
+          <div className="mt-2 pt-2 border-t border-primary/10">
+            <div className="flex justify-between text-xs">
+              <span className="text-muted-foreground">Effectiveness:</span>
+              <span className={`font-medium ${effectiveness >= 0.8 ? 'text-green-600' : effectiveness >= 0.6 ? 'text-blue-600' : 'text-amber-600'}`}>
+                {Math.round(effectiveness * 100)}%
+              </span>
+            </div>
+            <div className="flex justify-between text-xs mt-1">
+              <span className="text-muted-foreground">Value ratio:</span>
+              <span className={`font-medium ${valuePerSalaryDollar >= 1.0 ? 'text-green-600' : valuePerSalaryDollar >= 0.8 ? 'text-blue-600' : 'text-amber-600'}`}>
+                {valuePerSalaryDollar.toFixed(2)}x
+                {valuePerSalaryDollar >= 1.2 && <span className="ml-1 text-green-500">(Excellent)</span>}
+                {valuePerSalaryDollar < 0.8 && <span className="ml-1 text-amber-500">(Underperforming)</span>}
+              </span>
+            </div>
           </div>
         </div>
       </CardContent>
@@ -980,17 +1062,63 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                 <div className="space-y-6 mt-4">
                   <div>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm text-muted-foreground">Daily Revenue</span>
-                      <span className="font-medium">{formatCurrency(business.revenue)}</span>
+                      <span className="text-sm text-muted-foreground flex items-center">
+                        Daily Revenue
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Lightbulb className="ml-1 h-3.5 w-3.5 text-amber-500" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">Your revenue increases with better quality, reputation, and having the right number of employees. Check the breakdown below.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                      <span className="font-medium text-green-600">{formatCurrency(business.revenue)}</span>
                     </div>
                     <div className="flex justify-between mb-1">
-                      <span className="text-sm text-muted-foreground">Daily Expenses</span>
-                      <span className="font-medium">{formatCurrency(business.expenses)}</span>
+                      <span className="text-sm text-muted-foreground flex items-center">
+                        Daily Expenses
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Lightbulb className="ml-1 h-3.5 w-3.5 text-amber-500" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">Employee salaries are usually your biggest expense. Upgrades can help reduce other costs.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                      <span className="font-medium text-red-600">{formatCurrency(business.expenses)}</span>
                     </div>
                     <div className="flex justify-between pt-1 border-t">
-                      <span className="text-sm font-medium">Daily Profit</span>
+                      <span className="text-sm font-medium flex items-center">
+                        Daily Profit
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <Lightbulb className="ml-1 h-3.5 w-3.5 text-amber-500" />
+                            </TooltipTrigger>
+                            <TooltipContent className="max-w-xs">
+                              <p className="text-xs">Aim to keep profits positive. Negative profits will drain your cash reserves.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
                       <span className={`font-medium ${stats.profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
                         {formatCurrency(stats.profit)}
+                        {stats.profit > 0 && 
+                          <span className="ml-1 text-xs font-normal text-green-500">
+                            <ArrowUpRight className="inline h-3 w-3" /> Profitable
+                          </span>
+                        }
+                        {stats.profit < 0 && 
+                          <span className="ml-1 text-xs font-normal text-red-500">
+                            <ArrowDownRight className="inline h-3 w-3" /> Loss
+                          </span>
+                        }
                       </span>
                     </div>
                   </div>
@@ -1138,9 +1266,33 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
               <CardContent>
                 <div className="space-y-6 mt-4">
                   <div>
-                    <h3 className="font-medium mb-2">Current Cash</h3>
+                    <h3 className="font-medium mb-2 flex items-center">
+                      Current Cash
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Lightbulb className="ml-1 h-4 w-4 text-amber-500" />
+                          </TooltipTrigger>
+                          <TooltipContent className="max-w-xs">
+                            <p className="text-xs">Your business cash is separate from personal funds. Keep at least 3 months of expenses as a reserve for unexpected costs and opportunities.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </h3>
                     <div className="bg-primary/10 border border-primary/20 rounded-md p-4 mb-4 text-center">
                       <span className="text-2xl font-bold">{formatCurrency(business.cash)}</span>
+                      {business.cash >= business.expenses * 90 && 
+                        <div className="text-xs font-normal text-green-600 mt-1">Healthy reserve (3+ months of expenses)</div>
+                      }
+                      {business.cash >= business.expenses * 30 && business.cash < business.expenses * 90 && 
+                        <div className="text-xs font-normal text-blue-600 mt-1">Adequate reserve (1-3 months of expenses)</div>
+                      }
+                      {business.cash < business.expenses * 30 && business.cash > 0 && 
+                        <div className="text-xs font-normal text-amber-600 mt-1">Low reserve (less than 1 month of expenses)</div>
+                      }
+                      {business.cash <= 0 && 
+                        <div className="text-xs font-normal text-red-600 mt-1">Critical: No cash reserves</div>
+                      }
                     </div>
                   </div>
                   
