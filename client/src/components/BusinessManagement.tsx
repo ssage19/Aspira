@@ -1043,11 +1043,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         {businessHealth.status}
                       </h3>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Business Health Score: {Math.round(businessHealth.score)}%
+                        Business Health Score: {Math.round(Math.min(100, businessHealth.score))}%
                       </p>
                     </div>
                     
-                    <Progress value={businessHealth.score} className="h-2 mb-6" />
+                    <Progress value={Math.min(100, businessHealth.score)} className="h-2 mb-6" />
                     
                     <div className="grid grid-cols-2 gap-4">
                       <div className="flex flex-col items-center">
@@ -1062,7 +1062,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                         <div className="bg-primary/10 p-2 rounded-full mb-2">
                           <BadgePercent className="h-5 w-5 text-primary" />
                         </div>
-                        <span className="text-sm font-medium">{formatPercentage(business.profitMargin)}</span>
+                        <span className="text-sm font-medium">{formatPercentage(Math.min(1, business.profitMargin))}</span>
                         <span className="text-xs text-muted-foreground">Profit Margin</span>
                       </div>
                     </div>
@@ -1309,7 +1309,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                     <div className="flex justify-between pt-1 border-t">
                       <span className="text-sm font-medium">Return on Investment</span>
                       <span className={`font-medium ${stats.roi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {formatPercentage(stats.roi / 100)}
+                        {Math.round(stats.roi * 10) / 10}%
                       </span>
                     </div>
                   </div>
@@ -1424,7 +1424,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                       
                       <Badge className={`px-3 py-2 ${stats.roi >= 0 ? 'bg-green-500 hover:bg-green-600' : 'bg-red-500 hover:bg-red-600'}`}>
                         <span className="font-semibold block">ROI</span>
-                        <span>{formatPercentage(stats.roi / 100)}</span>
+                        <span>{Math.round(stats.roi * 10) / 10}%</span>
                       </Badge>
                     </div>
                   </div>
