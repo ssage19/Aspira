@@ -44,8 +44,21 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
   // Use a ref to track the current game date without causing re-renders
   const currentGameDateRef = useRef<Date | null>(null);
   
-  // Update the ref with the latest date but don't cause component re-renders
-  currentGameDateRef.current = useTime(state => state.currentGameDate);
+  // Use a similar subscription approach for the challenge timer
+  useEffect(() => {
+    // Initial value
+    currentGameDateRef.current = useTime.getState().currentGameDate;
+    
+    // Set up a subscription to update the ref without re-rendering
+    const unsubscribe = useTime.subscribe(
+      (state) => state.currentGameDate,
+      (newDate) => {
+        currentGameDateRef.current = newDate;
+      }
+    );
+    
+    return () => unsubscribe();
+  }, []);
   
   // Local state for progress tracking
   const [debugProgress, setDebugProgress] = useState(0);
@@ -173,17 +186,28 @@ export default function JobScreen() {
     dayCounter: useTime(state => state.dayCounter)
   });
   
-  // Update the ref values when time changes without causing rerenders
-  const latestCurrentGameDate = useTime(state => state.currentGameDate);
-  const latestDayCounter = useTime(state => state.dayCounter);
-  
-  // Update refs with latest values
+  // Use a subscription pattern to update the ref without causing rerenders
   useEffect(() => {
+    // Get the initial values
     timeRef.current = {
-      currentGameDate: latestCurrentGameDate,
-      dayCounter: latestDayCounter
+      currentGameDate: useTime.getState().currentGameDate,
+      dayCounter: useTime.getState().dayCounter
     };
-  }, [latestCurrentGameDate, latestDayCounter]);
+    
+    // Set up a subscription to update the ref when values change
+    const unsubscribe = useTime.subscribe(
+      (state) => ({
+        currentGameDate: state.currentGameDate,
+        dayCounter: state.dayCounter
+      }),
+      (newValues) => {
+        timeRef.current = newValues;
+      }
+    );
+    
+    // Clean up subscription on unmount
+    return () => unsubscribe();
+  }, []);
   
   const { unlockAchievement } = useGame();
   
