@@ -1182,7 +1182,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                           </TooltipProvider>
                         </span>
                         <span className={`font-medium ${Math.min(100, (business.currentCapacity / business.capacity * 100)) >= 70 && Math.min(100, (business.currentCapacity / business.capacity * 100)) <= 90 ? 'text-green-600' : Math.min(100, (business.currentCapacity / business.capacity * 100)) > 90 ? 'text-amber-600' : 'text-blue-600'}`}>
-                          {Math.round(Math.min(business.currentCapacity, business.capacity) * 10) / 10}/{business.capacity} ({Math.min(100, Math.round((business.currentCapacity / business.capacity) * 1000) / 10)}%)
+                          {Math.round(Math.min(business.currentCapacity, business.capacity))}/{Math.round(business.capacity)} ({Math.min(100, Math.round((business.currentCapacity / business.capacity) * 100))}%)
                         </span>
                       </div>
                       <Progress 
