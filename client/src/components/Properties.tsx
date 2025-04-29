@@ -255,7 +255,7 @@ export function Properties() {
   };
   
   // Property image component for reuse
-  const PropertyImage = ({ propertyId, propertyName }) => {
+  const PropertyImage = ({ propertyId, propertyName }: { propertyId: string; propertyName: string }) => {
     // Get property image path using our utility function
     const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(propertyName);
     
@@ -466,22 +466,8 @@ export function Properties() {
                 <CardContent className="space-y-2 pb-2">
                   <p className="text-sm">{selectedProperty.description}</p>
                   
-                  {/* Display property image using utility function */}
-                  {(() => {
-                    // Get property image path using our utility function
-                    const imagePath = getPropertyImagePath(selectedProperty.id) || getPropertyImagePath(selectedProperty.name);
-                    
-                    // Return the image if we have a path
-                    return imagePath ? (
-                      <div className="mb-3">
-                        <img 
-                          src={imagePath}
-                          alt={selectedProperty.name}
-                          className="rounded-md w-full h-auto object-cover"
-                        />
-                      </div>
-                    ) : null;
-                  })()}
+                  {/* Display property image */}
+                  <PropertyImage propertyId={selectedProperty.id} propertyName={selectedProperty.name} />
                   
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
