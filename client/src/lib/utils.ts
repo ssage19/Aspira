@@ -762,7 +762,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Golf Course Estate': '/images/properties/golf_course_estate.jpg',
     'Celebrity Compound': '/images/properties/celebrity_compound.jpg',
     'Ultra-Modern Smart Mansion': '/images/properties/ultra_modern_smart_mansion.jpg',
-    'Ski-In/Ski-Out Chalet': '/images/properties/ski_in_ski_out_chalet.jpg',
+    'Ski-In/Ski-Out Chalet': '/images/properties/ski_inski_out_chalet.jpg',
     
     // Also keep the underscored versions for backward compatibility
     'single_family': '/images/properties/single_family_home.jpg',
@@ -791,7 +791,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'golf_estate': '/images/properties/golf_course_estate.jpg',
     'celebrity_compound': '/images/properties/celebrity_compound.jpg',
     'smart_mansion': '/images/properties/ultra_modern_smart_mansion.jpg',
-    'ski_chalet': '/images/properties/ski_in_ski_out_chalet.jpg'
+    'ski_chalet': '/images/properties/ski_inski_out_chalet.jpg'
   };
 
   return imageMapping[propertyId] || null;
