@@ -1086,11 +1086,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                           </TooltipProvider>
                         </span>
                         <span className={`font-medium ${business.quality >= 80 ? 'text-green-600' : business.quality >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
-                          {business.quality}%
+                          {Math.min(100, business.quality)}%
                         </span>
                       </div>
                       <Progress 
-                        value={business.quality} 
+                        value={Math.min(100, business.quality)} 
                         className="h-2" 
                         indicatorClassName={
                           business.quality >= 80 ? 'bg-green-500' : 
@@ -1118,11 +1118,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                           </TooltipProvider>
                         </span>
                         <span className={`font-medium ${business.customerSatisfaction >= 80 ? 'text-green-600' : business.customerSatisfaction >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
-                          {Math.round(business.customerSatisfaction)}%
+                          {Math.min(100, Math.round(business.customerSatisfaction))}%
                         </span>
                       </div>
                       <Progress 
-                        value={business.customerSatisfaction} 
+                        value={Math.min(100, business.customerSatisfaction)} 
                         className="h-2" 
                         indicatorClassName={
                           business.customerSatisfaction >= 80 ? 'bg-green-500' : 
@@ -1150,11 +1150,11 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
                           </TooltipProvider>
                         </span>
                         <span className={`font-medium ${business.reputation >= 80 ? 'text-green-600' : business.reputation >= 60 ? 'text-blue-600' : 'text-amber-600'}`}>
-                          {Math.round(business.reputation)}%
+                          {Math.min(100, Math.round(business.reputation))}%
                         </span>
                       </div>
                       <Progress 
-                        value={business.reputation} 
+                        value={Math.min(100, business.reputation)} 
                         className="h-2" 
                         indicatorClassName={
                           business.reputation >= 80 ? 'bg-green-500' : 
@@ -2215,9 +2215,9 @@ export function BusinessManagement() {
                             <Star className="h-3 w-3 mr-1 text-yellow-500" />
                             Quality
                           </span>
-                          <span>{business.quality}%</span>
+                          <span>{Math.min(100, business.quality)}%</span>
                         </div>
-                        <Progress value={business.quality} className="h-1.5" />
+                        <Progress value={Math.min(100, business.quality)} className="h-1.5" />
                       </div>
                     </div>
                   </CardContent>
