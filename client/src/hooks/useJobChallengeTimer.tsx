@@ -161,7 +161,7 @@ export function useJobChallengeTimer(
     
     // Cleanup on unmount
     return () => clearInterval(intervalId);
-  }, [validStartDate, completionTimeMonths, dayCounter]);
+  }, [validStartDate, completionTimeMonths, timeStore]);
   
   return { progress, isFinished, daysRemaining, monthsRemaining };
 }

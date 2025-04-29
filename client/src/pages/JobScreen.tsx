@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCharacter, Job } from '../lib/stores/useCharacter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
@@ -40,125 +40,26 @@ interface LiveChallengeProgressProps {
 // Import our custom hook
 import { useJobChallengeTimer } from '../hooks/useJobChallengeTimer';
 
-function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgressProps) {
-  // Use a ref to track the current game date without causing re-renders
-  const currentGameDateRef = useRef<Date | null>(null);
+// Improved LiveChallengeProgress component - Memoized to prevent excessive re-renders
+const LiveChallengeProgress = React.memo(function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgressProps) {
+  // Use our custom hook that's been optimized with proper subscriptions
+  const { progress, isFinished, daysRemaining } = useJobChallengeTimer(
+    challenge.startDate,
+    challenge.completionTime
+  );
   
-  // Use a similar subscription approach for the challenge timer
-  useEffect(() => {
-    // Initial value
-    currentGameDateRef.current = useTime.getState().currentGameDate;
-    
-    // Set up a subscription to update the ref without re-rendering
-    const unsubscribe = useTime.subscribe(
-      (state) => state.currentGameDate,
-      (newDate) => {
-        currentGameDateRef.current = newDate;
-      }
-    );
-    
-    return () => unsubscribe();
-  }, []);
-  
-  // Local state for progress tracking
-  const [debugProgress, setDebugProgress] = useState(0);
-  const [daysRemainingState, setDaysRemainingState] = useState(challenge.completionTime * 30);
-  const [isFinishedState, setIsFinishedState] = useState(false);
-  
-  // Keep track of the previous calculation to avoid unnecessary updates
-  const lastCalcRef = useRef({
-    daysPassed: 0,
-    progressValue: 0,
-    lastUpdateTime: 0
-  });
-  
-  // Update progress calculation on a controlled interval rather than on every render
-  useEffect(() => {
-    const calculateProgress = () => {
-      // Skip calculation if we don't have valid inputs
-      if (!challenge.startDate || !currentGameDateRef.current) return;
-      
-      try {
-        const now = Date.now();
-        // Don't calculate more often than every 2 seconds
-        if (now - lastCalcRef.current.lastUpdateTime < 2000) return;
-        
-        // Update the timestamp
-        lastCalcRef.current.lastUpdateTime = now;
-        
-        // Ensure we have a valid Date object for the start date
-        const startDate = challenge.startDate instanceof Date 
-          ? challenge.startDate 
-          : new Date(challenge.startDate);
-        
-        // Calculate days passed
-        const msDiff = currentGameDateRef.current.getTime() - startDate.getTime();
-        const daysPassed = Math.floor(msDiff / (1000 * 60 * 60 * 24));
-        
-        // Only continue if days passed has changed
-        if (daysPassed === lastCalcRef.current.daysPassed) return;
-        
-        // Calculate total days required for completion
-        const totalDaysRequired = challenge.completionTime * 30;
-        
-        // Calculate progress as a percentage (0-100)
-        const progressValue = Math.min(100, Math.max(0, (daysPassed / totalDaysRequired) * 100));
-        
-        // Only update state if there's a significant change (0.5% or more)
-        if (Math.abs(progressValue - lastCalcRef.current.progressValue) >= 0.5) {
-          // Update our tracking ref
-          lastCalcRef.current = {
-            ...lastCalcRef.current,
-            daysPassed,
-            progressValue
-          };
-          
-          // Update state (this will cause a re-render)
-          setDebugProgress(progressValue);
-          setDaysRemainingState(Math.max(0, totalDaysRequired - daysPassed));
-          setIsFinishedState(progressValue >= 100);
-          
-          // Less frequent logging to avoid console spam
-          if (daysPassed % 10 === 0) {
-            console.log(`Challenge Progress:`, {
-              title: challenge.title.substring(0, 20) + '...',
-              daysPassed,
-              daysRemaining: Math.max(0, totalDaysRequired - daysPassed),
-              progress: `${progressValue.toFixed(1)}%`
-            });
-          }
-        }
-      } catch (error) {
-        console.error('Error calculating challenge progress:', error);
-      }
-    };
-    
-    // Run calculation once immediately
-    calculateProgress();
-    
-    // Set up interval for periodic updates
-    const intervalId = setInterval(calculateProgress, 3000);
-    
-    // Cleanup on unmount
-    return () => clearInterval(intervalId);
-  }, [challenge.id, challenge.startDate, challenge.completionTime]);
-  
-  // Don't use the hook for challenge progress anymore since it was contributing to infinite render loops
-  // Instead use our local calculation
-  
-  // Removed hook references and using just our local state variables
-  const progressText = `${Math.floor(debugProgress)}%`;
-  const timeLeftText = isFinishedState
+  // Format the time remaining text
+  const timeLeftText = isFinished
     ? 'Complete!' 
-    : daysRemainingState > 0
-      ? `${daysRemainingState} day${daysRemainingState !== 1 ? 's' : ''} remaining`
+    : daysRemaining > 0
+      ? `${daysRemaining} day${daysRemaining !== 1 ? 's' : ''} remaining`
       : 'Complete!';
   
   return (
     <>
       <Progress
-        value={debugProgress}
-        className={`${height} ${isFinishedState ? 'bg-green-100' : ''}`}
+        value={progress}
+        className={`${height} ${isFinished ? 'bg-green-100' : ''}`}
       />
       
       {/* Only show the days remaining without the percentage */}
@@ -167,7 +68,10 @@ function LiveChallengeProgress({ challenge, height = "h-2" }: LiveChallengeProgr
       </div>
     </>
   );
-}
+});
+
+// Add displayName for debugging
+LiveChallengeProgress.displayName = 'LiveChallengeProgress';
 
 export default function JobScreen() {
   const navigate = useNavigate();

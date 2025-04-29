@@ -184,7 +184,7 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
     };
   }, [adaptiveInterval]);
   
-  // STRATEGY 2: Refresh on meaningful route changes only
+  // STRATEGY 2: Refresh on meaningful route changes only - with job screen protection
   useEffect(() => {
     // Only refresh if the path actually changed (not just query params)
     if (previousPathRef.current !== location.pathname) {
@@ -192,7 +192,13 @@ const AssetRefreshProvider: React.FC<AssetRefreshProviderProps> = ({
         console.log(`📍 AssetRefreshProvider: Route changed to ${location.pathname}`);
       }
       previousPathRef.current = location.pathname;
-      debouncedRefresh();
+      
+      // IMPORTANT: Don't trigger refresh for career/job screens to avoid infinite loops
+      if (!location.pathname.includes('/career') && !location.pathname.includes('/job')) {
+        debouncedRefresh();
+      } else {
+        console.log(`⚠️ AssetRefreshProvider: Skipping refresh for job/career screen to avoid loops`);
+      }
     }
   }, [location.pathname]);
   
