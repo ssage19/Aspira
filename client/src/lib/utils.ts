@@ -809,6 +809,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'city_palace': '/images/properties/city_palace.jpg',
     'smart_mansion': '/images/properties/smart_mansion.jpg',
     'tropical_estate': '/images/properties/tropical_estate.jpg',
+    'mansion': '/images/properties/Gated_Estate.jpg',
     
     // Commercial properties
     'Retail Storefront': '/images/properties/retail_storefront.jpg',
@@ -857,7 +858,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
   // Default image by property type (fallback)
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
-    'mansion': '/images/properties/estate_manor.jpg',
+    'mansion': '/images/properties/Gated_Estate.jpg',
     'commercial': '/images/properties/small_office.jpg',
     'industrial': '/images/properties/small_warehouse.jpg'
   };
