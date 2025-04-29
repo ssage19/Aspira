@@ -849,18 +849,6 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
   };
   
   // Marketing functions
-  const handleUpdateMarketingBudget = () => {
-    const budget = parseFloat(marketingBudget);
-    if (isNaN(budget) || budget < 0) {
-      toast.error('Please enter a valid marketing budget.');
-      return;
-    }
-    
-    const success = updateMarketingBudget(business.id, budget);
-    if (success) {
-      toast.success('Marketing budget updated successfully.');
-    }
-  };
   
   const handleCreateMarketingCampaign = () => {
     if (!campaignType) {
@@ -1791,36 +1779,7 @@ const BusinessManagementPanel: React.FC<BusinessManagementPanelProps> = ({ busin
               </Dialog>
             </div>
             
-            <div className="bg-muted/30 p-4 rounded-md border border-primary/20">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium">Marketing Budget</h3>
-                <span className="text-sm">{formatCurrency(business.marketingBudget || 0)}/month</span>
-              </div>
-              
-              <div className="flex items-center space-x-4">
-                <Input 
-                  type="number" 
-                  placeholder="Set monthly budget" 
-                  className="flex-1" 
-                  value={marketingBudget}
-                  onChange={(e) => setMarketingBudget(e.target.value)}
-                />
-                <Button 
-                  size="sm"
-                  onClick={handleUpdateMarketingBudget}
-                  disabled={parseFloat(marketingBudget) < 0 || isNaN(parseFloat(marketingBudget))}
-                >
-                  Update Budget
-                </Button>
-              </div>
-              
-              {business.marketingBudget > 0 && business.revenue > 0 && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  Your marketing budget is {formatPercentage(business.marketingBudget / business.revenue)} of your daily revenue.
-                </p>
-              )}
-            </div>
-            
+
             <div>
               <h3 className="font-medium mb-4">Active Campaigns</h3>
               
