@@ -832,9 +832,13 @@ export function getPropertyImagePath(propertyId: string): string | null {
     return imageMapping[propertyId];
   }
   
+  // Add debug logging
+  console.log(`getPropertyImagePath - propertyId: ${propertyId}`);
+  console.log(`getPropertyImagePath - direct mapping result: ${imageMapping[propertyId] || 'not found in direct mapping'}`);
+  
   // Extract property type from ID if available (for fallback)
   const propertyType = propertyId.includes('apartment') || propertyId.includes('family') || propertyId.includes('town') ? 'residential' :
-                       propertyId.includes('penthouse') || propertyId.includes('estate') || propertyId.includes('luxury') ? 'mansion' :
+                       propertyId.includes('penthouse') || propertyId.includes('estate') || propertyId.includes('luxury') || propertyId.includes('mansion') ? 'mansion' :
                        propertyId.includes('office') || propertyId.includes('retail') || propertyId.includes('commercial') ? 'commercial' :
                        propertyId.includes('warehouse') || propertyId.includes('industrial') ? 'industrial' : null;
   

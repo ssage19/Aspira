@@ -64,18 +64,35 @@ export function Properties() {
   
   // Get properties for the active tab
   const getPropertiesForTab = () => {
+    let properties;
     switch(activeTab) {
       case 'residential':
-        return residentialProperties;
+        properties = residentialProperties;
+        break;
       case 'mansion':
-        return luxuryProperties;
+        properties = luxuryProperties;
+        console.log('Luxury properties:', properties);
+        break;
       case 'commercial':
-        return commercialProperties;
+        properties = commercialProperties;
+        break;
       case 'industrial':
-        return industrialProperties;
+        properties = industrialProperties;
+        break;
       default:
-        return residentialProperties;
+        properties = residentialProperties;
     }
+    
+    // Debug the first few properties to check their structure
+    if (properties && properties.length > 0) {
+      console.log(`First property in ${activeTab} tab:`, properties[0]);
+      if (activeTab === 'mansion' && properties.length > 1) {
+        console.log('Getting image path for luxury property with ID:', properties[0].id);
+        console.log('Image path result:', getPropertyImagePath(properties[0].id));
+      }
+    }
+    
+    return properties;
   };
   
   // Check if user already owns this property
@@ -259,6 +276,9 @@ export function Properties() {
     // Get property image path using our utility function
     const imagePath = getPropertyImagePath(propertyId) || getPropertyImagePath(propertyName);
     
+    // Add debug logging
+    console.log(`PropertyImage component - ID: ${propertyId}, Name: ${propertyName}, Path: ${imagePath}`);
+    
     // Return the image if we have a path
     return imagePath ? (
       <div className="mb-3">
@@ -266,6 +286,10 @@ export function Properties() {
           src={imagePath}
           alt={propertyName}
           className="rounded-md w-full h-auto object-cover"
+          onError={(e) => {
+            console.error(`Error loading image for ${propertyName}:`, e);
+            e.currentTarget.style.display = 'none';
+          }}
         />
       </div>
     ) : null;
