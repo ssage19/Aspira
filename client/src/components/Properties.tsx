@@ -144,14 +144,22 @@ export function Properties() {
     
     // Enhanced debugging for property type
     console.log(`PROPERTY PURCHASE: Tab type = "${activeTab}", converting to property type`);
-    const propertyType = activeTab as 'residential' | 'commercial' | 'industrial' | 'mansion';
-    console.log(`PROPERTY PURCHASE: Property type = "${propertyType}"`);
+    
+    // Map UI tab names to internal property types (especially for luxury/mansion)
+    let propertyType = activeTab;
+    // Make sure luxury tab is correctly mapped to 'mansion' type
+    if (activeTab === 'luxury') {
+        propertyType = 'mansion';
+        console.log(`PROPERTY PURCHASE: Converting tab type 'luxury' to property type 'mansion'`);
+    }
+    
+    console.log(`PROPERTY PURCHASE: Final property type = "${propertyType}"`);
     
     // Create new property object compatible with the Property interface in useCharacter
     const newProperty = {
       id: selectedProperty.id,
       name: selectedProperty.name,
-      type: propertyType,
+      type: propertyType as 'residential' | 'commercial' | 'industrial' | 'mansion',
       location: selectedProperty.location,
       description: selectedProperty.description,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
@@ -172,7 +180,7 @@ export function Properties() {
         bedrooms: selectedProperty.bedrooms,
         bathrooms: selectedProperty.bathrooms
       },
-      ...(activeTab === 'mansion' && 'bedrooms' in selectedProperty) && {
+      ...((activeTab === 'mansion' || activeTab === 'luxury') && 'bedrooms' in selectedProperty) && {
         bedrooms: selectedProperty.bedrooms,
         bathrooms: selectedProperty.bathrooms,
         prestige: (selectedProperty as any).prestige || 0
