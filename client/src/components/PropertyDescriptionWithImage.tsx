@@ -13,7 +13,11 @@ export function PropertyDescriptionWithImage({
   name 
 }: PropertyDescriptionWithImageProps) {
   // Get property image path
-  const imagePath = getPropertyImagePath(id) || getPropertyImagePath(name);
+  const imagePathFromId = getPropertyImagePath(id);
+  const imagePathFromName = getPropertyImagePath(name);
+  const imagePath = imagePathFromId || imagePathFromName;
+  
+  console.log(`Portfolio property image check - ID: ${id}, Name: ${name}, Path: ${imagePath}`);
   
   return (
     <div className="space-y-3">
