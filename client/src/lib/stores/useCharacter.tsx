@@ -1234,14 +1234,29 @@ export const useCharacter = create<CharacterState>()(
         
         // Check if the purchase would result in negative wealth
         const currentWealth = get().wealth;
-        if (currentWealth < downPayment) {
+        
+        // Extensive debugging for wealth check
+        console.log(`STORE - Purchase wealth check - Current Wealth: ${currentWealth}, Down Payment: ${downPayment}`);
+        console.log(`STORE - Property details: ${property.name}, Price: ${property.purchasePrice}, Type: ${property.type}`);
+        
+        // Ensure we're comparing numbers, not strings
+        const wealthNum = Number(currentWealth);
+        const downPaymentNum = Number(downPayment); 
+        
+        console.log(`STORE - After conversion - Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}, Comparison result: ${wealthNum < downPaymentNum}`);
+        
+        if (wealthNum < downPaymentNum) {
           // Not enough money to make the purchase
+          console.error(`STORE ERROR: Insufficient funds - Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}`);
           toast.error("Insufficient funds for the down payment", {
             duration: 3000,
             position: 'bottom-right',
           });
           return false; // Indicate failure
         }
+        
+        console.log(`STORE: Funds check passed - proceeding with purchase`);
+        
         
         // Ensure income is properly set (backward compatibility)
         if (property.monthlyIncome && !property.income) {

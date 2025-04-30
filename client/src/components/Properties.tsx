@@ -104,10 +104,17 @@ export function Properties() {
       return;
     }
     
+    // Better debugging for funds check
+    console.log(`Purchase check - Wealth: ${wealth}, Down Payment: ${downPayment}, Adjusted Price: ${adjustedPrice}, Down Payment %: ${downPaymentPercent}%`);
+    
     if (wealth < downPayment) {
+      console.error(`PURCHASE ERROR: Insufficient funds - Wealth: ${wealth}, Down Payment: ${downPayment}`);
       toast.error("Insufficient funds for down payment");
       return;
     }
+    
+    console.log(`PURCHASE: Funds check passed - proceeding with purchase`);
+    
     
     // Display a warning for low down payments - these are riskier
     if (downPaymentPercent < 20) {
@@ -169,11 +176,27 @@ export function Properties() {
     // For debugging
     console.log("Creating new property:", newProperty);
     
-    // Process purchase
+    // Process purchase - two methods needed
+    // 1. First subtract wealth directly (this will be needed regardless)
     addWealth(-downPayment);
     
-    // Explicitly convert to Property interface type that useCharacter expects
-    addProperty(newProperty);
+    // 2. Then explicitly convert and add property to character
+    console.log(`ATTEMPTING TO ADD PROPERTY: ${activeTab} type, ID: ${newProperty.id}`);
+    
+    // Check the result of the operation
+    const addPropertySuccessful = addProperty(newProperty);
+    
+    // Log the result - was it successful?
+    console.log(`Property add operation result: ${addPropertySuccessful ? 'SUCCESS' : 'FAILURE'}`);
+    
+    if (!addPropertySuccessful) {
+      // If it failed, we should credit back the wealth we already deducted
+      console.error(`Failed to add property. Refunding ${downPayment}`);
+      addWealth(downPayment);
+      return; // Exit function here, don't play success sound or show toast
+    }
+    
+    // If we made it here, the property was added successfully
     playSuccess();
     
     toast.success(
