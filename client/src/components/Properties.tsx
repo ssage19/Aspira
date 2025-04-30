@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card';
 import { toast } from 'sonner';
 import { formatCurrency, getPropertyImagePath } from '../lib/utils';
+import PropertyDescriptionWithImage from './PropertyDescriptionWithImage';
 import { 
   Home, 
   Building2, 
