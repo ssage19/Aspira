@@ -1248,27 +1248,55 @@ export const useCharacter = create<CharacterState>()(
         property.holdingPeriodInDays = 0;
         console.log(`[PROPERTY HOLDING] Initialized holding period to 0 days for new property: ${property.name}`);
         
-        // Check if the purchase would result in negative wealth
-        const currentWealth = get().wealth;
+        // CRITICAL FIX: Get the real wealth value from the store and ensure it's the latest
+        const localStorage = typeof window !== 'undefined' ? window.localStorage : null;
+        let globalWealth = get().wealth;
         
-        // Extensive debugging for wealth check
-        console.log(`STORE - Purchase wealth check - Current Wealth: ${currentWealth}, Down Payment: ${downPayment}`);
-        console.log(`STORE - Property details: ${property.name}, Price: ${property.purchasePrice}, Type: ${property.type}`);
+        // Check for saved value in localStorage
+        if (localStorage) {
+            try {
+                const rawCharacter = localStorage.getItem('luxury_lifestyle_character');
+                if (rawCharacter) {
+                    const savedData = JSON.parse(rawCharacter);
+                    if (savedData && typeof savedData.wealth === 'number') {
+                        console.log(`STORE - Found saved wealth value: ${savedData.wealth}`);
+                        // Use the larger of the two values to avoid stale state issues
+                        globalWealth = Math.max(globalWealth, savedData.wealth);
+                    }
+                }
+            } catch (error) {
+                console.error("Error parsing localStorage character data:", error);
+            }
+        }
+        
+        // ENHANCED debugging for wealth check
+        console.log(`STORE - PROPERTY PURCHASE - FINAL WEALTH CHECK:`);
+        console.log(`    - Store wealth: ${get().wealth}`);
+        console.log(`    - Global wealth: ${globalWealth}`);
+        console.log(`    - Down Payment: ${downPayment}`);
+        console.log(`    - Property: ${property.name} (${property.type})`);
+        console.log(`    - Price: ${property.purchasePrice}`);
         
         // Ensure we're comparing numbers, not strings
-        const wealthNum = Number(currentWealth);
+        const wealthNum = Number(globalWealth);
         const downPaymentNum = Number(downPayment); 
         
-        console.log(`STORE - After conversion - Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}, Comparison result: ${wealthNum < downPaymentNum}`);
+        console.log(`STORE - AFTER CONVERSION - FINAL CHECK: Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}`);
         
         if (wealthNum < downPaymentNum) {
-          // Not enough money to make the purchase
-          console.error(`STORE ERROR: Insufficient funds - Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}`);
-          toast.error("Insufficient funds for the down payment", {
-            duration: 3000,
-            position: 'bottom-right',
-          });
-          return false; // Indicate failure
+            // Not enough money to make the purchase
+            console.error(`STORE ERROR: Insufficient funds - Wealth: ${wealthNum}, Down Payment: ${downPaymentNum}`);
+            toast.error("Insufficient funds for the down payment", {
+                duration: 3000,
+                position: 'bottom-right',
+            });
+            return false; // Indicate failure
+        }
+        
+        // If the store's wealth is different from localStorage, sync it
+        if (get().wealth !== globalWealth) {
+            console.log(`STORE - Syncing wealth from ${get().wealth} to ${globalWealth}`);
+            set({ wealth: globalWealth });
         }
         
         console.log(`STORE: Funds check passed - proceeding with purchase`);
