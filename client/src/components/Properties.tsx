@@ -363,40 +363,28 @@ export function Properties() {
               </DropdownMenuTrigger>
               <DropdownMenuContent className="w-full min-w-[200px]">
                 <DropdownMenuItem 
-                  onClick={() => {
-                    console.log("Selecting residential tab");
-                    setActiveTab('residential');
-                  }} 
+                  onClick={() => setActiveTab('residential')} 
                   className="cursor-pointer"
                 >
                   <Home className="h-4 w-4 mr-2" />
                   Residential
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => {
-                    console.log("Selecting luxury tab");
-                    setActiveTab('mansion');
-                  }} 
+                  onClick={() => setActiveTab('mansion')} 
                   className="cursor-pointer"
                 >
                   <Castle className="h-4 w-4 mr-2" />
                   Luxury
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => {
-                    console.log("Selecting commercial tab");
-                    setActiveTab('commercial');
-                  }} 
+                  onClick={() => setActiveTab('commercial')} 
                   className="cursor-pointer"
                 >
                   <Building2 className="h-4 w-4 mr-2" />
                   Commercial
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => {
-                    console.log("Selecting industrial tab");
-                    setActiveTab('industrial');
-                  }} 
+                  onClick={() => setActiveTab('industrial')} 
                   className="cursor-pointer"
                 >
                   <Warehouse className="h-4 w-4 mr-2" />
