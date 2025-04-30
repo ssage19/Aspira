@@ -1164,6 +1164,22 @@ export const useCharacter = create<CharacterState>()(
       
       // Properties management
       addProperty: (property) => {
+        console.log(`PROPERTY ADD: Starting to add property ${property.name} (ID: ${property.id}, Type: ${property.type})`);
+        
+        // Validate property type (critically important)
+        if (!['residential', 'commercial', 'industrial', 'mansion'].includes(property.type)) {
+          console.error(`Invalid property type: ${property.type}. Valid types are: residential, commercial, industrial, mansion`);
+          
+          // Auto-correct type if possible to prevent errors
+          if (property.type.toLowerCase() === 'luxury') {
+            console.log('Converting "luxury" property type to "mansion"');
+            property.type = 'mansion';
+          } else {
+            console.error('Could not correct invalid property type. Purchase will fail.');
+            return false;
+          }
+        }
+        
         // Ensure consistent property value handling
         // Make sure currentValue and purchasePrice are the same at purchase time
         if (property.purchasePrice && !property.currentValue) {

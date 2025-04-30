@@ -135,11 +135,16 @@ export function Properties() {
     // Calculate mortgage details
     const monthlyPayment = loanAmount > 0 ? mortgageDetails.monthlyPayment : 0;
     
+    // Enhanced debugging for property type
+    console.log(`PROPERTY PURCHASE: Tab type = "${activeTab}", converting to property type`);
+    const propertyType = activeTab as 'residential' | 'commercial' | 'industrial' | 'mansion';
+    console.log(`PROPERTY PURCHASE: Property type = "${propertyType}"`);
+    
     // Create new property object compatible with the Property interface in useCharacter
     const newProperty = {
       id: selectedProperty.id,
       name: selectedProperty.name,
-      type: activeTab as 'residential' | 'commercial' | 'industrial' | 'mansion',
+      type: propertyType,
       location: selectedProperty.location,
       description: selectedProperty.description,
       purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
@@ -184,13 +189,13 @@ export function Properties() {
     console.log(`ATTEMPTING TO ADD PROPERTY: ${activeTab} type, ID: ${newProperty.id}`);
     
     // Check the result of the operation
-    const addPropertySuccessful = addProperty(newProperty);
+    const success = addProperty(newProperty);
     
     // Log the result - was it successful?
-    console.log(`Property add operation result: ${addPropertySuccessful ? 'SUCCESS' : 'FAILURE'}`);
+    console.log(`Property add operation result: ${success ? 'SUCCESS' : 'FAILURE'}`);
     
-    if (!addPropertySuccessful) {
-      // If it failed, we should credit back the wealth we already deducted
+    if (success === false) {
+      // If it explicitly failed, we should credit back the wealth we already deducted
       console.error(`Failed to add property. Refunding ${downPayment}`);
       addWealth(downPayment);
       return; // Exit function here, don't play success sound or show toast
