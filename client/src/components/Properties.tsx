@@ -62,6 +62,7 @@ export function Properties() {
     return {
       residential: residentialProperties,
       mansion: luxuryProperties,
+      luxury: luxuryProperties, // Add this line to map both "luxury" and "mansion" to the same data
       commercial: commercialProperties,
       industrial: industrialProperties
     };
@@ -97,33 +98,87 @@ export function Properties() {
     return ownedProperties.some(property => property.id === id);
   };
   
-  // Handle property purchase
+  // Completely redesigned property purchase function
   const handlePurchase = () => {
-    const adjustedPrice = getAdjustedPrice(selectedProperty.price);
-    const downPayment = (downPaymentPercent / 100) * adjustedPrice;
-    const loanAmount = adjustedPrice - downPayment;
+    console.log("============= PROPERTY PURCHASE TRANSACTION START =============");
+    console.log(`Current tab: ${activeTab}, Property: ${selectedProperty.name}, ID: ${selectedProperty.id}`);
     
+    // STEP 1: Check if already owned
     if (isPropertyOwned(selectedProperty.id)) {
+      console.log("PURCHASE ERROR: Property already owned");
       toast.error("You already own this property");
       return;
     }
     
-    // Get fresh wealth value directly from store to avoid stale state
-    const currentWealth = useCharacter.getState().wealth;
+    // STEP 2: Calculate price and down payment
+    const adjustedPrice = getAdjustedPrice(selectedProperty.price);
+    const downPayment = (downPaymentPercent / 100) * adjustedPrice;
+    const loanAmount = adjustedPrice - downPayment;
     
-    // Enhanced debugging for funds check
-    console.log(`Purchase check - Current Wealth: ${currentWealth}, Component Wealth: ${wealth}, Down Payment: ${downPayment}, Adjusted Price: ${adjustedPrice}, Down Payment %: ${downPaymentPercent}%`);
+    console.log(`Property price details: 
+      Base price: ${selectedProperty.price}
+      Adjusted price: ${adjustedPrice}
+      Down payment percentage: ${downPaymentPercent}%
+      Down payment amount: ${downPayment}
+      Loan amount: ${loanAmount}
+    `);
     
-    if (currentWealth < downPayment) {
-      console.error(`PURCHASE ERROR: Insufficient funds - Current Wealth: ${currentWealth}, Down Payment: ${downPayment}`);
+    // STEP 3: Get latest player cash from ALL sources
+    // Get character store wealth directly
+    const characterStore = useCharacter.getState();
+    let playerCash = characterStore.wealth;
+    
+    // Also check localStorage as backup
+    try {
+      const savedCharacter = localStorage.getItem('luxury_lifestyle_character');
+      if (savedCharacter) {
+        const parsedCharacter = JSON.parse(savedCharacter);
+        if (parsedCharacter && typeof parsedCharacter.wealth === 'number') {
+          // Use the higher of the two values for maximum safety
+          if (parsedCharacter.wealth > playerCash) {
+            console.log(`Using localStorage wealth (${parsedCharacter.wealth}) instead of store wealth (${playerCash})`);
+            playerCash = parsedCharacter.wealth;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error parsing localStorage character:", error);
+    }
+    
+    // Access directly for simplicity - this is still helpful for wealth checking
+    try {
+      // Try to access the global asset tracker if available
+      if (typeof window !== 'undefined' && 
+          (window as any).useAssetTracker && 
+          typeof (window as any).useAssetTracker.getState === 'function') {
+        const assetState = (window as any).useAssetTracker.getState();
+        if (assetState && typeof assetState.cash === 'number') {
+          console.log(`Asset tracker cash found: ${assetState.cash}`);
+          // Use the higher value for safety
+          if (assetState.cash > playerCash) {
+            console.log(`Using asset tracker cash (${assetState.cash}) instead of character cash (${playerCash})`);
+            playerCash = assetState.cash;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Error checking asset tracker:", error);
+      // Non-fatal, continue with character store cash
+    }
+    
+    // STEP 4: Comprehensive funds check
+    console.log(`FUNDS CHECK: Player cash: ${playerCash}, Down payment required: ${downPayment}`);
+    
+    if (playerCash < downPayment) {
+      console.error(`PURCHASE ERROR: Insufficient funds - Player cash: ${playerCash}, Down payment: ${downPayment}`);
       toast.error("Insufficient funds for down payment");
+      console.log("============= PROPERTY PURCHASE TRANSACTION ABORTED: INSUFFICIENT FUNDS =============");
       return;
     }
     
-    console.log(`PURCHASE: Funds check passed - proceeding with purchase`);
+    console.log(`FUNDS CHECK PASSED: Player has sufficient funds`);
     
-    
-    // Display a warning for low down payments - these are riskier
+    // STEP 5: Display warnings if applicable
     if (downPaymentPercent < 20) {
       toast.warning(
         <div className="flex flex-col">
@@ -139,31 +194,29 @@ export function Properties() {
       );
     }
     
-    // Calculate mortgage details
+    // STEP 6: Calculate mortgage payment
     const monthlyPayment = loanAmount > 0 ? mortgageDetails.monthlyPayment : 0;
+    console.log(`Mortgage monthly payment: ${monthlyPayment}`);
     
-    // Enhanced debugging for property type
-    console.log(`PROPERTY PURCHASE: Tab type = "${activeTab}", converting to property type`);
-    
-    // Map UI tab names to internal property types (especially for luxury/mansion)
+    // STEP 7: Handle property type mapping
+    // Ensure property type is correct (mansion for luxury tab)
     let propertyType = activeTab;
-    // Make sure luxury tab is correctly mapped to 'mansion' type
     if (activeTab === 'luxury') {
-        propertyType = 'mansion';
-        console.log(`PROPERTY PURCHASE: Converting tab type 'luxury' to property type 'mansion'`);
+      propertyType = 'mansion';
+      console.log(`Converting tab type 'luxury' to property type 'mansion'`);
     }
     
-    console.log(`PROPERTY PURCHASE: Final property type = "${propertyType}"`);
+    // STEP 8: Create the property object
+    const purchaseDateStr = `${currentMonth}/${currentDay}/${currentYear}`;
+    console.log(`Purchase date: ${purchaseDateStr}`);
     
-    // Create new property object compatible with the Property interface in useCharacter
     const newProperty = {
       id: selectedProperty.id,
       name: selectedProperty.name,
       type: propertyType as 'residential' | 'commercial' | 'industrial' | 'mansion',
       location: selectedProperty.location,
       description: selectedProperty.description,
-      purchaseDate: `${currentMonth}/${currentDay}/${currentYear}`,
-      // Required fields for Property interface
+      purchaseDate: purchaseDateStr,
       purchasePrice: adjustedPrice,
       currentValue: adjustedPrice,
       downPayment: downPayment,
@@ -175,7 +228,8 @@ export function Properties() {
       expenses: selectedProperty.expenses,
       appreciationRate: selectedProperty.appreciationRate,
       squareFeet: selectedProperty.squareFeet,
-      // Optional fields that exist in PropertyType
+      
+      // Optional fields based on property type
       ...(activeTab === 'residential' && 'bedrooms' in selectedProperty) && {
         bedrooms: selectedProperty.bedrooms,
         bathrooms: selectedProperty.bathrooms
@@ -193,43 +247,142 @@ export function Properties() {
       }
     };
     
-    // For debugging
-    console.log("Creating new property:", newProperty);
+    console.log("Property object created:", newProperty);
     
-    // Process purchase - two methods needed
-    // 1. First subtract wealth directly (this will be needed regardless)
-    addWealth(-downPayment);
-    
-    // 2. Then explicitly convert and add property to character
-    console.log(`ATTEMPTING TO ADD PROPERTY: ${activeTab} type, ID: ${newProperty.id}`);
-    
-    // Check the result of the operation
-    const success = addProperty(newProperty);
-    
-    // Log the result - was it successful?
-    console.log(`Property add operation result: ${success ? 'SUCCESS' : 'FAILURE'}`);
-    
-    if (success === false) {
-      // If it explicitly failed, we should credit back the wealth we already deducted
-      console.error(`Failed to add property. Refunding ${downPayment}`);
-      addWealth(downPayment);
-      return; // Exit function here, don't play success sound or show toast
+    // STEP 9: Execute the transaction - direct store operations for maximum reliability
+    try {
+      console.log("Beginning transaction execution...");
+      
+      // 9.1 - First deduct player wealth directly (most important step)
+      console.log(`Deducting ${downPayment} from player wealth of ${playerCash}`);
+      
+      // We'll use the direct Zustand API for the most reliable update
+      console.log("Executing wealth deduction via direct state update");
+      useCharacter.setState(state => ({
+        ...state,
+        wealth: state.wealth - downPayment
+      }));
+      
+      const updatedCash = useCharacter.getState().wealth;
+      console.log(`Wealth deduction complete. New wealth: ${updatedCash}`);
+      
+      // 9.2 - Add the property to the player's properties collection
+      console.log("Adding property to player's portfolio");
+      useCharacter.setState(state => ({
+        ...state,
+        properties: [...state.properties, newProperty],
+        // Also update monthly expenses for mortgage payment
+        expenses: state.expenses + newProperty.monthlyPayment,
+        // Update income from property
+        income: state.income + newProperty.income
+      }));
+      
+      // 9.3 - Verify property was added
+      const updatedPortfolio = useCharacter.getState().properties;
+      const propertyAdded = updatedPortfolio.some(p => p.id === newProperty.id);
+      
+      if (!propertyAdded) {
+        throw new Error("Property was not added to portfolio");
+      }
+      
+      console.log(`Property successfully added to portfolio (now ${updatedPortfolio.length} properties)`);
+      
+      // 9.4 - Update asset tracker as well for consistency
+      try {
+        console.log("Updating asset tracker...");
+        // Try to access the global asset tracker if available
+        if (typeof window !== 'undefined' && 
+            (window as any).useAssetTracker && 
+            typeof (window as any).useAssetTracker.getState === 'function') {
+          const assetTracker = (window as any).useAssetTracker.getState();
+          
+          if (assetTracker) {
+            // Update cash in asset tracker
+            if (typeof assetTracker.updateCash === 'function') {
+              assetTracker.updateCash(updatedCash);
+              console.log(`Asset tracker cash updated to ${updatedCash}`);
+            }
+            
+            // Add property to asset tracker
+            if (typeof assetTracker.addProperty === 'function') {
+              assetTracker.addProperty({
+                id: newProperty.id,
+                name: newProperty.name,
+                purchasePrice: newProperty.purchasePrice,
+                currentValue: newProperty.currentValue,
+                mortgage: newProperty.loanAmount,
+                purchaseDate: newProperty.purchaseDate
+              });
+              console.log(`Property added to asset tracker: ${newProperty.name}`);
+            }
+            
+            // Force recalculation
+            if (typeof assetTracker.recalculateTotals === 'function') {
+              assetTracker.recalculateTotals();
+              console.log("Asset tracker totals recalculated");
+            }
+            
+            console.log("Asset tracker updated successfully");
+          }
+        }
+      } catch (assetError) {
+        console.error("Error updating asset tracker:", assetError);
+        // Non-fatal error, continue with transaction
+      }
+      
+      // 9.5 - Recalculate net worth
+      console.log("Recalculating net worth");
+      const character = useCharacter.getState();
+      const netWorth = character.calculateNetWorth();
+      useCharacter.setState({ netWorth });
+      console.log(`Net worth updated to ${netWorth}`);
+      
+      // 9.6 - Save everything to localStorage
+      console.log("Saving updated state to localStorage");
+      localStorage.setItem('luxury_lifestyle_character', JSON.stringify(useCharacter.getState()));
+      
+      // 9.7 - Transaction complete, show success message
+      console.log("============= PROPERTY PURCHASE TRANSACTION COMPLETED SUCCESSFULLY =============");
+      playSuccess();
+      
+      toast.success(
+        <div className="flex flex-col">
+          <div className="flex items-center font-semibold">
+            Property Purchased!
+          </div>
+          <p className="text-sm mt-1">
+            You have successfully purchased {selectedProperty.name} for {formatCurrency(adjustedPrice)}.
+          </p>
+        </div>,
+        { duration: 3000 }
+      );
+      
+    } catch (error) {
+      // If any part of the transaction fails, try to roll back
+      console.error("TRANSACTION ERROR:", error);
+      
+      // Attempt to refund the down payment
+      console.log(`Attempting to refund ${downPayment} to player`);
+      useCharacter.setState(state => ({
+        ...state,
+        wealth: state.wealth + downPayment
+      }));
+      
+      // Show error to player
+      toast.error(
+        <div className="flex flex-col">
+          <div className="flex items-center font-semibold">
+            Purchase Failed
+          </div>
+          <p className="text-sm mt-1">
+            There was an error processing your purchase. Your funds have been returned.
+          </p>
+        </div>,
+        { duration: 4000 }
+      );
+      
+      console.log("============= PROPERTY PURCHASE TRANSACTION FAILED AND ROLLED BACK =============");
     }
-    
-    // If we made it here, the property was added successfully
-    playSuccess();
-    
-    toast.success(
-      <div className="flex flex-col">
-        <div className="flex items-center font-semibold">
-          Property Purchased!
-        </div>
-        <p className="text-sm mt-1">
-          You have successfully purchased {selectedProperty.name}.
-        </p>
-      </div>,
-      { duration: 3000 }
-    );
   };
   
   // Handle selling a property
