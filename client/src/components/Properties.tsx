@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useCharacter } from '../lib/stores/useCharacter';
 import { useEconomy } from '../lib/stores/useEconomy';
 import { useTime } from '../lib/stores/useTime';
@@ -53,28 +53,32 @@ export function Properties() {
   const [portfolioView, setPortfolioView] = useState('all');
   const [downPaymentPercent, setDownPaymentPercent] = useState(20);
 
-  // Function to get properties for the active tab - declared before state to avoid hoisting issues
-  const getPropertiesForActiveTab = (tab: string) => {
-    switch(tab) {
-      case 'residential': return residentialProperties;
-      case 'mansion': return luxuryProperties;
-      case 'commercial': return commercialProperties;
-      case 'industrial': return industrialProperties;
-      default: return residentialProperties;
-    }
-  };
+  // Cache property data for each tab to prevent unnecessary rebuilding
+  const cachedPropertyData = useMemo(() => {
+    return {
+      residential: residentialProperties,
+      mansion: luxuryProperties,
+      commercial: commercialProperties,
+      industrial: industrialProperties
+    };
+  }, []);
+  
+  // Function to get properties for the active tab - using cached data
+  const getPropertiesForActiveTab = useCallback((tab: string) => {
+    return cachedPropertyData[tab as keyof typeof cachedPropertyData] || cachedPropertyData.residential;
+  }, [cachedPropertyData]);
   
   const [selectedProperty, setSelectedProperty] = useState(residentialProperties[0]);
   
-  // Calculate adjusted property price based on market conditions
-  const getAdjustedPrice = (basePrice: number) => {
+  // Calculate adjusted property price based on market conditions - memoized
+  const getAdjustedPrice = useCallback((basePrice: number) => {
     // Market factor ranges from 0.8 to 1.2 based on economic conditions
     const marketFactor = 0.8 + (realEstateMarketHealth / 100) * 0.4;
     return Math.round(basePrice * marketFactor);
-  };
+  }, [realEstateMarketHealth]);
   
-  // Memoized version of getPropertiesForActiveTab
-  const getPropertiesForTab = useCallback(() => getPropertiesForActiveTab(activeTab), [activeTab]);
+  // Memoized version of getPropertiesForActiveTab with cached property data
+  const getPropertiesForTab = useCallback(() => getPropertiesForActiveTab(activeTab), [activeTab, getPropertiesForActiveTab]);
   
   // Update selected property when tab changes
   useEffect(() => {
@@ -281,18 +285,19 @@ export function Properties() {
     ) : null;
   }, []);
   
-  // Calculate monthly mortgage payment
-  const calculateMonthlyPayment = () => {
+  // Calculate monthly mortgage payment using memoization
+  const calculateMonthlyPayment = useCallback(() => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
     const downPayment = (downPaymentPercent / 100) * adjustedPrice;
     
     // Fixed the function call to match the expected parameters
     const result = calculateMortgage(adjustedPrice, downPaymentPercent, interestRate, 30);
     return result;
-  };
+  }, [selectedProperty.price, downPaymentPercent, interestRate, getAdjustedPrice]);
   
-  // Calculate ROI (Return on Investment)
-  const calculateROI = () => {
+  // Calculate ROI (Return on Investment) - memoized
+  const calculateROI = useCallback(() => {
+    const mortgageDetails = calculateMonthlyPayment();
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
     const downPayment = (downPaymentPercent / 100) * adjustedPrice;
     const annualIncome = selectedProperty.income * 12;
@@ -303,10 +308,10 @@ export function Properties() {
     const roi = (annualCashFlow / downPayment) * 100;
     
     return roi.toFixed(1);
-  };
+  }, [selectedProperty.price, selectedProperty.income, selectedProperty.expenses, downPaymentPercent, calculateMonthlyPayment, getAdjustedPrice]);
   
-  // Calculate cap rate (capitalization rate)
-  const calculateCapRate = () => {
+  // Calculate cap rate (capitalization rate) - memoized
+  const calculateCapRate = useCallback(() => {
     const adjustedPrice = getAdjustedPrice(selectedProperty.price);
     const annualIncome = selectedProperty.income * 12;
     const annualExpenses = selectedProperty.expenses * 12;
@@ -315,7 +320,7 @@ export function Properties() {
     const capRate = (annualNetOperatingIncome / adjustedPrice) * 100;
     
     return capRate.toFixed(1);
-  };
+  }, [selectedProperty.price, selectedProperty.income, selectedProperty.expenses, getAdjustedPrice]);
   
   // Enhanced property description section with image
   const PropertyDescriptionWithImage = useCallback(({ description, id, name }: { description: string; id: string; name: string }) => {
@@ -391,10 +396,7 @@ export function Properties() {
                   Industrial
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => {
-                    console.log("Selecting portfolio tab");
-                    setActiveTab('portfolio');
-                  }} 
+                  onClick={() => setActiveTab('portfolio')} 
                   className="cursor-pointer"
                 >
                   <TrendingUp className="h-4 w-4 mr-2" />
