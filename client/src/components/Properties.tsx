@@ -564,7 +564,7 @@ export function Properties() {
             <DropdownMenu>
               <DropdownMenuTrigger className="w-full flex items-center justify-between border border-input bg-background rounded-md px-3 py-2 text-sm font-medium">
                 {activeTab === 'residential' && <><Home className="h-4 w-4 mr-2" /> Residential</>}
-                {activeTab === 'mansion' && <><Castle className="h-4 w-4 mr-2" /> Luxury</>}
+                {(activeTab === 'mansion' || activeTab === 'luxury') && <><Castle className="h-4 w-4 mr-2" /> Luxury</>}
                 {activeTab === 'commercial' && <><Building2 className="h-4 w-4 mr-2" /> Commercial</>}
                 {activeTab === 'industrial' && <><Warehouse className="h-4 w-4 mr-2" /> Industrial</>}
                 {activeTab === 'portfolio' && <><TrendingUp className="h-4 w-4 mr-2" /> Portfolio</>}
@@ -579,7 +579,7 @@ export function Properties() {
                   Residential
                 </DropdownMenuItem>
                 <DropdownMenuItem 
-                  onClick={() => setActiveTab('mansion')} 
+                  onClick={() => setActiveTab('luxury')} 
                   className="cursor-pointer"
                 >
                   <Castle className="h-4 w-4 mr-2" />
@@ -615,7 +615,7 @@ export function Properties() {
               <Home className="h-4 w-4 mr-2" />
               Residential
             </TabsTrigger>
-            <TabsTrigger value="mansion">
+            <TabsTrigger value="luxury">
               <Castle className="h-4 w-4 mr-2" />
               Luxury
             </TabsTrigger>
@@ -777,7 +777,7 @@ export function Properties() {
         </TabsContent>
         
         {/* Luxury Properties Tab */}
-        <TabsContent value="mansion">
+        <TabsContent value="luxury">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <h3 className="font-semibold mb-2">Available Properties</h3>
