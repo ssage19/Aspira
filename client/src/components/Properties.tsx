@@ -40,7 +40,11 @@ import {
 import { PropertyType } from '../lib/types/PropertyTypes';
 
 export function Properties() {
-  const { wealth, addWealth, addProperty, sellProperty, properties: ownedProperties } = useCharacter();
+  // Use a direct reference to avoid stale state
+  const characterState = useCharacter();
+  const { addWealth, addProperty, sellProperty, properties: ownedProperties } = characterState;
+  // Get wealth directly from the store each time to ensure freshness
+  const wealth = useCharacter(state => state.wealth);
   const { interestRate, realEstateMarketHealth } = useEconomy();
   const { currentDay, currentMonth, currentYear } = useTime();
   // Audio removed - using empty functions
@@ -104,11 +108,14 @@ export function Properties() {
       return;
     }
     
-    // Better debugging for funds check
-    console.log(`Purchase check - Wealth: ${wealth}, Down Payment: ${downPayment}, Adjusted Price: ${adjustedPrice}, Down Payment %: ${downPaymentPercent}%`);
+    // Get fresh wealth value directly from store to avoid stale state
+    const currentWealth = useCharacter.getState().wealth;
     
-    if (wealth < downPayment) {
-      console.error(`PURCHASE ERROR: Insufficient funds - Wealth: ${wealth}, Down Payment: ${downPayment}`);
+    // Enhanced debugging for funds check
+    console.log(`Purchase check - Current Wealth: ${currentWealth}, Component Wealth: ${wealth}, Down Payment: ${downPayment}, Adjusted Price: ${adjustedPrice}, Down Payment %: ${downPaymentPercent}%`);
+    
+    if (currentWealth < downPayment) {
+      console.error(`PURCHASE ERROR: Insufficient funds - Current Wealth: ${currentWealth}, Down Payment: ${downPayment}`);
       toast.error("Insufficient funds for down payment");
       return;
     }
