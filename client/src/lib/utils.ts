@@ -831,24 +831,24 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
     
     // Commercial IDs
-    'retail_small': '/attached_assets/Neighborhood_Grocery.jpg',
-    'office_small': '/attached_assets/Bank_Building.jpg',
+    'retail_small': '/images/properties/garden_apartment.jpg',
+    'office_small': '/images/properties/downtown_penthouse.jpg',
     'mixed_use': '/images/properties/downtown_penthouse.jpg',
-    'mall': '/attached_assets/Outlet_Shopping_Center.jpg',
-    'office_tower': '/attached_assets/Bank_Building.jpg',
-    'hotel_boutique': '/attached_assets/Boutique_Hotel.jpg',
-    'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
-    'gas_station': '/attached_assets/Gas_Station_Convenience_Store.jpg',
-    'grocery_store': '/attached_assets/Neighborhood_Grocery.jpg',
-    'pharmacy': '/attached_assets/Pharmacy_Building.jpg',
-    'hotel_business': '/attached_assets/Business_Hotel.jpg',
-    'auto_dealership': '/attached_assets/Auto_Dealership.jpg',
-    'fitness_center': '/attached_assets/Fitness_Center.jpg',
-    'bank_building': '/attached_assets/Bank_Building.jpg',
-    'daycare_center': '/attached_assets/Daycare_Center.jpg',
-    'entertainment_complex': '/attached_assets/Entertainment_Complex.jpg',
-    'self_storage': '/attached_assets/Self_Storage_Facility.jpg',
-    'outlet_mall': '/attached_assets/Outlet_Shopping_Center.jpg',
+    'mall': '/images/properties/converted_loft.jpg',
+    'office_tower': '/images/properties/city_palace.jpg',
+    'hotel_boutique': '/images/properties/mediterranean_villa.jpg',
+    'restaurant_standalone': '/images/properties/urban_studio.jpg',
+    'gas_station': '/images/properties/downtown_penthouse.jpg',
+    'grocery_store': '/images/properties/garden_district_condo.jpg',
+    'pharmacy': '/images/properties/waterfront_apartment.jpg',
+    'hotel_business': '/images/properties/lakefront_mansion.jpg',
+    'auto_dealership': '/images/properties/golf_course_estate.jpg',
+    'fitness_center': '/images/properties/modern_townhome.jpg',
+    'bank_building': '/images/properties/luxury_city_apartment.jpg',
+    'daycare_center': '/images/properties/modern_architectural_masterpiece.jpg',
+    'entertainment_complex': '/images/properties/city_palace.jpg',
+    'self_storage': '/images/properties/suburban_townhome.jpg',
+    'outlet_mall': '/images/properties/luxury_mountain_chalet.jpg',
     
     // Industrial properties
     'Small Warehouse': '/images/properties/small_warehouse.jpg',
@@ -886,7 +886,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
     'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/attached_assets/Bank_Building.jpg',
+    'commercial': '/images/properties/downtown_penthouse.jpg',
     'industrial': '/images/properties/urban_studio.jpg'
   };
   
