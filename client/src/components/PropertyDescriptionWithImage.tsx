@@ -19,6 +19,18 @@ export function PropertyDescriptionWithImage({
   
   console.log(`Portfolio property image check - ID: ${id}, Name: ${name}, Path: ${imagePath}`);
   
+  // Check if the image exists
+  const checkImageExists = (url: string) => {
+    const img = new Image();
+    img.onload = () => console.log(`Image exists: ${url}`);
+    img.onerror = () => console.log(`Image does NOT exist: ${url}`);
+    img.src = url;
+  };
+  
+  if (imagePath) {
+    checkImageExists(imagePath);
+  }
+  
   return (
     <div className="space-y-3">
       {imagePath && (
@@ -27,6 +39,10 @@ export function PropertyDescriptionWithImage({
             src={imagePath} 
             alt={name} 
             className="rounded-md w-full h-48 object-cover"
+            onError={(e) => {
+              console.error(`Failed to load image: ${imagePath}`);
+              e.currentTarget.style.display = 'none';
+            }}
           />
         </div>
       )}

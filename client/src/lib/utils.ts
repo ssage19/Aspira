@@ -831,11 +831,11 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
     
     // Commercial IDs
-    'retail_small': '/images/properties/retail_storefront.jpg',
-    'office_small': '/images/properties/small_office.jpg',
-    'mixed_use': '/images/properties/mixed_use.jpg',
-    'mall': '/images/properties/strip_mall.jpg',
-    'office_tower': '/images/properties/downtown_commercial.jpg',
+    'retail_small': '/attached_assets/Neighborhood_Grocery.jpg',
+    'office_small': '/attached_assets/Bank_Building.jpg',
+    'mixed_use': '/images/properties/downtown_penthouse.jpg',
+    'mall': '/attached_assets/Outlet_Shopping_Center.jpg',
+    'office_tower': '/attached_assets/Bank_Building.jpg',
     'hotel_boutique': '/attached_assets/Boutique_Hotel.jpg',
     'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
     'gas_station': '/attached_assets/Gas_Station_Convenience_Store.jpg',
@@ -858,11 +858,13 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Industrial Park': '/images/properties/industrial_park.jpg',
     
     // Industrial IDs
-    'warehouse_small': '/images/properties/small_warehouse.jpg',
-    'manufacturing': '/images/properties/manufacturing_facility.jpg',
-    'logistics_center': '/images/properties/logistics_center.jpg',
-    'research_campus': '/images/properties/research_campus.jpg',
-    'industrial_park': '/images/properties/industrial_park.jpg'
+    'warehouse_small': '/images/properties/urban_studio.jpg',
+    'manufacturing': '/images/properties/gated_estate.jpg',
+    'logistics_center': '/images/properties/downtown_penthouse.jpg',
+    'research_campus': '/images/properties/modern_architectural_masterpiece.jpg',
+    'industrial_park': '/images/properties/lakefront_mansion.jpg',
+    'data_center': '/images/properties/city_palace.jpg',
+    'distribution_center': '/images/properties/golf_course_estate.jpg'
   };
 
   // Return the image path or a default image based on property type if mapping doesn't exist
@@ -884,8 +886,8 @@ export function getPropertyImagePath(propertyId: string): string | null {
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
     'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/images/properties/small_office.jpg',
-    'industrial': '/images/properties/small_warehouse.jpg'
+    'commercial': '/attached_assets/Bank_Building.jpg',
+    'industrial': '/images/properties/urban_studio.jpg'
   };
   
   return propertyType ? defaultImages[propertyType] : null;
