@@ -153,8 +153,16 @@ export function Properties() {
         bedrooms: selectedProperty.bedrooms,
         bathrooms: selectedProperty.bathrooms
       },
+      ...(activeTab === 'mansion' && 'bedrooms' in selectedProperty) && {
+        bedrooms: selectedProperty.bedrooms,
+        bathrooms: selectedProperty.bathrooms,
+        prestige: (selectedProperty as any).prestige || 0
+      },
       ...(activeTab === 'commercial' && 'roi' in selectedProperty) && {
-        roi: selectedProperty.roi
+        roi: typeof selectedProperty.roi === 'number' ? selectedProperty.roi : 0
+      },
+      ...(activeTab === 'industrial' && 'roi' in selectedProperty) && {
+        roi: typeof selectedProperty.roi === 'number' ? selectedProperty.roi : 0
       }
     };
     
