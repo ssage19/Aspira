@@ -812,11 +812,12 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'mansion': '/images/properties/Gated_Estate.jpg',
     
     // Commercial properties
-    'Retail Storefront': '/images/properties/retail_storefront.jpg',
-    'Small Office Building': '/images/properties/small_office.jpg',
-    'Mixed-Use Development': '/images/properties/mixed_use.jpg',
-    'Strip Mall': '/images/properties/strip_mall.jpg',
-    'Downtown Commercial Building': '/images/properties/downtown_commercial.jpg',
+    'Retail Storefront': '/attached_assets/Retail_Storefront.jpg',
+    'Small Office Building': '/attached_assets/Small_Office_Building.jpg',
+    'Mixed-Use Development': '/attached_assets/Mixed_Use_Development.jpg',
+    'Strip Mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'Downtown Commercial Building': '/attached_assets/Downtown_Office_Tower.jpg',
+    'Shopping Center': '/attached_assets/Shopping_Center.jpg',
     'Boutique Hotel': '/attached_assets/Boutique_Hotel.jpg',
     'Standalone Restaurant': '/attached_assets/Standalone_Restaurant.jpg',
     'Gas Station & Convenience Store': '/attached_assets/Gas_Station_Convenience_Store.jpg',
@@ -829,12 +830,14 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Daycare Center': '/attached_assets/Daycare_Center.jpg',
     'Entertainment Complex': '/attached_assets/Entertainment_Complex.jpg',
     'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
+    'Student Housing Complex': '/attached_assets/Student_Housing_Complex.jpg',
+    'Urgent Care Center': '/attached_assets/Urgent_Care_Center.jpg',
     
     // Commercial IDs
     'retail_small': '/attached_assets/Retail_Storefront.jpg',
-    'office_small': '/attached_assets/Medical_Office_Building.jpg',
+    'office_small': '/attached_assets/Small_Office_Building.jpg',
     'mixed_use': '/attached_assets/Mixed_Use_Development.jpg',
-    'mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'mall': '/attached_assets/Shopping_Center.jpg',
     'office_tower': '/attached_assets/Downtown_Office_Tower.jpg',
     'hotel_boutique': '/attached_assets/Boutique_Hotel.jpg',
     'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
@@ -849,6 +852,11 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'entertainment_complex': '/attached_assets/Entertainment_Complex.jpg',
     'self_storage': '/attached_assets/Self_Storage_Facility.jpg',
     'outlet_mall': '/attached_assets/Outlet_Shopping_Center.jpg',
+    'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
+    'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
+    'corner_store': '/attached_assets/Retail_Storefront.jpg',
+    'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'medical_office': '/attached_assets/Medical_Office_Building.jpg',
     
     // Industrial properties
     'Small Warehouse': '/images/properties/urban_studio.jpg',
@@ -886,7 +894,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
     'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/attached_assets/Downtown_Office_Tower.jpg',
+    'commercial': '/attached_assets/Shopping_Center.jpg',
     'industrial': '/images/properties/urban_studio.jpg'
   };
   
