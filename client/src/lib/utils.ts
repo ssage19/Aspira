@@ -721,11 +721,13 @@ export function getPropertyImagePath(propertyId: string): string | null {
   // Map full property names and IDs to their image paths
   const imageMapping: Record<string, string> = {
     // Commercial properties
-    'strip_mall': '/images/properties/Neighborhood_Strip_Mall.jpg',
-    'Neighborhood Strip Mall': '/images/properties/Neighborhood_Strip_Mall.jpg',
-    'Shopping Center': '/images/properties/Shopping_Center.jpg',
-    'Small Office Building': '/images/properties/Small_Office_Building.jpg',
-    'Standalone Restaurant': '/images/properties/Standalone_Restaurant.jpg',
+    'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'Neighborhood Strip Mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'Shopping Center': '/attached_assets/Shopping_Center.jpg',
+    'Small Office Building': '/attached_assets/Small_Office_Building.jpg',
+    'Standalone Restaurant': '/attached_assets/Standalone_Restaurant.jpg',
+    'Student Housing Complex': '/attached_assets/Student_Housing_Complex.jpg',
+    'Urgent Care Center': '/attached_assets/Urgent_Care_Center.jpg',
     
     // Residential properties
     'Single Family Home': '/images/properties/single_family_home.jpg',
@@ -833,8 +835,6 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Daycare Center': '/attached_assets/Daycare_Center.jpg',
     'Entertainment Complex': '/attached_assets/Entertainment_Complex.jpg',
     'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
-    'Student Housing Complex': '/attached_assets/Student_Housing_Complex.jpg',
-    'Urgent Care Center': '/attached_assets/Urgent_Care_Center.jpg',
     
     // Commercial IDs
     'retail_small': '/attached_assets/Retail_Storefront.jpg',
@@ -896,7 +896,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
     'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/images/properties/Neighborhood_Strip_Mall.jpg',
+    'commercial': '/attached_assets/Neighborhood_Strip_Mall.jpg',
     'industrial': '/images/properties/urban_studio.jpg'
   };
   
