@@ -720,13 +720,18 @@ export function getPropertyImagePath(propertyId: string): string | null {
   
   // Map full property names and IDs to their image paths
   const imageMapping: Record<string, string> = {
-    // Commercial properties
+    // Commercial properties - START Commercial Properties Section
     'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
     'Neighborhood Strip Mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'mall': '/attached_assets/Shopping_Center.jpg',
     'Shopping Center': '/attached_assets/Shopping_Center.jpg',
+    'office_small': '/attached_assets/Small_Office_Building.jpg',
     'Small Office Building': '/attached_assets/Small_Office_Building.jpg',
+    'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
     'Standalone Restaurant': '/attached_assets/Standalone_Restaurant.jpg',
+    'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
     'Student Housing Complex': '/attached_assets/Student_Housing_Complex.jpg',
+    'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
     'Urgent Care Center': '/attached_assets/Urgent_Care_Center.jpg',
     
     // Residential properties
@@ -836,14 +841,12 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'Entertainment Complex': '/attached_assets/Entertainment_Complex.jpg',
     'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
     
-    // Commercial IDs
-    'retail_small': '/attached_assets/Retail_Storefront.jpg',
-    'office_small': '/attached_assets/Small_Office_Building.jpg',
-    'mixed_use': '/attached_assets/Mixed_Use_Development.jpg',
-    'mall': '/attached_assets/Shopping_Center.jpg',
-    'office_tower': '/attached_assets/Downtown_Office_Tower.jpg',
-    'hotel_boutique': '/attached_assets/Boutique_Hotel.jpg',
-    'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
+    // Commercial IDs - these are duplicated in the section above for maximum compatibility
+    // but leaving them here for backward compatibility with existing code
+    'retail_small_id': '/attached_assets/Retail_Storefront.jpg',
+    'mixed_use_id': '/attached_assets/Mixed_Use_Development.jpg',
+    'office_tower_id': '/attached_assets/Downtown_Office_Tower.jpg',
+    'hotel_boutique_id': '/attached_assets/Boutique_Hotel.jpg',
     'gas_station': '/attached_assets/Gas_Station_Convenience_Store.jpg',
     'grocery_store': '/attached_assets/Neighborhood_Grocery.jpg',
     'pharmacy': '/attached_assets/Pharmacy_Building.jpg',
@@ -855,8 +858,6 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'entertainment_complex': '/attached_assets/Entertainment_Complex.jpg',
     'self_storage': '/attached_assets/Self_Storage_Facility.jpg',
     'outlet_mall': '/attached_assets/Outlet_Shopping_Center.jpg',
-    'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
-    'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
     'corner_store': '/attached_assets/Retail_Storefront.jpg',
     'medical_office': '/attached_assets/Medical_Office_Building.jpg',
     
@@ -883,8 +884,15 @@ export function getPropertyImagePath(propertyId: string): string | null {
   }
   
   // Add debug logging
-  console.log(`getPropertyImagePath - propertyId: ${propertyId}`);
-  console.log(`getPropertyImagePath - direct mapping result: ${imageMapping[propertyId] || 'not found in direct mapping'}`);
+  console.log(`DEBUGGING: getPropertyImagePath - propertyId: ${propertyId}`);
+  console.log(`DEBUGGING: getPropertyImagePath - direct mapping result: ${imageMapping[propertyId] || 'not found in direct mapping'}`);
+  
+  // Special debugging for commercial property IDs
+  if (propertyId === 'strip_mall') {
+    console.log('FOUND STRIP MALL PROPERTY ID!');
+    console.log('Image mapping result:', imageMapping['strip_mall']);
+    return '/attached_assets/Neighborhood_Strip_Mall.jpg';
+  }
   
   // Extract property type from ID if available (for fallback)
   const propertyType = propertyId.includes('apartment') || propertyId.includes('family') || propertyId.includes('town') ? 'residential' :
