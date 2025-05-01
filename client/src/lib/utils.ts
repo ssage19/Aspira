@@ -720,6 +720,13 @@ export function getPropertyImagePath(propertyId: string): string | null {
   
   // Map full property names and IDs to their image paths
   const imageMapping: Record<string, string> = {
+    // Commercial properties
+    'strip_mall': '/images/properties/Neighborhood_Strip_Mall.jpg',
+    'Neighborhood Strip Mall': '/images/properties/Neighborhood_Strip_Mall.jpg',
+    'Shopping Center': '/images/properties/Shopping_Center.jpg',
+    'Small Office Building': '/images/properties/Small_Office_Building.jpg',
+    'Standalone Restaurant': '/images/properties/Standalone_Restaurant.jpg',
+    
     // Residential properties
     'Single Family Home': '/images/properties/single_family_home.jpg',
     'City Apartment': '/images/properties/city_apartment.jpg',
@@ -813,13 +820,9 @@ export function getPropertyImagePath(propertyId: string): string | null {
     
     // Commercial properties
     'Retail Storefront': '/attached_assets/Retail_Storefront.jpg',
-    'Small Office Building': '/attached_assets/Small_Office_Building.jpg',
     'Mixed-Use Development': '/attached_assets/Mixed_Use_Development.jpg',
-    'Strip Mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
     'Downtown Commercial Building': '/attached_assets/Downtown_Office_Tower.jpg',
-    'Shopping Center': '/attached_assets/Shopping_Center.jpg',
     'Boutique Hotel': '/attached_assets/Boutique_Hotel.jpg',
-    'Standalone Restaurant': '/attached_assets/Standalone_Restaurant.jpg',
     'Gas Station & Convenience Store': '/attached_assets/Gas_Station_Convenience_Store.jpg',
     'Neighborhood Grocery': '/attached_assets/Neighborhood_Grocery.jpg',
     'Pharmacy Building': '/attached_assets/Pharmacy_Building.jpg',
@@ -855,7 +858,6 @@ export function getPropertyImagePath(propertyId: string): string | null {
     'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
     'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
     'corner_store': '/attached_assets/Retail_Storefront.jpg',
-    'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
     'medical_office': '/attached_assets/Medical_Office_Building.jpg',
     
     // Industrial properties
@@ -894,7 +896,7 @@ export function getPropertyImagePath(propertyId: string): string | null {
   const defaultImages = {
     'residential': '/images/properties/city_apartment.jpg',
     'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/attached_assets/Shopping_Center.jpg',
+    'commercial': '/images/properties/Neighborhood_Strip_Mall.jpg',
     'industrial': '/images/properties/urban_studio.jpg'
   };
   
