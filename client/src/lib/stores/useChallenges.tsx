@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { registerStore } from '../utils/storeRegistry';
 import { useCharacter } from './useCharacter';
 import { useAssetTracker } from './useAssetTracker';
 import { useGame } from './useGame';
@@ -1429,3 +1430,7 @@ function generateChallenges(): Challenge[] {
 
 // Export the hook
 export const useChallenges = useChallengesStore;
+
+// Register the store with the registry
+registerStore('challenges', useChallenges);
+console.log('✅ Challenges Store: Registered in global store registry');
