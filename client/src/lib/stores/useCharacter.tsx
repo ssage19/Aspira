@@ -185,15 +185,7 @@ interface CharacterState {
   // State synchronization helper
   lastUpdated?: number; // Timestamp to ensure state changes are noticed by all subscribers
   
-  // Avatar customization
-  avatarUrl: string | null;
-  
-  // Custom avatar properties
-  avatarSkinTone?: string;
-  avatarBodyType?: 'slim' | 'average' | 'athletic';
-  avatarHeight?: number;
-  avatarEyeColor?: string;
-  selectedAccessories?: Record<string, string>; // type -> accessoryId
+  // Avatar-related functionality has been removed
   
   // Transportation & Housing
   hasVehicle: boolean;
@@ -266,14 +258,7 @@ interface CharacterState {
   reduceTimeCommitment: (hours: number) => void;
   updateFreeTime: (hours: number) => void;
   
-  // Avatar customization
-  updateAvatarUrl: (url: string | null) => void;
-  updateAvatarSkinTone: (skinTone: string) => void;
-  updateAvatarBodyType: (bodyType: 'slim' | 'average' | 'athletic') => void;
-  updateAvatarHeight: (height: number) => void;
-  updateAvatarEyeColor: (eyeColor: string) => void;
-  selectAccessory: (type: string, accessoryId: string) => void;
-  removeAccessory: (type: string) => void;
+  // Avatar-related functionality has been removed
   
   // Assets management
   addAsset: (asset: Asset) => void;
@@ -369,19 +354,7 @@ const getDefaultCharacter = () => {
     // State synchronization helper - ALWAYS use fresh timestamp
     lastUpdated: currentTimestamp,
     
-    // Avatar customization
-    avatarUrl: null as string | null, // Ready Player Me avatar URL
-    
-    // Custom avatar properties
-    avatarSkinTone: '#F5D0A9', // Default skin tone
-    avatarBodyType: 'average' as const,
-    avatarHeight: 0.5,
-    avatarEyeColor: '#6B8E23', // Default eye color
-    selectedAccessories: {
-      'body': 'body-default',
-      'hair': 'hair-short',
-      'outfit': 'outfit-casual'
-    } as Record<string, string>, // Default accessories
+    // Avatar-related functionality has been removed
     
     // Transportation & Housing
     hasVehicle: false,
@@ -501,8 +474,7 @@ export const useCharacter = create<CharacterState>()(
           monthlyUpdate: state.monthlyUpdate,
           saveState: state.saveState,
           resetCharacter: state.resetCharacter,
-          // Avatar customization
-          updateAvatarUrl: state.updateAvatarUrl
+          // Avatar-related functionality has been removed
         }));
         
         // Sync the assets with AssetTracker store after character creation
@@ -936,58 +908,7 @@ export const useCharacter = create<CharacterState>()(
         saveState();
       },
       
-      // Avatar customization
-      updateAvatarUrl: (url) => {
-        set({ avatarUrl: url });
-        console.log("Avatar URL updated:", url);
-        saveState();
-      },
-      
-      // New custom avatar methods
-      updateAvatarSkinTone: (skinTone) => {
-        set({ avatarSkinTone: skinTone });
-        console.log("Avatar skin tone updated:", skinTone);
-        saveState();
-      },
-      
-      updateAvatarBodyType: (bodyType) => {
-        set({ avatarBodyType: bodyType });
-        console.log("Avatar body type updated:", bodyType);
-        saveState();
-      },
-      
-      updateAvatarHeight: (height) => {
-        set({ avatarHeight: height });
-        console.log("Avatar height updated:", height);
-        saveState();
-      },
-      
-      updateAvatarEyeColor: (eyeColor) => {
-        set({ avatarEyeColor: eyeColor });
-        console.log("Avatar eye color updated:", eyeColor);
-        saveState();
-      },
-      
-      selectAccessory: (type, accessoryId) => {
-        set(state => ({
-          selectedAccessories: {
-            ...state.selectedAccessories || {},
-            [type]: accessoryId
-          }
-        }));
-        console.log(`Selected ${type} accessory: ${accessoryId}`);
-        saveState();
-      },
-      
-      removeAccessory: (type) => {
-        set(state => {
-          const newAccessories = { ...state.selectedAccessories || {} };
-          delete newAccessories[type];
-          return { selectedAccessories: newAccessories };
-        });
-        console.log(`Removed ${type} accessory`);
-        saveState();
-      },
+      // Avatar-related functionality has been removed
       
       // Assets management
       addAsset: (asset) => {
