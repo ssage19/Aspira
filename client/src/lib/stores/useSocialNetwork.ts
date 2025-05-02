@@ -121,7 +121,7 @@ export interface SocialEvent {
 // Generate a random ID
 const generateId = () => Math.random().toString(36).substring(2, 10);
 
-// Pre-defined connection templates for different types
+// Pre-defined connection templates for different types - 10 per category
 const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> = {
   mentor: [
     {
@@ -153,6 +153,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "consulting",
       biography: "Former management consultant who now advises Fortune 500 CEOs. His network spans every major industry.",
       mentorshipLevel: 95
+    },
+    {
+      name: "Dr. Maria Rodriguez",
+      expertise: "healthcare",
+      biography: "Healthcare entrepreneur who built a network of specialized clinics. Expert in navigating complex regulatory environments while maintaining profitability.",
+      mentorshipLevel: 88
+    },
+    {
+      name: "James Wilson",
+      expertise: "manufacturing",
+      biography: "Former manufacturing executive who transformed traditional factories with innovative automation. Now helps others modernize their operations.",
+      mentorshipLevel: 82
+    },
+    {
+      name: "Sophia Patel",
+      expertise: "education",
+      biography: "Founded and scaled an education technology company valued at $500M. Passionate about helping entrepreneurs in knowledge-based industries.",
+      mentorshipLevel: 78
+    },
+    {
+      name: "Jonathan Blake",
+      expertise: "hospitality",
+      biography: "Renowned hospitality expert who has launched successful luxury hotels worldwide. Teaches the art of exceptional customer service.",
+      mentorshipLevel: 87
+    },
+    {
+      name: "Dr. Thomas Lee",
+      expertise: "creative",
+      biography: "Former creative director turned business strategist. Specializes in helping artists and creators transform their talents into sustainable businesses.",
+      mentorshipLevel: 80
     }
   ],
   rival: [
@@ -185,6 +215,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "consulting",
       biography: "Consultant who specializes in identifying weak businesses for acquisition. Has you on his radar as a potential target or competitor.",
       rivalryScore: 60
+    },
+    {
+      name: "Maxwell Grant",
+      expertise: "hospitality",
+      biography: "Owner of a competing hospitality chain who enjoys poaching your best staff with aggressive salary offers and signing bonuses.",
+      rivalryScore: 68
+    },
+    {
+      name: "Olivia Blackwell",
+      expertise: "creative",
+      biography: "Media mogul who uses her influence to promote competitors while subtly undermining your business in industry publications.",
+      rivalryScore: 72
+    },
+    {
+      name: "Raymond Zhang",
+      expertise: "manufacturing",
+      biography: "Manufacturing executive who specializes in reverse-engineering competitors' products and releasing cheaper alternatives.",
+      rivalryScore: 77
+    },
+    {
+      name: "Sophia Rodriguez",
+      expertise: "healthcare",
+      biography: "Healthcare entrepreneur whose company directly competes with yours. Known for aggressive marketing that targets your customer base.",
+      rivalryScore: 82
+    },
+    {
+      name: "Daniel Edwards",
+      expertise: "education",
+      biography: "Education industry competitor who frequently spreads misinformation about your business model and teaching methods.",
+      rivalryScore: 63
     }
   ],
   businessContact: [
@@ -217,6 +277,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "manufacturing",
       biography: "Manufacturing consultant specializing in automation and efficiency. Can help scale production while maintaining quality.",
       businessSuccessLevel: 85
+    },
+    {
+      name: "Jennifer Lopez",
+      expertise: "creative",
+      biography: "Entertainment industry executive with extensive connections in media and advertising. Can help secure promotional opportunities.",
+      businessSuccessLevel: 88
+    },
+    {
+      name: "Marcus Brown",
+      expertise: "healthcare",
+      biography: "Healthcare industry insider who understands complex regulations and compliance requirements. Invaluable for navigating the healthcare market.",
+      businessSuccessLevel: 77
+    },
+    {
+      name: "Sophia Chen",
+      expertise: "education",
+      biography: "Education technology specialist who connects businesses with academic institutions for research partnerships and talent recruitment.",
+      businessSuccessLevel: 82
+    },
+    {
+      name: "Robert Wilson",
+      expertise: "consulting",
+      biography: "Business strategy consultant with expertise in organizational transformation and crisis management. Can help navigate business challenges.",
+      businessSuccessLevel: 93
+    },
+    {
+      name: "Emily Johnson",
+      expertise: "realestate",
+      biography: "Commercial real estate broker with access to off-market properties and development opportunities. Knows the hidden gems before they're public.",
+      businessSuccessLevel: 86
     }
   ],
   investor: [
@@ -249,6 +339,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "creative",
       biography: "Producer and investor in media projects. Understands the business side of creative industries.",
       businessSuccessLevel: 70
+    },
+    {
+      name: "Sophia Park",
+      expertise: "healthcare",
+      biography: "Healthcare venture capitalist who has funded breakthrough medical technology companies. Expert at navigating regulatory hurdles.",
+      businessSuccessLevel: 87
+    },
+    {
+      name: "Michael Torres",
+      expertise: "education",
+      biography: "Impact investor focused on education technologies that improve learning outcomes. Seeks both financial returns and social impact.",
+      businessSuccessLevel: 82
+    },
+    {
+      name: "Rachel Goldman",
+      expertise: "retail",
+      biography: "Private equity investor specializing in retail turnarounds. Has a talent for identifying undervalued retail operations.",
+      businessSuccessLevel: 88
+    },
+    {
+      name: "David Chen",
+      expertise: "manufacturing",
+      biography: "Industrial investor with deep pockets for scaling manufacturing operations. Prioritizes sustainability and efficiency.",
+      businessSuccessLevel: 92
+    },
+    {
+      name: "Alexandra Kim",
+      expertise: "consulting",
+      biography: "Former management consultant turned investor. Specializes in business services and B2B software investments.",
+      businessSuccessLevel: 84
     }
   ],
   industry: [
@@ -281,6 +401,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "retail",
       biography: "Trend forecaster for consumer goods. Can predict which products will be in high demand next season.",
       businessSuccessLevel: 75
+    },
+    {
+      name: "Andrew Wilson",
+      expertise: "manufacturing",
+      biography: "Supply chain expert who understands global manufacturing trends and potential disruptions before they impact the market.",
+      businessSuccessLevel: 82
+    },
+    {
+      name: "Mia Chen",
+      expertise: "creative",
+      biography: "Former creative director who now consults on emerging design trends and consumer preferences in the luxury goods market.",
+      businessSuccessLevel: 78
+    },
+    {
+      name: "Jonathan Kim",
+      expertise: "hospitality",
+      biography: "Food and beverage industry insider who tracks consumer dining habits and identifies emerging cuisine trends.",
+      businessSuccessLevel: 76
+    },
+    {
+      name: "Dr. Elena Rodriguez",
+      expertise: "education",
+      biography: "Education policy expert who advises on upcoming regulatory changes affecting educational institutions and technologies.",
+      businessSuccessLevel: 83
+    },
+    {
+      name: "William Johnson",
+      expertise: "consulting",
+      biography: "Business intelligence specialist who analyzes competitor strategies and market positioning across multiple industries.",
+      businessSuccessLevel: 87
     }
   ],
   celebrity: [
@@ -313,6 +463,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "technology",
       biography: "Tech celebrity and thought leader whose recommendations influence purchasing decisions and technology adoption.",
       influenceLevel: 75
+    },
+    {
+      name: "Olivia Taylor",
+      expertise: "healthcare",
+      biography: "Wellness-focused celebrity with a massive following among health-conscious consumers. Her endorsements drive significant sales.",
+      influenceLevel: 83
+    },
+    {
+      name: "Marcus Johnson",
+      expertise: "finance",
+      biography: "Former athlete turned financial literacy advocate. His business book recommendations can create instant bestsellers.",
+      influenceLevel: 78
+    },
+    {
+      name: "Sofia Rodriguez",
+      expertise: "education",
+      biography: "Celebrity academic whose online courses and educational content reach millions of followers worldwide.",
+      influenceLevel: 82
+    },
+    {
+      name: "James Wilson",
+      expertise: "realestate",
+      biography: "Reality TV star famous for luxury real estate shows. His properties and developments become instant landmarks.",
+      influenceLevel: 88
+    },
+    {
+      name: "Victoria Chen",
+      expertise: "manufacturing",
+      biography: "Industrial design celebrity known for creating iconic products. Her touch can transform ordinary items into must-have pieces.",
+      influenceLevel: 86
     }
   ],
   influencer: [
@@ -345,6 +525,36 @@ const connectionTemplates: Record<ConnectionType, Partial<SocialConnection>[]> =
       expertise: "hospitality",
       biography: "Travel and food influencer who can drive significant traffic to new establishments with a single post.",
       influenceLevel: 80
+    },
+    {
+      name: "David Chen",
+      expertise: "realestate",
+      biography: "Real estate influencer showcasing luxury properties worldwide. His virtual tours generate serious buyer interest.",
+      influenceLevel: 83
+    },
+    {
+      name: "Sophia Lee",
+      expertise: "healthcare",
+      biography: "Health and wellness influencer with a devoted following. Her recommendations on health products drive immediate sales spikes.",
+      influenceLevel: 87
+    },
+    {
+      name: "Marcus Johnson",
+      expertise: "manufacturing",
+      biography: "Workshop and DIY influencer who showcases manufacturing processes and tools to millions of fans.",
+      influenceLevel: 79
+    },
+    {
+      name: "Olivia Garcia",
+      expertise: "education",
+      biography: "Education content creator whose study methods and learning resources are followed by students worldwide.",
+      influenceLevel: 82
+    },
+    {
+      name: "Ryan Kim",
+      expertise: "consulting",
+      biography: "Business advice influencer providing strategic insights to entrepreneurs. His business tips regularly go viral.",
+      influenceLevel: 88
     }
   ]
 };
@@ -1263,10 +1473,20 @@ function generateBenefit(connection: SocialConnection): ConnectionBenefit {
 }
 
 // Create a new random connection based on the type
-function createRandomConnection(type: ConnectionType): SocialConnection {
-  // Get a random template for this connection type
+function createRandomConnection(type: ConnectionType, existingConnections: SocialConnection[] = []): SocialConnection {
+  // Get all templates for this connection type
   const templates = connectionTemplates[type];
-  const template = getRandomElement(templates);
+  
+  // Filter templates to exclude those already in the player's network
+  const existingNames = new Set(existingConnections.map(c => c.name));
+  const availableTemplates = templates.filter(template => !existingNames.has(template.name || ''));
+  
+  // If all templates of this type are already connected, fall back to the original list
+  // This should rarely happen with 10 templates per type
+  const filteredTemplates = availableTemplates.length > 0 ? availableTemplates : templates;
+  
+  // Get a random template from the filtered list
+  const template = getRandomElement(filteredTemplates);
   
   // Create base connection object
   const connection: SocialConnection = {
@@ -1390,7 +1610,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       socialCapital: 100,
       lastNetworkingActivity: Date.now(),
       
-      // Add a new connection of specified type (with maximum limit of 5 connections)
+      // Add a new connection of specified type (with maximum limit of 10 connections)
       addConnection: (type: ConnectionType) => {
         const { connections } = get();
         
@@ -1404,10 +1624,11 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           });
           // Return a dummy connection that shouldn't be added to state
           // We need to return something to keep our types consistent
-          return createRandomConnection(type);
+          return createRandomConnection(type, connections);
         }
         
-        const newConnection = createRandomConnection(type);
+        // Create a new connection, avoiding duplicates
+        const newConnection = createRandomConnection(type, connections);
         
         set(state => ({
           connections: [...state.connections, newConnection]
