@@ -4337,10 +4337,11 @@ export const useCharacter = create<CharacterState>()(
         }
         
         try {
-          // PHASE 1: RESET ASSET TRACKER FIRST
-          // This is critical - AssetTracker must be reset BEFORE character state
-          console.log("PHASE 1: Resetting asset tracker store (CRITICAL)");
+          // PHASE 1: RESET OTHER STORES FIRST
+          // This is critical - Other stores must be reset BEFORE character state
+          console.log("PHASE 1: Resetting dependent stores (CRITICAL)");
           
+          // 1A. Reset Asset Tracker
           try {
             const assetTracker = useAssetTracker.getState();
             if (assetTracker && typeof assetTracker.resetAssetTracker === 'function') {
@@ -4368,6 +4369,22 @@ export const useCharacter = create<CharacterState>()(
             }
           } catch (assetTrackerError) {
             console.error("Error resetting asset tracker:", assetTrackerError);
+          }
+          
+          // 1B. Reset Social Network Store
+          try {
+            // Import from registry to avoid circular dependencies
+            const socialNetworkStore = getStore('socialNetwork');
+            
+            if (socialNetworkStore && typeof socialNetworkStore.resetSocialNetwork === 'function') {
+              // Reset the social network
+              socialNetworkStore.resetSocialNetwork();
+              console.log("Successfully reset social network store");
+            } else {
+              console.error("Failed to access social network's reset function!");
+            }
+          } catch (socialNetworkError) {
+            console.error("Error resetting social network:", socialNetworkError);
           }
           
           // PHASE 2: CLEAR LOCALSTORAGE
