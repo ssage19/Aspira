@@ -2529,20 +2529,32 @@ export const useSocialNetwork = create<SocialNetworkState>()(
 const initializeSocialNetwork = () => {
   const state = useSocialNetwork.getState();
   
-  // If no connections exist, initialize with zero connections
-  // Player will find both connections and events through gameplay
-  // No longer automatically generating events at startup
+  console.log('Initializing social network - checking if fresh install or game reset');
+  
+  // Check if this is a game reset or fresh install
+  const isReset = sessionStorage.getItem('character_reset_completed') === 'true';
+  const isForceReset = window.location.search.includes('reset=true');
+  
+  if (isReset || isForceReset) {
+    console.log('Reset detected - ensuring social network is empty');
+    state.resetSocialNetwork();
+    return;
+  }
+  
+  // If no connections exist but not due to reset (fresh install),
+  // simply initialize with empty arrays
   if (state.connections.length === 0) {
-    // Let the player discover events through gameplay
-    // No initial events will be generated
+    console.log('New game detected - starting with 0 social connections');
+    // No initial connections or events - player must find them through gameplay
   }
 };
 
 // Call the initialization function
-initializeSocialNetwork();
+if (typeof window !== 'undefined') {
+  initializeSocialNetwork();
+}
 
-// Register the social network store in the global registry
-// This is critical for other modules to access it without circular dependencies
+// Register the store in the global registry with the correct name
 registerStore('socialNetwork', useSocialNetwork);
 
 // Log successful registration

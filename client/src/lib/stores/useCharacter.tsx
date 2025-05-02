@@ -4373,15 +4373,28 @@ export const useCharacter = create<CharacterState>()(
           
           // 1B. Reset Social Network Store
           try {
-            // Import from registry to avoid circular dependencies
-            const socialNetworkStore = getStore('socialNetwork');
+            // Import directly to ensure we're calling the right function
+            // This guarantees that the social network is reset even if store registry fails
+            const socialNetworkStore = require('./useSocialNetwork').default;
             
-            if (socialNetworkStore && typeof socialNetworkStore.resetSocialNetwork === 'function') {
-              // Reset the social network
-              socialNetworkStore.resetSocialNetwork();
-              console.log("Successfully reset social network store");
+            if (socialNetworkStore && typeof socialNetworkStore.getState().resetSocialNetwork === 'function') {
+              // Reset the social network directly through the imported store
+              socialNetworkStore.getState().resetSocialNetwork();
+              console.log("Successfully reset social network store via direct import");
+              
+              // Verify the connections and events are reset by counting them
+              const state = socialNetworkStore.getState();
+              console.log(`VERIFICATION: Social connections reset to ${state.connections.length} connections`);
+              console.log(`VERIFICATION: Social events reset to ${state.events.length} events`);
             } else {
               console.error("Failed to access social network's reset function!");
+              
+              // Try via registry as fallback
+              const fallbackStore = getStore('socialNetwork');
+              if (fallbackStore && typeof fallbackStore.resetSocialNetwork === 'function') {
+                fallbackStore.resetSocialNetwork();
+                console.log("Successfully reset social network store via registry fallback");
+              }
             }
           } catch (socialNetworkError) {
             console.error("Error resetting social network:", socialNetworkError);

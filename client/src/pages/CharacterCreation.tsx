@@ -39,6 +39,10 @@ export default function CharacterCreation() {
     if (isFromReset) {
       console.log("CharacterCreation: Reset parameter detected, ensuring character data is removed");
       localStorage.removeItem('business-empire-character');
+      localStorage.removeItem('business-empire-social-network'); // Explicitly remove social network data
+      localStorage.removeItem('business-empire-networth-breakdown');
+      localStorage.removeItem('business-empire-asset-tracker');
+      localStorage.removeItem('business-empire-assets');
       sessionStorage.removeItem('character_reset_completed');
       sessionStorage.removeItem('character_reset_timestamp');
       
@@ -48,6 +52,8 @@ export default function CharacterCreation() {
       sessionStorage.removeItem('block_time_loads');
       sessionStorage.removeItem('game_reset_in_progress');
       sessionStorage.removeItem('game_reset_completed');
+      
+      console.log("CharacterCreation: Verified all game data localStorage keys have been removed");
       sessionStorage.removeItem('redirect_after_reset');
       
       console.log("CharacterCreation: Reset parameter detected - forcing character creation");
