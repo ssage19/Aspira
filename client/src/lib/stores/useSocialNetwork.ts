@@ -1963,7 +1963,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
         return true;
       },
       
-      // Add random connections to your network with a maximum limit of 5 connections
+      // Add random connections to your network with a maximum limit of 10 connections
       addRandomConnections: (count = 1) => {
         const { connections } = get();
         const newConnections: SocialConnection[] = [];
@@ -1999,13 +1999,20 @@ export const useSocialNetwork = create<SocialNetworkState>()(
           connectionTypes.push('rival');
         }
         
+        // Keep track of all connections (existing + newly added) to prevent duplicates
+        let updatedConnectionList = [...connections];
+        
         for (let i = 0; i < actualCount; i++) {
           // Select a random connection type
           const randomType = getRandomElement(connectionTypes);
           
-          // Create a new connection of this type
-          const newConnection = createRandomConnection(randomType);
+          // Create a new connection of this type, preventing duplicates with both
+          // existing connections and connections we've already added in this batch
+          const newConnection = createRandomConnection(randomType, updatedConnectionList);
           newConnections.push(newConnection);
+          
+          // Add to our running list to prevent duplicates in subsequent iterations
+          updatedConnectionList.push(newConnection);
         }
         
         set({ 
@@ -2245,10 +2252,18 @@ export const useSocialNetwork = create<SocialNetworkState>()(
             connectionTypes.push('rival');
           }
           
+          // Keep track of all connections (existing + newly added) to prevent duplicates
+          let updatedConnectionList = [...connections];
+          
           for (let i = 0; i < actualConnectionCount; i++) {
             const type = getRandomElement(connectionTypes);
-            const newConnection = createRandomConnection(type);
+            
+            // Create a connection that doesn't duplicate existing ones or ones we just added
+            const newConnection = createRandomConnection(type, updatedConnectionList);
             newConnections.push(newConnection);
+            
+            // Add to our running list to prevent duplicates in subsequent iterations
+            updatedConnectionList.push(newConnection);
           }
           
           // Mark event as attended and add new connections
