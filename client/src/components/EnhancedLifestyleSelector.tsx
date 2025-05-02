@@ -173,292 +173,245 @@ export function EnhancedLifestyleSelector() {
     // Add item to character
     addLifestyleItem(lifestyleItem);
     
-    // Check for avatar accessory unlocks based on this lifestyle item
-    try {
-      // Import avatar accessories related functionality
-      import('../lib/data/avatarAccessories').then(({ avatarAccessories, getAvailableAccessories }) => {
-        // Get the full list of character's lifestyle items including this new one
-        const character = useCharacter.getState();
-        const updatedLifestyleItems = [...character.lifestyleItems];
-        const availableAccessories = getAvailableAccessories(updatedLifestyleItems);
-        
-        // Find accessories specifically linked to this item
-        const newAccessories = availableAccessories.filter(
-          acc => acc.lifestyleItemId === item.id || acc.lifestyleItemType === item.type
-        );
-        
-        // Automatically select one new accessory of each type
-        if (newAccessories.length > 0) {
-          const typesSeen = new Set<string>();
-          
-          newAccessories.forEach(accessory => {
-            if (!typesSeen.has(accessory.type)) {
-              // Select this accessory
-              character.selectAccessory(accessory.type, accessory.id);
-              typesSeen.add(accessory.type);
-              
-              // Show toast about the unlocked accessory
-              setTimeout(() => {
-                toast.success(
-                  <div>
-                    <p className="font-bold">New Accessory Unlocked!</p>
-                    <p className="text-sm">{accessory.name}</p>
-                  </div>, 
-                  { duration: 3000 }
-                );
-              }, 1500); // Show after the main purchase toast
-            }
-          });
-        }
-      }).catch(error => {
-        console.error("Failed to check for avatar accessories:", error);
-      });
-    } catch (error) {
-      console.error("Error with avatar accessory unlock check:", error);
-    }
+    // Avatar accessory functionality has been removed
     
-    // Play success sound
+    // Show success message
+    toast.success(`You've acquired ${item.name}!`);
     playSuccess();
     
-    // Show appropriate toast message
-    if (item.durationInDays) {
-      toast.success(
-        <div>
-          <p className="font-bold">Purchased {item.name}</p>
-          <p className="text-sm mt-1">
-            Duration: {item.durationInDays} {item.durationInDays === 1 ? 'day' : 'days'}
-          </p>
-        </div>,
-        { duration: 4000 }
-      );
-    } else {
-      toast.success(`Added ${item.name} to your lifestyle`);
-    }
-    
-    // Show special effects toast if item has chronicHealthCondition
-    if (item.attributes.chronicHealthCondition) {
-      const healthEffect = item.attributes.chronicHealthCondition[0];
-      if (healthEffect.healthImpactPerMonth > 0) {
-        setTimeout(() => {
-          toast.success(
-            <div>
-              <p className="font-bold">Health Benefit</p>
-              <p className="text-sm mt-1">{healthEffect.description}</p>
-            </div>,
-            { duration: 4000 }
-          );
-        }, 1500);
-      } else if (healthEffect.healthImpactPerMonth < 0) {
-        setTimeout(() => {
-          toast.warning(
-            <div>
-              <p className="font-bold">Health Note</p>
-              <p className="text-sm mt-1">{healthEffect.description}</p>
-            </div>,
-            { duration: 4000 }
-          );
-        }, 1500);
-      }
-    }
+    // Close the details modal if open
+    setShowDetails(false);
   };
   
-  // Handle item removal
-  const handleRemoveItem = (itemId: string) => {
-    const item = ownedItems.find(i => i.id === itemId);
-    if (!item) return;
-    
-    removeLifestyleItem(itemId);
-    
-    toast.success(`Removed ${item.name} from your lifestyle`);
+  // Handle removing an item
+  const handleRemoveItem = (id: string) => {
+    removeLifestyleItem(id);
+    toast.success("Item removed from your lifestyle");
   };
   
   // Open item details modal
-  const showItemDetails = (item: EnhancedLifestyleItem) => {
+  const openItemDetails = (item: EnhancedLifestyleItem) => {
     setSelectedItem(item);
     setShowDetails(true);
   };
   
-  // Convert tier to badge variant
-  const getTierBadgeVariant = (tier: string) => {
-    switch (tier) {
-      case 'basic': return 'secondary';
-      case 'premium': return 'default';
-      case 'luxury': return 'outline';
-      case 'elite': return 'secondary';
-      default: return 'secondary';
+  // Get an icon component for an attribute
+  const getAttributeIcon = (attribute: string) => {
+    switch (attribute) {
+      case 'health': return <HeartPulse className="h-4 w-4" />;
+      case 'social': return <Users className="h-4 w-4" />;
+      case 'time': return <Clock className="h-4 w-4" />;
+      case 'environment': return <Leaf className="h-4 w-4" />;
+      case 'stress': return <Wind className="h-4 w-4" />;
+      case 'skill': return <Brain className="h-4 w-4" />;
+      case 'special': return <Sparkles className="h-4 w-4" />;
+      default: return <Info className="h-4 w-4" />;
     }
   };
   
-  // Get icon for category
-  const getCategoryIcon = (category: CategoryTab) => {
+  // Get an icon for category tab
+  const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'wellness': return <HeartPulse className="h-4 w-4 mr-2" />;
-      case 'social': return <Users className="h-4 w-4 mr-2" />;
-      case 'habits': return <Activity className="h-4 w-4 mr-2" />;
-      case 'education': return <Brain className="h-4 w-4 mr-2" />;
-      case 'owned': return <Check className="h-4 w-4 mr-2" />;
-      default: return <Sparkles className="h-4 w-4 mr-2" />;
+      case 'wellness': return <HeartPulse className="h-4 w-4" />;
+      case 'social': return <Users className="h-4 w-4" />;
+      case 'habits': return <Activity className="h-4 w-4" />;
+      case 'education': return <Brain className="h-4 w-4" />;
+      case 'owned': return <Check className="h-4 w-4" />;
+      default: return <Info className="h-4 w-4" />;
     }
   };
   
-  // Render sustainability rating
-  const renderSustainabilityRating = (rating: number) => {
-    let color = 'bg-red-500';
-    if (rating >= 30 && rating < 50) color = 'bg-orange-500';
-    else if (rating >= 50 && rating < 70) color = 'bg-yellow-500';
-    else if (rating >= 70 && rating < 90) color = 'bg-emerald-500';
-    else if (rating >= 90) color = 'bg-green-500';
+  // Format attribute value into a readable string
+  const formatAttributeValue = (value: number) => {
+    if (value === 0) return "Neutral";
+    if (value > 0) return `+${value} Positive`;
+    return `${value} Negative`;
+  };
+  
+  // Render attribute with value bar
+  const renderAttributeWithBar = (label: string, value: number, icon: React.ReactNode) => {
+    let progressValue = 50; // Neutral
+    if (value > 0) progressValue = 50 + (value * 10);
+    if (value < 0) progressValue = 50 + (value * 10);
+    
+    // Color based on value
+    let progressColor = "bg-gray-400"; // Neutral
+    if (value > 0) progressColor = "bg-green-500";
+    if (value < 0) progressColor = "bg-red-500";
     
     return (
-      <div className="mt-2">
-        <div className="flex items-center justify-between text-xs text-secondary mb-1">
-          <span className="flex items-center">
-            <Leaf className="h-3 w-3 mr-1" />
-            <span>Sustainability:</span>
-          </span>
-          <span>{rating}%</span>
+      <div className="flex flex-col space-y-1 mb-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-1.5">
+            {icon}
+            <span className="text-xs">{label}</span>
+          </div>
+          <span className="text-xs font-medium">{formatAttributeValue(value)}</span>
         </div>
-        <Progress 
-          value={rating} 
-          max={100} 
-          className="h-1.5" 
-          indicatorClassName={color}
-        />
+        <Progress value={progressValue} className="h-1.5" />
       </div>
     );
   };
   
-  // Render attribute impact
-  const renderAttribute = (
-    icon: React.ReactNode, 
-    label: string, 
-    value: number | undefined,
-    positive: boolean = true
-  ) => {
-    if (value === undefined || value === 0) return null;
-    
-    const isPositive = positive ? value > 0 : value < 0;
-    const textColor = isPositive ? 'text-green-600' : 'text-red-500';
-    const sign = isPositive ? '+' : '';
+  // Format price display
+  const formatPrice = (price: number) => {
+    return (
+      <div className="flex items-center justify-between text-sm">
+        <span>Price:</span>
+        <span className="font-semibold">{formatCurrency(price)}</span>
+      </div>
+    );
+  };
+  
+  // Format maintenance cost display
+  const formatMaintenance = (cost: number) => {
+    if (cost === 0) return null;
     
     return (
-      <div className={`flex items-center ${textColor} text-xs my-1`}>
-        {icon}
-        <span className="ml-1">{label}: {sign}{value}</span>
+      <div className="flex items-center justify-between text-sm text-orange-600 dark:text-orange-400">
+        <span>Monthly Cost:</span>
+        <span className="font-semibold">{formatCurrency(cost)}/mo</span>
       </div>
     );
   };
   
-  // Render owned items list
+  // Format duration display
+  const formatDuration = (days: number | undefined) => {
+    if (!days || days === 0) return null; // Permanent item
+    
+    let durationText = "";
+    if (days <= 30) durationText = `${days} days`;
+    else if (days <= 365) durationText = `${Math.floor(days / 30)} months`;
+    else durationText = `${Math.floor(days / 365)} years`;
+    
+    return (
+      <div className="flex items-center justify-between text-sm text-blue-600 dark:text-blue-400">
+        <span>Duration:</span>
+        <span className="font-semibold">{durationText}</span>
+      </div>
+    );
+  };
+  
+  // Render a list of all owned items
   const renderOwnedItems = () => {
     if (ownedItems.length === 0) {
       return (
-        <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium text-primary mb-1">No lifestyle choices yet</h3>
-          <p className="text-sm text-secondary">
-            Enhance your character by adding lifestyle choices that match your goals
-          </p>
-        </div>
-      );
-    }
-    
-    // Filter to only enhanced lifestyle items
-    const enhancedOwnedItems = ownedItems.filter(item => 
-      allEnhancedLifestyleItems.some(enhancedItem => enhancedItem.id === item.id)
-    );
-    
-    if (enhancedOwnedItems.length === 0) {
-      return (
-        <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium text-primary mb-1">No enhanced lifestyle choices yet</h3>
-          <p className="text-sm text-secondary">
-            Explore the new lifestyle categories to make more impactful choices
-          </p>
+        <div className="p-4 text-center">
+          <p className="text-gray-500 dark:text-gray-400">You haven't acquired any lifestyle items yet.</p>
         </div>
       );
     }
     
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {enhancedOwnedItems.map(item => {
-          // Find the enhanced item definition
-          const enhancedItem = allEnhancedLifestyleItems.find(i => i.id === item.id);
-          if (!enhancedItem) return null;
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
+        {ownedItems.map(item => (
+          <Card key={item.id} className="overflow-hidden border border-gray-200 dark:border-gray-800">
+            <CardHeader className="p-3 pb-2">
+              <div className="flex justify-between items-start">
+                <CardTitle className="text-sm font-medium leading-tight">{item.name}</CardTitle>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-6 w-6">
+                      <Trash2 className="h-3.5 w-3.5 text-gray-500 hover:text-red-500" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to remove this lifestyle item? 
+                        This will remove all associated benefits and effects.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction onClick={() => handleRemoveItem(item.id)}>
+                        Remove
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+              <CardDescription className="text-xs mt-0.5 flex items-center">
+                <Badge variant="outline" className="mr-2 px-1 py-0 text-[10px] h-4">
+                  {item.type}
+                </Badge>
+                {item.maintenanceCost > 0 && (
+                  <Badge variant="outline" className="px-1 py-0 text-[10px] h-4 text-orange-600 border-orange-300">
+                    ${item.maintenanceCost}/mo
+                  </Badge>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-3 pt-0">
+              <div className="text-xs space-y-0.5">
+                <div className="flex items-center gap-1">
+                  <PartyPopper className="h-3 w-3 text-purple-500" />
+                  <span>Happiness: +{item.happiness}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Trophy className="h-3 w-3 text-amber-500" />
+                  <span>Prestige: +{item.prestige}</span>
+                </div>
+                {/* Could add more attributes as needed */}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  };
+  
+  // Render the grid of lifestyle items for purchase
+  const renderLifestyleItems = () => {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-2">
+        {filteredItems.map(item => {
+          const isOwned = isItemOwned(item.id);
           
           return (
-            <Card key={item.id} className="overflow-hidden">
-              <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
-                  <CardTitle className="text-lg">{item.name}</CardTitle>
-                  <Badge variant={getTierBadgeVariant(enhancedItem.tier)}>
-                    {enhancedItem.tier}
-                  </Badge>
+            <Card 
+              key={item.id} 
+              className={`cursor-pointer overflow-hidden border transition-all duration-150 
+                ${isOwned ? 'bg-gray-50 dark:bg-gray-900 border-gray-300 dark:border-gray-700' : 'hover:border-gray-300 dark:hover:border-gray-700'}`}
+              onClick={() => openItemDetails(item)}
+            >
+              <CardHeader className="p-3 pb-1.5">
+                <div className="flex justify-between items-center">
+                  <CardTitle className="text-sm font-medium leading-tight">{item.name}</CardTitle>
+                  {isOwned && <Check className="h-4 w-4 text-green-500" />}
                 </div>
-                <CardDescription>
-                  <div className="flex items-center">
-                    <CircleDollarSign className="h-3.5 w-3.5 mr-1 text-emerald-500" />
-                    <span>
-                      {item.maintenanceCost && item.maintenanceCost > 0 ? `${formatCurrency(item.maintenanceCost)}/month` : 'No monthly cost'}
-                    </span>
-                  </div>
+                <CardDescription className="text-xs flex items-center mt-0.5">
+                  <Badge variant="outline" className="mr-2 px-1 py-0 text-[10px] h-4">
+                    {item.type}
+                  </Badge>
+                  {item.maintenanceCost > 0 && (
+                    <Badge variant="outline" className="px-1 py-0 text-[10px] h-4 text-orange-600 border-orange-300">
+                      ${item.maintenanceCost}/mo
+                    </Badge>
+                  )}
                 </CardDescription>
               </CardHeader>
-              
-              <CardContent className="pb-2">
-                <p className="text-sm text-secondary mb-3">
-                  {enhancedItem.description}
-                </p>
-                
-                <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-                  {renderAttribute(
-                    <HeartPulse className="h-3 w-3" />, 
-                    "Health", 
-                    enhancedItem.attributes.healthImpact
-                  )}
-                  {renderAttribute(
-                    <Clock className="h-3 w-3" />, 
-                    "Time", 
-                    enhancedItem.attributes.timeCommitment,
-                    false
-                  )}
-                  {renderAttribute(
-                    <Users className="h-3 w-3" />, 
-                    "Social", 
-                    enhancedItem.attributes.socialStatus
-                  )}
-                  {renderAttribute(
-                    <Wind className="h-3 w-3" />, 
-                    "Stress", 
-                    enhancedItem.attributes.stressReduction
-                  )}
+              <CardContent className="px-3 pb-2 pt-0">
+                <div className="text-xs space-y-1 mb-2">
+                  <div className="flex justify-between">
+                    <div className="flex items-center gap-1">
+                      <PartyPopper className="h-3 w-3 text-purple-500" />
+                      <span>Happiness: +{item.happiness}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Trophy className="h-3 w-3 text-amber-500" />
+                      <span>Prestige: +{item.prestige}</span>
+                    </div>
+                  </div>
                 </div>
-                
-                {enhancedItem.sustainabilityRating && 
-                  renderSustainabilityRating(enhancedItem.sustainabilityRating)
-                }
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">{formatCurrency(item.price)}</span>
+                  <Button variant="outline" size="sm" className="h-7 text-xs">
+                    View Details
+                  </Button>
+                </div>
               </CardContent>
-              
-              <CardFooter className="flex justify-between">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => showItemDetails(enhancedItem)}
-                >
-                  <Info className="h-4 w-4 mr-1" />
-                  Details
-                </Button>
-                
-                <Button 
-                  variant="destructive" 
-                  size="sm"
-                  onClick={() => handleRemoveItem(item.id)}
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Remove
-                </Button>
-              </CardFooter>
             </Card>
           );
         })}
@@ -466,465 +419,157 @@ export function EnhancedLifestyleSelector() {
     );
   };
   
-  // Render lifestyle choices by category
-  const renderLifestyleItems = () => {
-    if (filteredItems.length === 0) {
-      return (
-        <div className="text-center p-10">
-          <Sparkles className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h3 className="text-lg font-medium text-primary mb-1">No items in this category</h3>
-          <p className="text-sm text-secondary">
-            Try another category to find more lifestyle choices
-          </p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredItems.map(item => (
-          <Card key={item.id} className="overflow-hidden">
-            <CardHeader className="pb-2">
-              <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{item.name}</CardTitle>
-                <Badge variant={getTierBadgeVariant(item.tier)}>
-                  {item.tier}
-                </Badge>
-              </div>
-              <CardDescription>
-                <div className="flex items-center">
-                  <Wallet className="h-3.5 w-3.5 mr-1 text-emerald-500" />
-                  <span>Cost: {formatCurrency(item.price)}</span>
-                </div>
-                {item.maintenanceCost && item.maintenanceCost > 0 && (
-                  <div className="flex items-center mt-1">
-                    <CircleDollarSign className="h-3.5 w-3.5 mr-1 text-amber-500" />
-                    <span>{formatCurrency(item.maintenanceCost)}/month</span>
-                  </div>
-                )}
-              </CardDescription>
-            </CardHeader>
-            
-            <CardContent className="pb-2">
-              <p className="text-sm text-secondary mb-3 line-clamp-2">
-                {item.description}
-              </p>
-              
-              <div className="grid grid-cols-2 gap-x-2 gap-y-0.5">
-                {renderAttribute(
-                  <HeartPulse className="h-3 w-3" />, 
-                  "Health", 
-                  item.attributes.healthImpact
-                )}
-                {renderAttribute(
-                  <Clock className="h-3 w-3" />, 
-                  "Time", 
-                  item.attributes.timeCommitment,
-                  false
-                )}
-                {renderAttribute(
-                  <Users className="h-3 w-3" />, 
-                  "Social", 
-                  item.attributes.socialStatus
-                )}
-                {renderAttribute(
-                  <Wind className="h-3 w-3" />, 
-                  "Stress", 
-                  item.attributes.stressReduction
-                )}
-                {renderAttribute(
-                  <Trophy className="h-3 w-3" />, 
-                  "Prestige", 
-                  item.prestige
-                )}
-                {renderAttribute(
-                  <PartyPopper className="h-3 w-3" />, 
-                  "Happiness", 
-                  item.happiness
-                )}
-              </div>
-              
-              {item.sustainabilityRating && 
-                renderSustainabilityRating(item.sustainabilityRating)
-              }
-            </CardContent>
-            
-            <CardFooter className="flex justify-between">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => showItemDetails(item)}
-              >
-                <Info className="h-4 w-4 mr-1" />
-                Details
-              </Button>
-              
-              {isItemOwned(item.id) ? (
-                <Button variant="secondary" size="sm" disabled>
-                  <Check className="h-4 w-4 mr-1" />
-                  Owned
-                </Button>
-              ) : (
-                <Button 
-                  size="sm" 
-                  onClick={() => handlePurchase(item)}
-                  disabled={wealth < item.price}
-                >
-                  <Gem className="h-4 w-4 mr-1" />
-                  Purchase
-                </Button>
-              )}
-            </CardFooter>
-          </Card>
-        ))}
-      </div>
-    );
-  };
-  
-  // Render item details modal
+  // Render the detailed modal view for a selected item
   const renderItemDetailsModal = () => {
     if (!selectedItem) return null;
     
+    const isOwned = isItemOwned(selectedItem.id);
+    const canAfford = wealth >= selectedItem.price;
+    
+    // Format purchase button
+    const renderPurchaseButton = () => {
+      if (isOwned && selectedItem.unique) {
+        return (
+          <Button disabled className="w-full mt-4">
+            <Check className="h-4 w-4 mr-2" />
+            Already Owned
+          </Button>
+        );
+      }
+      
+      if (!canAfford) {
+        return (
+          <Button disabled className="w-full mt-4 bg-red-500 hover:bg-red-600">
+            <Wallet className="h-4 w-4 mr-2" />
+            Can't Afford
+          </Button>
+        );
+      }
+      
+      return (
+        <Button className="w-full mt-4" onClick={() => handlePurchase(selectedItem)}>
+          <CircleDollarSign className="h-4 w-4 mr-2" />
+          Purchase - {formatCurrency(selectedItem.price)}
+        </Button>
+      );
+    };
+    
     return (
       <AlertDialog open={showDetails} onOpenChange={setShowDetails}>
-        <AlertDialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <AlertDialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center justify-between">
-              <span>{selectedItem.name}</span>
-              <Badge variant={getTierBadgeVariant(selectedItem.tier)}>
-                {selectedItem.tier}
-              </Badge>
+            <AlertDialogTitle className="flex justify-between items-center">
+              <div>{selectedItem.name}</div>
+              <Badge className="ml-2">{selectedItem.type}</Badge>
             </AlertDialogTitle>
-            <AlertDialogDescription>
-              {selectedItem.description}
+            <AlertDialogDescription asChild>
+              <div className="text-left">
+                {/* Price info */}
+                <div className="space-y-1 mb-4">
+                  {formatPrice(selectedItem.price)}
+                  {formatMaintenance(selectedItem.maintenanceCost)}
+                  {formatDuration(selectedItem.durationInDays)}
+                </div>
+                
+                {/* Description */}
+                <p className="text-sm mb-4">{selectedItem.description}</p>
+                
+                {/* Stats Impact */}
+                <div className="space-y-2 mb-6">
+                  <div className="flex justify-between">
+                    <div className="flex items-center space-x-1">
+                      <PartyPopper className="h-4 w-4 text-purple-500" />
+                      <span className="text-sm">Happiness</span>
+                    </div>
+                    <span className="text-sm font-medium">+{selectedItem.happiness}</span>
+                  </div>
+                  
+                  <div className="flex justify-between">
+                    <div className="flex items-center space-x-1">
+                      <Trophy className="h-4 w-4 text-amber-500" />
+                      <span className="text-sm">Prestige</span>
+                    </div>
+                    <span className="text-sm font-medium">+{selectedItem.prestige}</span>
+                  </div>
+                </div>
+                
+                {/* Attribute Impacts */}
+                <div className="pt-2 border-t">
+                  <h4 className="text-sm font-semibold mb-2">Effects & Attributes</h4>
+                  
+                  {renderAttributeWithBar(
+                    "Health Impact",
+                    selectedItem.attributes.healthImpact,
+                    getAttributeIcon('health')
+                  )}
+                  
+                  {renderAttributeWithBar(
+                    "Social Status",
+                    selectedItem.attributes.socialStatus,
+                    getAttributeIcon('social')
+                  )}
+                  
+                  {renderAttributeWithBar(
+                    "Time Commitment",
+                    selectedItem.attributes.timeCommitment,
+                    getAttributeIcon('time')
+                  )}
+                  
+                  {renderAttributeWithBar(
+                    "Environmental Impact",
+                    selectedItem.attributes.environmentalImpact,
+                    getAttributeIcon('environment')
+                  )}
+                  
+                  {renderAttributeWithBar(
+                    "Stress Reduction",
+                    selectedItem.attributes.stressReduction,
+                    getAttributeIcon('stress')
+                  )}
+                  
+                  {renderAttributeWithBar(
+                    "Skill Development",
+                    selectedItem.attributes.skillDevelopment,
+                    getAttributeIcon('skill')
+                  )}
+                </div>
+                
+                {/* Special Benefits */}
+                {selectedItem.attributes.specialBenefits && (
+                  <div className="pt-2 mt-2 border-t">
+                    <h4 className="text-sm font-semibold mb-2 flex items-center">
+                      <Gem className="h-4 w-4 mr-1.5 text-cyan-500" />
+                      Special Benefits
+                    </h4>
+                    <p className="text-sm">{selectedItem.attributes.specialBenefits}</p>
+                  </div>
+                )}
+                
+                {/* Purchase Button */}
+                {renderPurchaseButton()}
+              </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
-          
-          <div className="mt-4 space-y-4">
-            {/* Basic Information */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gray-800/90 p-3 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-2 flex items-center text-blue-300">
-                  <Wallet className="h-4 w-4 mr-1 text-blue-400" />
-                  Financial Details
-                </h4>
-                <div className="space-y-1 text-sm text-gray-300">
-                  <p>Initial Cost: {formatCurrency(selectedItem.price)}</p>
-                  <p>Monthly Cost: {formatCurrency(selectedItem.maintenanceCost)}</p>
-                  {selectedItem.requires?.netWorth && (
-                    <p className="text-amber-400">
-                      Requires Net Worth: {formatCurrency(selectedItem.requires.netWorth)}
-                    </p>
-                  )}
-                </div>
-              </div>
-              
-              <div className="bg-gray-800/90 p-3 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-2 flex items-center text-blue-300">
-                  <Star className="h-4 w-4 mr-1 text-yellow-400" />
-                  Core Benefits
-                </h4>
-                <div className="space-y-1 text-sm text-gray-300">
-                  <p>Happiness: +{selectedItem.happiness}</p>
-                  <p>Prestige: +{selectedItem.prestige}</p>
-                  {selectedItem.durationInDays && (
-                    <p>Duration: {selectedItem.durationInDays} days</p>
-                  )}
-                </div>
-              </div>
-            </div>
-            
-            {/* Direct Attributes Section */}
-            <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
-              <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
-                <Activity className="h-4 w-4 mr-1 text-blue-400" />
-                Immediate Attribute Effects
-              </h4>
-              
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-gray-300">
-                {selectedItem.attributes.healthImpact !== undefined && (
-                  <div className="flex items-center">
-                    <HeartPulse className={`h-4 w-4 mr-1 ${selectedItem.attributes.healthImpact >= 0 ? 'text-green-500' : 'text-red-500'}`} />
-                    <span>Health: {selectedItem.attributes.healthImpact >= 0 ? '+' : ''}{selectedItem.attributes.healthImpact}</span>
-                  </div>
-                )}
-                
-                {selectedItem.attributes.socialStatus !== undefined && (
-                  <div className="flex items-center">
-                    <Users className={`h-4 w-4 mr-1 ${selectedItem.attributes.socialStatus >= 0 ? 'text-blue-500' : 'text-red-500'}`} />
-                    <span>Social Status: {selectedItem.attributes.socialStatus >= 0 ? '+' : ''}{selectedItem.attributes.socialStatus}</span>
-                  </div>
-                )}
-                
-                {selectedItem.attributes.timeCommitment !== undefined && (
-                  <div className="flex items-center">
-                    <Clock className={`h-4 w-4 mr-1 ${selectedItem.attributes.timeCommitment <= 0 ? 'text-green-500' : 'text-amber-500'}`} />
-                    <span>Time Commitment: {selectedItem.attributes.timeCommitment > 0 ? '+' : ''}{selectedItem.attributes.timeCommitment} hrs/week</span>
-                  </div>
-                )}
-                
-                {selectedItem.attributes.stressReduction !== undefined && (
-                  <div className="flex items-center">
-                    <Wind className={`h-4 w-4 mr-1 ${selectedItem.attributes.stressReduction >= 0 ? 'text-teal-500' : 'text-red-500'}`} />
-                    <span>Stress Reduction: {selectedItem.attributes.stressReduction >= 0 ? '+' : ''}{selectedItem.attributes.stressReduction}</span>
-                  </div>
-                )}
-                
-                {selectedItem.attributes.environmentalImpact !== undefined && (
-                  <div className="flex items-center">
-                    <Leaf className={`h-4 w-4 mr-1 ${selectedItem.attributes.environmentalImpact >= 0 ? 'text-green-500' : 'text-gray-500'}`} />
-                    <span>Environmental Impact: {selectedItem.attributes.environmentalImpact >= 0 ? '+' : ''}{selectedItem.attributes.environmentalImpact}</span>
-                  </div>
-                )}
-                
-                {selectedItem.attributes.skillDevelopment !== undefined && (
-                  <div className="flex items-center">
-                    <Brain className={`h-4 w-4 mr-1 ${selectedItem.attributes.skillDevelopment >= 0 ? 'text-purple-500' : 'text-red-500'}`} />
-                    <span>Skill Development: {selectedItem.attributes.skillDevelopment >= 0 ? '+' : ''}{selectedItem.attributes.skillDevelopment}</span>
-                  </div>
-                )}
-              </div>
-              
-              {selectedItem.sustainabilityRating !== undefined && (
-                <div className="mt-3">
-                  {renderSustainabilityRating(selectedItem.sustainabilityRating)}
-                </div>
-              )}
-            </div>
-            
-            {/* Long-term Effects Section */}
-            {(selectedItem.attributes.chronicHealthCondition || 
-              selectedItem.attributes.mentalHealthEffects || 
-              selectedItem.attributes.personalGrowth || 
-              selectedItem.attributes.careerEffects) && (
-              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
-                  <Flame className="h-4 w-4 mr-1 text-orange-400" />
-                  Long-term Effects
-                </h4>
-                
-                <div className="space-y-3 text-sm">
-                  {selectedItem.attributes.chronicHealthCondition?.map((condition, index) => (
-                    <div key={`health-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <h5 className={`font-medium flex items-center ${condition.healthImpactPerMonth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        <HeartPulse className="h-3.5 w-3.5 mr-1" />
-                        {condition.name}
-                      </h5>
-                      <p className="text-gray-300 mt-1">{condition.description}</p>
-                      <div className="flex items-center mt-1 text-xs">
-                        <span>Monthly Health Impact: {condition.healthImpactPerMonth >= 0 ? '+' : ''}{condition.healthImpactPerMonth}</span>
-                        {condition.treatmentCostPerMonth && (
-                          <span className="ml-3">Treatment: {formatCurrency(condition.treatmentCostPerMonth)}/month</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {selectedItem.attributes.mentalHealthEffects?.map((effect, index) => (
-                    <div key={`mental-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <h5 className={`font-medium flex items-center ${effect.type === 'positive' ? 'text-blue-600' : 'text-amber-600'}`}>
-                        <Brain className="h-3.5 w-3.5 mr-1" />
-                        Mental Health {effect.type === 'positive' ? 'Benefit' : 'Impact'}
-                      </h5>
-                      <p className="text-gray-300 mt-1">{effect.description}</p>
-                      <div className="flex items-center mt-1 text-xs text-gray-300">
-                        <span>Monthly Happiness: {effect.happinessImpactPerMonth >= 0 ? '+' : ''}{effect.happinessImpactPerMonth}</span>
-                        <span className="ml-3">Monthly Stress: {effect.stressImpactPerMonth >= 0 ? '+' : ''}{effect.stressImpactPerMonth}</span>
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {selectedItem.attributes.careerEffects?.map((effect, index) => (
-                    <div key={`career-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <h5 className="font-medium flex items-center text-purple-600">
-                        <Briefcase className="h-3.5 w-3.5 mr-1" />
-                        Career Impact: {effect.aspect}
-                      </h5>
-                      <p className="text-gray-300 mt-1">{effect.description}</p>
-                      <div className="flex items-center mt-1 text-xs text-gray-300">
-                        <span>Prestige Impact: +{effect.prestigeImpact}</span>
-                        {effect.incomeMultiplier && (
-                          <span className="ml-3">Income Potential: ×{effect.incomeMultiplier.toFixed(2)}</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {selectedItem.attributes.personalGrowth?.map((growth, index) => (
-                    <div key={`growth-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <h5 className="font-medium flex items-center text-indigo-600">
-                        <Award className="h-3.5 w-3.5 mr-1" />
-                        Personal Growth: {growth.area}
-                      </h5>
-                      <p className="text-gray-300 mt-1">{growth.description}</p>
-                      <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
-                        {growth.skillImpact.map((impact, i) => (
-                          <span key={`skill-${i}`} className="bg-indigo-100 text-indigo-800 rounded-full px-2 py-0.5">
-                            {impact.skillName}: +{impact.value}/month
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Synergies & Conflicts Section */}
-            {(selectedItem.attributes.synergies || selectedItem.attributes.conflicts) && (
-              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
-                  <Sparkles className="h-4 w-4 mr-1 text-yellow-400" />
-                  Synergies & Conflicts
-                </h4>
-                
-                <div className="space-y-3 text-sm">
-                  {selectedItem.attributes.synergies?.map((synergy, index) => {
-                    const synergyItem = allEnhancedLifestyleItems.find(item => item.id === synergy.itemId);
-                    return (
-                      <div key={`synergy-${index}`} className="p-2 bg-gray-800/40 border border-green-900/50 rounded-md">
-                        <h5 className="font-medium flex items-center text-green-400">
-                          <Check className="h-3.5 w-3.5 mr-1" />
-                          Synergy with {synergyItem?.name || 'another lifestyle choice'}
-                        </h5>
-                        <p className="text-gray-300 mt-1">{synergy.description}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
-                          {synergy.bonusEffects.map((effect, i) => (
-                            <span key={`effect-${i}`} className="bg-green-100 text-green-800 rounded-full px-2 py-0.5">
-                              {effect.attribute}: {effect.value >= 0 ? '+' : ''}{effect.value}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                  
-                  {selectedItem.attributes.conflicts?.map((conflict, index) => {
-                    const conflictItem = allEnhancedLifestyleItems.find(item => item.id === conflict.itemId);
-                    return (
-                      <div key={`conflict-${index}`} className="p-2 bg-gray-800/40 border border-red-900/50 rounded-md">
-                        <h5 className="font-medium flex items-center text-red-400">
-                          <X className="h-3.5 w-3.5 mr-1" />
-                          Conflict with {conflictItem?.name || 'another lifestyle choice'}
-                        </h5>
-                        <p className="text-gray-300 mt-1">{conflict.description}</p>
-                        <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-300">
-                          {conflict.penaltyEffects.map((effect, i) => (
-                            <span key={`effect-${i}`} className="bg-red-100 text-red-800 rounded-full px-2 py-0.5">
-                              {effect.attribute}: {effect.value >= 0 ? '+' : ''}{effect.value}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-            
-            {/* Special Triggers Section */}
-            {selectedItem.attributes.specialTriggers && (
-              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
-                  <Gem className="h-4 w-4 mr-1 text-purple-400" />
-                  Special Opportunities
-                </h4>
-                
-                <div className="space-y-3 text-sm">
-                  {selectedItem.attributes.specialTriggers.map((trigger, index) => (
-                    <div key={`trigger-${index}`} className="p-2 bg-gray-800/40 rounded-md">
-                      <p className="text-gray-300">{trigger.description}</p>
-                      <div className="flex items-center mt-1 text-xs text-gray-300">
-                        <span>Trigger type: {trigger.triggerType}</span>
-                        <span className="ml-2">Chance: {Math.round(trigger.probability * 100)}%</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-            
-            {/* Additional Requirements & Restrictions */}
-            {(selectedItem.requires || selectedItem.excludes) && (
-              <div className="bg-gray-800/90 p-4 rounded-md border border-blue-900/50">
-                <h4 className="font-medium text-sm mb-3 flex items-center text-blue-300">
-                  <ShieldAlert className="h-4 w-4 mr-1 text-amber-400" />
-                  Requirements & Restrictions
-                </h4>
-                
-                <div className="space-y-3 text-sm">
-                  {selectedItem.requires?.itemIds && selectedItem.requires.itemIds.length > 0 && (
-                    <div>
-                      <p className="font-medium text-amber-400">Prerequisites:</p>
-                      <ul className="list-disc list-inside ml-2 text-gray-300">
-                        {selectedItem.requires.itemIds.map((id, index) => {
-                          const requiredItem = allEnhancedLifestyleItems.find(item => item.id === id);
-                          return (
-                            <li key={`req-${index}`}>
-                              {requiredItem?.name || `Item ID: ${id}`}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                  
-                  {selectedItem.excludes && selectedItem.excludes.length > 0 && (
-                    <div>
-                      <p className="font-medium text-amber-400">Conflicts with:</p>
-                      <ul className="list-disc list-inside ml-2 text-gray-300">
-                        {selectedItem.excludes.map((id, index) => {
-                          const excludedItem = allEnhancedLifestyleItems.find(item => item.id === id);
-                          return (
-                            <li key={`exc-${index}`}>
-                              {excludedItem?.name || `Item ID: ${id}`}
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-          
-          <AlertDialogFooter className="mt-6">
+          <AlertDialogFooter>
             <AlertDialogCancel>Close</AlertDialogCancel>
-            {!isItemOwned(selectedItem.id) && (
-              <AlertDialogAction
-                onClick={() => handlePurchase(selectedItem)}
-                disabled={wealth < selectedItem.price}
-              >
-                Purchase ({formatCurrency(selectedItem.price)})
-              </AlertDialogAction>
-            )}
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     );
   };
   
+  // Main component render
   return (
-    <div>
-      <div className="p-4 bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg mb-6">
-        <h2 className="text-xl font-bold mb-2 text-indigo-800">Enhanced Lifestyle Choices</h2>
-        <p className="text-sm text-indigo-700">
-          These lifestyle choices have deeper impacts on your character's attributes, career, relationships, and health.
-          Choose wisely as they interact with each other in complex ways.
-        </p>
-      </div>
-      
-      <div className="grid grid-cols-1 gap-6 mb-6">
-        {/* Lifestyle Choices */}
-        <div>
-          <Tabs value={activeTab} defaultValue="wellness" onValueChange={(value) => setActiveTab(value as CategoryTab)}>
-            <TabsList className="mb-6 flex flex-wrap gap-0.5">
+    <div className="w-full max-w-2xl mx-auto p-1 sm:p-4 bg-white dark:bg-gray-950 rounded-lg overflow-hidden">
+      <div className="rounded overflow-hidden border border-gray-200 dark:border-gray-800">
+        <div className="bg-white dark:bg-gray-950">
+          <Tabs defaultValue="wellness" value={activeTab} onValueChange={(value) => setActiveTab(value as CategoryTab)}>
+            <TabsList className="flex w-full border-b bg-transparent">
               <TabsTrigger value="owned" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
                 <span className="mr-1 flex-shrink-0">
                   {React.cloneElement(getCategoryIcon('owned'), { className: 'h-3 w-3' })}
                 </span>
-                <span className="whitespace-nowrap text-xs">My Choices</span>
+                <span className="whitespace-nowrap text-xs">Owned</span>
               </TabsTrigger>
               <TabsTrigger value="wellness" className="h-8 px-2 flex items-center justify-center py-1 flex-1 min-w-[70px]">
                 <span className="mr-1 flex-shrink-0">
