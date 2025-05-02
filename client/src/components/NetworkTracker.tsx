@@ -33,12 +33,7 @@ export function NetworkTracker() {
       const eventCount = Math.floor(Math.random() * 2) + 1; // 1-2 events per month
       generateNewEvents(eventCount);
       
-      // 70% chance to get a new connection each month, capped at 1
-      const shouldGenerateConnection = Math.random() < 0.7;
-      if (shouldGenerateConnection) {
-        // Add a single random connection (capped at 1 per month)
-        useSocialNetwork.getState().addRandomConnections(1);
-      }
+      // No longer automatically adding connections - player must find them on their own
     }
     
     // Run the standard regeneration check - this will handle the time-based regeneration

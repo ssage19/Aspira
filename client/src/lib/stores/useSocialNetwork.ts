@@ -2263,7 +2263,7 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       // Reset the social network system
       resetSocialNetwork: () => {
         set({
-          connections: [],
+          connections: [], // Always start with 0 connections
           events: [],
           networkingLevel: 10,
           socialCapital: 100,
@@ -2292,12 +2292,9 @@ export const useSocialNetwork = create<SocialNetworkState>()(
 const initializeSocialNetwork = () => {
   const state = useSocialNetwork.getState();
   
-  // If no connections exist, create initial ones
+  // If no connections exist, initialize with zero connections
+  // and only generate events (player will find connections themselves)
   if (state.connections.length === 0) {
-    // Add initial connections (one mentor, one business contact)
-    state.addConnection('mentor');
-    state.addConnection('businessContact');
-    
     // Generate initial events
     state.generateNewEvents(5);
   }
