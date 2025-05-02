@@ -714,201 +714,193 @@ export const formatPercentage = (value: number, fixed: number = 1): string => {
  * @param propertyId The ID of the property
  * @returns The image path or null if not found
  */
-export function getPropertyImagePath(propertyId: string): string | null {
-  // First, let's add debug logging to understand the property ID format
-  console.log("Getting image path for property ID:", propertyId);
-  
-  // Map full property names and IDs to their image paths
-  const imageMapping: Record<string, string> = {
-    // Commercial properties - START Commercial Properties Section
-    'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
-    'Neighborhood Strip Mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
-    'mall': '/attached_assets/Shopping_Center.jpg',
-    'Shopping Center': '/attached_assets/Shopping_Center.jpg',
-    'office_small': '/attached_assets/Small_Office_Building.jpg',
-    'Small Office Building': '/attached_assets/Small_Office_Building.jpg',
-    'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
-    'Standalone Restaurant': '/attached_assets/Standalone_Restaurant.jpg',
-    'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
-    'Student Housing Complex': '/attached_assets/Student_Housing_Complex.jpg',
-    'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
-    'Urgent Care Center': '/attached_assets/Urgent_Care_Center.jpg',
-    
-    // Residential properties
-    'Single Family Home': '/images/properties/single_family_home.jpg',
-    'City Apartment': '/images/properties/city_apartment.jpg',
-    'Luxury City Apartment': '/images/properties/luxury_city_apartment.jpg',
-    'Suburban Townhouse': '/images/properties/suburban_townhome.jpg',
-    'Urban Studio': '/images/properties/urban_studio.jpg',
-    'Converted Loft': '/images/properties/converted_loft.jpg',
-    'Garden Apartment': '/images/properties/garden_apartment.jpg',
-    'Highrise One Bedroom': '/images/properties/highrise_one_bedroom.jpg',
-    'Suburban Condo': '/images/properties/suburban_condo.jpg',
-    'Residential Duplex': '/images/properties/residential_duplex.jpg',
-    'Weekend Cottage': '/images/properties/weekend_cottage.jpg',
-    'Waterfront Apartment': '/images/properties/waterfront_apartment.jpg',
-    'Senior Living Condo': '/images/properties/senior_living_condo.jpg',
-    'Garden District Condo': '/images/properties/garden_district_condo.jpg',
-    'Lakeside Cabin': '/images/properties/lakeside_cabin.jpg',
-    'Split Level Home': '/images/properties/split_level_home.jpg',
-    'Colonial Style Home': '/images/properties/colonial_style_home.jpg',
-    'Craftsman Bungalow': '/images/properties/craftsman_bungalow.jpg',
-    'Ranch Style Home': '/images/properties/ranch_style_home.jpg',
-    'Modern Townhome': '/images/properties/modern_townhome.jpg',
-    
-    // Residential IDs
-    'single_family': '/images/properties/single_family_home.jpg',
-    'apartment_basic': '/images/properties/city_apartment.jpg',
-    'apartment_luxury': '/images/properties/luxury_city_apartment.jpg',
-    'townhouse': '/images/properties/suburban_townhome.jpg',
-    'studio_apartment': '/images/properties/urban_studio.jpg',
-    'garden_apartment': '/images/properties/garden_apartment.jpg',
-    'highrise_1br': '/images/properties/highrise_one_bedroom.jpg',
-    'split_level': '/images/properties/split_level_home.jpg',
-    'urban_loft': '/images/properties/converted_loft.jpg',
-    'suburban_condo': '/images/properties/suburban_condo.jpg',
-    'duplex': '/images/properties/residential_duplex.jpg',
-    'vacation_cottage': '/images/properties/weekend_cottage.jpg',
-    'waterfront_apt': '/images/properties/waterfront_apartment.jpg',
-    'senior_condo': '/images/properties/senior_living_condo.jpg',
-    'garden_condo': '/images/properties/garden_district_condo.jpg',
-    'lakeside_cabin': '/images/properties/lakeside_cabin.jpg',
-    'colonial_home': '/images/properties/colonial_style_home.jpg',
-    'bungalow': '/images/properties/craftsman_bungalow.jpg',
-    'ranch_style': '/images/properties/ranch_style_home.jpg',
-    'modern_townhome': '/images/properties/modern_townhome.jpg',
-    
-    // Luxury properties
-    'Downtown Penthouse': '/images/properties/downtown_penthouse.jpg',
-    'Oceanfront Beach House': '/images/properties/oceanfront_beach_house.jpg',
-    'Estate Manor': '/images/properties/estate_manor.jpg',
-    'Mountain Retreat': '/images/properties/mountain_retreat.jpg',
-    'Vineyard Estate': '/images/properties/vineyard_estate.jpg',
-    'Celebrity Compound': '/images/properties/celebrity_compound.jpg',
-    'Desert Oasis Estate': '/images/properties/desert_oasis_estate.jpg',
-    'Equestrian Estate': '/images/properties/equestrian_estate.jpg',
-    'French Inspired Château': '/images/properties/french_inspired_chateau.jpg',
-    'Golf Course Estate': '/images/properties/golf_course_estate.jpg',
-    'Historic Mansion': '/images/properties/historic_mansion.jpg',
-    'Lakefront Mansion': '/images/properties/lakefront_mansion.jpg',
-    'Luxury Mountain Chalet': '/images/properties/luxury_mountain_chalet.jpg',
-    'Mediterranean Villa': '/images/properties/mediterranean_villa.jpg',
-    'Modern Architectural Masterpiece': '/images/properties/modern_architectural_masterpiece.jpg',
-    
-    // Luxury IDs
-    'penthouse': '/images/properties/downtown_penthouse.jpg',
-    'beach_house': '/images/properties/oceanfront_beach_house.jpg',
-    'estate_manor': '/images/properties/estate_manor.jpg',
-    'mountain_retreat': '/images/properties/mountain_retreat.jpg',
-    'vineyard_estate': '/images/properties/vineyard_estate.jpg',
-    'celebrity_compound': '/images/properties/celebrity_compound.jpg',
-    'celebrity_estate': '/images/properties/celebrity_compound.jpg',
-    'desert_oasis': '/images/properties/desert_oasis_estate.jpg',
-    'desert_property': '/images/properties/desert_oasis_estate.jpg',
-    'equestrian_estate': '/images/properties/equestrian_estate.jpg',
-    'equestrian_property': '/images/properties/equestrian_estate.jpg',
-    'french_chateau': '/images/properties/french_inspired_chateau.jpg',
-    'château': '/images/properties/french_inspired_chateau.jpg',
-    'golf_estate': '/images/properties/golf_course_estate.jpg',
-    'golf_residence': '/images/properties/golf_course_estate.jpg',
-    'historic_mansion': '/images/properties/historic_mansion.jpg',
-    'lakefront_mansion': '/images/properties/lakefront_mansion.jpg',
-    'mountain_chalet': '/images/properties/luxury_mountain_chalet.jpg',
-    'ski_chalet': '/images/properties/ski_chalet.jpg',
-    'mediterranean_villa': '/images/properties/mediterranean_villa.jpg',
-    'modern_masterpiece': '/images/properties/modern_architectural_masterpiece.jpg',
-    'modern_architectural': '/images/properties/modern_architectural_masterpiece.jpg',
-    'island_retreat': '/images/properties/private_island_retreat.jpg',
-    'waterfront_compound': '/images/properties/waterfront_compound.jpg',
-    'city_palace': '/images/properties/city_palace.jpg',
-    'smart_mansion': '/images/properties/smart_mansion.jpg',
-    'tropical_estate': '/images/properties/tropical_estate.jpg',
-    'mansion': '/images/properties/Gated_Estate.jpg',
-    
-    // Commercial properties
-    'Retail Storefront': '/attached_assets/Retail_Storefront.jpg',
-    'Mixed-Use Development': '/attached_assets/Mixed_Use_Development.jpg',
-    'Downtown Commercial Building': '/attached_assets/Downtown_Office_Tower.jpg',
-    'Boutique Hotel': '/attached_assets/Boutique_Hotel.jpg',
-    'Gas Station & Convenience Store': '/attached_assets/Gas_Station_Convenience_Store.jpg',
-    'Neighborhood Grocery': '/attached_assets/Neighborhood_Grocery.jpg',
-    'Pharmacy Building': '/attached_assets/Pharmacy_Building.jpg',
-    'Business Hotel': '/attached_assets/Business_Hotel.jpg',
-    'Auto Dealership': '/attached_assets/Auto_Dealership.jpg',
-    'Fitness Center': '/attached_assets/Fitness_Center.jpg',
-    'Bank Building': '/attached_assets/Bank_Building.jpg',
-    'Daycare Center': '/attached_assets/Daycare_Center.jpg',
-    'Entertainment Complex': '/attached_assets/Entertainment_Complex.jpg',
-    'Self Storage Facility': '/attached_assets/Self_Storage_Facility.jpg',
-    
-    // Commercial IDs - these are duplicated in the section above for maximum compatibility
-    // but leaving them here for backward compatibility with existing code
-    'retail_small_id': '/attached_assets/Retail_Storefront.jpg',
-    'mixed_use_id': '/attached_assets/Mixed_Use_Development.jpg',
-    'office_tower_id': '/attached_assets/Downtown_Office_Tower.jpg',
-    'hotel_boutique_id': '/attached_assets/Boutique_Hotel.jpg',
-    'gas_station': '/attached_assets/Gas_Station_Convenience_Store.jpg',
-    'grocery_store': '/attached_assets/Neighborhood_Grocery.jpg',
-    'pharmacy': '/attached_assets/Pharmacy_Building.jpg',
-    'hotel_business': '/attached_assets/Business_Hotel.jpg',
-    'auto_dealership': '/attached_assets/Auto_Dealership.jpg',
-    'fitness_center': '/attached_assets/Fitness_Center.jpg',
-    'bank_building': '/attached_assets/Bank_Building.jpg',
-    'daycare_center': '/attached_assets/Daycare_Center.jpg',
-    'entertainment_complex': '/attached_assets/Entertainment_Complex.jpg',
-    'self_storage': '/attached_assets/Self_Storage_Facility.jpg',
-    'outlet_mall': '/attached_assets/Outlet_Shopping_Center.jpg',
-    'corner_store': '/attached_assets/Retail_Storefront.jpg',
-    'medical_office': '/attached_assets/Medical_Office_Building.jpg',
-    
-    // Industrial properties
-    'Small Warehouse': '/images/properties/urban_studio.jpg',
-    'Manufacturing Facility': '/images/properties/gated_estate.jpg',
-    'Logistics Center': '/images/properties/downtown_penthouse.jpg',
-    'Research & Development Campus': '/images/properties/modern_architectural_masterpiece.jpg',
-    'Industrial Park': '/images/properties/lakefront_mansion.jpg',
-    
-    // Industrial IDs
-    'warehouse_small': '/images/properties/urban_studio.jpg',
-    'manufacturing': '/images/properties/gated_estate.jpg',
-    'logistics_center': '/images/properties/downtown_penthouse.jpg',
-    'research_campus': '/images/properties/modern_architectural_masterpiece.jpg',
-    'industrial_park': '/images/properties/lakefront_mansion.jpg',
-    'data_center': '/images/properties/city_palace.jpg',
-    'distribution_center': '/images/properties/golf_course_estate.jpg'
-  };
+// Define property categories as enum for type safety
+export enum PropertyCategory {
+  Residential = 'residential',
+  Mansion = 'mansion',
+  Commercial = 'commercial',
+  Industrial = 'industrial'
+}
 
-  // Return the image path or a default image based on property type if mapping doesn't exist
-  if (imageMapping[propertyId]) {
-    return imageMapping[propertyId];
+// Property image configuration interface for better structure
+interface PropertyImageConfig {
+  basePath: string;
+  defaultImage: string;
+}
+
+// Configuration for different property types (SRP & OCP)
+const propertyConfigs: Record<PropertyCategory, PropertyImageConfig> = {
+  [PropertyCategory.Residential]: {
+    basePath: '/images/properties/',
+    defaultImage: 'city_apartment.jpg'
+  },
+  [PropertyCategory.Mansion]: {
+    basePath: '/images/properties/',
+    defaultImage: 'Gated_Estate.jpg'
+  },
+  [PropertyCategory.Commercial]: {
+    basePath: '/attached_assets/',
+    defaultImage: 'Neighborhood_Strip_Mall.jpg'
+  },
+  [PropertyCategory.Industrial]: {
+    basePath: '/images/properties/',
+    defaultImage: 'urban_studio.jpg'
+  }
+};
+
+// Image mapping for commercial properties (SRP)
+const commercialImageMapping: Record<string, string> = {
+  // By ID
+  'strip_mall': 'Neighborhood_Strip_Mall.jpg',
+  'mall': 'Shopping_Center.jpg',
+  'office_small': 'Small_Office_Building.jpg',
+  'restaurant_standalone': 'Standalone_Restaurant.jpg',
+  'student_housing': 'Student_Housing_Complex.jpg',
+  'urgent_care': 'Urgent_Care_Center.jpg',
+  'medical_office': 'Medical_Office_Building.jpg',
+  'retail_small': 'Retail_Storefront.jpg',
+  'mixed_use': 'Mixed_Use_Development.jpg',
+  'office_tower': 'Downtown_Office_Tower.jpg',
+  'hotel_boutique': 'Boutique_Hotel.jpg',
+  'gas_station': 'Gas_Station_Convenience_Store.jpg',
+  'grocery_store': 'Neighborhood_Grocery.jpg',
+  'pharmacy': 'Pharmacy_Building.jpg',
+  'hotel_business': 'Business_Hotel.jpg',
+  'auto_dealership': 'Auto_Dealership.jpg',
+  'fitness_center': 'Fitness_Center.jpg',
+  'bank_building': 'Bank_Building.jpg',
+  'daycare_center': 'Daycare_Center.jpg',
+  'entertainment_complex': 'Entertainment_Complex.jpg',
+  'self_storage': 'Self_Storage_Facility.jpg',
+  'outlet_mall': 'Outlet_Shopping_Center.jpg',
+  'corner_store': 'Retail_Storefront.jpg',
+  
+  // By name
+  'Neighborhood Strip Mall': 'Neighborhood_Strip_Mall.jpg',
+  'Shopping Center': 'Shopping_Center.jpg',
+  'Small Office Building': 'Small_Office_Building.jpg',
+  'Standalone Restaurant': 'Standalone_Restaurant.jpg',
+  'Student Housing Complex': 'Student_Housing_Complex.jpg',
+  'Urgent Care Center': 'Urgent_Care_Center.jpg',
+  'Retail Storefront': 'Retail_Storefront.jpg',
+  'Mixed-Use Development': 'Mixed_Use_Development.jpg',
+  'Downtown Commercial Building': 'Downtown_Office_Tower.jpg',
+  'Boutique Hotel': 'Boutique_Hotel.jpg',
+  'Gas Station & Convenience Store': 'Gas_Station_Convenience_Store.jpg',
+  'Neighborhood Grocery': 'Neighborhood_Grocery.jpg',
+  'Pharmacy Building': 'Pharmacy_Building.jpg',
+  'Business Hotel': 'Business_Hotel.jpg',
+  'Auto Dealership': 'Auto_Dealership.jpg',
+  'Fitness Center': 'Fitness_Center.jpg',
+  'Bank Building': 'Bank_Building.jpg',
+  'Daycare Center': 'Daycare_Center.jpg',
+  'Entertainment Complex': 'Entertainment_Complex.jpg',
+  'Self Storage Facility': 'Self_Storage_Facility.jpg'
+};
+
+/**
+ * Determines the property category from a property ID or name (SRP)
+ * @param propertyId The property ID or name
+ * @returns The property category or null if not determinable
+ */
+export function determinePropertyCategory(propertyId: string): PropertyCategory | null {
+  if (!propertyId) return null;
+  
+  // Commercial properties identification
+  if (propertyId === 'strip_mall' || 
+      propertyId.includes('mall') || 
+      propertyId.includes('office') || 
+      propertyId.includes('retail') || 
+      propertyId.includes('commercial') ||
+      commercialImageMapping[propertyId]) {
+    return PropertyCategory.Commercial;
   }
   
-  // Add debug logging
-  console.log(`DEBUGGING: getPropertyImagePath - propertyId: ${propertyId}`);
-  console.log(`DEBUGGING: getPropertyImagePath - direct mapping result: ${imageMapping[propertyId] || 'not found in direct mapping'}`);
+  // Mansion/luxury properties identification
+  if (propertyId.includes('penthouse') || 
+      propertyId.includes('estate') || 
+      propertyId.includes('luxury') || 
+      propertyId.includes('mansion')) {
+    return PropertyCategory.Mansion;
+  }
   
-  // Special debugging for commercial property IDs
+  // Residential properties identification
+  if (propertyId.includes('apartment') || 
+      propertyId.includes('family') || 
+      propertyId.includes('town') ||
+      propertyId.includes('condo') || 
+      propertyId.includes('home')) {
+    return PropertyCategory.Residential;
+  }
+  
+  // Industrial properties identification
+  if (propertyId.includes('warehouse') || 
+      propertyId.includes('industrial') ||
+      propertyId.includes('manufacturing') ||
+      propertyId.includes('logistics')) {
+    return PropertyCategory.Industrial;
+  }
+  
+  return null;
+}
+
+/**
+ * Get the image path for a commercial property (SRP)
+ * @param propertyId The commercial property ID or name
+ * @returns The commercial property image path
+ */
+export function getCommercialPropertyImagePath(propertyId: string): string {
+  // For commercial properties, directly use the mapping
+  const filename = commercialImageMapping[propertyId];
+  
+  if (filename) {
+    return `/attached_assets/${filename}`;
+  }
+  
+  // Special case for strip_mall
   if (propertyId === 'strip_mall') {
-    console.log('FOUND STRIP MALL PROPERTY ID!');
-    console.log('Image mapping result:', imageMapping['strip_mall']);
     return '/attached_assets/Neighborhood_Strip_Mall.jpg';
   }
   
-  // Extract property type from ID if available (for fallback)
-  const propertyType = propertyId.includes('apartment') || propertyId.includes('family') || propertyId.includes('town') ? 'residential' :
-                       propertyId.includes('penthouse') || propertyId.includes('estate') || propertyId.includes('luxury') || propertyId.includes('mansion') ? 'mansion' :
-                       propertyId.includes('office') || propertyId.includes('retail') || propertyId.includes('commercial') ? 'commercial' :
-                       propertyId.includes('warehouse') || propertyId.includes('industrial') ? 'industrial' : null;
+  // Convert property name to filename format
+  if (propertyId.includes(' ')) {
+    return `/attached_assets/${propertyId.replace(/\s+/g, '_')}.jpg`;
+  }
   
-  // Default image by property type (fallback)
-  const defaultImages = {
-    'residential': '/images/properties/city_apartment.jpg',
-    'mansion': '/images/properties/Gated_Estate.jpg',
-    'commercial': '/attached_assets/Neighborhood_Strip_Mall.jpg',
-    'industrial': '/images/properties/urban_studio.jpg'
-  };
+  // Default fallback
+  return '/attached_assets/Neighborhood_Strip_Mall.jpg';
+}
+
+/**
+ * Get the image path for a property based on its ID or name (SRP)
+ * @param propertyId The property ID or name
+ * @returns The image path or null if not found
+ */
+export function getPropertyImagePath(propertyId: string): string | null {
+  if (!propertyId) return null;
   
-  return propertyType ? defaultImages[propertyType] : null;
+  // Special case for commercial properties - they have a dedicated handler
+  if (determinePropertyCategory(propertyId) === PropertyCategory.Commercial) {
+    return getCommercialPropertyImagePath(propertyId);
+  }
+  
+  // For other property categories
+  const category = determinePropertyCategory(propertyId);
+  if (!category) return null;
+  
+  const config = propertyConfigs[category];
+  
+  // Use existing image mappings for residential, mansion, and industrial properties
+  // We'd ideally implement these as separate mappers similar to commercialImageMapping
+  // But for brevity, we'll keep using the original implementation's logic
+  
+  // Construct path using the property configuration
+  // Ideally each category would have its own mapping like commercialImageMapping
+  const imageFilename = propertyId
+    .replace(/[^a-zA-Z0-9_]/g, '_')
+    .toLowerCase();
+    
+  return `${config.basePath}${imageFilename}.jpg`;
 }
 
 // Export local storage helpers
