@@ -4395,7 +4395,8 @@ export const useCharacter = create<CharacterState>()(
             'business-empire-networth-breakdown',
             'business-empire-asset-tracker',
             'business-empire-character',
-            'business-empire-assets'
+            'business-empire-assets',
+            'business-empire-social-network' // Added social network store
           ];
           
           if (typeof window !== 'undefined') {

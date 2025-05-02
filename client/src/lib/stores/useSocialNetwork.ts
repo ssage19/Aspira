@@ -2500,14 +2500,14 @@ export const useSocialNetwork = create<SocialNetworkState>()(
       resetSocialNetwork: () => {
         set({
           connections: [], // Always start with 0 connections
-          events: [],
+          events: [],      // Start with 0 events
           networkingLevel: 10,
           socialCapital: 100,
           lastNetworkingActivity: Date.now()
         });
         
-        // Generate initial events
-        get().generateNewEvents(5);
+        // No longer generating initial events - all events must be found by the player
+        // This makes the social network entirely player-driven
       }
     }),
     {
@@ -2529,10 +2529,11 @@ const initializeSocialNetwork = () => {
   const state = useSocialNetwork.getState();
   
   // If no connections exist, initialize with zero connections
-  // and only generate events (player will find connections themselves)
+  // Player will find both connections and events through gameplay
+  // No longer automatically generating events at startup
   if (state.connections.length === 0) {
-    // Generate initial events
-    state.generateNewEvents(5);
+    // Let the player discover events through gameplay
+    // No initial events will be generated
   }
 };
 
