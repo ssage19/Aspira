@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { toast } from 'sonner';
 import { formatCurrency, getRandomElement } from '../utils';
+import { registerStore } from '../utils/storeRegistry';
 import { useCharacter } from './useCharacter';
 import { useTime } from './useTime';
 import { usePrestige } from './usePrestige';
@@ -2539,5 +2540,12 @@ const initializeSocialNetwork = () => {
 
 // Call the initialization function
 initializeSocialNetwork();
+
+// Register the social network store in the global registry
+// This is critical for other modules to access it without circular dependencies
+registerStore('socialNetwork', useSocialNetwork);
+
+// Log successful registration
+console.log('✅ SocialNetwork Store: Registered in global store registry');
 
 export default useSocialNetwork;
