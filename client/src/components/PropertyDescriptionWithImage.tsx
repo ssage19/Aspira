@@ -1,65 +1,125 @@
 import React from 'react';
-import { getPropertyImagePath, getCommercialPropertyImagePath, determinePropertyCategory, PropertyCategory } from '@/lib/utils';
+import { getPropertyImagePath } from '@/lib/utils';
 
-// Define interfaces for better separation of concerns (ISP)
-interface PropertyDescriptor {
+interface PropertyDescriptionWithImageProps {
+  description: string;
   id: string;
   name: string;
-  description: string;
 }
 
-interface PropertyImageProps {
-  src: string;
-  alt: string;
-  className?: string;
-  onError?: (e: React.SyntheticEvent<HTMLImageElement, Event>) => void;
-}
-
-// Main component props following Interface Segregation Principle
-interface PropertyDescriptionWithImageProps extends PropertyDescriptor {}
-
-// Separate component for property image following SRP
-function PropertyImage({ src, alt, className = "rounded-md w-full h-48 object-cover", onError }: PropertyImageProps) {
-  return (
-    <div className="mb-2">
-      <img 
-        src={src} 
-        alt={alt} 
-        className={className}
-        onError={onError || ((e) => {
-          console.error(`Failed to load image: ${src}`);
-          e.currentTarget.style.display = 'none';
-        })}
-      />
-    </div>
-  );
-}
-
-// Separate component for property description following SRP
-function PropertyDescription({ description }: { description: string }) {
-  return <p className="text-sm">{description}</p>;
-}
-
-// Main component following SRP and OCP
-export function PropertyDescriptionWithImage({ description, id, name }: PropertyDescriptionWithImageProps) {
-  // Get the property category
-  const category = determinePropertyCategory(id);
+export function PropertyDescriptionWithImage({ 
+  description, 
+  id, 
+  name 
+}: PropertyDescriptionWithImageProps) {
+  // Special case handling for commercial properties
+  // Map of commercial property IDs to their image paths
+  const commercialImages: Record<string, string> = {
+    'strip_mall': '/attached_assets/Neighborhood_Strip_Mall.jpg',
+    'mall': '/attached_assets/Shopping_Center.jpg',
+    'office_small': '/attached_assets/Small_Office_Building.jpg',
+    'restaurant_standalone': '/attached_assets/Standalone_Restaurant.jpg',
+    'student_housing': '/attached_assets/Student_Housing_Complex.jpg',
+    'urgent_care': '/attached_assets/Urgent_Care_Center.jpg',
+    'medical_office': '/attached_assets/Medical_Office_Building.jpg'
+  };
   
-  // Get the appropriate image path based on property category
-  let imagePath: string | null = null;
+  // First, check if this is a commercial property
+  if (id === 'strip_mall' || id.includes('commercial') || id.includes('retail') || 
+      id.includes('office') || id.includes('mall')) {
+    console.log(`PropertyDescriptionWithImage - COMMERCIAL PROPERTY DETECTED: ${id}`);
+    
+    // Use direct path for specific commercial properties
+    const imagePath = commercialImages[id] || `/attached_assets/${name.replace(/\s+/g, '_')}.jpg`;
+    console.log(`PropertyDescriptionWithImage - Using direct path for commercial: ${imagePath}`);
+    
+    // Force image to render with explicit URL for commercial properties
+    return (
+      <div className="space-y-3">
+        <div className="mb-2">
+          {id === 'strip_mall' && (
+            <img 
+              src="/attached_assets/Neighborhood_Strip_Mall.jpg" 
+              alt={name} 
+              className="rounded-md w-full h-48 object-cover"
+            />
+          )}
+          {id === 'mall' && (
+            <img 
+              src="/attached_assets/Shopping_Center.jpg" 
+              alt={name} 
+              className="rounded-md w-full h-48 object-cover"
+            />
+          )}
+          {id === 'office_small' && (
+            <img 
+              src="/attached_assets/Small_Office_Building.jpg" 
+              alt={name} 
+              className="rounded-md w-full h-48 object-cover"
+            />
+          )}
+          {id === 'restaurant_standalone' && (
+            <img 
+              src="/attached_assets/Standalone_Restaurant.jpg" 
+              alt={name} 
+              className="rounded-md w-full h-48 object-cover"
+            />
+          )}
+          {id !== 'strip_mall' && id !== 'mall' && id !== 'office_small' && id !== 'restaurant_standalone' && (
+            <img 
+              src={imagePath}
+              alt={name} 
+              className="rounded-md w-full h-48 object-cover"
+              onError={(e) => {
+                console.error(`Failed to load commercial image: ${imagePath}`);
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          )}
+        </div>
+        <p className="text-sm">{description}</p>
+      </div>
+    );
+  }
+  // Get property image path with detailed logging
+  console.log(`PropertyDescriptionWithImage - Finding image for property - ID: ${id}, Name: ${name}`);
+  const imagePathFromId = getPropertyImagePath(id);
+  console.log(`PropertyDescriptionWithImage - Image path from ID: ${imagePathFromId}`);
+  const imagePathFromName = getPropertyImagePath(name);
+  console.log(`PropertyDescriptionWithImage - Image path from Name: ${imagePathFromName}`);
   
-  if (category === PropertyCategory.Commercial) {
-    // Commercial properties use specialized image handling
-    imagePath = getCommercialPropertyImagePath(id);
-  } else {
-    // All other property types use the standard image path resolution
-    imagePath = getPropertyImagePath(id) || getPropertyImagePath(name);
+  // Try both ID and name for maximum compatibility
+  const imagePath = imagePathFromId || imagePathFromName;
+  console.log(`PropertyDescriptionWithImage - FINAL Image Path selected: ${imagePath}`);
+  
+  // Check if the image exists
+  const checkImageExists = (url: string) => {
+    const img = new Image();
+    img.onload = () => console.log(`Image exists: ${url}`);
+    img.onerror = () => console.log(`Image does NOT exist: ${url}`);
+    img.src = url;
+  };
+  
+  if (imagePath) {
+    checkImageExists(imagePath);
   }
   
   return (
     <div className="space-y-3">
-      {imagePath && <PropertyImage src={imagePath} alt={name} />}
-      <PropertyDescription description={description} />
+      {imagePath && (
+        <div className="mb-2">
+          <img 
+            src={imagePath} 
+            alt={name} 
+            className="rounded-md w-full h-48 object-cover"
+            onError={(e) => {
+              console.error(`Failed to load image: ${imagePath}`);
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+        </div>
+      )}
+      <p className="text-sm">{description}</p>
     </div>
   );
 }
